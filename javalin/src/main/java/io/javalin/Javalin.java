@@ -7,8 +7,6 @@
 
 package io.javalin;
 
-import io.javalin.apibuilder.ApiBuilder;
-import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.config.ConfigurableInstance;
 import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
@@ -41,22 +39,6 @@ public class Javalin implements AutoCloseable, ConfigurableInstance, JavalinDefa
         this.javalinServlet = new JavalinServlet(cfg);
         this.javalinJettyServlet = createLazy(() -> new JavalinJettyServlet(cfg, javalinServlet));
         this.jettyServer = createLazy(() -> new JettyServer(this.cfg, javalinJettyServlet.getValue()));
-    }
-
-    /**
-     * Creates a temporary static instance in the scope of the endpointGroup.
-     * Allows you to call get(handler), post(handler), etc. without using the instance prefix.
-     * See: [Handler groups in documentation](https://javalin.io/documentation.handler-groups)
-     * @see io.javalin.apibuilder.ApiBuilder
-     */
-    public Javalin routes(EndpointGroup endpointGroup) {
-        ApiBuilder.setStaticJavalin(this);
-        try {
-            endpointGroup.addEndpoints();
-        } finally {
-            ApiBuilder.clearStaticJavalin();
-        }
-        return this;
     }
 
     @NotNull

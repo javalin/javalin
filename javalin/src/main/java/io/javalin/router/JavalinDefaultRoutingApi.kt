@@ -28,7 +28,7 @@ import java.util.function.Consumer
 class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRoutingApi<JavalinDefaultRouting, JavalinDefaultRouting> {
 
     companion object {
-        @JvmStatic
+        @JvmField
         val Default: RouterFactory<JavalinDefaultRouting, JavalinDefaultRouting> = object : RouterFactory<JavalinDefaultRouting, JavalinDefaultRouting> {
             override fun create(cfg: JavalinConfig, internalRouter: InternalRouter<*>, setup: Consumer<JavalinDefaultRouting>): JavalinDefaultRouting {
                 val javalinRouter = JavalinDefaultRouting(cfg)

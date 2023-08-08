@@ -12,7 +12,6 @@ import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.Handler;
 import io.javalin.router.RouterFactory;
 import io.javalin.http.sse.SseClient;
-import io.javalin.security.AccessManager;
 import io.javalin.security.RouteRole;
 import io.javalin.websocket.WsConfig;
 import java.util.ArrayDeque;
@@ -23,8 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Static methods for route declarations in Javalin
- *
- * @see Javalin#routes(EndpointGroup)
  */
 public class ApiBuilder {
 
@@ -68,7 +65,6 @@ public class ApiBuilder {
      * Prefixes all handlers defined in its scope with the specified path.
      * All paths are normalized, so you can call both
      * path("/path") or path("path") depending on your preference
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
         path = path.startsWith("/") ? path : "/" + path;
@@ -98,7 +94,7 @@ public class ApiBuilder {
 
     /**
      * Adds a GET request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder).
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -108,9 +104,9 @@ public class ApiBuilder {
 
     /**
      * Adds a GET request handler with the given roles for the specified path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -119,7 +115,7 @@ public class ApiBuilder {
 
     /**
      * Adds a GET request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -129,9 +125,9 @@ public class ApiBuilder {
 
     /**
      * Adds a GET request handler with the given roles for the current path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -140,7 +136,7 @@ public class ApiBuilder {
 
     /**
      * Adds a POST request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -150,9 +146,9 @@ public class ApiBuilder {
 
     /**
      * Adds a POST request handler with the given roles for the specified path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -161,7 +157,7 @@ public class ApiBuilder {
 
     /**
      * Adds a POST request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -171,9 +167,9 @@ public class ApiBuilder {
 
     /**
      * Adds a POST request handler with the given roles for the current path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -182,7 +178,7 @@ public class ApiBuilder {
 
     /**
      * Adds a PUT request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -192,9 +188,9 @@ public class ApiBuilder {
 
     /**
      * Adds a PUT request handler with the given roles for the specified path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -203,7 +199,7 @@ public class ApiBuilder {
 
     /**
      * Adds a PUT request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -213,9 +209,9 @@ public class ApiBuilder {
 
     /**
      * Adds a PUT request handler with the given roles for the current path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -224,7 +220,7 @@ public class ApiBuilder {
 
     /**
      * Adds a PATCH request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -234,9 +230,9 @@ public class ApiBuilder {
 
     /**
      * Adds a PATCH request handler with the given roles for the specified path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -245,7 +241,7 @@ public class ApiBuilder {
 
     /**
      * Adds a PATCH request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -255,9 +251,9 @@ public class ApiBuilder {
 
     /**
      * Adds a PATCH request handler with the given roles for the current path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -266,7 +262,7 @@ public class ApiBuilder {
 
     /**
      * Adds a DELETE request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -276,9 +272,9 @@ public class ApiBuilder {
 
     /**
      * Adds a DELETE request handler with the given roles for the specified path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -287,7 +283,7 @@ public class ApiBuilder {
 
     /**
      * Adds a DELETE request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -297,9 +293,9 @@ public class ApiBuilder {
 
     /**
      * Adds a DELETE request handler with the given roles for the current path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -308,7 +304,7 @@ public class ApiBuilder {
 
     /**
      * Adds a HEAD request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -318,9 +314,9 @@ public class ApiBuilder {
 
     /**
      * Adds a HEAD request handler with the given roles for the specified path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -329,7 +325,7 @@ public class ApiBuilder {
 
     /**
      * Adds a HEAD request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -339,9 +335,9 @@ public class ApiBuilder {
 
     /**
      * Adds a HEAD request handler with the given roles for the current path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
-     * @see AccessManager
+     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -354,7 +350,7 @@ public class ApiBuilder {
 
     /**
      * Adds a BEFORE request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
@@ -364,7 +360,7 @@ public class ApiBuilder {
 
     /**
      * Adds a BEFORE request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -374,7 +370,7 @@ public class ApiBuilder {
 
     /**
      * Adds an AFTER request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
@@ -384,7 +380,7 @@ public class ApiBuilder {
 
     /**
      * Adds a AFTER request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -398,7 +394,7 @@ public class ApiBuilder {
 
     /**
      * Adds a WebSocket handler on the specified path.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
@@ -408,7 +404,7 @@ public class ApiBuilder {
 
     /**
      * Adds a WebSocket handler with the given roles for the specified path.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
@@ -418,7 +414,7 @@ public class ApiBuilder {
 
     /**
      * Adds a WebSocket handler on the current path.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
@@ -428,7 +424,7 @@ public class ApiBuilder {
 
     /**
      * Adds a WebSocket handler with the given roles for the current path.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
@@ -438,7 +434,7 @@ public class ApiBuilder {
 
     /**
      * Adds a WebSocket before handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      */
     public void wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
         staticInstance().wsBefore(prefixPath(path), wsConfig);
@@ -446,7 +442,7 @@ public class ApiBuilder {
 
     /**
      * Adds a WebSocket before handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      */
     public void wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
         staticInstance().wsBefore(prefixPath("*"), wsConfig);
@@ -454,7 +450,7 @@ public class ApiBuilder {
 
     /**
      * Adds a WebSocket after handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      */
     public void wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
         staticInstance().wsAfter(prefixPath(path), wsConfig);
@@ -462,7 +458,7 @@ public class ApiBuilder {
 
     /**
      * Adds a WebSocket after handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      */
     public void wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
         staticInstance().wsAfter(prefixPath("*"), wsConfig);
@@ -494,7 +490,7 @@ public class ApiBuilder {
 
     /**
      * Adds a CrudHandler handler to the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -504,7 +500,7 @@ public class ApiBuilder {
 
     /**
      * Adds a CrudHandler handler to the current path with the given roles to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -514,7 +510,7 @@ public class ApiBuilder {
 
     /**
      * Adds a CrudHandler handler to the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see CrudHandler
      */
@@ -524,7 +520,7 @@ public class ApiBuilder {
 
     /**
      * Adds a CrudHandler handler to the specified path with the given roles to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     * The method can only be called inside a JavalinConfig.routing(ApiBuilder)}.
      *
      * @see CrudHandler
      */

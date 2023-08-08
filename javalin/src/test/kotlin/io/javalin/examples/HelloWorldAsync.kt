@@ -7,6 +7,7 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLogging
 import java.util.concurrent.CompletableFuture
@@ -14,23 +15,26 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 fun main() {
-    val app = Javalin.create { it.registerPlugin(DevLogging) }.start(7070)
-    val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
+    Javalin.create {
+        val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 
-    app.routes {
-        get("/result") { ctx ->
-            ctx.future {
-                val future = CompletableFuture<String>()
-                scheduledExecutor.schedule({ future.complete("Hello World!") }, 10, TimeUnit.MILLISECONDS)
-                future.thenApply { ctx.result(it) }
+        it.routing(ApiBuilder) {
+            get("/result") { ctx ->
+                ctx.future {
+                    val future = CompletableFuture<String>()
+                    scheduledExecutor.schedule({ future.complete("Hello World!") }, 10, TimeUnit.MILLISECONDS)
+                    future.thenApply { ctx.result(it) }
+                }
+            }
+            get("/json") { ctx ->
+                ctx.future {
+                    val future = CompletableFuture<List<String>>()
+                    scheduledExecutor.schedule({ future.complete(listOf("a", "b", "c")) }, 10, TimeUnit.MILLISECONDS)
+                    future.thenApply { ctx.json(it) }
+                }
             }
         }
-        get("/json") { ctx ->
-            ctx.future {
-                val future = CompletableFuture<List<String>>()
-                scheduledExecutor.schedule({ future.complete(listOf("a", "b", "c")) }, 10, TimeUnit.MILLISECONDS)
-                future.thenApply { ctx.json(it) }
-            }
-        }
-    }
+
+        it.registerPlugin(DevLogging)
+    }.start(7070)
 }

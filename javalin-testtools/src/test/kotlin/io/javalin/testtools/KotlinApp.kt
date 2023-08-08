@@ -1,7 +1,8 @@
 package io.javalin.testtools
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder
+import io.javalin.apibuilder.ApiBuilder.ApiBuilder
+import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.http.Context
 
 // We're using objects for simplicity's sake, but you could
@@ -9,8 +10,9 @@ import io.javalin.http.Context
 object KotlinApp {
     var app = Javalin.create { javalin ->
         javalin.router.ignoreTrailingSlashes = false
-    }.routes {
-        ApiBuilder.get("/hello", HelloController::hello)
+        javalin.routing(ApiBuilder) {
+            get("/hello", HelloController::hello)
+        }
     }
 
     internal object HelloController {

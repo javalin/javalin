@@ -44,7 +44,7 @@ class TestRouting {
 
     @Test
     fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.router.routing(Default) {
+        cfg.routing(Default) {
             it.get("/hello") { it.result("Hello World") }
         }
     }) { _, http ->
@@ -53,7 +53,7 @@ class TestRouting {
 
     @Test
     fun `api builder can be used as custom router`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.router.routing(ApiBuilder) {
+        cfg.routing(ApiBuilder) {
             get("/hello") { it.result("Hello World") }
         }
     }) { _, http ->
@@ -237,15 +237,18 @@ class TestRouting {
     }
 
     @Test
-    fun `automatic slash prefixing works`() = TestUtil.test { app, http ->
-        app.routes {
-            path("test") {
-                path("{id}") {
-                    get { it.result(it.pathParam("id")) }
+    fun `automatic slash prefixing works`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                path("test") {
+                    path("{id}") {
+                        get { it.result(it.pathParam("id")) }
+                    }
+                    get { it.result("test") }
                 }
-                get { it.result("test") }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/test/path-param/")).isEqualTo("path-param")
         assertThat(http.getBody("/test/")).isEqualTo("test")
     }
@@ -271,14 +274,17 @@ class TestRouting {
     }
 
     @Test
-    fun `sub-path wildcard works for path-params`() = TestUtil.test { app, http ->
-        app.routes {
-            after("/partners/{pp}*") { it.result("${it.result()} - after") }
-            path("/partners/{pp}") {
-                get { it.result("root") }
-                get("/api") { it.result("api") }
+    fun `sub-path wildcard works for path-params`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                after("/partners/{pp}*") { it.result("${it.result()} - after") }
+                path("/partners/{pp}") {
+                    get { it.result("root") }
+                    get("/api") { it.result("api") }
+                }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/partners/microsoft")).isEqualTo("root - after")
         assertThat(http.getBody("/partners/microsoft/api")).isEqualTo("api - after")
     }
@@ -317,12 +323,12 @@ class TestRouting {
 
     @Test
     fun `root path works with ApiBuilder and ignoreTrailingSlashes set to false`() = TestUtil.test(Javalin.create {
-        it.router.ignoreTrailingSlashes = false
-    }) { app, http ->
-        app.routes {
+        it.routing(ApiBuilder) {
             get("/") { it.result("root") }
             get("/home") { it.result("home") }
         }
+        it.router.ignoreTrailingSlashes = false
+    }) { app, http ->
         assertThat(http.getBody("/")).isEqualTo("root")
         assertThat(http.getBody("/home")).isEqualTo("home")
     }

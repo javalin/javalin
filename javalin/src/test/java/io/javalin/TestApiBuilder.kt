@@ -8,6 +8,7 @@
 package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder
+import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.before
 import io.javalin.apibuilder.ApiBuilder.crud
@@ -35,33 +36,39 @@ import org.junit.jupiter.api.Test
 class TestApiBuilder {
 
     @Test
-    fun `ApiBuilder prefixes paths with slash`() = TestUtil.test { app, http ->
-        app.routes {
-            path("level-1") {
-                get("hello", simpleAnswer("Hello from level 1"))
+    fun `ApiBuilder prefixes paths with slash`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                path("level-1") {
+                    get("hello", simpleAnswer("Hello from level 1"))
+                }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/level-1/hello")).isEqualTo("Hello from level 1")
     }
 
     @Test
-    fun `pathless routes are handled properly`() = TestUtil.test { app, http ->
-        app.routes {
-            path("api") {
-                get(okHandler)
-                post(okHandler)
-                put(okHandler)
-                delete(okHandler)
-                patch(okHandler)
-                path("user") {
+    fun `pathless routes are handled properly`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                path("api") {
                     get(okHandler)
                     post(okHandler)
                     put(okHandler)
                     delete(okHandler)
                     patch(okHandler)
+                    path("user") {
+                        get(okHandler)
+                        post(okHandler)
+                        put(okHandler)
+                        delete(okHandler)
+                        patch(okHandler)
+                    }
                 }
             }
         }
+    ) { app, http ->
         val httpMethods = arrayOf(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH)
         for (httpMethod in httpMethods) {
             assertThat(http.call(httpMethod, "/api").httpCode()).isEqualTo(OK)
@@ -70,19 +77,22 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `multiple nested path-method calls works`() = TestUtil.test { app, http ->
-        app.routes {
-            get("/hello", simpleAnswer("Hello from level 0"))
-            path("/level-1") {
-                get("/hello", simpleAnswer("Hello from level 1"))
-                get("/hello-2", simpleAnswer("Hello again from level 1"))
-                post("/create-1", simpleAnswer("Created something at level 1"))
-                path("/level-2") {
-                    get("/hello", simpleAnswer("Hello from level 2"))
-                    path("/level-3") { get("/hello", simpleAnswer("Hello from level 3")) }
+    fun `multiple nested path-method calls works`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                get("/hello", simpleAnswer("Hello from level 0"))
+                path("/level-1") {
+                    get("/hello", simpleAnswer("Hello from level 1"))
+                    get("/hello-2", simpleAnswer("Hello again from level 1"))
+                    post("/create-1", simpleAnswer("Created something at level 1"))
+                    path("/level-2") {
+                        get("/hello", simpleAnswer("Hello from level 2"))
+                        path("/level-3") { get("/hello", simpleAnswer("Hello from level 3")) }
+                    }
                 }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/hello")).isEqualTo("Hello from level 0")
         assertThat(http.getBody("/level-1/hello")).isEqualTo("Hello from level 1")
         assertThat(http.getBody("/level-1/level-2/hello")).isEqualTo("Hello from level 2")
@@ -90,66 +100,81 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `filters work as expected`() = TestUtil.test { app, http ->
-        app.routes {
-            path("level-1") {
-                before { it.result("1") }
-                path("level-2") {
-                    path("level-3") { get("/hello", updateAnswer("Hello")) }
-                    after(updateAnswer("2"))
+    fun `filters work as expected`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                path("level-1") {
+                    before { it.result("1") }
+                    path("level-2") {
+                        path("level-3") { get("/hello", updateAnswer("Hello")) }
+                        after(updateAnswer("2"))
+                    }
                 }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/level-1/level-2/level-3/hello")).isEqualTo("1Hello2")
     }
 
     @Test
-    fun `slashes can be omitted for both path-method and verbs`() = TestUtil.test { app, http ->
-        app.routes {
-            path("level-1") {
-                get { it.result("level-1") }
-                get("hello") { it.result("Hello") }
+    fun `slashes can be omitted for both path-method and verbs`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                path("level-1") {
+                    get { it.result("level-1") }
+                    get("hello") { it.result("Hello") }
+                }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/level-1")).isEqualTo("level-1")
         assertThat(http.getBody("/level-1/hello")).isEqualTo("Hello")
     }
 
     @Test
-    fun `pathless routes do not require a trailing slash`() = TestUtil.test { app, http ->
-        app.routes {
-            path("api") {
-                before { it.result("before") }
-                get(updateAnswer("get"))
-                after(updateAnswer("after"))
+    fun `pathless routes do not require a trailing slash`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                path("api") {
+                    before { it.result("before") }
+                    get(updateAnswer("get"))
+                    after(updateAnswer("after"))
+                }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/api")).isEqualTo("beforegetafter")
         assertThat(http.getBody("/api/")).isEqualTo("beforegetafter")
     }
 
     @Test
-    fun `star routes do not require a trailing slash`() = TestUtil.test { app, http ->
-        app.routes {
-            path("api") {
-                before("*") { it.result("before") }
-                get(updateAnswer("get"))
-                after("*", updateAnswer("after"))
+    fun `star routes do not require a trailing slash`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                path("api") {
+                    before("*") { it.result("before") }
+                    get(updateAnswer("get"))
+                    after("*", updateAnswer("after"))
+                }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/api")).isEqualTo("beforegetafter")
         assertThat(http.getBody("/api/")).isEqualTo("beforegetafter")
     }
 
     @Test
-    fun `slash star routes do require a trailing slash`() = TestUtil.test { app, http ->
-        app.routes {
-            path("api") {
-                before("/*") { it.result("before") }
-                get { it.result((it.result() ?: "") + "get") }
-                after("/*", updateAnswer("after"))
+    fun `slash star routes do require a trailing slash`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                path("api") {
+                    before("/*") { it.result("before") }
+                    get { it.result((it.result() ?: "") + "get") }
+                    after("/*", updateAnswer("after"))
+                }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/api")).isEqualTo("get")
         assertThat(http.getBody("/api/")).isEqualTo("beforegetafter")
     }
@@ -160,34 +185,53 @@ class TestApiBuilder {
     @Test
     fun `ApiBuilder throws if used outside of routes{} call`() = TestUtil.test { _, _ ->
         assertThatExceptionOfType(IllegalStateException::class.java)
-            .isThrownBy { ApiBuilder.get("/") { it.result("") } }
+            .isThrownBy { io.javalin.apibuilder.ApiBuilder.get("/") { it.result("") } }
             .withMessageStartingWith("The static API can only be used within a routes() call.")
     }
 
     @Test
     fun `ApiBuilder works with two services at once`() = TestUtil.runLogLess {
-        val app1 = Javalin.create().start(0)
-        val app2 = Javalin.create().start(0)
-        app1.routes { get("/hello-1") { it.result("Hello-1") } }
-        app2.routes { get("/hello-2") { it.result("Hello-2") } }
-        app2.routes { get("/hello-3") { it.result("Hello-3") } }
-        app1.routes { get("/hello-4") { it.result("Hello-4") } }
-        assertThat(Unirest.get("http://localhost:" + app1.port() + "/hello-1").asString().body).isEqualTo("Hello-1")
-        assertThat(Unirest.get("http://localhost:" + app2.port() + "/hello-2").asString().body).isEqualTo("Hello-2")
-        assertThat(Unirest.get("http://localhost:" + app2.port() + "/hello-3").asString().body).isEqualTo("Hello-3")
-        assertThat(Unirest.get("http://localhost:" + app1.port() + "/hello-4").asString().body).isEqualTo("Hello-4")
-        app1.stop()
-        app2.stop()
+        Javalin
+            .create { cfg1 ->
+                cfg1.routing(ApiBuilder) {
+                    get("/hello-1") { it.result("Hello-1") }
+                }
+
+                Javalin
+                    .create { cfg2 ->
+                        cfg2.routing(ApiBuilder) {
+                            get("/hello-2") { it.result("Hello-2") }
+                            get("/hello-3") { it.result("Hello-3") }
+                        }
+                    }
+                    .start(0)
+                    .use { app2 ->
+                        assertThat(Unirest.get("http://localhost:${app2.port()}/hello-2").asString().body).isEqualTo("Hello-2")
+                        assertThat(Unirest.get("http://localhost:${app2.port()}/hello-3").asString().body).isEqualTo("Hello-3")
+                    }
+
+                cfg1.routing(ApiBuilder) {
+                    get("/hello-4") { it.result("Hello-4") }
+                }
+            }
+            .start(0)
+            .use { app1 ->
+                assertThat(Unirest.get("http://localhost:${app1.port()}/hello-1").asString().body).isEqualTo("Hello-1")
+                assertThat(Unirest.get("http://localhost:${app1.port()}/hello-4").asString().body).isEqualTo("Hello-4")
+            }
     }
 
     @Test
-    fun `CrudHandler works`() = TestUtil.test { app, http ->
-        app.routes {
-            crud("users/{user-id}", UserController())
-            path("/s") {
-                crud("/users/{user-id}", UserController())
+    fun `CrudHandler works`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                crud("users/{user-id}", UserController())
+                path("/s") {
+                    crud("/users/{user-id}", UserController())
+                }
             }
         }
+    ) { app, http ->
         assertThat(Unirest.get(http.origin + "/users").asString().body).isEqualTo("All my users")
         assertThat(Unirest.post(http.origin + "/users").asString().httpCode()).isEqualTo(CREATED)
         assertThat(Unirest.get(http.origin + "/users/myUser").asString().body).isEqualTo("My single user: myUser")
@@ -202,13 +246,16 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `CrudHandler works with long nested resources`() = TestUtil.test { app, http ->
-        app.routes {
-            crud("/foo/bar/users/{user-id}", UserController())
-            path("/foo/baz") {
-                crud("/users/{user-id}", UserController())
+    fun `CrudHandler works with long nested resources`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                crud("/foo/bar/users/{user-id}", UserController())
+                path("/foo/baz") {
+                    crud("/users/{user-id}", UserController())
+                }
             }
         }
+    ) { app, http ->
         assertThat(Unirest.get(http.origin + "/foo/bar/users").asString().body).isEqualTo("All my users")
         assertThat(Unirest.post(http.origin + "/foo/bar/users").asString().httpCode()).isEqualTo(CREATED)
         assertThat(Unirest.get(http.origin + "/foo/bar/users/myUser").asString().body).isEqualTo("My single user: myUser")
@@ -223,12 +270,15 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `pathless CrudHandler works`() = TestUtil.test { app, http ->
-        app.routes {
-            path("/foo/bar/users/{user-id}") {
-                crud(UserController())
+    fun `pathless CrudHandler works`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                path("/foo/bar/users/{user-id}") {
+                    crud(UserController())
+                }
             }
         }
+    ) { app, http ->
         assertThat(Unirest.get(http.origin + "/foo/bar/users").asString().body).isEqualTo("All my users")
         assertThat(Unirest.post(http.origin + "/foo/bar/users").asString().httpCode()).isEqualTo(CREATED)
         assertThat(Unirest.get(http.origin + "/foo/bar/users/myUser").asString().body).isEqualTo("My single user: myUser")
@@ -237,40 +287,55 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `CrudHandler rejects resource in the middle`() = TestUtil.test { app, _ ->
-        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            app.routes {
-                crud("/foo/bar/{user-id}/users", UserController())
+    fun `CrudHandler rejects resource in the middle`() {
+        assertThatExceptionOfType(IllegalArgumentException::class.java)
+            .isThrownBy {
+                Javalin.create {
+                    it.routing(ApiBuilder) {
+                        crud("/foo/bar/{user-id}/users", UserController())
+                    }
+                }
             }
-        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
+            .withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
-    fun `CrudHandler rejects missing resource`() = TestUtil.test { app, _ ->
-        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            app.routes {
-                crud("/foo/bar/users", UserController())
+    fun `CrudHandler rejects missing resource`() {
+        assertThatExceptionOfType(IllegalArgumentException::class.java)
+            .isThrownBy {
+                Javalin.create {
+                    it.routing(ApiBuilder) {
+                        crud("/foo/bar/users", UserController())
+                    }
+                }
             }
-        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
+            .withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
     fun `CrudHandler rejects missing resource base`() = TestUtil.test { app, _ ->
-        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            app.routes {
-                crud("/{user-id}", UserController())
+        assertThatExceptionOfType(IllegalArgumentException::class.java)
+            .isThrownBy {
+                Javalin.create {
+                    it.routing(ApiBuilder) {
+                        crud("/{user-id}", UserController())
+                    }
+                }
             }
-        }.withMessageStartingWith("CrudHandler requires a path like '/resource/{resource-id}'")
+            .withMessageStartingWith("CrudHandler requires a path like '/resource/{resource-id}'")
     }
 
     @Test
-    fun `CrudHandler works with wildcards`() = TestUtil.test { app, http ->
-        app.routes {
-            path("/s") {
-                crud("/*/{user-id}", UserController())
+    fun `CrudHandler works with wildcards`() = TestUtil.test(
+        Javalin.create {
+            it.routing(ApiBuilder) {
+                path("/s") {
+                    crud("/*/{user-id}", UserController())
+                }
+                crud("*/{user-id}", UserController())
             }
-            crud("*/{user-id}", UserController())
         }
+    ) { app, http ->
         assertThat(Unirest.get(http.origin + "/users").asString().body).isEqualTo("All my users")
         assertThat(Unirest.post(http.origin + "/users").asString().httpCode()).isEqualTo(CREATED)
         assertThat(Unirest.get(http.origin + "/users/myUser").asString().body).isEqualTo("My single user: myUser")
