@@ -38,8 +38,8 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
     // Jetty
     @JvmField var server: Server? = null
-    val wsExceptionMapper = WsExceptionMapper()
-    val wsPathMatcher = WsPathMatcher()
+    @JvmField val wsExceptionMapper = WsExceptionMapper()
+    @JvmField val wsPathMatcher = WsPathMatcher()
 
     internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->
         res.status = INTERNAL_SERVER_ERROR.code
