@@ -25,7 +25,7 @@ open class InternalRouter<IR : InternalRouter<IR>>(
     private val wsRouter: WsRouter,
     private val eventManager: EventManager,
     internal val routerConfig: RouterConfig
-) {
+) : RoutingApi<IR, Nothing> {
 
     protected open val pathMatcher = PathMatcher()
     protected open val errorMapper = ErrorMapper()
