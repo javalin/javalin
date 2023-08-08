@@ -20,7 +20,7 @@ class RouterConfig(internal val cfg: JavalinConfig) {
     }
 
     fun <ROUTER : RoutingApi<ROUTER, SETUP>, SETUP> routing(factory: RouterFactory<ROUTER, SETUP>, setup: Consumer<SETUP>): RouterConfig = also {
-        factory.create(cfg.pvt.internalRouter, setup)
+        factory.create(cfg, cfg.pvt.internalRouter, setup)
     }
 
 }

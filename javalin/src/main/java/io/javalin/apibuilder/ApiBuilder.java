@@ -7,8 +7,8 @@
 package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
-import io.javalin.router.StandardJavalinRoutingApi;
-import io.javalin.router.InternalRouter;
+import io.javalin.config.JavalinConfig;
+import io.javalin.router.DefaultRoutingApi;
 import io.javalin.http.Handler;
 import io.javalin.router.RouterFactory;
 import io.javalin.http.sse.SseClient;
@@ -28,15 +28,23 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder {
 
-    public static class ApiBuilderRouter extends StandardJavalinRoutingApi<ApiBuilderRouter, ApiBuilderSetup> {
-        public ApiBuilderRouter(@NotNull InternalRouter<?> internalRouter) {
-            super(internalRouter);
+    public static class ApiBuilderRouter implements DefaultRoutingApi<ApiBuilderRouter, ApiBuilderSetup> {
+        private final JavalinConfig cfg;
+
+        public ApiBuilderRouter(JavalinConfig cfg) {
+            this.cfg = cfg;
+        }
+
+        @NotNull
+        @Override
+        public JavalinConfig getCfg() {
+            return cfg;
         }
     }
     public static class ApiBuilderSetup { }
 
-    public static final RouterFactory<ApiBuilderRouter, ApiBuilderSetup> ApiBuilder = (internalRouter, setup) -> {
-        ApiBuilderRouter apiBuilder = new ApiBuilderRouter(internalRouter);
+    public static final RouterFactory<ApiBuilderRouter, ApiBuilderSetup> ApiBuilder = (cfg, internalRouter, setup) -> {
+        ApiBuilderRouter apiBuilder = new ApiBuilderRouter(cfg);
         try {
             setStaticJavalin(apiBuilder);
             setup.accept(new ApiBuilderSetup());
@@ -45,10 +53,10 @@ public class ApiBuilder {
         }
         return apiBuilder;
     };
-    private static final ThreadLocal<StandardJavalinRoutingApi<?, ?>> staticJavalin = new ThreadLocal<>();
+    private static final ThreadLocal<DefaultRoutingApi<?, ?>> staticJavalin = new ThreadLocal<>();
     private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
-    public static void setStaticJavalin(@NotNull StandardJavalinRoutingApi<?, ?> javalin) {
+    public static void setStaticJavalin(@NotNull DefaultRoutingApi<?, ?> javalin) {
         staticJavalin.set(javalin);
     }
 
@@ -76,8 +84,8 @@ public class ApiBuilder {
         return String.join("", pathDeque.get()) + path;
     }
 
-    public static StandardJavalinRoutingApi<?, ?> staticInstance() {
-        StandardJavalinRoutingApi<?, ?> javalin = staticJavalin.get();
+    public static DefaultRoutingApi<?, ?> staticInstance() {
+        DefaultRoutingApi<?, ?> javalin = staticJavalin.get();
         if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }

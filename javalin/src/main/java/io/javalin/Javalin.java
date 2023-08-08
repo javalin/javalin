@@ -9,10 +9,9 @@ package io.javalin;
 
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
-import io.javalin.router.StandardJavalinRoutingApi;
+import io.javalin.router.DefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
-import io.javalin.config.RouterConfig;
 import io.javalin.http.Context;
 import io.javalin.http.servlet.JavalinServlet;
 import io.javalin.jetty.JavalinJettyServlet;
@@ -25,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import static io.javalin.util.Util.createLazy;
 
 @SuppressWarnings("unchecked")
-public class Javalin extends StandardJavalinRoutingApi<Javalin, Javalin> implements AutoCloseable {
+public class Javalin implements DefaultRoutingApi<Javalin, Javalin>, AutoCloseable {
 
     /**
      * Do not use this field unless you know what you're doing.
@@ -37,7 +36,6 @@ public class Javalin extends StandardJavalinRoutingApi<Javalin, Javalin> impleme
     protected final Lazy<JettyServer> jettyServer;
 
     protected Javalin(JavalinConfig config) {
-        super(config.pvt.internalRouter);
         this.cfg = config;
         this.javalinServlet = new JavalinServlet(cfg);
         this.javalinJettyServlet = createLazy(() -> new JavalinJettyServlet(cfg, javalinServlet));
@@ -60,9 +58,10 @@ public class Javalin extends StandardJavalinRoutingApi<Javalin, Javalin> impleme
         return this;
     }
 
+    @NotNull
     @Override
-    protected @NotNull RouterConfig routingConfig() {
-        return cfg.router;
+    public JavalinConfig getCfg() {
+        return cfg;
     }
 
     public JettyServer jettyServer() {
