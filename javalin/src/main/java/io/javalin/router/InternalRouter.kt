@@ -54,14 +54,14 @@ open class InternalRouter(
     /**
      * Checks if the instance has a handler for the specified handlerType and path.
      */
-    fun hasHandlerEntry(handlerType: HandlerType, requestUri: String): Boolean =
+    open fun hasHandlerEntry(handlerType: HandlerType, requestUri: String): Boolean =
         pathMatcher.hasEntries(handlerType, requestUri)
 
     /**
      * Finds all matching handlers for the specified handlerType and path.
      * @return a handler for the specified handlerType and path, or null if no handler is found
      */
-    fun findHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<HandlerEntry> =
+    open fun findHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<HandlerEntry> =
         pathMatcher.findEntries(handlerType, requestUri)
 
     /**
@@ -76,7 +76,7 @@ open class InternalRouter(
     /**
      * Handles an error by looking up the correct error mapper and executing it.
      */
-    fun handleError(statusCode: Int, ctx: Context) =
+    open fun handleError(statusCode: Int, ctx: Context) =
         errorMapper.handle(statusCode, ctx)
 
     /**
@@ -88,10 +88,16 @@ open class InternalRouter(
         exceptionMapper.handlers[exceptionClass] = exceptionHandler as ExceptionHandler<Exception>
     }
 
-    fun handleException(ctx: Context, throwable: Throwable) =
+    /**
+     * Handles an exception by looking up the correct exception mapper and executing it.
+     */
+    open fun handleException(ctx: Context, throwable: Throwable) =
         exceptionMapper.handle(ctx, throwable)
 
-    fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? =
+    /**
+     * Handles an unexpected throwable by looking up the correct exception mapper and executing it.
+     */
+    open fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? =
         exceptionMapper.handleUnexpectedThrowable(res, throwable)
 
     /**
