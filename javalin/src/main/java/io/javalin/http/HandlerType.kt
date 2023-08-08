@@ -6,21 +6,28 @@
 
 package io.javalin.http
 
-enum class HandlerType {
+enum class HandlerType(val isHttpMethod: Boolean = true) {
 
-    GET, POST, PUT, PATCH, DELETE, HEAD, TRACE, CONNECT, OPTIONS, BEFORE, AFTER, INVALID;
-
-    fun isHttpMethod() = when (this) {
-        GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH -> true
-        else -> false
-    }
+    GET,
+    POST,
+    PUT,
+    PATCH,
+    DELETE,
+    HEAD,
+    TRACE,
+    CONNECT,
+    OPTIONS,
+    BEFORE(isHttpMethod = false),
+    BEFORE_MATCHED(isHttpMethod = false),
+    AFTER_MATCHED(isHttpMethod = false),
+    AFTER(isHttpMethod = false),
+    INVALID(isHttpMethod = false);
 
     companion object {
 
         private val methodMap = values().associateBy { it.toString() }
 
-        fun findByName(name: String): HandlerType =
-            methodMap[name.uppercase()] ?: INVALID
+        fun findByName(name: String): HandlerType = methodMap[name.uppercase()] ?: INVALID
 
     }
 

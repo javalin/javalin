@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.function.Supplier
+import java.util.stream.Stream
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 
@@ -113,6 +114,14 @@ object Util {
             superclass = superclass.superclass
         }
         return null
+    }
+
+    fun <T : Any> Stream<T>.firstOrNull(): T? = findFirst().orElse(null)
+
+    inline fun <T : Any> Stream<T>.firstOrNull(body: (T) -> Unit): T? {
+        val value = firstOrNull()
+        if (value != null) body(value)
+        return value
     }
 
 }

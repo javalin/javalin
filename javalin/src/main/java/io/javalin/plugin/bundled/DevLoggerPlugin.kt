@@ -11,6 +11,7 @@ import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import java.util.*
+import java.util.stream.Stream
 
 internal open class DevLoggingPlugin : JavalinPlugin {
 
@@ -38,9 +39,12 @@ internal open class DevLoggingPlugin : JavalinPlugin {
 fun requestDevLogger(matcher: PathMatcher, ctx: Context, time: Float) = try {
     val requestUri = ctx.path()
     with(ctx) {
-        val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) +
-            matcher.findEntries(ctx.method(), requestUri) +
-            matcher.findEntries(HandlerType.AFTER, requestUri))
+        val allMatching = Stream.of(
+                matcher.findEntries(HandlerType.BEFORE, requestUri),
+                matcher.findEntries(ctx.method(), requestUri),
+                matcher.findEntries(HandlerType.AFTER, requestUri)
+            )
+            .flatMap { it }
             .map { it.type.name + "=" + it.path }
         val resHeaders = res().headerNames.asSequence().map { it to res().getHeader(it) }.toMap()
         JavalinLogger.info(
