@@ -9,7 +9,7 @@ package io.javalin;
 
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
-import io.javalin.config.DefaultJavalinRouter;
+import io.javalin.http.router.AbstractJavalinRouter;
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
 import io.javalin.config.RoutingConfig;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import static io.javalin.util.Util.createLazy;
 
 @SuppressWarnings("unchecked")
-public class Javalin extends DefaultJavalinRouter<Javalin> implements AutoCloseable {
+public class Javalin extends AbstractJavalinRouter<Javalin, Javalin> implements AutoCloseable {
 
     /**
      * Do not use this field unless you know what you're doing.
@@ -37,7 +37,7 @@ public class Javalin extends DefaultJavalinRouter<Javalin> implements AutoClosea
     protected final Lazy<JettyServer> jettyServer;
 
     protected Javalin(JavalinConfig config) {
-        super();
+        super(config.pvt.internalRouter);
         this.cfg = config;
         this.javalinServlet = new JavalinServlet(cfg);
         this.javalinJettyServlet = createLazy(() -> new JavalinJettyServlet(cfg, javalinServlet));
@@ -47,7 +47,7 @@ public class Javalin extends DefaultJavalinRouter<Javalin> implements AutoClosea
     /**
      * Creates a temporary static instance in the scope of the endpointGroup.
      * Allows you to call get(handler), post(handler), etc. without using the instance prefix.
-     * See [Handler groups in documentation](https://javalin.io/documentation.handler-groups)
+     * See: [Handler groups in documentation](https://javalin.io/documentation.handler-groups)
      * @see io.javalin.apibuilder.ApiBuilder
      */
     public Javalin routes(EndpointGroup endpointGroup) {

@@ -5,13 +5,12 @@ import io.javalin.event.EventManager
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.RequestLogger
 import io.javalin.http.SinglePageHandler
+import io.javalin.http.router.InternalRouter
 import io.javalin.http.servlet.DefaultTasks
 import io.javalin.http.servlet.ErrorMapper
 import io.javalin.http.servlet.ExceptionMapper
 import io.javalin.http.servlet.JavaLangErrorHandler
 import io.javalin.http.staticfiles.ResourceHandler
-import io.javalin.jetty.JavalinJettyServlet
-import io.javalin.jetty.JettyServer
 import io.javalin.plugin.PluginManager
 import io.javalin.routing.PathMatcher
 import io.javalin.security.AccessManager
@@ -27,6 +26,7 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField val exceptionMapper = ExceptionMapper(this)
     @JvmField val errorMapper = ErrorMapper()
     @JvmField val eventManager = EventManager()
+    @JvmField var internalRouter = InternalRouter(cfg)
     @JvmField var pluginManager = PluginManager()
     @JvmField var appAttributes: MutableMap<String, Any> = HashMap()
     @JvmField var requestLogger: RequestLogger? = null
@@ -46,8 +46,9 @@ class PrivateConfig(val cfg: JavalinConfig) {
         JavalinLogger.error("Fatal error occurred while servicing http-request", error)
     }
 
-    fun javaLangErrorHandler(handler: JavaLangErrorHandler): PrivateConfig =
-        also { this.javaLangErrorHandler = handler }
+    fun javaLangErrorHandler(handler: JavaLangErrorHandler): PrivateConfig = also {
+        this.javaLangErrorHandler = handler
+    }
 
 }
 // @formatter:on
