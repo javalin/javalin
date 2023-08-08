@@ -16,14 +16,18 @@ class ErrorMapper {
 
     private val errorHandlers = mutableSetOf<MapperEntry>()
 
-    fun addHandler(statusCode: Int, contentType: String, handler: Handler) =
+    fun addHandler(statusCode: Int, contentType: String, handler: Handler) {
         errorHandlers.add(MapperEntry(statusCode, contentType, handler))
-
-    fun handle(statusCode: Int, ctx: Context) = errorHandlers.filter { it.statusCode == statusCode }.forEach {
-        val contentTypeMatches by lazy { ctx.header(Header.ACCEPT)?.contains(it.contentType, ignoreCase = true) == true }
-        if (it.contentType == "*" || contentTypeMatches) {
-            it.handler.handle(ctx)
-        }
     }
+
+    fun handle(statusCode: Int, ctx: Context) {
+        errorHandlers.asSequence()
+            .filter { it.statusCode == statusCode }
+            .filter { it.contentType == "*" || ctx.contentTypeMatches(it.contentType) }
+            .forEach { it.handler.handle(ctx) }
+    }
+
+    private fun Context.contentTypeMatches(contentType: String): Boolean =
+        header(Header.ACCEPT)?.contains(contentType, ignoreCase = true) == true
 
 }

@@ -24,12 +24,12 @@ import io.javalin.websocket.WsHandlerType.WS_AFTER
 import io.javalin.websocket.WsHandlerType.WS_BEFORE
 import java.util.function.Consumer
 
-class JavalinRouter(internalRouter: InternalRouter) : AbstractJavalinRouter<JavalinRouter, JavalinRouter>(internalRouter) {
+class JavalinRouter(internalRouter: InternalRouter<*>) : AbstractJavalinRouter<JavalinRouter, JavalinRouter>(internalRouter) {
 
     companion object {
         @JvmStatic
         val JavalinRouter: RouterFactory<JavalinRouter, JavalinRouter> = object : RouterFactory<JavalinRouter, JavalinRouter> {
-            override fun create(internalRouter: InternalRouter, setup: Consumer<JavalinRouter>): JavalinRouter {
+            override fun create(internalRouter: InternalRouter<*>, setup: Consumer<JavalinRouter>): JavalinRouter {
                 val javalinRouter = JavalinRouter(internalRouter)
                 setup.accept(javalinRouter)
                 return javalinRouter
@@ -39,7 +39,7 @@ class JavalinRouter(internalRouter: InternalRouter) : AbstractJavalinRouter<Java
 
 }
 
-abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(private val internalRouter: InternalRouter) : Router<ROUTER, SETUP> {
+abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(private val internalRouter: InternalRouter<*>) : Router<ROUTER, SETUP> {
 
     protected open fun routingConfig(): RoutingConfig = internalRouter.routingConfig
 

@@ -33,7 +33,7 @@ internal open class DevLoggingPlugin : JavalinPlugin {
     }
 }
 
-fun requestDevLogger(router: InternalRouter, ctx: Context, time: Float) = try {
+fun requestDevLogger(router: InternalRouter<*>, ctx: Context, time: Float) = try {
     val requestUri = ctx.path()
     with(ctx) {
         val allMatching = Stream.of(

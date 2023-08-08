@@ -25,5 +25,5 @@ interface Router<ROUTER : Router<ROUTER, SETUP>, SETUP> {
 }
 
 interface RouterFactory<ROUTER : Router<ROUTER, SETUP>, SETUP > {
-    fun create(internalRouter: InternalRouter, setup: Consumer<SETUP>): ROUTER
+    fun create(internalRouter: InternalRouter<*>, setup: Consumer<SETUP>): ROUTER
 }

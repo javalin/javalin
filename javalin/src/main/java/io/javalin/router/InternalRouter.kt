@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpServletResponse
 import java.util.function.Consumer
 import java.util.stream.Stream
 
-open class InternalRouter(
+open class InternalRouter<IR : InternalRouter<IR>>(
     private val wsRouter: WsRouter,
     private val eventManager: EventManager,
     internal val routingConfig: RoutingConfig
@@ -38,7 +38,7 @@ open class InternalRouter(
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    open fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): InternalRouter = also {
+    open fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): IR {
         val roleSet = HashSet(roles.asList())
         pathMatcher.add(HandlerEntry(handlerType, path, routingConfig, roleSet, handler))
         eventManager.fireHandlerAddedEvent(
@@ -49,6 +49,7 @@ open class InternalRouter(
                 roles = roleSet
             )
         )
+        return getThis()
     }
 
     /**
@@ -69,29 +70,31 @@ open class InternalRouter(
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      * See: [Error mapping in docs](https://javalin.io/documentation.error-mapping)
      */
-    open fun error(status: Int, contentType: String, handler: Handler): InternalRouter = also {
+    open fun error(status: Int, contentType: String, handler: Handler): IR {
         errorMapper.addHandler(status, contentType, handler)
+        return getThis()
     }
 
     /**
      * Handles an error by looking up the correct error mapper and executing it.
      */
-    open fun handleError(statusCode: Int, ctx: Context) =
+    open fun handleError(statusCode: Int, ctx: Context): Unit =
         errorMapper.handle(statusCode, ctx)
 
     /**
      * Adds an exception mapper to the instance.
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
-    open fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): InternalRouter = also {
+    open fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): IR {
         @Suppress("UNCHECKED_CAST")
         exceptionMapper.handlers[exceptionClass] = exceptionHandler as ExceptionHandler<Exception>
+        return getThis()
     }
 
     /**
      * Handles an exception by looking up the correct exception mapper and executing it.
      */
-    open fun handleException(ctx: Context, throwable: Throwable) =
+    open fun handleException(ctx: Context, throwable: Throwable): Unit =
         exceptionMapper.handle(ctx, throwable)
 
     /**
@@ -104,16 +107,17 @@ open class InternalRouter(
      * Adds a WebSocket exception mapper to the instance.
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
-    open fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): InternalRouter = also {
+    open fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): IR {
         @Suppress("UNCHECKED_CAST")
         wsRouter.wsExceptionMapper.handlers[exceptionClass] = exceptionHandler as WsExceptionHandler<Exception>
+        return getThis()
     }
 
     /**
      * Adds a specific WebSocket handler for the given path to the instance.
      * Requires an access manager to be set on the instance.
      */
-    open fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, vararg roles: RouteRole): InternalRouter = also {
+    open fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, vararg roles: RouteRole): IR {
         val roleSet = HashSet(roles.asList())
         wsRouter.addHandler(handlerType, path, wsConfig, roleSet)
         eventManager.fireWsHandlerAddedEvent(
@@ -124,6 +128,10 @@ open class InternalRouter(
                 roles = roleSet
             )
         )
+        return getThis()
     }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun getThis(): IR = this as IR
 
 }
