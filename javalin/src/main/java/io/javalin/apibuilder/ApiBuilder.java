@@ -7,6 +7,7 @@
 package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
+import io.javalin.http.HandlerType;
 import io.javalin.router.InternalRouter;
 import io.javalin.http.Handler;
 import io.javalin.router.RouterFactory;
@@ -68,7 +69,7 @@ public class ApiBuilder {
         return String.join("", pathDeque.get()) + path;
     }
 
-    public static InternalRouter<?> staticInstance() {
+    public static InternalRouter<?> internalRouter() {
         InternalRouter<?> javalin = staticJavalin.get();
         if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
@@ -87,7 +88,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().get(prefixPath(path), handler);
+        internalRouter().addHandler(HandlerType.GET, prefixPath(path), handler);
     }
 
     /**
@@ -98,7 +99,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().get(prefixPath(path), handler, roles);
+        internalRouter().get(prefixPath(path), handler, roles);
     }
 
     /**
@@ -108,7 +109,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull Handler handler) {
-        staticInstance().get(prefixPath(""), handler);
+        internalRouter().get(prefixPath(""), handler);
     }
 
     /**
@@ -119,7 +120,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().get(prefixPath(""), handler, roles);
+        internalRouter().get(prefixPath(""), handler, roles);
     }
 
     /**
@@ -129,7 +130,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().post(prefixPath(path), handler);
+        internalRouter().post(prefixPath(path), handler);
     }
 
     /**
@@ -140,7 +141,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().post(prefixPath(path), handler, roles);
+        internalRouter().post(prefixPath(path), handler, roles);
     }
 
     /**
@@ -150,7 +151,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull Handler handler) {
-        staticInstance().post(prefixPath(""), handler);
+        internalRouter().post(prefixPath(""), handler);
     }
 
     /**
@@ -161,7 +162,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().post(prefixPath(""), handler, roles);
+        internalRouter().post(prefixPath(""), handler, roles);
     }
 
     /**
@@ -171,7 +172,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().put(prefixPath(path), handler);
+        internalRouter().put(prefixPath(path), handler);
     }
 
     /**
@@ -182,7 +183,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().put(prefixPath(path), handler, roles);
+        internalRouter().put(prefixPath(path), handler, roles);
     }
 
     /**
@@ -192,7 +193,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull Handler handler) {
-        staticInstance().put(prefixPath(""), handler);
+        internalRouter().put(prefixPath(""), handler);
     }
 
     /**
@@ -203,7 +204,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().put(prefixPath(""), handler, roles);
+        internalRouter().put(prefixPath(""), handler, roles);
     }
 
     /**
@@ -213,7 +214,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().patch(prefixPath(path), handler);
+        internalRouter().patch(prefixPath(path), handler);
     }
 
     /**
@@ -224,7 +225,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().patch(prefixPath(path), handler, roles);
+        internalRouter().patch(prefixPath(path), handler, roles);
     }
 
     /**
@@ -234,7 +235,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull Handler handler) {
-        staticInstance().patch(prefixPath(""), handler);
+        internalRouter().patch(prefixPath(""), handler);
     }
 
     /**
@@ -245,7 +246,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().patch(prefixPath(""), handler, roles);
+        internalRouter().patch(prefixPath(""), handler, roles);
     }
 
     /**
@@ -255,7 +256,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().delete(prefixPath(path), handler);
+        internalRouter().delete(prefixPath(path), handler);
     }
 
     /**
@@ -266,7 +267,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().delete(prefixPath(path), handler, roles);
+        internalRouter().delete(prefixPath(path), handler, roles);
     }
 
     /**
@@ -276,7 +277,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull Handler handler) {
-        staticInstance().delete(prefixPath(""), handler);
+        internalRouter().delete(prefixPath(""), handler);
     }
 
     /**
@@ -287,7 +288,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().delete(prefixPath(""), handler, roles);
+        internalRouter().delete(prefixPath(""), handler, roles);
     }
 
     /**
@@ -297,7 +298,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().head(prefixPath(path), handler);
+        internalRouter().head(prefixPath(path), handler);
     }
 
     /**
@@ -308,7 +309,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().head(prefixPath(path), handler, roles);
+        internalRouter().head(prefixPath(path), handler, roles);
     }
 
     /**
@@ -318,7 +319,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull Handler handler) {
-        staticInstance().head(prefixPath(""), handler);
+        internalRouter().head(prefixPath(""), handler);
     }
 
     /**
@@ -329,7 +330,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().head(prefixPath(""), handler, roles);
+        internalRouter().head(prefixPath(""), handler, roles);
     }
 
     // ********************************************************************************************
@@ -343,7 +344,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
     public static void before(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().before(prefixPath(path), handler);
+        internalRouter().before(prefixPath(path), handler);
     }
 
     /**
@@ -353,7 +354,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void before(@NotNull Handler handler) {
-        staticInstance().before(prefixPath("*"), handler);
+        internalRouter().before(prefixPath("*"), handler);
     }
 
     /**
@@ -363,7 +364,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
     public static void after(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().after(prefixPath(path), handler);
+        internalRouter().after(prefixPath(path), handler);
     }
 
     /**
@@ -373,7 +374,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void after(@NotNull Handler handler) {
-        staticInstance().after(prefixPath("*"), handler);
+        internalRouter().after(prefixPath("*"), handler);
     }
 
     // ********************************************************************************************
@@ -387,7 +388,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public static void ws(@NotNull String path, @NotNull Consumer<WsConfig> ws) {
-        staticInstance().ws(prefixPath(path), ws);
+        internalRouter().ws(prefixPath(path), ws);
     }
 
     /**
@@ -397,7 +398,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public static void ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull RouteRole... roles) {
-        staticInstance().ws(prefixPath(path), ws, roles);
+        internalRouter().ws(prefixPath(path), ws, roles);
     }
 
     /**
@@ -407,7 +408,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public static void ws(@NotNull Consumer<WsConfig> ws) {
-        staticInstance().ws(prefixPath(""), ws);
+        internalRouter().ws(prefixPath(""), ws);
     }
 
     /**
@@ -417,7 +418,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public static void ws(@NotNull Consumer<WsConfig> ws, @NotNull RouteRole... roles) {
-        staticInstance().ws(prefixPath(""), ws, roles);
+        internalRouter().ws(prefixPath(""), ws, roles);
     }
 
     /**
@@ -425,7 +426,7 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
     public void wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
-        staticInstance().wsBefore(prefixPath(path), wsConfig);
+        internalRouter().wsBefore(prefixPath(path), wsConfig);
     }
 
     /**
@@ -433,7 +434,7 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
     public void wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
-        staticInstance().wsBefore(prefixPath("*"), wsConfig);
+        internalRouter().wsBefore(prefixPath("*"), wsConfig);
     }
 
     /**
@@ -441,7 +442,7 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
     public void wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
-        staticInstance().wsAfter(prefixPath(path), wsConfig);
+        internalRouter().wsAfter(prefixPath(path), wsConfig);
     }
 
     /**
@@ -449,7 +450,7 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
     public void wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
-        staticInstance().wsAfter(prefixPath("*"), wsConfig);
+        internalRouter().wsAfter(prefixPath("*"), wsConfig);
     }
 
     // ********************************************************************************************
@@ -457,19 +458,19 @@ public class ApiBuilder {
     // ********************************************************************************************
 
     public static void sse(@NotNull String path, @NotNull Consumer<SseClient> client) {
-        staticInstance().sse(prefixPath(path), client);
+        internalRouter().sse(prefixPath(path), client);
     }
 
     public static void sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull RouteRole... roles) {
-        staticInstance().sse(prefixPath(path), client, roles);
+        internalRouter().sse(prefixPath(path), client, roles);
     }
 
     public static void sse(@NotNull Consumer<SseClient> client) {
-        staticInstance().sse(prefixPath(""), client);
+        internalRouter().sse(prefixPath(""), client);
     }
 
     public static void sse(@NotNull Consumer<SseClient> client, @NotNull RouteRole... roles) {
-        staticInstance().sse(prefixPath(""), client, roles);
+        internalRouter().sse(prefixPath(""), client, roles);
     }
 
     // ********************************************************************************************
@@ -526,10 +527,10 @@ public class ApiBuilder {
         if (resourceBase.startsWith("{") || resourceBase.startsWith("<") || resourceBase.endsWith("}") || resourceBase.endsWith(">")) {
             throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/{user-id}'");
         }
-        staticInstance().get(fullPath, ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), roles);
-        staticInstance().get(fullPath.replace(resourceId, ""), crudHandler::getAll, roles);
-        staticInstance().post(fullPath.replace(resourceId, ""), crudHandler::create, roles);
-        staticInstance().patch(fullPath, ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), roles);
-        staticInstance().delete(fullPath, ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), roles);
+        internalRouter().get(fullPath, ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), roles);
+        internalRouter().get(fullPath.replace(resourceId, ""), crudHandler::getAll, roles);
+        internalRouter().post(fullPath.replace(resourceId, ""), crudHandler::create, roles);
+        internalRouter().patch(fullPath, ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), roles);
+        internalRouter().delete(fullPath, ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), roles);
     }
 }

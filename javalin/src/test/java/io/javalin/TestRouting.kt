@@ -14,7 +14,6 @@ import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HandlerType.TRACE
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
-import io.javalin.router.DefaultRouting.Companion.Default
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin.Companion.RedirectToLowercasePath
 import io.javalin.router.matcher.MissingBracketsException
 import io.javalin.router.matcher.ParameterNamesNotUniqueException
@@ -39,15 +38,6 @@ class TestRouting {
     @Test
     fun `basic hello world works`() = TestUtil.test { app, http ->
         app.get("/hello") { it.result("Hello World") }
-        assertThat(http.getBody("/hello")).isEqualTo("Hello World")
-    }
-
-    @Test
-    fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.router.routing(Default) {
-            it.get("/hello") { it.result("Hello World") }
-        }
-    }) { _, http ->
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")
     }
 
