@@ -24,29 +24,31 @@ import io.javalin.websocket.WsHandlerType.WS_AFTER
 import io.javalin.websocket.WsHandlerType.WS_BEFORE
 import java.util.function.Consumer
 
-class DefaultRouting(private val cfg: JavalinConfig) : DefaultRoutingApi<DefaultRouting, DefaultRouting> {
+class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRoutingApi<JavalinDefaultRouting, JavalinDefaultRouting> {
 
     companion object {
         @JvmStatic
-        val Default: RouterFactory<DefaultRouting, DefaultRouting> = object : RouterFactory<DefaultRouting, DefaultRouting> {
-            override fun create(cfg: JavalinConfig, internalRouter: InternalRouter<*>, setup: Consumer<DefaultRouting>): DefaultRouting {
-                val javalinRouter = DefaultRouting(cfg)
+        val Default: RouterFactory<JavalinDefaultRouting, JavalinDefaultRouting> = object : RouterFactory<JavalinDefaultRouting, JavalinDefaultRouting> {
+            override fun create(cfg: JavalinConfig, internalRouter: InternalRouter<*>, setup: Consumer<JavalinDefaultRouting>): JavalinDefaultRouting {
+                val javalinRouter = JavalinDefaultRouting(cfg)
                 setup.accept(javalinRouter)
                 return javalinRouter
             }
         }
     }
 
-    override fun getCfg(): JavalinConfig = cfg
+    override fun cfg(): JavalinConfig = cfg
 
 }
 
-interface DefaultRoutingApi<API : RoutingApi<API, SETUP>, SETUP> : RoutingApi<API, SETUP> {
+interface ConfigurableInstance {
+    fun cfg(): JavalinConfig
+}
 
-    fun getCfg(): JavalinConfig
+interface JavalinDefaultRoutingApi<API : RoutingApi<API, SETUP>, SETUP> : RoutingApi<API, SETUP>, ConfigurableInstance {
 
     private val internalRouter: InternalRouter<*>
-        get() = getCfg().pvt.internalRouter
+        get() = cfg().pvt.internalRouter
 
     @Suppress("UNCHECKED_CAST")
     private fun getThis(): API = this as API

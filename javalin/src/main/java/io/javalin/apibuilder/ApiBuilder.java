@@ -8,7 +8,7 @@ package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
-import io.javalin.router.DefaultRoutingApi;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.Handler;
 import io.javalin.router.RouterFactory;
 import io.javalin.http.sse.SseClient;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder {
 
-    public static class ApiBuilderRouter implements DefaultRoutingApi<ApiBuilderRouter, ApiBuilderSetup> {
+    public static class ApiBuilderRouter implements JavalinDefaultRoutingApi<ApiBuilderRouter, ApiBuilderSetup> {
         private final JavalinConfig cfg;
 
         public ApiBuilderRouter(JavalinConfig cfg) {
@@ -37,7 +37,7 @@ public class ApiBuilder {
 
         @NotNull
         @Override
-        public JavalinConfig getCfg() {
+        public JavalinConfig cfg() {
             return cfg;
         }
     }
@@ -53,10 +53,10 @@ public class ApiBuilder {
         }
         return apiBuilder;
     };
-    private static final ThreadLocal<DefaultRoutingApi<?, ?>> staticJavalin = new ThreadLocal<>();
+    private static final ThreadLocal<JavalinDefaultRoutingApi<?, ?>> staticJavalin = new ThreadLocal<>();
     private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
-    public static void setStaticJavalin(@NotNull DefaultRoutingApi<?, ?> javalin) {
+    public static void setStaticJavalin(@NotNull JavalinDefaultRoutingApi<?, ?> javalin) {
         staticJavalin.set(javalin);
     }
 
@@ -84,8 +84,8 @@ public class ApiBuilder {
         return String.join("", pathDeque.get()) + path;
     }
 
-    public static DefaultRoutingApi<?, ?> staticInstance() {
-        DefaultRoutingApi<?, ?> javalin = staticJavalin.get();
+    public static JavalinDefaultRoutingApi<?, ?> staticInstance() {
+        JavalinDefaultRoutingApi<?, ?> javalin = staticJavalin.get();
         if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }

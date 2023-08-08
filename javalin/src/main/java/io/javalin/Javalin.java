@@ -9,7 +9,7 @@ package io.javalin;
 
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
-import io.javalin.router.DefaultRoutingApi;
+import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
 import io.javalin.http.Context;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import static io.javalin.util.Util.createLazy;
 
 @SuppressWarnings("unchecked")
-public class Javalin implements DefaultRoutingApi<Javalin, Javalin>, AutoCloseable {
+public class Javalin implements JavalinDefaultRoutingApi<Javalin, Javalin>, AutoCloseable {
 
     /**
      * Do not use this field unless you know what you're doing.
@@ -60,7 +60,7 @@ public class Javalin implements DefaultRoutingApi<Javalin, Javalin>, AutoCloseab
 
     @NotNull
     @Override
-    public JavalinConfig getCfg() {
+    public JavalinConfig cfg() {
         return cfg;
     }
 
