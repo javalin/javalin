@@ -80,6 +80,9 @@ internal object LoomUtil {
 
 }
 
+/**
+ * Loom-friendly [kotlin.Lazy] implementation
+ */
 internal class ReentrantLazy<T : Any>(initializer: () -> T) : Lazy<T> {
     private companion object {
         private object UNINITIALIZED_VALUE
