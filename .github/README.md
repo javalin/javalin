@@ -83,7 +83,7 @@ val app = Javalin.create { config ->
     path("users") {
         get(UserController::getAll)
         post(UserController::create)
-        path(":user-id") {
+        path("{user-id}") {
             get(UserController::getOne)
             patch(UserController::update)
             delete(UserController::delete)
@@ -95,7 +95,7 @@ val app = Javalin.create { config ->
 
 ### WebSockets
 ```kotlin
-app.ws("/websocket/:path") { ws ->
+app.ws("/websocket/{path}") { ws ->
     ws.onConnect { ctx -> println("Connected") }
     ws.onMessage { ctx ->
         val user = ctx.message<User>(); // convert from json string to object
