@@ -11,8 +11,10 @@ object SeekableWriter {
     var chunkSize = 128000
     fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long) = ctx.async {
         val uncompressedStream = ctx.res().outputStream
+        ctx.header(Header.ACCEPT_RANGES, "bytes")
         if (ctx.header(Header.RANGE) == null) {
             ctx.header(Header.CONTENT_TYPE, contentType)
+            ctx.header(Header.CONTENT_LENGTH, "$totalBytes")
             inputStream.transferTo(uncompressedStream)
             inputStream.close()
             return@async
