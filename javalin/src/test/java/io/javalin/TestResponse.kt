@@ -261,10 +261,11 @@ class TestResponse {
     }
 
     @Test
-    fun `GH-1956 seekable request with no RANGE header contains Content-Length`() = TestUtil.test { app, http ->
+    fun `GH-1956 seekable request with no RANGE header contains Content-Length and Accept-Ranges`() = TestUtil.test { app, http ->
         app.get("/seekable-6") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-6").asString()
         assertThat(response.headers[Header.CONTENT_LENGTH]?.get(0)).isGreaterThan("0")
+        assertThat(response.headers[Header.ACCEPT_RANGES]?.get(0)).isEqualTo("bytes")
     }
 
 }
