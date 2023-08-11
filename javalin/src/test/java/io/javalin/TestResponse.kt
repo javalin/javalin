@@ -210,9 +210,10 @@ class TestResponse {
         app.get("/seekable") { it.writeSeekableStream(input, ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable")
             .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
-            .asString().body
-        assertThat(response).doesNotContain("a").contains("b").doesNotContain("c")
+            .asString()
+        assertThat(response.body).doesNotContain("a").contains("b").doesNotContain("c")
         assertThat(input.closedLatch.await(2, TimeUnit.SECONDS)).isTrue()
+        assertThat(response.httpCode()).isEqualTo(HttpStatus.PARTIAL_CONTENT)
     }
 
     @Test
@@ -220,9 +221,10 @@ class TestResponse {
         val input = getSeekableInput()
         val available = input.available()
         app.get("/seekable-2") { it.writeSeekableStream(input, ContentType.PLAIN) }
-        val response = Unirest.get(http.origin + "/seekable-2").asString().body
-        assertThat(response.length).isEqualTo(available)
+        val response = Unirest.get(http.origin + "/seekable-2").asString()
+        assertThat(response.body.length).isEqualTo(available)
         assertThat(input.closedLatch.await(2, TimeUnit.SECONDS)).isTrue()
+        assertThat(response.headers).matches ({it.containsKey(Header.ACCEPT_RANGES)},"contains accept-ranges header")
     }
 
     @Test
@@ -256,6 +258,13 @@ class TestResponse {
         val responseBody = response.body
         assertThat(responseBody.length).isEqualTo(contentSize)
         assertThat(responseBody).doesNotContain(" ")
+    }
+
+    @Test
+    fun `GH-1956 seekable request with no RANGE header contains Content-Length`() = TestUtil.test { app, http ->
+        app.get("/seekable-6") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
+        val response = Unirest.get(http.origin + "/seekable-6").asString()
+        assertThat(response.headers[Header.CONTENT_LENGTH]?.get(0)).isGreaterThan("0")
     }
 
 }
