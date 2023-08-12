@@ -22,9 +22,12 @@ Link repository with sample projects (or even list some of them)
 
   <!--Title-->
   <h3 align="center">A simple web framework for Java and Kotlin</h3>
-  <a href="https://javalin.io/documentation">View the documentation →</a>
+
+  <a href="https://javalin.io/documentation" style="margin: 1em"><strong>View the documentation →</strong></a>
 
   <br />
+
+  
   <!--Discord badge-->
   <a href="https://discord.gg/sgak4e5NKv">
     <img alt="Discord Link" src="https://img.shields.io/badge/chat-on_Discord-%25234cb697?logo=discord&logoColor=white">
