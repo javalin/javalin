@@ -202,9 +202,28 @@ Javalin.create { config ->
 Some of the most popular plugins are:
 ### OpenAPI Plugin
 
-The [Javalin OpenAPI](https://github.com/javalin/javalin-openapi) plugin allows you to generate an OpenAPI 3.0 specification for your API at Compile-time. 
+The [Javalin OpenAPI](https://github.com/javalin/javalin-openapi) plugin allows you to generate an OpenAPI 3.0 specification for your API at compile time.
 
-It also provides Swagger UI and ReDoc UI implementations for viewing the generated specification in your browser.
+Annotate your routes with `@OpenApi` to generate the specification:
+
+```kotlin
+
+@OpenApi(
+        summary = "Get all users",
+        operationId = "getAllUsers",
+        tags = ["User"],
+        responses = [OpenApiResponse("200", [OpenApiContent(Array<User>::class)])],
+        path = "/users",
+        methods = [HttpMethod.GET]
+    )
+    fun getAll(ctx: Context) {
+        ctx.json(UserService.getAll())
+    }
+```
+
+ Swagger UI and ReDoc UI implementations for viewing the generated specification in your browser are also available.
+
+ For more information, see the [Javalin OpenAPI Wiki](https://github.com/javalin/javalin-openapi/wiki).
 
 
 ### Rendering Plugin
@@ -213,10 +232,27 @@ The [Javalin Rendering](https://javalin.io/plugins/rendering) plugin allows you 
 
 It includes implementations for JTE, Mustache, Velocity, Pebble, Handlebars, and Thymeleaf, but you also have to add the dependency for the template engine you want to use.
 
+```kotlin
+ctx.render("/templateFile.ext", mapOf("firstName" to "John", "lastName" to "Doe"))
+```
+
+Once you have included the `javalin-rendering` artifact and one of the supported template engine dependencies in your project, `Context#render` should automatically render your templates. By default, the plugin will look in `src/main/resources/templates` for template files.
+
 
 ### SSL Plugin
 
 The [Javalin SSL](https://javalin.io/plugins/ssl-helpers) plugin allows you to easily configure SSL for your Javalin server, supporting a variety of formats such as PEM, PKCS12, DER, P7B, and JKS.
+
+Enabling SSL on the 443 port is as easy as:
+
+```kotlin
+Javalin.create { config ->
+    config.plugins.register(SSLPlugin {
+        it.pemFromPath("/path/to/cert.pem", "/path/to/key.pem")
+    })
+}
+```
+
 
 ## Sponsors
 * [@barbarysoftware](https://github.com/sponsors/barbarysoftware) (50 USD/m)
