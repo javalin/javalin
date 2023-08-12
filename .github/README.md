@@ -17,7 +17,7 @@ Link repository with sample projects (or even list some of them)
 
   <!--Logo-->
   <a href="https://github.com/javalin/javalin">
-    <img src="img/javalin.png" alt="Logo" width="80%">
+    <img src="img/javalin.png" alt="Logo" width="70%">
   </a>
 
   <!--Title-->
