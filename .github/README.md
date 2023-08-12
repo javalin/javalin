@@ -188,6 +188,36 @@ app.post("/upload") { ctx ->
 }
 ```
 
+## Plugins
+Javalin has a plugin system that allows you to add functionality to the core library. You can find a list of plugins [here](https://javalin.io/plugins).
+
+Installing a plugin is as easy as adding a dependency to your project and registering it with Javalin:
+
+```kotlin
+Javalin.create { config ->
+    config.plugins.register(MyPlugin())
+}
+```
+
+Some of the most popular plugins are:
+### OpenAPI Plugin
+
+The [Javalin OpenAPI](https://github.com/javalin/javalin-openapi) plugin allows you to generate an OpenAPI 3.0 specification for your API at Compile-time. 
+
+It also provides Swagger UI and ReDoc UI implementations for viewing the generated specification in your browser.
+
+
+### Rendering Plugin
+
+The [Javalin Rendering](https://javalin.io/plugins/rendering) plugin allows you to use any template engine with Javalin. 
+
+It includes implementations for JTE, Mustache, Velocity, Pebble, Handlebars, and Thymeleaf, but you also have to add the dependency for the template engine you want to use.
+
+
+### SSL Plugin
+
+The [Javalin SSL](https://javalin.io/plugins/ssl-helpers) plugin allows you to easily configure SSL for your Javalin server, supporting a variety of formats such as PEM, PKCS12, DER, P7B, and JKS.
+
 ## Sponsors
 * [@barbarysoftware](https://github.com/sponsors/barbarysoftware) (50 USD/m)
 
