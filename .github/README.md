@@ -25,7 +25,6 @@ Link repository with sample projects (or even list some of them)
 
   <a href="https://javalin.io/documentation" style="margin: 1em"><strong>View the documentation →</strong></a>
 
-  <br />
 
   
   <!--Discord badge-->
