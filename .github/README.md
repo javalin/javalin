@@ -14,6 +14,17 @@ Link repository with sample projects (or even list some of them)
 
 <div align="center">
 
+
+  <!--Logo-->
+  <a href="https://github.com/javalin/javalin">
+    <img src="img/javalin.png" alt="Logo" width="80%">
+  </a>
+
+  <!--Title-->
+  <h3 align="center">A simple web framework for Java and Kotlin</h3>
+  <a href="https://javalin.io/documentation">View the documentation</a>
+
+  <br />
   <!--Discord badge-->
   <a href="https://discord.gg/sgak4e5NKv">
     <img alt="Discord Link" src="https://img.shields.io/badge/chat-on_Discord-%25234cb697?logo=discord&logoColor=white">
@@ -34,20 +45,6 @@ Link repository with sample projects (or even list some of them)
   <a href="https://repo.reposilite.com/#/snapshots/io/javalin/javalin">
     <img alt="Snapshot Version" src="https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo.reposilite.com%2Fsnapshots%2Fio%2Fjavalin%2Fjavalin%2Fmaven-metadata.xml&label=snapshot">
   </a>  
-
-  <br />
-
-
-  <!--Logo-->
-  <a href="https://github.com/javalin/javalin">
-    <img src="img/javalin.png" alt="Logo" width="80%">
-  </a>
-
-  <!--Title-->
-  <h3 align="center">A simple web framework for Java and Kotlin</h3>
-  <a href="https://javalin.io/documentation">View the documentation</a>
-
-
   
 </div>
 
