@@ -1,5 +1,8 @@
 package io.javalin.routing
 
+import io.javalin.util.javalinLazy
+import kotlin.LazyThreadSafetyMode.NONE
+
 private enum class ParserState {
     NORMAL,
     INSIDE_SLASH_IGNORING_BRACKETS,
@@ -10,8 +13,8 @@ private val allDelimiters = setOf('{', '}', '<', '>')
 private val adjacentViolations = listOf("*{", "*<", "}*", ">*")
 
 internal fun convertSegment(segment: String, rawPath: String): PathSegment {
-    val bracketsCount by lazy { segment.count { it in allDelimiters } }
-    val wildcardCount by lazy { segment.count { it == '*' } }
+    val bracketsCount by javalinLazy { segment.count { it in allDelimiters } }
+    val wildcardCount by javalinLazy { segment.count { it == '*' } }
     return when {
         bracketsCount % 2 != 0 -> throw MissingBracketsException(segment, rawPath)
         adjacentViolations.any { it in segment } -> throw WildcardBracketAdjacentException(segment, rawPath)
