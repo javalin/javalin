@@ -44,7 +44,7 @@ class TestRouting {
 
     @Test
     fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.router.mount(Default) {
+        cfg.router.api(Default) {
             it.get("/hello") { it.result("Hello World") }
         }
     }) { _, http ->
@@ -53,7 +53,7 @@ class TestRouting {
 
     @Test
     fun `api builder can be used as custom router`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.router.mount(ApiBuilder) {
+        cfg.router.api(ApiBuilder) {
             get("/hello") { it.result("Hello World") }
         }
     }) { _, http ->
