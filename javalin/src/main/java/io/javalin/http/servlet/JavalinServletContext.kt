@@ -19,8 +19,7 @@ import io.javalin.http.HttpStatus
 import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
-import io.javalin.util.SynchronizedLazyFactory
-import io.javalin.util.SynchronizedLazyFactory.synchronizedLazy
+import io.javalin.util.javalinLazy
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -32,8 +31,7 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
-import kotlin.LazyThreadSafetyMode.NONE
-import kotlin.LazyThreadSafetyMode.PUBLICATION
+import kotlin.LazyThreadSafetyMode.*
 
 class JavalinServletContext(
     cfg: JavalinConfig,
@@ -85,34 +83,34 @@ class JavalinServletContext(
         else -> throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
     }
 
-    private val characterEncoding by lazy(NONE) { super.characterEncoding() ?: "UTF-8" }
+    private val characterEncoding by javalinLazy { super.characterEncoding() ?: "UTF-8" }
     override fun characterEncoding(): String = characterEncoding
 
-    private val cookieStore by lazy(PUBLICATION) { super.cookieStore() }
+    private val cookieStore by javalinLazy(PUBLICATION) { super.cookieStore() }
     override fun cookieStore() = cookieStore
 
-    private val method by lazy(NONE) { super.method() }
+    private val method by javalinLazy { super.method() }
     override fun method(): HandlerType = method
 
     override fun handlerType(): HandlerType = handlerType
     override fun matchedPath(): String = matchedPath
 
     /** has to be cached, because we can read input stream only once */
-    private val body by synchronizedLazy { super.bodyAsBytes() }
+    private val body by javalinLazy(SYNCHRONIZED) { super.bodyAsBytes() }
     override fun bodyAsBytes(): ByteArray = body
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
-    private val formParams by lazy(NONE) { super.formParamMap() }
+    private val formParams by javalinLazy { super.formParamMap() }
     override fun formParamMap(): Map<String, List<String>> = formParams
 
     override fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
     override fun pathParam(key: String): String = pathParamOrThrow(pathParamMap, key, matchedPath)
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
-    private val queryParams by lazy(NONE) { super.queryParamMap() }
+    private val queryParams by javalinLazy { super.queryParamMap() }
     override fun queryParamMap(): Map<String, List<String>> = queryParams
 
-    internal val outputStreamWrapper = synchronizedLazy { CompressedOutputStream(compressionStrategy, this) }
+    internal val outputStreamWrapper = javalinLazy(SYNCHRONIZED) { CompressedOutputStream(compressionStrategy, this) }
     override fun outputStream(): ServletOutputStream = outputStreamWrapper.value
 
     override fun redirect(location: String, status: HttpStatus) {

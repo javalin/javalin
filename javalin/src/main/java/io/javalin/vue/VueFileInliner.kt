@@ -1,5 +1,6 @@
 package io.javalin.vue
 
+import io.javalin.util.javalinLazy
 import java.nio.file.Path
 import java.util.regex.Matcher
 import kotlin.LazyThreadSafetyMode.NONE
@@ -15,7 +16,7 @@ internal object VueFileInliner {
         return this.split(newlineRegex).joinToString("\n") { line ->
             if (!line.contains("@inlineFile")) return@joinToString line // nothing to inline
             val matchingKey = pathMap.keys.find { line.contains(it) } ?: throw IllegalStateException("Invalid path found: $line")
-            val matchingFileContent by lazy(NONE) { Matcher.quoteReplacement(pathMap[matchingKey]!!.readText()) }
+            val matchingFileContent by javalinLazy { Matcher.quoteReplacement(pathMap[matchingKey]!!.readText()) }
             when {
                 devRegex.containsMatchIn(line) -> if (isDev) line.replace(devRegex, matchingFileContent) else ""
                 notDevRegex.containsMatchIn(line) -> if (!isDev) line.replace(notDevRegex, matchingFileContent) else ""

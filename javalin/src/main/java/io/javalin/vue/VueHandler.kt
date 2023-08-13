@@ -4,6 +4,7 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.Header
 import io.javalin.http.InternalServerErrorResponse
+import io.javalin.util.javalinLazy
 import io.javalin.vue.VueFileInliner.inlineFiles
 import java.nio.file.Files
 import java.nio.file.Path
@@ -21,7 +22,7 @@ abstract class VueHandler(private val componentId: String) : Handler {
         c.rootDirectory = c.rootDirectory ?: c.pathMaster.defaultLocation(c.isDev!!)
         val routeComponent = if (componentId.startsWith("<")) componentId else "<$componentId></$componentId>"
         val allFiles = if (c.isDev == true) c.pathMaster.walkPaths() else c.pathMaster.cachedPaths
-        val resolver by lazy { if (c.isDev == true) VueDependencyResolver(allFiles, c.vueAppName) else c.pathMaster.cachedDependencyResolver }
+        val resolver by javalinLazy { if (c.isDev == true) VueDependencyResolver(allFiles, c.vueAppName) else c.pathMaster.cachedDependencyResolver }
         val componentId = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
         val dependencies = if (c.optimizeDependencies) resolver.resolve(componentId) else allFiles.joinVueFiles()
         if (componentId !in dependencies) throw InternalServerErrorResponse("Route component not found: $routeComponent")

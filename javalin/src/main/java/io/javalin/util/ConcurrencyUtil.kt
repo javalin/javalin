@@ -12,6 +12,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.LazyThreadSafetyMode.NONE
 import kotlin.LazyThreadSafetyMode.SYNCHRONIZED
 import kotlin.concurrent.withLock
 
@@ -89,8 +90,12 @@ internal class ReentrantLazy<T : Any>(initializer: () -> T) : Lazy<T> {
     }
 
     private var initializer: (() -> T)? = initializer
-    @Volatile private var lock: ReentrantLock? = ReentrantLock()
-    @Volatile private var _value: Any? = UNINITIALIZED_VALUE
+
+    @Volatile
+    private var lock: ReentrantLock? = ReentrantLock()
+
+    @Volatile
+    private var _value: Any? = UNINITIALIZED_VALUE
 
     override val value: T
         get() {
@@ -108,12 +113,20 @@ internal class ReentrantLazy<T : Any>(initializer: () -> T) : Lazy<T> {
     override fun isInitialized(): Boolean = _value !== UNINITIALIZED_VALUE
 }
 
-/* Use ReentrantLock instead of synchronized block when Loom is enabled */
-object SynchronizedLazyFactory {
-    fun <T : Any> synchronizedLazy(initializer: () -> T): Lazy<T> = when (ConcurrencyUtil.useLoom && ConcurrencyUtil.isLoomAvailable()) {
-        true -> ReentrantLazy(initializer)
-        false -> lazy(SYNCHRONIZED, initializer)
-    }
+
+/**
+ * Loom-friendly [kotlin.lazy] implementation
+ *
+ * By default, [kotlin.lazy] uses [SynchronizedLazyImpl] which is not Loom-friendly.
+ * We instead use LazyThreadSafetyMode = NONE by default, and use [ReentrantLazy] when
+ * [LazyThreadSafetyMode.SYNCHRONIZED] is requested.
+ */
+fun <T : Any> javalinLazy(
+    threadSafetyMode: LazyThreadSafetyMode = NONE,
+    initializer: () -> T
+): Lazy<T> = when (threadSafetyMode) {
+    SYNCHRONIZED -> if (ConcurrencyUtil.useLoom && ConcurrencyUtil.isLoomAvailable()) ReentrantLazy(initializer) else lazy(SYNCHRONIZED, initializer)
+    else -> lazy(threadSafetyMode, initializer)
 }
 
 open class NamedThreadFactory(protected val prefix: String) : ThreadFactory {

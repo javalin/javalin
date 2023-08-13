@@ -11,6 +11,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
+import io.javalin.util.javalinLazy
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.MimeTypes
@@ -87,7 +88,7 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     }
 
     override fun getResource(path: String): Resource {
-        val aliasResource by lazy(NONE) { baseResource!!.addPath(URIUtil.canonicalPath(path)) }
+        val aliasResource by javalinLazy { baseResource!!.addPath(URIUtil.canonicalPath(path)) }
         return when {
             config.directory == "META-INF/resources/webjars" ->
                 Resource.newClassPathResource("META-INF/resources$path") ?: EmptyResource.INSTANCE
