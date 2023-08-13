@@ -58,8 +58,7 @@ Javalin is more of a library than a framework. Some key points:
 #### Community
 You can [:heart: Sponsor Javalin](https://github.com/sponsors/tipsy) if you want to support the project financially.
 
-We also have a [Discord](https://discord.gg/sgak4e5NKv) where you can ask questions and get help, we're very active.
-We also have a [Slack](https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w) which is less active, but still a good place to ask questions.
+You can join our active [Discord](https://discord.gg/sgak4e5NKv) for quick help and to ask questions. We also have a somewhat less active [Slack](https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w) that's still good for asking questions.
 
 Contributions are very welcome, you can read more about contributing in our guide:
  [CONTRIBUTING](https://github.com/javalin/javalin/contribute)
