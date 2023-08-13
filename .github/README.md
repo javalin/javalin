@@ -17,7 +17,10 @@
   
   <!--Discord badge-->
   <a href="https://discord.gg/sgak4e5NKv">
-    <img alt="Discord Link" src="https://img.shields.io/badge/chat-on_Discord-%25234cb697?logo=discord&logoColor=white">
+    <img alt="Discord Link" src="https://img.shields.io/badge/discord-javalin-blue?logo=discord&logoColor=white">
+  </a>
+  <a href="https://discord.gg/sgak4e5NKv">
+    <img alt="Discord" src="https://img.shields.io/discord/804862058528505896">
   </a>
   <!--Badge for CI-->
   <a href="https://github.com/javalin/javalin/actions/workflows/main.yml">
