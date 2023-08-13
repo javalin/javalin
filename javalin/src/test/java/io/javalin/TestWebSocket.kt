@@ -85,13 +85,13 @@ class TestWebSocket {
         val logger = TestLogger()
 
         TestUtil.test(contextPathJavalin { cfg ->
-            cfg.router.api(Default) {
+            cfg.router.routes(Default) {
                 it.ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
                     ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
                 }
             }
-            cfg.router.api(ApiBuilder) {
+            cfg.router.routes(ApiBuilder) {
                 ws("/test-websocket-2") { ws ->
                     ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
                     ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
@@ -115,7 +115,7 @@ class TestWebSocket {
         val atomicInteger = AtomicInteger()
 
         TestUtil.test(contextPathJavalin { cfg ->
-            cfg.router.api(Default) {
+            cfg.router.routes(Default) {
                 it.ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx ->
                         idMap[ctx] = atomicInteger.getAndIncrement()

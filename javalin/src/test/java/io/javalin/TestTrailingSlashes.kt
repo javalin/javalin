@@ -34,7 +34,7 @@ class TestTrailingSlashes {
     @Test
     fun `trailing slashes are ignored by default - ApiBuilder`() = TestUtil.test(
         Javalin.create {
-            it.router.api(ApiBuilder) {
+            it.router.routes(ApiBuilder) {
                 path("a") {
                     get { it.result("a") }
                     get("/") { it.result("a-slash") }

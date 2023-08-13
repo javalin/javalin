@@ -1,7 +1,6 @@
 package io.javalin.testtools
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.http.Context
 
