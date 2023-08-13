@@ -37,9 +37,9 @@ fun requestDevLogger(router: InternalRouter<*>, ctx: Context, time: Float) = try
     val requestUri = ctx.path()
     with(ctx) {
         val allMatching = Stream.of(
-                router.findHandlerEntries(HandlerType.BEFORE, requestUri),
-                router.findHandlerEntries(ctx.method(), requestUri),
-                router.findHandlerEntries(HandlerType.AFTER, requestUri)
+                router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri),
+                router.findHttpHandlerEntries(ctx.method(), requestUri),
+                router.findHttpHandlerEntries(HandlerType.AFTER, requestUri)
             )
             .flatMap { it }
             .map { it.type.name + "=" + it.path }

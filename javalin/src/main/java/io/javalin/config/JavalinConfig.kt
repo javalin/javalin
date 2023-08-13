@@ -72,13 +72,4 @@ class JavalinConfig {
     fun <PLUGIN : JavalinPlugin, CFG : PluginConfiguration> registerPlugin(factory: PluginFactory<PLUGIN, CFG>, cfg: Consumer<CFG> = Consumer {}) =
         registerPlugin(factory.create(cfg))
 
-    fun <ROUTER : RoutingApi<ROUTER, SETUP>, SETUP> routing(factory: RouterFactory<ROUTER, SETUP>, setup: Consumer<SETUP> = Consumer {}): RouterConfig =
-        router.routing(factory, setup)
-
-    fun <ROUTER : RoutingApi<ROUTER, SETUP>, SETUP> staticRouting(factory: RouterFactory<ROUTER, SETUP>, setup: Runnable): RouterConfig =
-        router.routing(factory) { setup.run() }
-
-    fun <ROUTER : RoutingApi<ROUTER, SETUP>, SETUP> routingWith(factory: RouterFactory<ROUTER, SETUP>, setup: SETUP.() -> Unit): RouterConfig =
-        router.routing(factory) { setup(it) }
-
 }

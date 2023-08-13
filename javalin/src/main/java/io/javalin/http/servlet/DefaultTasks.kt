@@ -17,13 +17,13 @@ import jakarta.servlet.http.HttpServletResponseWrapper
 object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        servlet.cfg.pvt.internalRouter.findHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
+        servlet.cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
             submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
         }
     }
 
     val HTTP = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        servlet.router.findHandlerEntries(ctx.method(), requestUri).firstOrNull { entry ->
+        servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull { entry ->
             submitTask(
                 LAST,
                 Task {
@@ -44,7 +44,7 @@ object DefaultTasks {
             return@TaskInitializer
         }
         submitTask(LAST, Task {
-            if (ctx.method() == HEAD && servlet.router.hasHandlerEntry(GET, requestUri)) { // return 200, there is a get handler
+            if (ctx.method() == HEAD && servlet.router.hasHttpHandlerEntry(GET, requestUri)) { // return 200, there is a get handler
                 return@Task
             }
             if (ctx.method() == HEAD || ctx.method() == GET) { // check for static resources (will write response if found)
@@ -63,11 +63,11 @@ object DefaultTasks {
     }
 
     val ERROR = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, _ ->
-        submitTask(LAST, Task(skipIfExceptionOccurred = false) { servlet.router.handleError(ctx.statusCode(), ctx) })
+        submitTask(LAST, Task(skipIfExceptionOccurred = false) { servlet.router.handleHttpError(ctx.statusCode(), ctx) })
     }
 
     val AFTER = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        servlet.router.findHandlerEntries(HandlerType.AFTER, requestUri).forEach { entry ->
+        servlet.router.findHttpHandlerEntries(HandlerType.AFTER, requestUri).forEach { entry ->
             submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
         }
     }

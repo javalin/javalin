@@ -58,11 +58,11 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
             val router = app.cfg.pvt.internalRouter
 
-            if (router.findHandlerEntries(ctx.method(), requestUri).findFirst().isPresent) {
+            if (router.findHttpHandlerEntries(ctx.method(), requestUri).findFirst().isPresent) {
                 return@before // we found a route for this case, no need to redirect
             }
 
-            val lowercaseRoute = router.findHandlerEntries(ctx.method(), requestUri.lowercase(Locale.ROOT))
+            val lowercaseRoute = router.findHttpHandlerEntries(ctx.method(), requestUri.lowercase(Locale.ROOT))
                 .firstOrNull()
                 ?: return@before // lowercase route not found
 

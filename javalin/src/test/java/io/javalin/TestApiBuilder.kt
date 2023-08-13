@@ -7,8 +7,6 @@
 
 package io.javalin
 
-import io.javalin.apibuilder.ApiBuilder
-import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.before
 import io.javalin.apibuilder.ApiBuilder.crud
@@ -38,7 +36,7 @@ class TestApiBuilder {
     @Test
     fun `ApiBuilder prefixes paths with slash`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 path("level-1") {
                     get("hello", simpleAnswer("Hello from level 1"))
                 }
@@ -51,7 +49,7 @@ class TestApiBuilder {
     @Test
     fun `pathless routes are handled properly`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 path("api") {
                     get(okHandler)
                     post(okHandler)
@@ -79,7 +77,7 @@ class TestApiBuilder {
     @Test
     fun `multiple nested path-method calls works`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 get("/hello", simpleAnswer("Hello from level 0"))
                 path("/level-1") {
                     get("/hello", simpleAnswer("Hello from level 1"))
@@ -102,7 +100,7 @@ class TestApiBuilder {
     @Test
     fun `filters work as expected`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 path("level-1") {
                     before { it.result("1") }
                     path("level-2") {
@@ -119,7 +117,7 @@ class TestApiBuilder {
     @Test
     fun `slashes can be omitted for both path-method and verbs`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 path("level-1") {
                     get { it.result("level-1") }
                     get("hello") { it.result("Hello") }
@@ -134,7 +132,7 @@ class TestApiBuilder {
     @Test
     fun `pathless routes do not require a trailing slash`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 path("api") {
                     before { it.result("before") }
                     get(updateAnswer("get"))
@@ -150,7 +148,7 @@ class TestApiBuilder {
     @Test
     fun `star routes do not require a trailing slash`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 path("api") {
                     before("*") { it.result("before") }
                     get(updateAnswer("get"))
@@ -166,7 +164,7 @@ class TestApiBuilder {
     @Test
     fun `slash star routes do require a trailing slash`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 path("api") {
                     before("/*") { it.result("before") }
                     get { it.result((it.result() ?: "") + "get") }
@@ -193,13 +191,13 @@ class TestApiBuilder {
     fun `ApiBuilder works with two services at once`() = TestUtil.runLogLess {
         Javalin
             .create { cfg1 ->
-                cfg1.routing(ApiBuilder) {
+                cfg1.router.apiBuilder {
                     get("/hello-1") { it.result("Hello-1") }
                 }
 
                 Javalin
                     .create { cfg2 ->
-                        cfg2.routing(ApiBuilder) {
+                        cfg2.router.apiBuilder {
                             get("/hello-2") { it.result("Hello-2") }
                             get("/hello-3") { it.result("Hello-3") }
                         }
@@ -210,7 +208,7 @@ class TestApiBuilder {
                         assertThat(Unirest.get("http://localhost:${app2.port()}/hello-3").asString().body).isEqualTo("Hello-3")
                     }
 
-                cfg1.routing(ApiBuilder) {
+                cfg1.router.apiBuilder {
                     get("/hello-4") { it.result("Hello-4") }
                 }
             }
@@ -224,7 +222,7 @@ class TestApiBuilder {
     @Test
     fun `CrudHandler works`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 crud("users/{user-id}", UserController())
                 path("/s") {
                     crud("/users/{user-id}", UserController())
@@ -248,7 +246,7 @@ class TestApiBuilder {
     @Test
     fun `CrudHandler works with long nested resources`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 crud("/foo/bar/users/{user-id}", UserController())
                 path("/foo/baz") {
                     crud("/users/{user-id}", UserController())
@@ -272,7 +270,7 @@ class TestApiBuilder {
     @Test
     fun `pathless CrudHandler works`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 path("/foo/bar/users/{user-id}") {
                     crud(UserController())
                 }
@@ -291,7 +289,7 @@ class TestApiBuilder {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
             .isThrownBy {
                 Javalin.create {
-                    it.routing(ApiBuilder) {
+                    it.router.apiBuilder {
                         crud("/foo/bar/{user-id}/users", UserController())
                     }
                 }
@@ -304,7 +302,7 @@ class TestApiBuilder {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
             .isThrownBy {
                 Javalin.create {
-                    it.routing(ApiBuilder) {
+                    it.router.apiBuilder {
                         crud("/foo/bar/users", UserController())
                     }
                 }
@@ -317,7 +315,7 @@ class TestApiBuilder {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
             .isThrownBy {
                 Javalin.create {
-                    it.routing(ApiBuilder) {
+                    it.router.apiBuilder {
                         crud("/{user-id}", UserController())
                     }
                 }
@@ -328,7 +326,7 @@ class TestApiBuilder {
     @Test
     fun `CrudHandler works with wildcards`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 path("/s") {
                     crud("/*/{user-id}", UserController())
                 }

@@ -24,12 +24,12 @@ import java.util.stream.Stream
 open class InternalRouter<IR : InternalRouter<IR>>(
     private val wsRouter: WsRouter,
     private val eventManager: EventManager,
-    internal val routerConfig: RouterConfig
+    private val routerConfig: RouterConfig
 ) {
 
-    protected open val pathMatcher = PathMatcher()
-    protected open val errorMapper = ErrorMapper()
-    protected open val exceptionMapper = ExceptionMapper(routerConfig)
+    protected open val httpPathMatcher = PathMatcher()
+    protected open val httpErrorMapper = ErrorMapper()
+    protected open val httpExceptionMapper = ExceptionMapper(routerConfig)
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
@@ -38,9 +38,9 @@ open class InternalRouter<IR : InternalRouter<IR>>(
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    open fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): IR {
+    open fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): IR {
         val roleSet = HashSet(roles.asList())
-        pathMatcher.add(HandlerEntry(handlerType, path, routerConfig, roleSet, handler))
+        httpPathMatcher.add(HandlerEntry(handlerType, path, routerConfig, roleSet, handler))
         eventManager.fireHandlerAddedEvent(
             HandlerMetaInfo(
                 httpMethod = handlerType,
@@ -55,53 +55,53 @@ open class InternalRouter<IR : InternalRouter<IR>>(
     /**
      * Checks if the instance has a handler for the specified handlerType and path.
      */
-    open fun hasHandlerEntry(handlerType: HandlerType, requestUri: String): Boolean =
-        pathMatcher.hasEntries(handlerType, requestUri)
+    open fun hasHttpHandlerEntry(handlerType: HandlerType, requestUri: String): Boolean =
+        httpPathMatcher.hasEntries(handlerType, requestUri)
 
     /**
      * Finds all matching handlers for the specified handlerType and path.
      * @return a handler for the specified handlerType and path, or null if no handler is found
      */
-    open fun findHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<HandlerEntry> =
-        pathMatcher.findEntries(handlerType, requestUri)
+    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<HandlerEntry> =
+        httpPathMatcher.findEntries(handlerType, requestUri)
 
     /**
      * Adds an error mapper for the specified content-type to the instance.
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      * See: [Error mapping in docs](https://javalin.io/documentation.error-mapping)
      */
-    open fun error(status: Int, contentType: String, handler: Handler): IR {
-        errorMapper.addHandler(status, contentType, handler)
+    open fun addHttpErrorHandler(status: Int, contentType: String, handler: Handler): IR {
+        httpErrorMapper.addHandler(status, contentType, handler)
         return getThis()
     }
 
     /**
      * Handles an error by looking up the correct error mapper and executing it.
      */
-    open fun handleError(statusCode: Int, ctx: Context): Unit =
-        errorMapper.handle(statusCode, ctx)
+    open fun handleHttpError(statusCode: Int, ctx: Context): Unit =
+        httpErrorMapper.handle(statusCode, ctx)
 
     /**
      * Adds an exception mapper to the instance.
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
-    open fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): IR {
+    open fun <E : Exception> addHttpExceptionHandler(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): IR {
         @Suppress("UNCHECKED_CAST")
-        exceptionMapper.handlers[exceptionClass] = exceptionHandler as ExceptionHandler<Exception>
+        httpExceptionMapper.handlers[exceptionClass] = exceptionHandler as ExceptionHandler<Exception>
         return getThis()
     }
 
     /**
      * Handles an exception by looking up the correct exception mapper and executing it.
      */
-    open fun handleException(ctx: Context, throwable: Throwable): Unit =
-        exceptionMapper.handle(ctx, throwable)
+    open fun handleHttpException(ctx: Context, throwable: Throwable): Unit =
+        httpExceptionMapper.handle(ctx, throwable)
 
     /**
      * Handles an unexpected throwable by looking up the correct exception mapper and executing it.
      */
-    open fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? =
-        exceptionMapper.handleUnexpectedThrowable(res, throwable)
+    open fun handleHttpUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? =
+        httpExceptionMapper.handleUnexpectedThrowable(res, throwable)
 
     /**
      * Adds a WebSocket exception mapper to the instance.

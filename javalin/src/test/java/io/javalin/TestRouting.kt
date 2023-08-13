@@ -44,7 +44,7 @@ class TestRouting {
 
     @Test
     fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.routing(Default) {
+        cfg.router.mount(Default) {
             it.get("/hello") { it.result("Hello World") }
         }
     }) { _, http ->
@@ -53,7 +53,7 @@ class TestRouting {
 
     @Test
     fun `api builder can be used as custom router`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.routing(ApiBuilder) {
+        cfg.router.mount(ApiBuilder) {
             get("/hello") { it.result("Hello World") }
         }
     }) { _, http ->
@@ -239,7 +239,7 @@ class TestRouting {
     @Test
     fun `automatic slash prefixing works`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 path("test") {
                     path("{id}") {
                         get { it.result(it.pathParam("id")) }
@@ -276,7 +276,7 @@ class TestRouting {
     @Test
     fun `sub-path wildcard works for path-params`() = TestUtil.test(
         Javalin.create {
-            it.routing(ApiBuilder) {
+            it.router.apiBuilder {
                 after("/partners/{pp}*") { it.result("${it.result()} - after") }
                 path("/partners/{pp}") {
                     get { it.result("root") }
@@ -323,7 +323,7 @@ class TestRouting {
 
     @Test
     fun `root path works with ApiBuilder and ignoreTrailingSlashes set to false`() = TestUtil.test(Javalin.create {
-        it.routing(ApiBuilder) {
+        it.router.apiBuilder {
             get("/") { it.result("root") }
             get("/home") { it.result("home") }
         }

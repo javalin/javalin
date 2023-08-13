@@ -55,7 +55,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi<API, SETUP>, SETUP> : Routin
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
     fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): API {
-        internalRouter.exception(exceptionClass, exceptionHandler)
+        internalRouter.addHttpExceptionHandler(exceptionClass, exceptionHandler)
         return getThis()
     }
 
@@ -86,7 +86,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi<API, SETUP>, SETUP> : Routin
      * See: [Error mapping in docs](https://javalin.io/documentation.error-mapping)
      */
     fun error(status: Int, contentType: String, handler: Handler): API {
-        internalRouter.error(status, contentType, handler)
+        internalRouter.addHttpErrorHandler(status, contentType, handler)
         return getThis()
     }
 
@@ -98,7 +98,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi<API, SETUP>, SETUP> : Routin
      * @see io.javalin.security.AccessManager
      */
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API {
-        internalRouter.addHandler(handlerType, path, handler, *roles)
+        internalRouter.addHttpHandler(handlerType, path, handler, *roles)
         return getThis()
     }
 

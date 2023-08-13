@@ -7,7 +7,6 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.patch
 import io.javalin.apibuilder.ApiBuilder.post
@@ -20,7 +19,7 @@ fun main() {
                 it.allowHost("http://localhost:7001/", "http://localhost:7002")
             }
         }
-        cfg.routing(ApiBuilder) {
+        cfg.router.apiBuilder {
             get { it.json("Hello Get") }
             post { it.json("Hello Post") }
             patch { it.json("Hello Patch") }

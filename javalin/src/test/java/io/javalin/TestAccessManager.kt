@@ -9,7 +9,6 @@ package io.javalin
 
 import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
-import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.config.JavalinConfig
@@ -61,7 +60,7 @@ class TestAccessManager {
 
     @Test
     fun `AccessManager can restrict access for ApiBuilder`() = TestUtil.test(managedApp { cfg ->
-        cfg.routing(ApiBuilder) {
+        cfg.router.apiBuilder {
             get("/static-secured", { it.result("Hello") }, ROLE_ONE, ROLE_TWO)
         }
     }) { app, http ->
@@ -72,7 +71,7 @@ class TestAccessManager {
 
     @Test
     fun `AccessManager can restrict access for ApiBuilder crud`() = TestUtil.test(managedApp { cfg ->
-        cfg.routing(ApiBuilder) {
+        cfg.router.apiBuilder {
             crud("/users/{userId}", TestApiBuilder.UserController(), ROLE_ONE, ROLE_TWO)
         }
     }) { app, http ->

@@ -7,7 +7,6 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HttpStatus
@@ -15,7 +14,7 @@ import io.javalin.http.HttpStatus
 
 fun main() {
     Javalin.create {
-        it.routing(ApiBuilder) {
+        it.router.apiBuilder {
             get("/hello") { it.result("Hello World") }
             path("/api") {
                 get("/test") { it.result("Hello World") }

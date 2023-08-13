@@ -7,7 +7,6 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE
@@ -21,15 +20,15 @@ enum class MyRoles : RouteRole {
 }
 
 fun main() {
-    Javalin.create {
-        it.accessManager { handler, ctx, routeRoles ->
+    Javalin.create { cfg ->
+        cfg.accessManager { handler, ctx, routeRoles ->
             val userRole = ctx.queryParam("role")
             when {
                 userRole != null && routeRoles.contains(MyRoles.valueOf(userRole)) -> handler.handle(ctx)
                 else -> ctx.status(HttpStatus.UNAUTHORIZED).result("Unauthorized")
             }
         }
-        it.routing(ApiBuilder) {
+        cfg.router.apiBuilder {
             get("/hello", { it.result("Hello World 1") }, ROLE_ONE)
             path("/api") {
                 get("/test", { it.result("Hello World 2") }, ROLE_TWO)

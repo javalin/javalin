@@ -8,7 +8,6 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 
-import static io.javalin.apibuilder.ApiBuilder.ApiBuilder;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.patch;
 import static io.javalin.apibuilder.ApiBuilder.post;
@@ -22,7 +21,7 @@ public class HelloWorldCors {
                     corsConfig.allowHost("http://localhost:7001/", "http://localhost:7002");
                 });
             });
-            config.staticRouting(ApiBuilder, () -> {
+            config.router.apiBuilder(() -> {
                 get(ctx -> ctx.json("Hello Get"));
                 post(ctx -> ctx.json("Hello Post"));
                 patch(ctx -> ctx.json("Hello Patch"));

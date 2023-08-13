@@ -7,7 +7,6 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLogging
 import java.util.concurrent.CompletableFuture
@@ -18,7 +17,7 @@ fun main() {
     Javalin.create {
         val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 
-        it.routing(ApiBuilder) {
+        it.router.apiBuilder {
             get("/result") { ctx ->
                 ctx.future {
                     val future = CompletableFuture<String>()

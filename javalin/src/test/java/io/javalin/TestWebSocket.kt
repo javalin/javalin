@@ -85,13 +85,13 @@ class TestWebSocket {
         val logger = TestLogger()
 
         TestUtil.test(contextPathJavalin { cfg ->
-            cfg.routing(Default) {
+            cfg.router.mount(Default) {
                 it.ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
                     ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
                 }
             }
-            cfg.routing(ApiBuilder) {
+            cfg.router.mount(ApiBuilder) {
                 ws("/test-websocket-2") { ws ->
                     ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
                     ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
@@ -115,7 +115,7 @@ class TestWebSocket {
         val atomicInteger = AtomicInteger()
 
         TestUtil.test(contextPathJavalin { cfg ->
-            cfg.routing(Default) {
+            cfg.router.mount(Default) {
                 it.ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx ->
                         idMap[ctx] = atomicInteger.getAndIncrement()
@@ -128,7 +128,7 @@ class TestWebSocket {
                     ws.onClose { ctx -> logger.log.add("${idMap[ctx]} disconnected") }
                 }
             }
-            cfg.routing(ApiBuilder) { // use .routes to test apibuilder
+            cfg.router.apiBuilder { // use .routes to test apibuilder
                 ws("/test-websocket-2") { ws ->
                     ws.onConnect { logger.log.add("Connected to other endpoint") }
                     ws.onClose { logger.log.add("Disconnected from other endpoint") }

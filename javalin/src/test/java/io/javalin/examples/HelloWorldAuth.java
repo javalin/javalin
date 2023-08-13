@@ -35,7 +35,7 @@ public class HelloWorldAuth {
                     ctx.status(UNAUTHORIZED).result("Unauthorized");
                 }
             });
-            config.staticRouting(ApiBuilder, () -> {
+            config.router.apiBuilder(() -> {
                 get("/hello", ctx -> ctx.result("Hello World 1"), ROLE_ONE);
                 path("/api", () -> {
                     get("/test", ctx -> ctx.result("Hello World 2"), ROLE_TWO);
