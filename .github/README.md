@@ -1,15 +1,3 @@
-<!--TODO:
-Add Javalin logo
-Snapshot badge
-Discord online users badge (?)
-Cleanup links
-Gradle Kts compatible snippet
-Update examples, provide more up-to-date approach
-Reference plugin ecosystem
-- Show some examples, like e.g. smooth integration of OpenApi, SSL, templates
-Link repository with sample projects (or even list some of them)
--->
-
 <a name="readme-top"></a>
 
 <div align="center">
@@ -62,13 +50,12 @@ Javalin is more of a library than a framework. Some key points:
 
 General information:
 * [:heart: Sponsor Javalin](https://github.com/sponsors/tipsy)
-* The project webpage is [javalin.io](https://javalin.io) (repo for webpage is at [github.com/javalin/javalin.github.io](https://github.com/javalin/javalin.github.io)).
-* Documentation: [javalin.io/documentation](https://javalin.io/documentation)
-* Chat on Discord: https://discord.gg/sgak4e5NKv
-* Chat on Slack: https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w
+* The project webpage is [javalin.io](https://javalin.io) (the source is at [javalin/javalin.github.io](https://github.com/javalin/javalin.github.io)).
+* Read the documentation on: [javalin.io/documentation](https://javalin.io/documentation)
+* You can chat on [Discord](https://discord.gg/sgak4e5NKv) or [Slack](https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w)
 * Contributions are very welcome: [CONTRIBUTING](https://github.com/javalin/javalin/contribute)
-* License summary: https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)
-* Interesting issues: [/javalin/javalin/issues?q=label:INFO](https://github.com/javalin/javalin/issues?q=is%3Aissue+label%3AINFO)
+* A summary of the license can be found at [TLDR Legal](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0))
+* [Interesting issues](https://github.com/javalin/javalin/issues?q=is%3Aissue+label%3AINFO)
 
 ## Quickstart
 
