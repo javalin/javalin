@@ -13,15 +13,6 @@
 
   <a href="https://javalin.io/documentation" style="margin: 1em"><strong>View the documentation →</strong></a>
 
-
-  
-  <!--Discord badge-->
-  <a href="https://discord.gg/sgak4e5NKv">
-    <img alt="Discord Link" src="https://img.shields.io/badge/discord-javalin-blue?logo=discord&logoColor=white">
-  </a>
-  <a href="https://discord.gg/sgak4e5NKv">
-    <img alt="Discord" src="https://img.shields.io/discord/804862058528505896">
-  </a>
   <!--Badge for CI-->
   <a href="https://github.com/javalin/javalin/actions/workflows/main.yml">
     <img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/javalin/javalin/main.yml">
@@ -38,6 +29,13 @@
   <a href="https://repo.reposilite.com/#/snapshots/io/javalin/javalin">
     <img alt="Snapshot Version" src="https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo.reposilite.com%2Fsnapshots%2Fio%2Fjavalin%2Fjavalin%2Fmaven-metadata.xml&label=snapshot">
   </a>  
+  <!--Discord badge-->
+  <a href="https://discord.gg/sgak4e5NKv">
+    <img alt="Discord Link" src="https://img.shields.io/badge/discord-javalin-blue?logo=discord&logoColor=white">
+  </a>
+  <a href="https://discord.gg/sgak4e5NKv">
+    <img alt="Discord" src="https://img.shields.io/discord/804862058528505896">
+  </a>
   
 </div>
 
