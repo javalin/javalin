@@ -10,6 +10,7 @@ import io.javalin.http.Context
 import io.javalin.jetty.upgradeContextKey
 import io.javalin.jetty.upgradeSessionAttrsKey
 import io.javalin.json.jsonMapper
+import io.javalin.util.javalinLazy
 import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
@@ -27,9 +28,10 @@ import kotlin.reflect.typeOf
  */
 abstract class WsContext(private val sessionId: String, @JvmField val session: Session) {
 
-    internal val upgradeCtx by lazy(NONE) { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeContextKey) as Context }
+    internal val upgradeCtx by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeContextKey) as Context }
+
     @Suppress("UNCHECKED_CAST")
-    private val sessionAttributes by lazy(NONE) { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
+    private val sessionAttributes by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as? Map<String, Any> ?: emptyMap() }
 
     /** Returns the path that was used to match this request */
     fun matchedPath() = upgradeCtx.matchedPath()
