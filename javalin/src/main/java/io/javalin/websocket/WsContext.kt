@@ -31,7 +31,7 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     internal val upgradeCtx by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeContextKey) as Context }
 
     @Suppress("UNCHECKED_CAST")
-    private val sessionAttributes by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as? Map<String, Any> ?: emptyMap() }
+    private val sessionAttributes by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as? Map<String, Any> }
 
     /** Returns the path that was used to match this request */
     fun matchedPath() = upgradeCtx.matchedPath()

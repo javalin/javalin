@@ -78,7 +78,7 @@ internal object LoomUtil {
 /**
  * Loom-friendly [kotlin.Lazy] implementation
  */
-internal class ReentrantLazy<T : Any>(initializer: () -> T) : Lazy<T> {
+internal class ReentrantLazy<T : Any?>(initializer: () -> T) : Lazy<T> {
     private companion object {
         private object UNINITIALIZED_VALUE
     }
@@ -115,7 +115,7 @@ internal class ReentrantLazy<T : Any>(initializer: () -> T) : Lazy<T> {
  * We instead use LazyThreadSafetyMode = NONE by default, and use [ReentrantLazy] when
  * [LazyThreadSafetyMode.SYNCHRONIZED] is requested.
  */
-fun <T : Any> javalinLazy(
+fun <T : Any?> javalinLazy(
     threadSafetyMode: LazyThreadSafetyMode = NONE,
     initializer: () -> T
 ): Lazy<T> = when (threadSafetyMode) {
