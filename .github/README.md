@@ -50,14 +50,10 @@ Javalin is more of a library than a framework. Some key points:
 * There is no other magic; just code.
 
 General information:
-* [:heart: Sponsor Javalin](https://github.com/sponsors/tipsy)
 * The project webpage is [javalin.io](https://javalin.io) (the source is at [javalin/javalin.github.io](https://github.com/javalin/javalin.github.io)).
 * Read the documentation on: [javalin.io/documentation](https://javalin.io/documentation)
-* You can chat on [Discord](https://discord.gg/sgak4e5NKv) or [Slack](https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w)
-* Contributions are very welcome: [CONTRIBUTING](https://github.com/javalin/javalin/contribute)
 * A summary of the license can be found at [TLDR Legal](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0))
 * [Interesting issues](https://github.com/javalin/javalin/issues?q=is%3Aissue+label%3AINFO)
-
 ## Quickstart
 
 ### Add dependency
@@ -242,6 +238,16 @@ Javalin.create { config ->
     })
 }
 ```
+
+## Community
+
+You can [:heart: Sponsor Javalin](https://github.com/sponsors/tipsy) if you want to support the project financially.
+
+We also have a [Discord](https://discord.gg/sgak4e5NKv) where you can ask questions and get help, we're very active.
+We also have a [Slack](https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w) which is less active, but still a good place to ask questions.
+
+Contributions are very welcome, you can read more about contributing in our guide:
+ [CONTRIBUTING](https://github.com/javalin/javalin/contribute)
 
 
 ## Sponsors
