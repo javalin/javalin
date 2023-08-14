@@ -6,11 +6,14 @@
 
 package io.javalin
 
+import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.ws
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.json.toJsonString
 import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLogging
+import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
@@ -53,9 +56,13 @@ class TestWebSocket {
         return this.attribute(TestLogger::class.java.name)
     }
 
-    fun contextPathJavalin(): Javalin = Javalin.create { it.routing.contextPath = "/websocket" }
+    private fun contextPathJavalin(cfg: ((JavalinConfig) -> Unit)? = null): Javalin =
+        Javalin.create {
+            it.router.contextPath = "/websocket"
+            cfg?.invoke(it)
+        }
 
-    fun accessManagedJavalin(): Javalin = Javalin.create().apply {
+    private fun accessManagedJavalin(): Javalin = Javalin.create().apply {
         this.cfg.accessManager { handler, ctx, roles ->
             this.logger().log.add("handling upgrade request ...")
             when {
@@ -74,71 +81,84 @@ class TestWebSocket {
     }
 
     @Test
-    fun `each connection receives a unique id`() = TestUtil.test(contextPathJavalin()) { app, _ ->
-        app.ws("/test-websocket-1") { ws ->
-            ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId()) }
-            ws.onClose { ctx -> app.logger().log.add(ctx.sessionId()) }
-        }
-        app.routes {
-            ws("/test-websocket-2") { ws ->
-                ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId()) }
-                ws.onClose { ctx -> app.logger().log.add(ctx.sessionId()) }
+    fun `each connection receives a unique id`() {
+        val logger = TestLogger()
+
+        TestUtil.test(contextPathJavalin { cfg ->
+            cfg.router.mount(Default) {
+                it.ws("/test-websocket-1") { ws ->
+                    ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
+                    ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
+                }
             }
+            cfg.router.mount(ApiBuilder) {
+                ws("/test-websocket-2") { ws ->
+                    ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
+                    ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
+                }
+            }
+        }) { app, _ ->
+            TestClient(app, "/websocket/test-websocket-1").connectAndDisconnect()
+            TestClient(app, "/websocket/test-websocket-1").connectAndDisconnect()
+            TestClient(app, "/websocket/test-websocket-2").connectAndDisconnect()
+            // 3 clients and 6 operations should yield 3 unique identifiers total
+            val uniqueLog = HashSet(logger.log)
+            assertThat(uniqueLog).hasSize(3)
+            uniqueLog.forEach { id -> assertThat(uniqueLog.count { it == id }).isEqualTo(1) }
         }
-        TestClient(app, "/websocket/test-websocket-1").connectAndDisconnect()
-        TestClient(app, "/websocket/test-websocket-1").connectAndDisconnect()
-        TestClient(app, "/websocket/test-websocket-2").connectAndDisconnect()
-        // 3 clients and 6 operations should yield 3 unique identifiers total
-        val uniqueLog = HashSet(app.logger().log)
-        assertThat(uniqueLog).hasSize(3)
-        uniqueLog.forEach { id -> assertThat(uniqueLog.count { it == id }).isEqualTo(1) }
     }
 
     @Test
-    fun `general integration test`() = TestUtil.test(contextPathJavalin()) { app, _ ->
+    fun `general integration test`() {
+        val logger = TestLogger()
         val idMap = ConcurrentHashMap<WsContext, Int>()
         val atomicInteger = AtomicInteger()
-        app.ws("/test-websocket-1") { ws ->
-            ws.onConnect { ctx ->
-                idMap[ctx] = atomicInteger.getAndIncrement()
-                app.logger().log.add("${idMap[ctx]} connected")
-            }
-            ws.onMessage { ctx ->
-                app.logger().log.add("${idMap[ctx]} sent '${ctx.message()}' to server")
-                idMap.forEach { (client, _) -> client.send("Server sent '${ctx.message()}' to ${idMap[client]}") }
-            }
-            ws.onClose { ctx -> app.logger().log.add("${idMap[ctx]} disconnected") }
-        }
-        app.routes { // use .routes to test apibuilder
-            ws("/test-websocket-2") { ws ->
-                ws.onConnect { app.logger().log.add("Connected to other endpoint") }
-                ws.onClose { app.logger().log.add("Disconnected from other endpoint") }
-            }
-        }
 
-        val testClient0 = TestClient(app, "/websocket/test-websocket-1").also { it.connectBlocking() } // logsize = 1
-        val testClient1 = TestClient(app, "/websocket/test-websocket-1").also { it.connectBlocking() } // logsize = 2
-        doBlocking({
-            testClient0.send("A") // logsize = 3 (this will add +2 to logsize when clients register echo)
-            testClient1.send("B") // logsize = 4 (this will add +2 to logsize when clients register echo)
-        }, { app.logger().log.size != 8 }) // // logsize = 8 (block until all echos registered)
-        testClient0.closeBlocking()
-        testClient1.closeBlocking()
-        TestClient(app, "/websocket/test-websocket-2").also { it.connectAndDisconnect() }
-        assertThat(app.logger().log).containsExactlyInAnyOrder(
-            "0 connected",
-            "1 connected",
-            "0 sent 'A' to server",
-            "1 sent 'B' to server",
-            "Server sent 'A' to 0",
-            "Server sent 'A' to 1",
-            "Server sent 'B' to 0",
-            "Server sent 'B' to 1",
-            "0 disconnected",
-            "1 disconnected",
-            "Connected to other endpoint",
-            "Disconnected from other endpoint"
-        )
+        TestUtil.test(contextPathJavalin { cfg ->
+            cfg.router.mount(Default) {
+                it.ws("/test-websocket-1") { ws ->
+                    ws.onConnect { ctx ->
+                        idMap[ctx] = atomicInteger.getAndIncrement()
+                        logger.log.add("${idMap[ctx]} connected")
+                    }
+                    ws.onMessage { ctx ->
+                        logger.log.add("${idMap[ctx]} sent '${ctx.message()}' to server")
+                        idMap.forEach { (client, _) -> client.send("Server sent '${ctx.message()}' to ${idMap[client]}") }
+                    }
+                    ws.onClose { ctx -> logger.log.add("${idMap[ctx]} disconnected") }
+                }
+            }
+            cfg.router.apiBuilder { // use .routes to test apibuilder
+                ws("/test-websocket-2") { ws ->
+                    ws.onConnect { logger.log.add("Connected to other endpoint") }
+                    ws.onClose { logger.log.add("Disconnected from other endpoint") }
+                }
+            }
+        }) { app, _ ->
+            val testClient0 = TestClient(app, "/websocket/test-websocket-1", logger = logger).also { it.connectBlocking() } // logsize = 1
+            val testClient1 = TestClient(app, "/websocket/test-websocket-1", logger = logger).also { it.connectBlocking() } // logsize = 2
+            doBlocking({
+                testClient0.send("A") // logsize = 3 (this will add +2 to logsize when clients register echo)
+                testClient1.send("B") // logsize = 4 (this will add +2 to logsize when clients register echo)
+            }, { logger.log.size != 8 }) // // logsize = 8 (block until all echos registered)
+            testClient0.closeBlocking()
+            testClient1.closeBlocking()
+            TestClient(app, "/websocket/test-websocket-2", logger = logger).also { it.connectAndDisconnect() }
+            assertThat(logger.log).containsExactlyInAnyOrder(
+                "0 connected",
+                "1 connected",
+                "0 sent 'A' to server",
+                "1 sent 'B' to server",
+                "Server sent 'A' to 0",
+                "Server sent 'A' to 1",
+                "Server sent 'B' to 0",
+                "Server sent 'B' to 1",
+                "0 disconnected",
+                "1 disconnected",
+                "Connected to other endpoint",
+                "Disconnected from other endpoint"
+            )
+        }
     }
 
     @Test
@@ -590,15 +610,16 @@ class TestWebSocket {
         val onOpen: (TestClient) -> Unit = {},
         var onMessage: ((String) -> Unit)? = null,
         var onPing: ((Framedata?) -> Unit)? = null,
-        var onPong: ((Framedata?) -> Unit)? = null
-    ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
+        var onPong: ((Framedata?) -> Unit)? = null,
+        val logger: TestLogger = app.logger()
+        ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
 
         override fun onOpen(serverHandshake: ServerHandshake) = onOpen(this)
         override fun onClose(status: Int, message: String, byRemote: Boolean) {}
         override fun onError(exception: Exception) {}
         override fun onMessage(message: String) {
             onMessage?.invoke(message)
-            app.logger().log.add(message)
+            logger.log.add(message)
         }
 
         override fun onWebsocketPing(conn: WebSocket?, f: Framedata?) {

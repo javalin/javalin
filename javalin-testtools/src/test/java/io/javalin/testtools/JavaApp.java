@@ -2,6 +2,7 @@ package io.javalin.testtools;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+
 import static io.javalin.apibuilder.ApiBuilder.get;
 
 // We're using statics for simplicity's sake, but you could
@@ -9,9 +10,10 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 public class JavaApp {
 
     public Javalin app = Javalin.create(javalin -> {
-        javalin.routing.ignoreTrailingSlashes = false;
-    }).routes(() -> {
-        get("/hello", HelloController::hello);
+        javalin.router.ignoreTrailingSlashes = false;
+        javalin.router.apiBuilder(() -> {
+            get("/hello", HelloController::hello);
+        });
     });
 
     static class HelloController {

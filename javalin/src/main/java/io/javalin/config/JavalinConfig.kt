@@ -26,19 +26,23 @@ import java.util.function.Consumer
 // `cfg.pvt` should be accessible, but usage should be discouraged (hence the naming)
 class JavalinConfig {
     //@formatter:off
-    @JvmField val pvt = PrivateConfig() // this is "private", only use it if you know what you're doing
     @JvmField val http = HttpConfig()
-    @JvmField val routing = RoutingConfig()
-    @JvmField val jetty = JettyConfig()
-    @JvmField val staticFiles = StaticFilesConfig(pvt)
-    @JvmField val spaRoot = SpaRootConfig(pvt)
-    @JvmField val compression = CompressionConfig(pvt)
-    @JvmField val requestLogger = RequestLoggerConfig(pvt)
+    @JvmField val router = RouterConfig(this)
+    @JvmField val jetty = JettyConfig(this)
+    @JvmField val staticFiles = StaticFilesConfig(this)
+    @JvmField val spaRoot = SpaRootConfig(this)
+    @JvmField val compression = CompressionConfig(this)
+    @JvmField val requestLogger = RequestLoggerConfig(this)
     @JvmField val bundledPlugins = BundledPluginsConfig(this)
-    @JvmField val events = EventConfig()
+    @JvmField val events = EventConfig(this)
     @JvmField val vue = JavalinVueConfig()
     @JvmField val contextResolver = ContextResolverConfig()
     @JvmField var showJavalinBanner = true
+    /**
+     * This is "private", only use it if you know what you're doing
+     */
+    @JvmField val pvt = PrivateConfig(this)
+
     fun accessManager(accessManager: AccessManager) { pvt.accessManager = accessManager }
     fun jsonMapper(jsonMapper: JsonMapper) { pvt.appAttributes[JSON_MAPPER_KEY] = jsonMapper }
     fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[FILE_RENDERER_KEY] = fileRenderer }

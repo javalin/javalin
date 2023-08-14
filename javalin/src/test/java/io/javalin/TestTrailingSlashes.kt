@@ -7,6 +7,7 @@
 
 package io.javalin
 
+import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HttpStatus.NOT_FOUND
@@ -21,7 +22,7 @@ import java.net.URLEncoder
 class TestTrailingSlashes {
     private val okHttp = OkHttpClient().newBuilder().build()
     fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
-    val javalin = Javalin.create { it.routing.ignoreTrailingSlashes = false; }
+    val javalin = Javalin.create { it.router.ignoreTrailingSlashes = false; }
 
     @Test
     fun `trailing slashes are ignored by default`() = TestUtil.test { app, http ->
@@ -31,13 +32,16 @@ class TestTrailingSlashes {
     }
 
     @Test
-    fun `trailing slashes are ignored by default - ApiBuilder`() = TestUtil.test { app, http ->
-        app.routes {
-            path("a") {
-                get { it.result("a") }
-                get("/") { it.result("a-slash") }
+    fun `trailing slashes are ignored by default - ApiBuilder`() = TestUtil.test(
+        Javalin.create {
+            it.router.mount(ApiBuilder) {
+                path("a") {
+                    get { it.result("a") }
+                    get("/") { it.result("a-slash") }
+                }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/a")).isEqualTo("a")
         assertThat(http.getBody("/a/")).isEqualTo("a")
     }
@@ -138,14 +142,18 @@ class TestTrailingSlashes {
     }
 
     @Test
-    fun `automatic slash prefixing works`() = TestUtil.test(javalin) { app, http ->
-        app.routes {
-            path("test") {
-                path("{id}") { get { it.result(it.pathParam("id")) } }
-                path("{id}/") { get { it.result(it.pathParam("id") + "/") } }
-                get { it.result("test") }
+    fun `automatic slash prefixing works`() = TestUtil.test(
+        Javalin.create {
+            it.router.ignoreTrailingSlashes = false
+            it.router.apiBuilder {
+                path("test") {
+                    path("{id}") { get { it.result(it.pathParam("id")) } }
+                    path("{id}/") { get { it.result(it.pathParam("id") + "/") } }
+                    get { it.result("test") }
+                }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/test/path-param")).isEqualTo("path-param")
         assertThat(http.getBody("/test/path-param/")).isEqualTo("path-param/")
         assertThat(http.getBody("/test/")).isEqualTo(NOT_FOUND.message)

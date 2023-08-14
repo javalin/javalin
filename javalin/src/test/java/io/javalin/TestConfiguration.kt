@@ -46,7 +46,7 @@ class TestConfiguration {
             it.requestLogger.http { ctx, timeInMs -> }
             it.requestLogger.ws { ws -> }
             it.showJavalinBanner = false
-            it.routing.contextPath = "/"
+            it.router.contextPath = "/"
             it.jetty.modifyJettyWebSocketServletFactory() { factory -> }
             it.jetty.modifyServer { server -> }
             it.jetty.modifyServletContextHandler { handler ->
@@ -58,7 +58,7 @@ class TestConfiguration {
             it.jetty.modifyHttpConfiguration() { httpConfig -> }
             it.jetty.addConnector { server, _ -> ServerConnector(server) }
         }.start(0)
-        assertThat(app.jettyServer.started()).isTrue()
+        assertThat(app.jettyServer().started()).isTrue()
         app.stop()
     }
 

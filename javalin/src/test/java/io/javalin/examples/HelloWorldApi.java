@@ -8,6 +8,7 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
+
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.http.HttpStatus.OK;
@@ -15,9 +16,8 @@ import static io.javalin.http.HttpStatus.OK;
 public class HelloWorldApi {
 
     public static void main(String[] args) {
-        Javalin.create()
-            .start(7070)
-            .routes(() -> {
+        Javalin.create(config -> {
+            config.router.apiBuilder(() -> {
                 get("/hello", ctx -> ctx.result("Hello World"));
                 path("/api", () -> {
                     get("/test", ctx -> ctx.result("Hello World"));
@@ -26,6 +26,8 @@ public class HelloWorldApi {
                     get("/hast", ctx -> ctx.status(OK).result("Hello World").header("test", "tast"));
                 });
             });
+        })
+        .start(7070);
     }
 
 }

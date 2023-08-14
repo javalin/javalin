@@ -4,13 +4,13 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.http.servlet
+package io.javalin.router.exception
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.RouterConfig
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.HttpResponseException
-import io.javalin.http.HttpStatus
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.InternalServerErrorResponse
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
@@ -19,11 +19,7 @@ import java.io.IOException
 import java.util.concurrent.CompletionException
 import java.util.concurrent.TimeoutException
 
-fun interface JavaLangErrorHandler {
-    fun handle(res: HttpServletResponse, err: Error)
-}
-
-class ExceptionMapper(val cfg: JavalinConfig) {
+class ExceptionMapper(private val routerConfig: RouterConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
@@ -33,7 +29,10 @@ class ExceptionMapper(val cfg: JavalinConfig) {
         }
         when {
             isSomewhatExpectedException(t) -> logDebugAndSetError(t, ctx.res())
-            t is Exception && HttpResponseExceptionMapper.canHandle(t) && noUserHandler(t) -> HttpResponseExceptionMapper.handle(t as HttpResponseException, ctx)
+            t is Exception && HttpResponseExceptionMapper.canHandle(t) && noUserHandler(t) -> HttpResponseExceptionMapper.handle(
+                t as HttpResponseException,
+                ctx
+            )
             t is Exception -> Util.findByClass(handlers, t.javaClass)?.handle(t, ctx) ?: uncaughtException(ctx, t)
             else -> handleUnexpectedThrowable(ctx.res(), t)
         }
@@ -45,13 +44,12 @@ class ExceptionMapper(val cfg: JavalinConfig) {
     }
 
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
-        res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
+        res.status = INTERNAL_SERVER_ERROR.code
         when {
-            throwable is Error -> cfg.pvt.javaLangErrorHandler.handle(res, throwable)
+            throwable is Error -> routerConfig.javaLangErrorHandler.handle(res, throwable)
             isSomewhatExpectedException(throwable) -> logDebugAndSetError(throwable, res)
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
-
         return null
     }
 
@@ -74,5 +72,5 @@ private fun isSomewhatExpectedException(t: Throwable): Boolean {
 
 private fun logDebugAndSetError(t: Throwable, res: HttpServletResponse) {
     JavalinLogger.debug("Client aborted or timed out", t)
-    res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
+    res.status = INTERNAL_SERVER_ERROR.code
 }

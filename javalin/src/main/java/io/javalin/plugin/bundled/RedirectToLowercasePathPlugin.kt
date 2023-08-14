@@ -11,8 +11,8 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginPriority
-import io.javalin.routing.PathParser
-import io.javalin.routing.PathSegment
+import io.javalin.router.matcher.PathParser
+import io.javalin.router.matcher.PathSegment
 import io.javalin.util.Util.firstOrNull
 import java.util.*
 
@@ -30,12 +30,12 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
     }
 
     override fun onInitialize(config: JavalinConfig) {
-        if (config.routing.caseInsensitiveRoutes) {
+        if (config.router.caseInsensitiveRoutes) {
             throw IllegalStateException("RedirectToLowercasePathPlugin is not compatible with caseInsensitiveRoutes")
         }
 
         config.events.handlerAdded { handlerMetaInfo ->
-            val parser = PathParser(handlerMetaInfo.path, config.routing)
+            val parser = PathParser(handlerMetaInfo.path, config.router)
 
             parser.segments.asSequence()
                 .filterIsInstance<PathSegment.Normal>()
@@ -56,13 +56,13 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
     override fun onStart(app: Javalin) {
         app.before { ctx ->
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
-            val matcher = app.javalinServlet().matcher
+            val router = app.cfg.pvt.internalRouter
 
-            if (matcher.findEntries(ctx.method(), requestUri).findFirst().isPresent) {
+            if (router.findHttpHandlerEntries(ctx.method(), requestUri).findFirst().isPresent) {
                 return@before // we found a route for this case, no need to redirect
             }
 
-            val lowercaseRoute = matcher.findEntries(ctx.method(), requestUri.lowercase(Locale.ROOT))
+            val lowercaseRoute = router.findHttpHandlerEntries(ctx.method(), requestUri.lowercase(Locale.ROOT))
                 .firstOrNull()
                 ?: return@before // lowercase route not found
 
@@ -70,7 +70,7 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
                 .filter { it.isNotEmpty() }
                 .toTypedArray()
 
-            val serverSegments = PathParser(lowercaseRoute.path, app.cfg.routing)
+            val serverSegments = PathParser(lowercaseRoute.path, app.cfg.router)
                 .segments
 
             serverSegments.forEachIndexed { index, serverSegment ->

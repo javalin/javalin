@@ -4,9 +4,10 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.routing
+package io.javalin.router.matcher
 
 import io.javalin.http.HandlerType
+import io.javalin.router.HandlerEntry
 import java.util.*
 import java.util.stream.Stream
 
@@ -22,14 +23,14 @@ class PathMatcher {
         handlerEntries[entry.type]!!.add(entry)
     }
 
-    fun findEntries(handlerType: HandlerType, requestUri: String): Stream<HandlerEntry> =
-        handlerEntries[handlerType]!!.stream().filter { he -> match(he, requestUri) }
+    fun findEntries(handlerType: HandlerType, requestUri: String?): Stream<HandlerEntry> =
+        when (requestUri) {
+            null -> handlerEntries[handlerType]!!.stream()
+            else -> handlerEntries[handlerType]!!.stream().filter { he -> match(he, requestUri) }
+        }
 
     internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
         handlerEntries[handlerType]!!.any { entry -> match(entry, requestUri) }
-
-    internal fun getAllEntriesOfType(handlerType: HandlerType): List<HandlerEntry> =
-        handlerEntries[handlerType]!!
 
     private fun match(entry: HandlerEntry, requestPath: String): Boolean = when (entry.path) {
         "*" -> true

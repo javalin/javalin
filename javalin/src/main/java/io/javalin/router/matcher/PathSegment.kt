@@ -1,4 +1,13 @@
-package io.javalin.routing
+package io.javalin.router.matcher
+
+import io.javalin.router.matcher.PathSegment.MultipleSegments
+import io.javalin.router.matcher.PathSegment.Normal
+import io.javalin.router.matcher.PathSegment.Normal.RegexAllowed
+import io.javalin.router.matcher.PathSegment.Normal.RegexEscaped
+import io.javalin.router.matcher.PathSegment.Parameter
+import io.javalin.router.matcher.PathSegment.Parameter.SlashAcceptingParameter
+import io.javalin.router.matcher.PathSegment.Parameter.SlashIgnoringParameter
+import io.javalin.router.matcher.PathSegment.Wildcard
 
 private fun String.grouped() = "($this)"
 
@@ -56,18 +65,18 @@ sealed class PathSegment {
 }
 
 internal fun createNormal(string: String, enableRegex: Boolean = false) = if (enableRegex) {
-    PathSegment.Normal.RegexAllowed(string)
+    RegexAllowed(string)
 } else {
-    PathSegment.Normal.RegexEscaped(string)
+    RegexEscaped(string)
 }
 
-internal fun createSlashIgnoringParam(string: String) = PathSegment.Parameter.SlashIgnoringParameter(string)
-internal fun createSlashAcceptingParam(string: String) = PathSegment.Parameter.SlashAcceptingParameter(string)
+internal fun createSlashIgnoringParam(string: String) = SlashIgnoringParameter(string)
+internal fun createSlashAcceptingParam(string: String) = SlashAcceptingParameter(string)
 
 internal fun PathSegment.pathParamNames(): List<String> {
     return when (this) {
-        is PathSegment.Normal, is PathSegment.Wildcard -> emptyList()
-        is PathSegment.Parameter -> listOf(this.name)
-        is PathSegment.MultipleSegments -> this.innerSegments.filterIsInstance<PathSegment.Parameter>().map { it.name }
+        is Normal, is Wildcard -> emptyList()
+        is Parameter -> listOf(this.name)
+        is MultipleSegments -> this.innerSegments.filterIsInstance<Parameter>().map { it.name }
     }
 }

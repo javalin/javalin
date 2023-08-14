@@ -1,4 +1,11 @@
-package io.javalin.routing
+package io.javalin.router.matcher
+
+import io.javalin.router.matcher.ParserState.INSIDE_SLASH_ACCEPTING_BRACKETS
+import io.javalin.router.matcher.ParserState.INSIDE_SLASH_IGNORING_BRACKETS
+import io.javalin.router.matcher.ParserState.NORMAL
+import io.javalin.router.matcher.PathSegment.MultipleSegments
+import io.javalin.router.matcher.PathSegment.Normal
+import io.javalin.router.matcher.PathSegment.Wildcard
 
 import io.javalin.util.javalinLazy
 import kotlin.LazyThreadSafetyMode.NONE
@@ -18,7 +25,7 @@ internal fun convertSegment(segment: String, rawPath: String): PathSegment {
     return when {
         bracketsCount % 2 != 0 -> throw MissingBracketsException(segment, rawPath)
         adjacentViolations.any { it in segment } -> throw WildcardBracketAdjacentException(segment, rawPath)
-        segment == "*" -> PathSegment.Wildcard // a wildcard segment
+        segment == "*" -> Wildcard // a wildcard segment
         bracketsCount == 0 && wildcardCount == 0 -> createNormal(segment) // a normal segment, no params or wildcards
         bracketsCount == 2 && segment.isEnclosedBy('{', '}') -> createSlashIgnoringParam(segment.stripEnclosing('{', '}')) // simple path param (no slashes)
         bracketsCount == 2 && segment.isEnclosedBy('<', '>') -> createSlashAcceptingParam(segment.stripEnclosing('<', '>')) // simple path param (slashes)
@@ -27,18 +34,18 @@ internal fun convertSegment(segment: String, rawPath: String): PathSegment {
 }
 
 private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
-    var state: ParserState = ParserState.NORMAL
+    var state: ParserState = NORMAL
     val pathNameAccumulator = mutableListOf<Char>()
     fun mapSingleChar(char: Char): PathSegment? = when (state) {
-        ParserState.NORMAL -> when (char) {
-            '*' -> PathSegment.Wildcard
+        NORMAL -> when (char) {
+            '*' -> Wildcard
             '{' -> {
-                state = ParserState.INSIDE_SLASH_IGNORING_BRACKETS
+                state = INSIDE_SLASH_IGNORING_BRACKETS
                 null
             }
 
             '<' -> {
-                state = ParserState.INSIDE_SLASH_ACCEPTING_BRACKETS
+                state = INSIDE_SLASH_ACCEPTING_BRACKETS
                 null
             }
 
@@ -49,9 +56,9 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
             else -> createNormal(char.toString()) // the single characters will be merged later
         }
 
-        ParserState.INSIDE_SLASH_IGNORING_BRACKETS -> when (char) {
+        INSIDE_SLASH_IGNORING_BRACKETS -> when (char) {
             '}' -> {
-                state = ParserState.NORMAL
+                state = NORMAL
                 val name = pathNameAccumulator.joinToString(separator = "")
                 pathNameAccumulator.clear()
                 createSlashIgnoringParam(name)
@@ -68,9 +75,9 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
             }
         }
 
-        ParserState.INSIDE_SLASH_ACCEPTING_BRACKETS -> when (char) {
+        INSIDE_SLASH_ACCEPTING_BRACKETS -> when (char) {
             '>' -> {
-                state = ParserState.NORMAL
+                state = NORMAL
                 val name = pathNameAccumulator.joinToString(separator = "")
                 pathNameAccumulator.clear()
                 createSlashAcceptingParam(name)
@@ -90,16 +97,16 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
 
     return segment.map(::mapSingleChar)
         .filterNotNull()
-        .fold(PathSegment.MultipleSegments(emptyList())) { acc, pathSegment ->
+        .fold(MultipleSegments(emptyList())) { acc, pathSegment ->
             val lastAddition = acc.innerSegments.lastOrNull()
             when {
-                lastAddition == null -> PathSegment.MultipleSegments(listOf(pathSegment))
-                lastAddition is PathSegment.Wildcard && pathSegment is PathSegment.Wildcard -> acc
-                lastAddition is PathSegment.Normal && pathSegment is PathSegment.Normal -> PathSegment.MultipleSegments(
+                lastAddition == null -> MultipleSegments(listOf(pathSegment))
+                lastAddition is Wildcard && pathSegment is Wildcard -> acc
+                lastAddition is Normal && pathSegment is Normal -> MultipleSegments(
                     acc.innerSegments.dropLast(1) + createNormal(lastAddition.content + pathSegment.content)
                 )
 
-                else -> PathSegment.MultipleSegments(acc.innerSegments + pathSegment)
+                else -> MultipleSegments(acc.innerSegments + pathSegment)
             }
         }
 }

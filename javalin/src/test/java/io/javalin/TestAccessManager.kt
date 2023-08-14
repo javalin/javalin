@@ -11,6 +11,7 @@ import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.security.RouteRole
@@ -24,7 +25,7 @@ class TestAccessManager {
 
     enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
-    private fun managedApp() = Javalin.create { config ->
+    private fun managedApp(cfg: ((JavalinConfig) -> Unit)? = null) = Javalin.create { config ->
         config.accessManager { handler, ctx, routeRoles ->
             val role: RouteRole? = ctx.queryParam("role")?.let { MyRoles.valueOf(it) }
 
@@ -33,6 +34,7 @@ class TestAccessManager {
                 else -> ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message)
             }
         }
+        cfg?.invoke(config)
     }
 
     @Test
@@ -57,20 +59,22 @@ class TestAccessManager {
     }
 
     @Test
-    fun `AccessManager can restrict access for ApiBuilder`() = TestUtil.test(managedApp()) { app, http ->
-        app.routes {
+    fun `AccessManager can restrict access for ApiBuilder`() = TestUtil.test(managedApp { cfg ->
+        cfg.router.apiBuilder {
             get("/static-secured", { it.result("Hello") }, ROLE_ONE, ROLE_TWO)
         }
+    }) { app, http ->
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_ONE")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_TWO")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_THREE")).isEqualTo(UNAUTHORIZED.message)
     }
 
     @Test
-    fun `AccessManager can restrict access for ApiBuilder crud`() = TestUtil.test(managedApp()) { app, http ->
-        app.routes {
+    fun `AccessManager can restrict access for ApiBuilder crud`() = TestUtil.test(managedApp { cfg ->
+        cfg.router.apiBuilder {
             crud("/users/{userId}", TestApiBuilder.UserController(), ROLE_ONE, ROLE_TWO)
         }
+    }) { app, http ->
         assertThat(callWithRole(http.origin, "/users/1", "ROLE_ONE")).isEqualTo("My single user: 1")
         assertThat(callWithRole(http.origin, "/users/2", "ROLE_TWO")).isEqualTo("My single user: 2")
         assertThat(callWithRole(http.origin, "/users/3", "ROLE_THREE")).isEqualTo(UNAUTHORIZED.message)

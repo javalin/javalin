@@ -12,14 +12,15 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
 import io.javalin.plugin.bundled.CorsPlugin;
-import io.javalin.plugin.bundled.CorsPlugin.Companion.Cors;
 import io.javalin.plugin.bundled.RouteOverviewPlugin;
+import io.javalin.routeoverview.ObjectHandlers.ImplementingClass;
 import io.javalin.websocket.WsConfig;
 import org.jetbrains.annotations.NotNull;
 
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
+import static io.javalin.apibuilder.ApiBuilder.ApiBuilder;
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
@@ -33,7 +34,7 @@ public class VisualTest {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create((config) -> {
-            config.routing.contextPath = "/context-path";
+            config.router.contextPath = "/context-path";
             config.registerPlugin(new CorsPlugin(cors -> cors.addRule(corsConfig -> corsConfig.reflectClientOrigin = true)));
             config.registerPlugin(new RouteOverviewPlugin(cfg -> cfg.path = "/route-overview"));
         }).start();
@@ -64,10 +65,9 @@ public class VisualTest {
             .addHandler(HandlerType.TRACE, "/tracer", new HandlerImplementation())
             .addHandler(HandlerType.CONNECT, "/test2", VisualTest.lambdaField, ROLE_ONE, ROLE_TWO)
             .addHandler(HandlerType.TRACE, "/tracer2", new HandlerImplementation(), ROLE_ONE, ROLE_TWO)
-            .sse("/sse", sse -> {
-            });
+            .sse("/sse", sse -> { });
 
-        app.routes(() -> {
+        app.cfg.router.apiBuilder(() -> {
             path("users", () -> {
                 get(new HandlerImplementation());
                 post(new HandlerImplementation());

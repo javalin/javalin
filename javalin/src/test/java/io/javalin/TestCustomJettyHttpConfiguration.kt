@@ -23,7 +23,7 @@ class TestCustomJettyHttpConfiguration {
             it.customizers.add(customizer)
         }
     }) { javalin, http ->
-        javalin.jettyServer.server().connectors.forEach {
+        javalin.jettyServer().server().connectors.forEach {
             val cf = it.getConnectionFactory(HttpConnectionFactory::class.java)
             assertThat(cf.httpConfiguration.customizers).contains(customizer)
         }
@@ -58,7 +58,7 @@ class TestCustomJettyHttpConfiguration {
     @Test
     fun `custom http configuration is used on custom connectors`() {
         val port = (2000..9999).random()
-        var app = Javalin.create { cfg ->
+        val app = Javalin.create { cfg ->
             cfg.jetty.addConnector{ server, httpconf ->
                 ServerConnector(server, HttpConnectionFactory(httpconf)).apply {
                     this.port = port
@@ -71,7 +71,7 @@ class TestCustomJettyHttpConfiguration {
 
         TestUtil.test(app) { server, _ ->
             server.get("*") { it.result("PORT WORKS") }
-            var response = Unirest.get("http://localhost:$port/").asString()
+            val response = Unirest.get("http://localhost:$port/").asString()
             assertThat(response.body).isEqualTo("PORT WORKS")
             assertThat(response.headers.getFirst("X-Powered-By")).isNotBlank()
 

@@ -6,6 +6,7 @@ import io.javalin.plugin.bundled.RouteOverviewPlugin.Companion.RouteOverview
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import kotlin.streams.asSequence
 
 class TestRouteOverviewPlugin {
 
@@ -17,8 +18,11 @@ class TestRouteOverviewPlugin {
     ) { app, http ->
         VisualTest.setupJavalinRoutes(app)
 
-        val allPaths = HandlerType.values()
-            .flatMap { app.javalinServlet().matcher.getAllEntriesOfType(it).map { entry -> entry.path } }
+        val allPaths = HandlerType.values().flatMap { handler ->
+            app.cfg.pvt.internalRouter.findHttpHandlerEntries(handler)
+                .map { it.path }
+                .asSequence()
+        }
 
         assertThat(allPaths).isNotEmpty
         assertThat(http.getBody("/overview")).contains(allPaths)

@@ -10,19 +10,20 @@ import io.javalin.http.servlet.SubmitOrder.FIRST
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.security.accessManagerNotConfiguredException
+import jakarta.servlet.ServletOutputStream
 import io.javalin.util.Util.firstOrNull
 import jakarta.servlet.http.HttpServletResponseWrapper
 
 object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        servlet.matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
+        servlet.cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
             submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
         }
     }
 
     val HTTP = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        servlet.matcher.findEntries(ctx.method(), requestUri).firstOrNull { entry ->
+        servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull { entry ->
             submitTask(
                 LAST,
                 Task {
@@ -43,7 +44,7 @@ object DefaultTasks {
             return@TaskInitializer
         }
         submitTask(LAST, Task {
-            if (ctx.method() == HEAD && servlet.matcher.hasEntries(GET, requestUri)) { // return 200, there is a get handler
+            if (ctx.method() == HEAD && servlet.router.hasHttpHandlerEntry(GET, requestUri)) { // return 200, there is a get handler
                 return@Task
             }
             if (ctx.method() == HEAD || ctx.method() == GET) { // check for static resources (will write response if found)
@@ -53,7 +54,7 @@ object DefaultTasks {
             if (ctx.handlerType() == HandlerType.BEFORE) { // no match, status will be 404 or 405 after this point
                 ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
             }
-            val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(servlet.matcher, requestUri)
+            val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(servlet.router, requestUri)
             if (servlet.cfg.http.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
                 throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
             }
@@ -62,11 +63,11 @@ object DefaultTasks {
     }
 
     val ERROR = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, _ ->
-        submitTask(LAST, Task(skipIfExceptionOccurred = false) { servlet.errorMapper.handle(ctx.statusCode(), ctx) })
+        submitTask(LAST, Task(skipIfExceptionOccurred = false) { servlet.router.handleHttpError(ctx.statusCode(), ctx) })
     }
 
     val AFTER = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        servlet.matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
+        servlet.router.findHttpHandlerEntries(HandlerType.AFTER, requestUri).forEach { entry ->
             submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
         }
     }
@@ -74,5 +75,5 @@ object DefaultTasks {
 }
 
 private class JavalinResourceResponseWrapper(private val ctx: Context) : HttpServletResponseWrapper(ctx.res()) {
-    override fun getOutputStream() = ctx.outputStream()
+    override fun getOutputStream(): ServletOutputStream = ctx.outputStream()
 }

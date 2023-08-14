@@ -64,7 +64,6 @@ class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
         }
 
         app.cfg.jetty.modifyServer { server ->
-
             server.insertHandler(TimedHandler(config.registry, config.tags, object : DefaultHttpJakartaServletRequestTagsProvider() {
                 override fun getTags(request: HttpServletRequest, response: HttpServletResponse): Iterable<Tag> {
                     val exceptionName = if (config.tagExceptionName) {
@@ -72,10 +71,10 @@ class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
                     } else {
                         "Unknown"
                     }
-                    val pathInfo = request.pathInfo.removePrefix(app.cfg.routing.contextPath).prefixIfNot("/")
+                    val pathInfo = request.pathInfo.removePrefix(app.cfg.router.contextPath).prefixIfNot("/")
                     response.setHeader(EXCEPTION_HEADER, null)
                     val handlerType = HandlerType.valueOf(request.method)
-                    val uri = app.javalinServlet().matcher.findEntries(handlerType, pathInfo)
+                    val uri = app.cfg.pvt.internalRouter.findHttpHandlerEntries(handlerType, pathInfo)
                         .map { it.path }
                         .map { if (it == "/" || it.isBlank()) "root" else it }
                         .map { if (!config.tagRedirectPaths && response.status in 300..399) "REDIRECTION" else it }

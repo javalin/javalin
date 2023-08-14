@@ -7,16 +7,18 @@
 
 package io.javalin
 
+import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HandlerType.TRACE
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
+import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin.Companion.RedirectToLowercasePath
-import io.javalin.routing.MissingBracketsException
-import io.javalin.routing.ParameterNamesNotUniqueException
-import io.javalin.routing.WildcardBracketAdjacentException
+import io.javalin.router.matcher.MissingBracketsException
+import io.javalin.router.matcher.ParameterNamesNotUniqueException
+import io.javalin.router.matcher.WildcardBracketAdjacentException
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
@@ -37,6 +39,24 @@ class TestRouting {
     @Test
     fun `basic hello world works`() = TestUtil.test { app, http ->
         app.get("/hello") { it.result("Hello World") }
+        assertThat(http.getBody("/hello")).isEqualTo("Hello World")
+    }
+
+    @Test
+    fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
+        cfg.router.mount(Default) {
+            it.get("/hello") { it.result("Hello World") }
+        }
+    }) { _, http ->
+        assertThat(http.getBody("/hello")).isEqualTo("Hello World")
+    }
+
+    @Test
+    fun `api builder can be used as custom router`() = TestUtil.test(Javalin.create { cfg ->
+        cfg.router.mount(ApiBuilder) {
+            get("/hello") { it.result("Hello World") }
+        }
+    }) { _, http ->
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")
     }
 
@@ -217,15 +237,18 @@ class TestRouting {
     }
 
     @Test
-    fun `automatic slash prefixing works`() = TestUtil.test { app, http ->
-        app.routes {
-            path("test") {
-                path("{id}") {
-                    get { it.result(it.pathParam("id")) }
+    fun `automatic slash prefixing works`() = TestUtil.test(
+        Javalin.create {
+            it.router.apiBuilder {
+                path("test") {
+                    path("{id}") {
+                        get { it.result(it.pathParam("id")) }
+                    }
+                    get { it.result("test") }
                 }
-                get { it.result("test") }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/test/path-param/")).isEqualTo("path-param")
         assertThat(http.getBody("/test/")).isEqualTo("test")
     }
@@ -251,14 +274,17 @@ class TestRouting {
     }
 
     @Test
-    fun `sub-path wildcard works for path-params`() = TestUtil.test { app, http ->
-        app.routes {
-            after("/partners/{pp}*") { it.result("${it.result()} - after") }
-            path("/partners/{pp}") {
-                get { it.result("root") }
-                get("/api") { it.result("api") }
+    fun `sub-path wildcard works for path-params`() = TestUtil.test(
+        Javalin.create {
+            it.router.apiBuilder {
+                after("/partners/{pp}*") { it.result("${it.result()} - after") }
+                path("/partners/{pp}") {
+                    get { it.result("root") }
+                    get("/api") { it.result("api") }
+                }
             }
         }
+    ) { app, http ->
         assertThat(http.getBody("/partners/microsoft")).isEqualTo("root - after")
         assertThat(http.getBody("/partners/microsoft/api")).isEqualTo("api - after")
     }
@@ -287,7 +313,7 @@ class TestRouting {
 
     @Test
     fun `root path works with ignoreTrailingSlashes set to false`() = TestUtil.test(Javalin.create {
-        it.routing.ignoreTrailingSlashes = false
+        it.router.ignoreTrailingSlashes = false
     }) { app, http ->
         app.get("/") { it.result("root") }
         app.get("/home") { it.result("home") }
@@ -297,19 +323,19 @@ class TestRouting {
 
     @Test
     fun `root path works with ApiBuilder and ignoreTrailingSlashes set to false`() = TestUtil.test(Javalin.create {
-        it.routing.ignoreTrailingSlashes = false
-    }) { app, http ->
-        app.routes {
+        it.router.apiBuilder {
             get("/") { it.result("root") }
             get("/home") { it.result("home") }
         }
+        it.router.ignoreTrailingSlashes = false
+    }) { app, http ->
         assertThat(http.getBody("/")).isEqualTo("root")
         assertThat(http.getBody("/home")).isEqualTo("home")
     }
 
     @Test
     fun `case insensitive routes work with caseInsensitiveRoutes`() = TestUtil.test(Javalin.create {
-        it.routing.caseInsensitiveRoutes = true
+        it.router.caseInsensitiveRoutes = true
     }) { app, http ->
         app.get("/paTh") { it.result("ok") }
         assertThat(http.getBody("/path")).isEqualTo("ok")
@@ -320,7 +346,7 @@ class TestRouting {
 
     @Test
     fun `case insensitive path params work with caseInsensitiveRoutes`() = TestUtil.test(Javalin.create {
-        it.routing.caseInsensitiveRoutes = true
+        it.router.caseInsensitiveRoutes = true
     }) { app, http ->
         app.get("/patH/<param>") { it.result(it.pathParam("param")) }
         assertThat(http.getBody("/path/value")).isEqualTo("value")
@@ -333,7 +359,7 @@ class TestRouting {
     fun `enableRedirectToLowercasePaths with caseInsensitiveRoutes throws exception`() {
         assertThrows<java.lang.IllegalStateException> {
             Javalin.create {
-                it.routing.caseInsensitiveRoutes = true
+                it.router.caseInsensitiveRoutes = true
                 it.registerPlugin(RedirectToLowercasePath)
             }.start()
         }

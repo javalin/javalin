@@ -6,19 +6,19 @@
 
 package io.javalin.websocket
 
-import io.javalin.config.RoutingConfig
-import io.javalin.routing.PathParser
+import io.javalin.config.RouterConfig
+import io.javalin.router.matcher.PathParser
 import io.javalin.security.RouteRole
 import java.util.*
 
 data class WsEntry(
     val type: WsHandlerType,
     val path: String,
-    val routingConfig: RoutingConfig,
+    val routerConfig: RouterConfig,
     val wsConfig: WsConfig,
     val roles: Set<RouteRole>
 ) {
-    private val pathParser = PathParser(path, routingConfig)
+    private val pathParser = PathParser(path, routerConfig)
     fun matches(path: String) = pathParser.matches(path)
     fun extractPathParams(path: String) = pathParser.extractPathParams(path)
 }

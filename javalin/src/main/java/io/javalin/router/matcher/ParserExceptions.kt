@@ -1,4 +1,4 @@
-package io.javalin.routing
+package io.javalin.router.matcher
 
 
 class MissingBracketsException(segment: String, val path: String) : IllegalArgumentException(
