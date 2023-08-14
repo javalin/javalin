@@ -10,7 +10,7 @@ import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
 import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.Handler;
-import io.javalin.router.RouterFactory;
+import io.javalin.router.RoutingApiInitializer;
 import io.javalin.http.sse.SseClient;
 import io.javalin.security.RouteRole;
 import io.javalin.websocket.WsConfig;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder {
 
-    public static class ApiBuilderRouter implements JavalinDefaultRoutingApi<ApiBuilderRouter, ApiBuilderSetup> {
+    public static class ApiBuilderRouter implements JavalinDefaultRoutingApi<ApiBuilderRouter, Void> {
         private final JavalinConfig cfg;
 
         public ApiBuilderRouter(JavalinConfig cfg) {
@@ -38,18 +38,16 @@ public class ApiBuilder {
             return cfg;
         }
     }
-    public static class ApiBuilderSetup { }
 
-    public static final RouterFactory<ApiBuilderRouter, ApiBuilderSetup> ApiBuilder = (cfg, internalRouter, setup) -> {
-        ApiBuilderRouter apiBuilder = new ApiBuilderRouter(cfg);
+    public static final RoutingApiInitializer<Void> ApiBuilder = (cfg, internalRouter, setup) -> {
         try {
-            setStaticJavalin(apiBuilder);
-            setup.accept(new ApiBuilderSetup());
+            setStaticJavalin(new ApiBuilderRouter(cfg));
+            setup.accept(null);
         } finally {
             clearStaticJavalin();
         }
-        return apiBuilder;
     };
+
     private static final ThreadLocal<JavalinDefaultRoutingApi<?, ?>> staticJavalin = new ThreadLocal<>();
     private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 

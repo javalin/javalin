@@ -16,8 +16,6 @@ import io.javalin.plugin.PluginFactory
 import io.javalin.rendering.FILE_RENDERER_KEY
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.NotImplementedRenderer
-import io.javalin.router.RouterFactory
-import io.javalin.router.RoutingApi
 import io.javalin.security.AccessManager
 import io.javalin.validation.JavalinValidation.addValidationExceptionMapper
 import io.javalin.vue.JAVALINVUE_CONFIG_KEY

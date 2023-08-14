@@ -4,8 +4,7 @@ import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.EndpointGroup
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.router.exception.JavaLangErrorHandler
-import io.javalin.router.RoutingApi
-import io.javalin.router.RouterFactory
+import io.javalin.router.RoutingApiInitializer
 import io.javalin.util.JavalinLogger
 import java.util.function.Consumer
 
@@ -21,8 +20,8 @@ class RouterConfig(internal val cfg: JavalinConfig) {
         JavalinLogger.error("Fatal error occurred while servicing http-request", error)
     }
 
-    fun <ROUTER : RoutingApi<ROUTER, SETUP>, SETUP> mount(factory: RouterFactory<ROUTER, SETUP>, setup: Consumer<SETUP> = Consumer {}): RouterConfig = also {
-        factory.create(cfg, cfg.pvt.internalRouter, setup)
+    fun <SETUP> mount(initializer: RoutingApiInitializer<SETUP>, setup: Consumer<SETUP> = Consumer {}): RouterConfig = also {
+        initializer.initialize(cfg, cfg.pvt.internalRouter, setup)
     }
 
     fun apiBuilder(endpoints: EndpointGroup): RouterConfig =

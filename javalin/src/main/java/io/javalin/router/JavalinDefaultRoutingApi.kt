@@ -29,22 +29,16 @@ class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRout
 
     companion object {
         @JvmField
-        val Default: RouterFactory<JavalinDefaultRouting, JavalinDefaultRouting> = object : RouterFactory<JavalinDefaultRouting, JavalinDefaultRouting> {
-            override fun create(cfg: JavalinConfig, internalRouter: InternalRouter<*>, setup: Consumer<JavalinDefaultRouting>): JavalinDefaultRouting {
-                val javalinRouter = JavalinDefaultRouting(cfg)
-                setup.accept(javalinRouter)
-                return javalinRouter
-            }
-        }
+        val Default: RoutingApiInitializer<JavalinDefaultRouting> = RoutingApiInitializer { cfg, _, setup -> setup.accept(JavalinDefaultRouting(cfg)) }
     }
 
     override fun cfg(): JavalinConfig = cfg
 
 }
 
-interface JavalinDefaultRoutingApi<API : RoutingApi<API, SETUP>, SETUP> : RoutingApi<API, SETUP>, ConfigurableInstance {
+interface JavalinDefaultRoutingApi<API : RoutingApi<SETUP>, SETUP> : RoutingApi<SETUP>, ConfigurableInstance {
 
-    private val internalRouter: InternalRouter<*>
+    private val internalRouter: InternalRouter
         get() = cfg().pvt.internalRouter
 
     @Suppress("UNCHECKED_CAST")

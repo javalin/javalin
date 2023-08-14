@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpServletResponse
 import java.util.function.Consumer
 import java.util.stream.Stream
 
-open class InternalRouter<IR : InternalRouter<IR>>(
+open class InternalRouter(
     private val wsRouter: WsRouter,
     private val eventManager: EventManager,
     private val routerConfig: RouterConfig
@@ -38,7 +38,7 @@ open class InternalRouter<IR : InternalRouter<IR>>(
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    open fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): IR {
+    open fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): InternalRouter {
         val roleSet = HashSet(roles.asList())
         httpPathMatcher.add(HandlerEntry(handlerType, path, routerConfig, roleSet, handler))
         eventManager.fireHandlerAddedEvent(
@@ -49,7 +49,7 @@ open class InternalRouter<IR : InternalRouter<IR>>(
                 roles = roleSet
             )
         )
-        return getThis()
+        return this
     }
 
     /**
@@ -70,9 +70,9 @@ open class InternalRouter<IR : InternalRouter<IR>>(
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      * See: [Error mapping in docs](https://javalin.io/documentation.error-mapping)
      */
-    open fun addHttpErrorHandler(status: Int, contentType: String, handler: Handler): IR {
+    open fun addHttpErrorHandler(status: Int, contentType: String, handler: Handler): InternalRouter {
         httpErrorMapper.addHandler(status, contentType, handler)
-        return getThis()
+        return this
     }
 
     /**
@@ -85,10 +85,10 @@ open class InternalRouter<IR : InternalRouter<IR>>(
      * Adds an exception mapper to the instance.
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
-    open fun <E : Exception> addHttpExceptionHandler(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): IR {
+    open fun <E : Exception> addHttpExceptionHandler(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): InternalRouter {
         @Suppress("UNCHECKED_CAST")
         httpExceptionMapper.handlers[exceptionClass] = exceptionHandler as ExceptionHandler<Exception>
-        return getThis()
+        return this
     }
 
     /**
@@ -107,17 +107,17 @@ open class InternalRouter<IR : InternalRouter<IR>>(
      * Adds a WebSocket exception mapper to the instance.
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
-    open fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): IR {
+    open fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): InternalRouter {
         @Suppress("UNCHECKED_CAST")
         wsRouter.wsExceptionMapper.handlers[exceptionClass] = exceptionHandler as WsExceptionHandler<Exception>
-        return getThis()
+        return this
     }
 
     /**
      * Adds a specific WebSocket handler for the given path to the instance.
      * Requires an access manager to be set on the instance.
      */
-    open fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, vararg roles: RouteRole): IR {
+    open fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, vararg roles: RouteRole): InternalRouter {
         val roleSet = HashSet(roles.asList())
         wsRouter.addHandler(handlerType, path, wsConfig, roleSet)
         eventManager.fireWsHandlerAddedEvent(
@@ -128,10 +128,7 @@ open class InternalRouter<IR : InternalRouter<IR>>(
                 roles = roleSet
             )
         )
-        return getThis()
+        return this
     }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun getThis(): IR = this as IR
 
 }
