@@ -13,6 +13,7 @@ import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
+import io.javalin.util.javalinLazy
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.reflect.Type
@@ -21,7 +22,7 @@ import java.util.stream.Stream
 
 class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
 
-    val mapper by lazy {
+    val mapper by javalinLazy {
         if (!Util.classExists(CoreDependency.JACKSON.testClass)) {
             val message =
                 """|It looks like you don't have an object mapper configured.

@@ -20,8 +20,7 @@ class ErrorMapper {
         errorHandlers.add(MapperEntry(statusCode, contentType, handler))
 
     fun handle(statusCode: Int, ctx: Context) = errorHandlers.filter { it.statusCode == statusCode }.forEach {
-        val contentTypeMatches by lazy { ctx.header(Header.ACCEPT)?.contains(it.contentType, ignoreCase = true) == true }
-        if (it.contentType == "*" || contentTypeMatches) {
+        if (it.contentType == "*" || ctx.header(Header.ACCEPT)?.contains(it.contentType, ignoreCase = true) == true) {
             it.handler.handle(ctx)
         }
     }
