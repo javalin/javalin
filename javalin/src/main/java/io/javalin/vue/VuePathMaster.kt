@@ -6,6 +6,7 @@
 
 package io.javalin.vue
 
+import io.javalin.util.javalinLazy
 import java.nio.file.FileSystem
 import java.nio.file.FileSystemNotFoundException
 import java.nio.file.FileSystems
@@ -16,8 +17,8 @@ import java.util.stream.Collectors
 
 internal class VuePathMaster(val cfg: JavalinVueConfig) {
 
-    internal val cachedPaths by lazy { walkPaths() }
-    internal val cachedDependencyResolver by lazy { VueDependencyResolver(cachedPaths, cfg.vueAppName) }
+    internal val cachedPaths by javalinLazy { walkPaths() }
+    internal val cachedDependencyResolver by javalinLazy { VueDependencyResolver(cachedPaths, cfg.vueAppName) }
 
     fun walkPaths(): Set<Path> = Files.walk(cfg.rootDirectory, 20).use { it.collect(Collectors.toSet()) }
 

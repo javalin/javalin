@@ -86,8 +86,8 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
 
 }
 
-private fun Session.uriNoContextPath(): String =
-    this.upgradeRequest.requestURI.path.removePrefix(jettyUpgradeRequest().httpServletRequest.contextPath)
+internal val Session.jettyUpgradeRequest: JettyServerUpgradeRequest
+    get() = this.upgradeRequest as JettyServerUpgradeRequest
 
-internal fun Session.jettyUpgradeRequest(): JettyServerUpgradeRequest =
-    this.upgradeRequest as JettyServerUpgradeRequest
+private fun Session.uriNoContextPath(): String =
+    this.upgradeRequest.requestURI.path.removePrefix(jettyUpgradeRequest.httpServletRequest.contextPath)

@@ -1,9 +1,45 @@
-[![Chat at https://discord.gg/sgak4e5NKv](https://img.shields.io/badge/chat-on%20Discord-%234cb697)](https://discord.gg/sgak4e5NKv)
-[![CI](https://github.com/javalin/javalin/workflows/Test%20all%20JDKs%20on%20all%20OSes/badge.svg)](https://github.com/javalin/javalin/actions)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Maven](https://img.shields.io/maven-central/v/io.javalin/javalin.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22io.javalin%22%20AND%20a%3A%22javalin%22)
+<a name="readme-top"></a>
 
-# Javalin - A simple web framework for Java and Kotlin
+<div align="center">
+
+
+  <!--Logo-->
+  <a href="https://github.com/javalin/javalin">
+    <img src="img/javalin.png" alt="Logo" width="70%">
+  </a>
+
+  <!--Title-->
+  <h3 align="center">A simple web framework for Java and Kotlin</h3>
+
+  <a href="https://javalin.io/documentation" style="margin: 1em"><strong>View the documentation →</strong></a>
+
+  <!--Badge for CI-->
+  <a href="https://github.com/javalin/javalin/actions/workflows/main.yml">
+    <img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/javalin/javalin/main.yml">
+  </a>
+  <!--License badge-->
+  <a href="https://github.com/javalin/javalin/blob/master/LICENSE">
+    <img alt="Static Badge" src="https://img.shields.io/badge/License-Apache_2.0-blue">
+  </a>
+  <!--Maven central stable version badge-->
+  <a href="https://central.sonatype.com/artifact/io.javalin/javalin">
+    <img alt="Stable Version" src="https://img.shields.io/maven-central/v/io.javalin/javalin?label=stable">
+  </a>
+  <!--Reposilite snapshot version badge-->
+  <a href="https://repo.reposilite.com/#/snapshots/io/javalin/javalin">
+    <img alt="Snapshot Version" src="https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo.reposilite.com%2Fsnapshots%2Fio%2Fjavalin%2Fjavalin%2Fmaven-metadata.xml&label=snapshot">
+  </a>  
+  <!--Discord badge-->
+  <a href="https://discord.gg/sgak4e5NKv">
+    <img alt="Discord Link" src="https://img.shields.io/badge/discord-javalin-blue?logo=discord&logoColor=white">
+  </a>
+  <a href="https://discord.gg/sgak4e5NKv">
+    <img alt="Discord" src="https://img.shields.io/discord/804862058528505896">
+  </a>
+  
+</div>
+
+# 
 
 Javalin is a very lightweight web framework for Kotlin and Java which supports WebSockets, HTTP2 and async requests. Javalin’s main goals are simplicity, a great developer experience, and first class interoperability between Kotlin and Java.
 
@@ -13,15 +49,19 @@ Javalin is more of a library than a framework. Some key points:
 * There is no reflection
 * There is no other magic; just code.
 
-General information:
-* [:heart: Sponsor Javalin](https://github.com/sponsors/tipsy)
-* The project webpage is [javalin.io](https://javalin.io) (repo for webpage is at [github.com/javalin/javalin.github.io](https://github.com/javalin/javalin.github.io)).
-* Documentation: [javalin.io/documentation](https://javalin.io/documentation)
-* Chat on Discord: https://discord.gg/sgak4e5NKv
-* Chat on Slack: https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w
-* Contributions are very welcome: [CONTRIBUTING](https://github.com/javalin/javalin/contribute)
-* License summary: https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)
-* Interesting issues: [/tipsy/javalin/issues?q=label:INFO](https://github.com/tipsy/javalin/issues?q=is%3Aissue+label%3AINFO)
+#### General information
+* The project webpage is [javalin.io](https://javalin.io) (the source is at [javalin/javalin.github.io](https://github.com/javalin/javalin.github.io)).
+* Read the documentation on: [javalin.io/documentation](https://javalin.io/documentation)
+* A summary of the license can be found at [TLDR Legal](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0))
+* [Interesting issues](https://github.com/javalin/javalin/issues?q=is%3Aissue+label%3AINFO)
+
+#### Community
+We have a very active [Discord](https://discord.gg/sgak4e5NKv) server where you can get help quickly. We also have a (much less active) [Slack](https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w) if you prefer that.
+
+Contributions are very welcome, you can read more about contributing in our guide:
+ [CONTRIBUTING](https://github.com/javalin/javalin/contribute)
+
+Please consider [:heart: Sponsoring](https://github.com/sponsors/tipsy) or starring Javalin if you want to support the project.
 
 ## Quickstart
 
@@ -33,14 +73,14 @@ General information:
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>5.6.1</version>
+    <version>5.6.2</version>
 </dependency>
 ```
 
 #### Gradle
 
-```groovy
-implementation "io.javalin:javalin:5.6.1"
+```kotlin
+implementation("io.javalin:javalin:5.6.2")
 ```
 
 ### Start programming (Java)
@@ -70,20 +110,22 @@ fun main() {
 This section contains a few examples, mostly just extracted from the [docs](https://javalin.io/documentation).
 All examples are in Kotlin, but you can find them in Java in the documentation (it's just syntax changes).
 
+You can find more examples in the [javalin-samples](https://github.com/javalin/javalin-samples) repository.
+
 ### Api structure and server config
 ```kotlin
 val app = Javalin.create { config ->
-    config.defaultContentType = "application/json"
-    config.autogenerateEtags = true
+    config.http.defaultContentType = "application/json"
+    config.http.generateEtags = true
     config.staticFiles.add("/public")
     config.asyncRequestTimeout = 10_000L
-    config.dynamicGzip = true
-    config.enforceSsl = true
+    config.compression.brotliAndGzip()
+    config.routing.caseInsensitiveRoutes = true
 }.routes {
     path("users") {
         get(UserController::getAll)
         post(UserController::create)
-        path(":user-id") {
+        path("{user-id}") {
             get(UserController::getOne)
             patch(UserController::update)
             delete(UserController::delete)
@@ -95,11 +137,11 @@ val app = Javalin.create { config ->
 
 ### WebSockets
 ```kotlin
-app.ws("/websocket/:path") { ws ->
+app.ws("/websocket/{path}") { ws ->
     ws.onConnect { ctx -> println("Connected") }
     ws.onMessage { ctx ->
         val user = ctx.message<User>(); // convert from json string to object
-        ctx.send(user); // convert to json string and send back
+        ctx.send(user); //  convert to json string and send back
     }
     ws.onClose { ctx -> println("Closed") }
     ws.onError { ctx -> println("Errored") }
@@ -135,9 +177,74 @@ app.put("/todos") { ctx -> // map request-body (json) to array of Todos
 ### File uploads
 ```kotlin
 app.post("/upload") { ctx ->
-    ctx.uploadedFiles("files").forEach { (contentType, content, name, extension) ->
-        FileUtil.streamToFile(content, "upload/$name")
+    ctx.uploadedFiles("files").forEach { uploadedFile ->
+        FileUtil.streamToFile(uploadedFile.content(), "upload/${uploadedFile.filename()}")
     }
+}
+```
+
+## Plugins
+Javalin has a plugin system that allows you to add functionality to the core library. You can find a list of plugins [here](https://javalin.io/plugins).
+
+Installing a plugin is as easy as adding a dependency to your project and registering it with Javalin:
+
+```kotlin
+Javalin.create { config ->
+    config.plugins.register(MyPlugin())
+}
+```
+
+Some of the most popular plugins are:
+### OpenAPI Plugin
+
+The [Javalin OpenAPI](https://github.com/javalin/javalin-openapi) plugin allows you to generate an OpenAPI 3.0 specification for your API at compile time.
+
+Annotate your routes with `@OpenApi` to generate the specification:
+
+```kotlin
+
+@OpenApi(
+        summary = "Get all users",
+        operationId = "getAllUsers",
+        tags = ["User"],
+        responses = [OpenApiResponse("200", [OpenApiContent(Array<User>::class)])],
+        path = "/users",
+        methods = [HttpMethod.GET]
+    )
+    fun getAll(ctx: Context) {
+        ctx.json(UserService.getAll())
+    }
+```
+
+ Swagger UI and ReDoc UI implementations for viewing the generated specification in your browser are also available.
+
+ For more information, see the [Javalin OpenAPI Wiki](https://github.com/javalin/javalin-openapi/wiki).
+
+
+### Rendering Plugin
+
+The [Javalin Rendering](https://javalin.io/plugins/rendering) plugin allows you to use any template engine with Javalin. 
+
+It includes implementations for JTE, Mustache, Velocity, Pebble, Handlebars, and Thymeleaf, but you also have to add the dependency for the template engine you want to use.
+
+```kotlin
+ctx.render("/templateFile.ext", mapOf("firstName" to "John", "lastName" to "Doe"))
+```
+
+Once you have included the `javalin-rendering` artifact and one of the supported template engine dependencies in your project, `Context#render` should automatically render your templates. By default, the plugin will look in `src/main/resources/templates` for template files.
+
+
+### SSL Plugin
+
+The [Javalin SSL](https://javalin.io/plugins/ssl-helpers) plugin allows you to easily configure SSL for your Javalin server, supporting a variety of formats such as PEM, PKCS12, DER, P7B, and JKS.
+
+Enabling SSL on the 443 port is as easy as:
+
+```kotlin
+Javalin.create { config ->
+    config.plugins.register(SSLPlugin {
+        it.pemFromPath("/path/to/cert.pem", "/path/to/key.pem")
+    })
 }
 ```
 
