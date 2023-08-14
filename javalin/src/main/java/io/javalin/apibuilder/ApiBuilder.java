@@ -7,9 +7,10 @@
 package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
-import io.javalin.config.JavalinConfig;
+import io.javalin.router.JavalinDefaultRouting;
 import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.Handler;
+import io.javalin.router.RoutingApi;
 import io.javalin.router.RoutingApiInitializer;
 import io.javalin.http.sse.SseClient;
 import io.javalin.security.RouteRole;
@@ -23,25 +24,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Static methods for route declarations in Javalin
  */
-public class ApiBuilder {
-
-    public static class ApiBuilderRouter implements JavalinDefaultRoutingApi<ApiBuilderRouter, Void> {
-        private final JavalinConfig cfg;
-
-        public ApiBuilderRouter(JavalinConfig cfg) {
-            this.cfg = cfg;
-        }
-
-        @NotNull
-        @Override
-        public JavalinConfig cfg() {
-            return cfg;
-        }
-    }
+public class ApiBuilder implements RoutingApi<Void> {
 
     public static final RoutingApiInitializer<Void> ApiBuilder = (cfg, internalRouter, setup) -> {
         try {
-            setStaticJavalin(new ApiBuilderRouter(cfg));
+            setStaticJavalin(new JavalinDefaultRouting(cfg));
             setup.accept(null);
         } finally {
             clearStaticJavalin();
