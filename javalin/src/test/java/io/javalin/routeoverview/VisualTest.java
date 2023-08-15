@@ -59,10 +59,10 @@ public class VisualTest {
             .wsBefore(VisualTest::wsMethodRef)
             .ws("/websocket", VisualTest::wsMethodRef)
             .wsAfter("/my-path", VisualTest::wsMethodRef)
-            .addHandler(HandlerType.CONNECT, "/test", VisualTest.lambdaField)
-            .addHandler(HandlerType.TRACE, "/tracer", new HandlerImplementation())
-            .addHandler(HandlerType.CONNECT, "/test2", VisualTest.lambdaField, ROLE_ONE, ROLE_TWO)
-            .addHandler(HandlerType.TRACE, "/tracer2", new HandlerImplementation(), ROLE_ONE, ROLE_TWO)
+            .addHttpHandler(HandlerType.CONNECT, "/test", VisualTest.lambdaField)
+            .addHttpHandler(HandlerType.TRACE, "/tracer", new HandlerImplementation())
+            .addHttpHandler(HandlerType.CONNECT, "/test2", VisualTest.lambdaField, ROLE_ONE, ROLE_TWO)
+            .addHttpHandler(HandlerType.TRACE, "/tracer2", new HandlerImplementation(), ROLE_ONE, ROLE_TWO)
             .sse("/sse", sse -> { });
 
         app.unsafeConfig().router.apiBuilder(() -> {

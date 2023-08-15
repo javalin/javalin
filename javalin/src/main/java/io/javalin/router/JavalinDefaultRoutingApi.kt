@@ -40,7 +40,7 @@ class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRout
         cfg.pvt.internalRouter.addHttpErrorHandler(status, contentType, handler)
     }
 
-    override fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole) = apply {
+    override fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole) = apply {
         cfg.pvt.internalRouter.addHttpHandler(handlerType, path, handler, *roles)
     }
 
@@ -97,56 +97,56 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API
+    fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun addHandler(httpMethod: HandlerType, path: String, handler: Handler): API = addHandler(httpMethod, path, handler, *emptyArray())
+    fun addHttpHandler(httpMethod: HandlerType, path: String, handler: Handler): API = addHttpHandler(httpMethod, path, handler, *emptyArray())
 
     /**
      * Adds a GET request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    operator fun get(path: String, handler: Handler): API = addHandler(GET, path, handler)
+    operator fun get(path: String, handler: Handler): API = addHttpHandler(GET, path, handler)
 
     /**
      * Adds a POST request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun post(path: String, handler: Handler): API = addHandler(POST, path, handler)
+    fun post(path: String, handler: Handler): API = addHttpHandler(POST, path, handler)
 
     /**
      * Adds a PUT request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun put(path: String, handler: Handler): API = addHandler(PUT, path, handler)
+    fun put(path: String, handler: Handler): API = addHttpHandler(PUT, path, handler)
 
     /**
      * Adds a PATCH request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun patch(path: String, handler: Handler): API = addHandler(PATCH, path, handler)
+    fun patch(path: String, handler: Handler): API = addHttpHandler(PATCH, path, handler)
 
     /**
      * Adds a DELETE request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun delete(path: String, handler: Handler): API = addHandler(DELETE, path, handler)
+    fun delete(path: String, handler: Handler): API = addHttpHandler(DELETE, path, handler)
 
     /**
      * Adds a HEAD request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun head(path: String, handler: Handler): API = addHandler(HEAD, path, handler)
+    fun head(path: String, handler: Handler): API = addHttpHandler(HEAD, path, handler)
 
     /**
      * Adds a OPTIONS request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun options(path: String, handler: Handler): API = addHandler(OPTIONS, path, handler)
+    fun options(path: String, handler: Handler): API = addHttpHandler(OPTIONS, path, handler)
 
     /**
      * Adds a GET request handler with the given roles for the specified path to the instance.
@@ -154,7 +154,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    operator fun get(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(GET, path, handler, *roles)
+    operator fun get(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(GET, path, handler, *roles)
 
     /**
      * Adds a POST request handler with the given roles for the specified path to the instance.
@@ -162,7 +162,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun post(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(POST, path, handler, *roles)
+    fun post(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(POST, path, handler, *roles)
 
     /**
      * Adds a PUT request handler with the given roles for the specified path to the instance.
@@ -170,7 +170,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun put(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(PUT, path, handler, *roles)
+    fun put(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(PUT, path, handler, *roles)
 
     /**
      * Adds a PATCH request handler with the given roles for the specified path to the instance.
@@ -178,7 +178,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun patch(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(PATCH, path, handler, *roles)
+    fun patch(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(PATCH, path, handler, *roles)
 
     /**
      * Adds a DELETE request handler with the given roles for the specified path to the instance.
@@ -186,7 +186,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun delete(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(DELETE, path, handler, *roles)
+    fun delete(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(DELETE, path, handler, *roles)
 
     /**
      * Adds a HEAD request handler with the given roles for the specified path to the instance.
@@ -194,7 +194,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun head(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(HEAD, path, handler, *roles)
+    fun head(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HEAD, path, handler, *roles)
 
     /**
      * Adds a OPTIONS request handler with the given roles for the specified path to the instance.
@@ -202,7 +202,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun options(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(OPTIONS, path, handler, *roles)
+    fun options(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(OPTIONS, path, handler, *roles)
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
@@ -224,7 +224,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds a BEFORE request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
      */
-    fun before(path: String, handler: Handler): API = addHandler(BEFORE, path, handler)
+    fun before(path: String, handler: Handler): API = addHttpHandler(BEFORE, path, handler)
 
     /**
      * Adds a BEFORE request handler for all routes in the instance.
@@ -236,7 +236,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds an AFTER request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
      */
-    fun after(path: String, handler: Handler): API = addHandler(AFTER, path, handler)
+    fun after(path: String, handler: Handler): API = addHttpHandler(AFTER, path, handler)
 
     /**
      * Adds an AFTER request handler for all routes in the instance.
@@ -250,6 +250,10 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      */
     fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): API
 
+    /**
+     * Adds a WebSocket handler of the specified type on the specified path.
+     * See: [WebSockets in docs](https://javalin.io/documentation.websockets)
+     */
     fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, vararg roles: RouteRole): API
 
     /**

@@ -206,7 +206,7 @@ public class Javalin implements AutoCloseable, JavalinDefaultRoutingApi<Javalin>
 
     @NotNull
     @Override
-    public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+    public Javalin addHttpHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
         cfg.pvt.internalRouter.addHttpHandler(handlerType, path, handler, roles);
         return this;
     }
