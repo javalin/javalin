@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import io.javalin.config.ConfigurableInstance;
+import io.javalin.router.InternalRouter;
 import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
@@ -23,13 +23,13 @@ import org.jetbrains.annotations.NotNull;
 import static io.javalin.util.Util.createLazy;
 
 @SuppressWarnings("unchecked")
-public class Javalin implements AutoCloseable, ConfigurableInstance, JavalinDefaultRoutingApi<Javalin> {
+public class Javalin implements AutoCloseable, JavalinDefaultRoutingApi<Javalin> {
 
     /**
      * Do not use this field unless you know what you're doing.
      * Application config should be declared in {@link Javalin#create(Consumer)}.
      */
-    public final JavalinConfig cfg;
+    private final JavalinConfig cfg;
     protected final JavalinServlet javalinServlet;
     protected final Lazy<JavalinJettyServlet> javalinJettyServlet;
     protected final Lazy<JettyServer> jettyServer;
@@ -42,9 +42,13 @@ public class Javalin implements AutoCloseable, ConfigurableInstance, JavalinDefa
     }
 
     @NotNull
-    @Override
-    public JavalinConfig cfg() {
+    public JavalinConfig unsafeConfig() {
         return cfg;
+    }
+
+    @NotNull
+    public InternalRouter internalRouter() {
+        return cfg.pvt.internalRouter;
     }
 
     public JettyServer jettyServer() {

@@ -65,7 +65,7 @@ public class VisualTest {
             .addHandler(HandlerType.TRACE, "/tracer2", new HandlerImplementation(), ROLE_ONE, ROLE_TWO)
             .sse("/sse", sse -> { });
 
-        app.cfg.router.apiBuilder(() -> {
+        app.unsafeConfig().router.apiBuilder(() -> {
             path("users", () -> {
                 get(new HandlerImplementation());
                 post(new HandlerImplementation());

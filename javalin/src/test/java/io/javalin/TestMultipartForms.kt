@@ -275,7 +275,7 @@ class TestMultipartForms {
         //note: this test does not check the cache directory is set correctly as there is no way to know which
         //paths exist and are writable on the system the test is being run on.  However, if the other parameters
         //are read successfully
-        app.cfg.also {
+        app.unsafeConfig().also {
             it.jetty.multipartConfig.maxFileSize(100, SizeUnit.MB)
             it.jetty.multipartConfig.maxInMemoryFileSize(10, SizeUnit.MB)
             it.jetty.multipartConfig.maxTotalRequestSize(1, SizeUnit.GB)
