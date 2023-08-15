@@ -46,7 +46,7 @@ class TestAccessManager {
     @Test
     fun `AccessManager does not run if roles are not present`() = TestUtil.test { app, http ->
         app.get("/unsecured") { it.result("Hello") }
-        app.cfg.accessManager { _, _, _ -> throw RuntimeException() }
+        app.unsafeConfig().accessManager { _, _, _ -> throw RuntimeException() }
         assertThat(http.getBody("/unsecured")).isEqualTo("Hello")
     }
 

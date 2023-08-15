@@ -14,7 +14,7 @@ import io.javalin.http.Handler
  * Ex: get("/secured", SecuredController::get, roles(LOGGED_IN));
  *
  * @see RouteRole
- * @see io.javalin.Javalin.addHandler
+ * @see io.javalin.Javalin.addHttpHandler
  * @see [Access manager in docs](https://javalin.io/documentation.access-manager)
  */
 fun interface AccessManager {

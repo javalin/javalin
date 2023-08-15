@@ -68,7 +68,7 @@ class TestRouting {
         app.patch("/mapped", TestUtil.okHandler)
         app.head("/mapped", TestUtil.okHandler)
         app.options("/mapped", TestUtil.okHandler)
-        app.addHandler(TRACE, "/mapped", TestUtil.okHandler)
+        app.addHttpHandler(TRACE, "/mapped", TestUtil.okHandler)
 
         for (httpMethod in HttpMethod.all()) {
             assertThat(http.call(httpMethod, "/mapped").httpCode()).isEqualTo(OK)

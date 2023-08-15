@@ -19,7 +19,7 @@ class TestRouteOverviewPlugin {
         VisualTest.setupJavalinRoutes(app)
 
         val allPaths = HandlerType.values().flatMap { handler ->
-            app.cfg.pvt.internalRouter.findHttpHandlerEntries(handler)
+            app.unsafeConfig().pvt.internalRouter.findHttpHandlerEntries(handler)
                 .map { it.path }
                 .asSequence()
         }

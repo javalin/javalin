@@ -7,7 +7,9 @@
 
 package io.javalin;
 
-import io.javalin.config.ConfigurableInstance;
+import io.javalin.http.ExceptionHandler;
+import io.javalin.http.Handler;
+import io.javalin.http.HandlerType;
 import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
@@ -15,21 +17,26 @@ import io.javalin.http.Context;
 import io.javalin.http.servlet.JavalinServlet;
 import io.javalin.jetty.JavalinJettyServlet;
 import io.javalin.jetty.JettyServer;
+import io.javalin.security.RouteRole;
 import io.javalin.util.Util;
 import java.util.function.Consumer;
+
+import io.javalin.websocket.WsConfig;
+import io.javalin.websocket.WsExceptionHandler;
+import io.javalin.websocket.WsHandlerType;
 import kotlin.Lazy;
 import org.jetbrains.annotations.NotNull;
 
 import static io.javalin.util.Util.createLazy;
 
 @SuppressWarnings("unchecked")
-public class Javalin implements AutoCloseable, ConfigurableInstance, JavalinDefaultRoutingApi<Javalin> {
+public class Javalin implements AutoCloseable, JavalinDefaultRoutingApi<Javalin> {
 
     /**
      * Do not use this field unless you know what you're doing.
      * Application config should be declared in {@link Javalin#create(Consumer)}.
      */
-    public final JavalinConfig cfg;
+    private final JavalinConfig cfg;
     protected final JavalinServlet javalinServlet;
     protected final Lazy<JavalinJettyServlet> javalinJettyServlet;
     protected final Lazy<JettyServer> jettyServer;
@@ -42,8 +49,7 @@ public class Javalin implements AutoCloseable, ConfigurableInstance, JavalinDefa
     }
 
     @NotNull
-    @Override
-    public JavalinConfig cfg() {
+    public JavalinConfig unsafeConfig() {
         return cfg;
     }
 
@@ -184,4 +190,38 @@ public class Javalin implements AutoCloseable, ConfigurableInstance, JavalinDefa
         return (T) cfg.pvt.appAttributes.get(key);
     }
 
+    @NotNull
+    @Override
+    public <E extends Exception> Javalin exception(@NotNull Class<E> exceptionClass, @NotNull ExceptionHandler<? super E> exceptionHandler) {
+        cfg.pvt.internalRouter.addHttpExceptionHandler(exceptionClass, exceptionHandler);
+        return this;
+    }
+
+    @NotNull
+    @Override
+    public Javalin error(int status, @NotNull String contentType, @NotNull Handler handler) {
+        cfg.pvt.internalRouter.addHttpErrorHandler(status, contentType, handler);
+        return this;
+    }
+
+    @NotNull
+    @Override
+    public Javalin addHttpHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        cfg.pvt.internalRouter.addHttpHandler(handlerType, path, handler, roles);
+        return this;
+    }
+
+    @NotNull
+    @Override
+    public <E extends Exception> Javalin wsException(@NotNull Class<E> exceptionClass, @NotNull WsExceptionHandler<? super E> exceptionHandler) {
+        cfg.pvt.internalRouter.addWsExceptionHandler(exceptionClass, exceptionHandler);
+        return this;
+    }
+
+    @NotNull
+    @Override
+    public Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
+        cfg.pvt.internalRouter.addWsHandler(handlerType, path, wsConfig, roles);
+        return this;
+    }
 }

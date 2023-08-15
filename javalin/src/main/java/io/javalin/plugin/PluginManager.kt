@@ -27,7 +27,7 @@ class PluginManager internal constructor() {
                 .sortedBy { it.priority() }
 
             for (plugin in pluginsToInitialize) {
-                plugin.onInitialize(app.cfg)
+                plugin.onInitialize(app.unsafeConfig())
                 initializedPlugins.add(plugin)
 
                 if (amountOfPlugins != plugins.size) {

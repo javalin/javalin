@@ -58,7 +58,7 @@ internal class TestFuture {
                     completedFuture(ctx.req().asyncContext.timeout).thenApply { ctx.result(it.toString()) }
                 }
             }
-            assertThat(http.getBody("/")).isEqualTo(app.cfg.http.asyncTimeout.toString())
+            assertThat(http.getBody("/")).isEqualTo(app.unsafeConfig().http.asyncTimeout.toString())
         }
 
     }

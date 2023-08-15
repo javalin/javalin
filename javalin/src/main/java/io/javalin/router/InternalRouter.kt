@@ -107,7 +107,7 @@ open class InternalRouter(
      * Adds a WebSocket exception mapper to the instance.
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
-    open fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): InternalRouter {
+    open fun <E : Exception> addWsExceptionHandler(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): InternalRouter {
         @Suppress("UNCHECKED_CAST")
         wsRouter.wsExceptionMapper.handlers[exceptionClass] = exceptionHandler as WsExceptionHandler<Exception>
         return this

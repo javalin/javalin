@@ -62,7 +62,7 @@ class TestWebSocket {
         }
 
     private fun accessManagedJavalin(): Javalin = Javalin.create().apply {
-        this.cfg.accessManager { handler, ctx, roles ->
+        this.unsafeConfig().accessManager { handler, ctx, roles ->
             this.logger().log.add("handling upgrade request ...")
             when {
                 ctx.queryParam("exception") == "true" -> throw UnauthorizedResponse()
@@ -304,7 +304,7 @@ class TestWebSocket {
 
     @Test
     fun `web socket logging works`() = TestUtil.test(Javalin.create().apply {
-        this.cfg.requestLogger.ws { ws ->
+        this.unsafeConfig().requestLogger.ws { ws ->
             ws.onConnect { ctx -> this.logger().log.add(ctx.pathParam("param") + " connected") }
             ws.onClose { ctx -> this.logger().log.add(ctx.pathParam("param") + " disconnected") }
         }

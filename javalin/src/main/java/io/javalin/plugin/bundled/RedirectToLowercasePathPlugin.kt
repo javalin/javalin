@@ -56,7 +56,7 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
     override fun onStart(app: Javalin) {
         app.before { ctx ->
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
-            val router = app.cfg.pvt.internalRouter
+            val router = app.unsafeConfig().pvt.internalRouter
 
             if (router.findHttpHandlerEntries(ctx.method(), requestUri).findFirst().isPresent) {
                 return@before // we found a route for this case, no need to redirect
@@ -70,7 +70,7 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
                 .filter { it.isNotEmpty() }
                 .toTypedArray()
 
-            val serverSegments = PathParser(lowercaseRoute.path, app.cfg.router)
+            val serverSegments = PathParser(lowercaseRoute.path, app.unsafeConfig().router)
                 .segments
 
             serverSegments.forEachIndexed { index, serverSegment ->
@@ -103,4 +103,3 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
     override fun priority(): PluginPriority = PluginPriority.EARLY
 
 }
-
