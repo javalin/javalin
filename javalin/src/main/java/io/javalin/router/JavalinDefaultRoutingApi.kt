@@ -25,18 +25,18 @@ import io.javalin.websocket.WsHandlerType.WS_AFTER
 import io.javalin.websocket.WsHandlerType.WS_BEFORE
 import java.util.function.Consumer
 
-class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRoutingApi<JavalinDefaultRouting, JavalinDefaultRouting> {
+class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRoutingApi<JavalinDefaultRouting> {
 
     companion object {
         @JvmField
-        val Default: RoutingApiInitializer<JavalinDefaultRouting> = RoutingApiInitializer { cfg, _, setup -> setup.accept(JavalinDefaultRouting(cfg)) }
+        val Default = RoutingApiInitializer { cfg, _, setup -> setup.accept(JavalinDefaultRouting(cfg)) }
     }
 
     override fun cfg(): JavalinConfig = cfg
 
 }
 
-interface JavalinDefaultRoutingApi<API : RoutingApi<SETUP>, SETUP> : RoutingApi<SETUP>, ConfigurableInstance {
+interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi, ConfigurableInstance {
 
     private val internalRouter: InternalRouter
         get() = cfg().pvt.internalRouter

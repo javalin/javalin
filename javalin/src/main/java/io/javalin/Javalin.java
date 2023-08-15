@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import static io.javalin.util.Util.createLazy;
 
 @SuppressWarnings("unchecked")
-public class Javalin implements AutoCloseable, ConfigurableInstance, JavalinDefaultRoutingApi<Javalin, Javalin> {
+public class Javalin implements AutoCloseable, ConfigurableInstance, JavalinDefaultRoutingApi<Javalin> {
 
     /**
      * Do not use this field unless you know what you're doing.
