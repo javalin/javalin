@@ -6,7 +6,6 @@
 
 package io.javalin
 
-import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
@@ -91,7 +90,7 @@ class TestWebSocket {
                     ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
                 }
             }
-            cfg.router.mount(ApiBuilder) {
+            cfg.router.apiBuilder {
                 ws("/test-websocket-2") { ws ->
                     ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
                     ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }

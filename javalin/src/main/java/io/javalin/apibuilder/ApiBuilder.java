@@ -26,15 +26,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder implements RoutingApi<Void> {
 
-    public static final RoutingApiInitializer<Void> ApiBuilder = (cfg, internalRouter, setup) -> {
-        try {
-            setStaticJavalin(new JavalinDefaultRouting(cfg));
-            setup.accept(null);
-        } finally {
-            clearStaticJavalin();
-        }
-    };
-
     private static final ThreadLocal<JavalinDefaultRoutingApi<?, ?>> staticJavalin = new ThreadLocal<>();
     private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 

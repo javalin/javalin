@@ -7,7 +7,6 @@
 
 package io.javalin
 
-import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
@@ -53,7 +52,7 @@ class TestRouting {
 
     @Test
     fun `api builder can be used as custom router`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.router.mount(ApiBuilder) {
+        cfg.router.apiBuilder {
             get("/hello") { it.result("Hello World") }
         }
     }) { _, http ->

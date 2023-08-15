@@ -7,7 +7,6 @@
 
 package io.javalin
 
-import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HttpStatus.NOT_FOUND
@@ -34,7 +33,7 @@ class TestTrailingSlashes {
     @Test
     fun `trailing slashes are ignored by default - ApiBuilder`() = TestUtil.test(
         Javalin.create {
-            it.router.mount(ApiBuilder) {
+            it.router.apiBuilder {
                 path("a") {
                     get { it.result("a") }
                     get("/") { it.result("a-slash") }

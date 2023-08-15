@@ -10,7 +10,6 @@ package io.javalin.examples;
 import io.javalin.Javalin;
 import io.javalin.security.RouteRole;
 
-import static io.javalin.apibuilder.ApiBuilder.ApiBuilder;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE;

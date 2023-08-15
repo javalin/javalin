@@ -13,14 +13,12 @@ import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
 import io.javalin.plugin.bundled.CorsPlugin;
 import io.javalin.plugin.bundled.RouteOverviewPlugin;
-import io.javalin.routeoverview.ObjectHandlers.ImplementingClass;
 import io.javalin.websocket.WsConfig;
 import org.jetbrains.annotations.NotNull;
 
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
-import static io.javalin.apibuilder.ApiBuilder.ApiBuilder;
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
