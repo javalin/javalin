@@ -19,6 +19,7 @@ import io.javalin.http.sse.SseHandler
 import io.javalin.security.RouteRole
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsExceptionHandler
+import io.javalin.websocket.WsHandlerType
 import io.javalin.websocket.WsHandlerType.WEBSOCKET
 import io.javalin.websocket.WsHandlerType.WS_AFTER
 import io.javalin.websocket.WsHandlerType.WS_BEFORE
@@ -31,25 +32,35 @@ class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRout
         val Default = RoutingApiInitializer { cfg, _, setup -> setup.accept(JavalinDefaultRouting(cfg)) }
     }
 
-    override fun internalRouter(): InternalRouter = cfg.pvt.internalRouter
+    override fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>) = apply {
+        cfg.pvt.internalRouter.addHttpExceptionHandler(exceptionClass, exceptionHandler)
+    }
+
+    override fun error(status: Int, contentType: String, handler: Handler) = apply {
+        cfg.pvt.internalRouter.addHttpErrorHandler(status, contentType, handler)
+    }
+
+    override fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole) = apply {
+        cfg.pvt.internalRouter.addHttpHandler(handlerType, path, handler, *roles)
+    }
+
+    override fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>) = apply {
+        cfg.pvt.internalRouter.addWsExceptionHandler(exceptionClass, exceptionHandler)
+    }
+
+    override fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, vararg roles: RouteRole) = apply {
+        cfg.pvt.internalRouter.addWsHandler(handlerType, path, wsConfig, *roles)
+    }
 
 }
 
 interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
 
-    fun internalRouter(): InternalRouter
-
-    @Suppress("UNCHECKED_CAST")
-    private fun getThis(): API = this as API
-
     /**
      * Adds an exception mapper to the instance.
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
-    fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): API {
-        internalRouter().addHttpExceptionHandler(exceptionClass, exceptionHandler)
-        return getThis()
-    }
+    fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): API
 
     /**
      * Adds an error mapper to the instance.
@@ -77,10 +88,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      * See: [Error mapping in docs](https://javalin.io/documentation.error-mapping)
      */
-    fun error(status: Int, contentType: String, handler: Handler): API {
-        internalRouter().addHttpErrorHandler(status, contentType, handler)
-        return getThis()
-    }
+    fun error(status: Int, contentType: String, handler: Handler): API
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
@@ -89,10 +97,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API {
-        internalRouter().addHttpHandler(handlerType, path, handler, *roles)
-        return getThis()
-    }
+    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
@@ -243,10 +248,9 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds a WebSocket exception mapper to the instance.
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
-    fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): API {
-        internalRouter().wsException(exceptionClass, exceptionHandler)
-        return getThis()
-    }
+    fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): API
+
+    fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, vararg roles: RouteRole): API
 
     /**
      * Adds a WebSocket handler on the specified path.
@@ -260,18 +264,12 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [WebSockets in docs](https://javalin.io/documentation.websockets)
      * @see io.javalin.security.AccessManager
      */
-    fun ws(path: String, ws: Consumer<WsConfig>, vararg roles: RouteRole): API {
-        internalRouter().addWsHandler(WEBSOCKET, path, ws, *roles)
-        return getThis()
-    }
+    fun ws(path: String, ws: Consumer<WsConfig>, vararg roles: RouteRole): API = addWsHandler(WEBSOCKET, path, ws, *roles)
 
     /**
      * Adds a WebSocket before handler for the specified path to the instance.
      */
-    fun wsBefore(path: String, wsConfig: Consumer<WsConfig>): API {
-        internalRouter().addWsHandler(WS_BEFORE, path, wsConfig)
-        return getThis()
-    }
+    fun wsBefore(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WS_BEFORE, path, wsConfig)
 
     /**
      * Adds a WebSocket before handler for all routes in the instance.
@@ -281,10 +279,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     /**
      * Adds a WebSocket after handler for the specified path to the instance.
      */
-    fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): API {
-        internalRouter().addWsHandler(WS_AFTER, path, wsConfig)
-        return getThis()
-    }
+    fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WS_AFTER, path, wsConfig)
 
     /**
      * Adds a WebSocket after handler for all routes in the instance.
