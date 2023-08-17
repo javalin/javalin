@@ -10,6 +10,7 @@ package io.javalin
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.TRACE
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
@@ -20,6 +21,7 @@ import io.javalin.router.matcher.ParameterNamesNotUniqueException
 import io.javalin.router.matcher.WildcardBracketAdjacentException
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
+import io.javalin.websocket.WsHandlerType
 import kong.unirest.HttpMethod
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -41,6 +43,7 @@ class TestRouting {
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")
     }
 
+
     @Test
     fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
         cfg.router.mount(Default) {
@@ -48,6 +51,28 @@ class TestRouting {
         }
     }) { _, http ->
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")
+    }
+
+    @Test
+    fun `allHttpHandlers method works`() = TestUtil.test { app, http ->
+        app.get("/1") { it.result("Hello World") }
+        val handler1 = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().find { it.path == "/1" }!!
+        assertThat(handler1.path).isEqualTo("/1")
+        assertThat(handler1.type).isEqualTo(HandlerType.GET)
+        app.before("/2") { }
+        val handler2 = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().find { it.path == "/2" }!!
+        assertThat(handler2.type).isEqualTo(HandlerType.BEFORE)
+    }
+
+    @Test
+    fun `allWsHandlers method works`() = TestUtil.test { app, http ->
+        app.ws("/1") { }
+        val handler1 = app.unsafeConfig().pvt.internalRouter.allWsHandlers().find { it.path == "/1" }!!
+        assertThat(handler1.path).isEqualTo("/1")
+        assertThat(handler1.type).isEqualTo(WsHandlerType.WEBSOCKET)
+        app.wsBefore("/2") { }
+        val handler2 = app.unsafeConfig().pvt.internalRouter.allWsHandlers().find { it.path == "/2" }!!
+        assertThat(handler2.type).isEqualTo(WsHandlerType.WEBSOCKET_BEFORE)
     }
 
     @Test

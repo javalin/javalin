@@ -9,7 +9,7 @@ package io.javalin.websocket;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Holds the different WebSocket handlers for a specific {@link WsEntry} or the WebSocket logger.
+ * Holds the different WebSocket handlers for a specific {@link WsHandlerEntry} or the WebSocket logger.
  */
 public class WsConfig {
 

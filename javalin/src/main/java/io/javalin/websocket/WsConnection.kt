@@ -65,7 +65,7 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
         wsLogger?.wsErrorHandler?.handleError(ctx)
     }
 
-    private fun tryBeforeAndEndpointHandlers(ctx: WsContext, handle: (WsEntry) -> Unit) {
+    private fun tryBeforeAndEndpointHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
         val requestUri = ctx.session.uriNoContextPath()
         try {
             matcher.findBeforeHandlerEntries(requestUri).forEach { handle.invoke(it) }
@@ -75,7 +75,7 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
         }
     }
 
-    private fun tryAfterHandlers(ctx: WsContext, handle: (WsEntry) -> Unit) {
+    private fun tryAfterHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
         val requestUri = ctx.session.uriNoContextPath()
         try {
             matcher.findAfterHandlerEntries(requestUri).forEach { handle.invoke(it) }

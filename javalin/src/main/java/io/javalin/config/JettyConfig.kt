@@ -1,10 +1,6 @@
 package io.javalin.config
 
 import io.javalin.jetty.JettyServer
-import io.javalin.security.RouteRole
-import io.javalin.websocket.WsConfig
-import io.javalin.websocket.WsEntry
-import io.javalin.websocket.WsHandlerType
 import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server

@@ -14,6 +14,7 @@ import io.javalin.router.matcher.PathMatcher
 import io.javalin.security.RouteRole
 import io.javalin.util.Util
 import io.javalin.websocket.WsConfig
+import io.javalin.websocket.WsHandlerEntry
 import io.javalin.websocket.WsExceptionHandler
 import io.javalin.websocket.WsHandlerType
 import io.javalin.websocket.WsRouter
@@ -40,7 +41,7 @@ open class InternalRouter(
      */
     open fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): InternalRouter {
         val roleSet = HashSet(roles.asList())
-        httpPathMatcher.add(HandlerEntry(handlerType, path, routerConfig, roleSet, handler))
+        httpPathMatcher.add(HttpHandlerEntry(handlerType, path, routerConfig, roleSet, handler))
         eventManager.fireHandlerAddedEvent(
             HandlerMetaInfo(
                 httpMethod = handlerType,
@@ -53,6 +54,11 @@ open class InternalRouter(
     }
 
     /**
+     * Get a list of all registered HTTP handlers.
+     */
+    fun allHttpHandlers(): List<HttpHandlerEntry> = httpPathMatcher.allEntries()
+
+    /**
      * Checks if the instance has a handler for the specified handlerType and path.
      */
     open fun hasHttpHandlerEntry(handlerType: HandlerType, requestUri: String): Boolean =
@@ -62,7 +68,7 @@ open class InternalRouter(
      * Finds all matching handlers for the specified handlerType and path.
      * @return a handler for the specified handlerType and path, or null if no handler is found
      */
-    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<HandlerEntry> =
+    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<HttpHandlerEntry> =
         httpPathMatcher.findEntries(handlerType, requestUri)
 
     /**
@@ -130,5 +136,10 @@ open class InternalRouter(
         )
         return this
     }
+
+    /**
+     * Get a list of all registered WebSocket handlers.
+     */
+    fun allWsHandlers(): List<WsHandlerEntry> = wsRouter.wsPathMatcher.allEntries()
 
 }

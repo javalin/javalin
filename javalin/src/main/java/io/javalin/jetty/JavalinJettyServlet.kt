@@ -75,7 +75,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
 
     private val setUpgradeAllowed = Handler { it.attribute("javalin-ws-upgrade-allowed", true) }
 
-    private fun allowedByAccessManager(entry: WsEntry, ctx: Context): Boolean = try {
+    private fun allowedByAccessManager(entry: WsHandlerEntry, ctx: Context): Boolean = try {
         when {
             // we run upgrade-allowed-setter against user access manager to see if upgrade-request should be allowed
             cfg.pvt.accessManager != null -> cfg.pvt.accessManager?.manage(setUpgradeAllowed, ctx, entry.roles)
@@ -94,4 +94,3 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
     }
 
 }
-

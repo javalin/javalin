@@ -5,7 +5,7 @@ import io.javalin.config.RouterConfig;
 import static io.javalin.http.HandlerType.GET;
 
 import io.javalin.http.HandlerType;
-import io.javalin.router.HandlerEntry;
+import io.javalin.router.HttpHandlerEntry;
 import io.javalin.router.matcher.PathMatcher;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
@@ -47,8 +47,8 @@ public class PathMatcherBenchmark {
         this.pathMatcher = new PathMatcher();
         var routingConfig = new RouterConfig(new JavalinConfig());
         for (int i = 0; i < 50; i++) {
-            this.pathMatcher.add(new HandlerEntry(GET, "/hello" + i, routingConfig, Collections.emptySet(), (ctx) -> {}));
-            this.oldPathMatcher.add(new HandlerEntry(GET, "/hello" + i, routingConfig, Collections.emptySet(), (ctx) -> {}));
+            this.pathMatcher.add(new HttpHandlerEntry(GET, "/hello" + i, routingConfig, Collections.emptySet(), (ctx) -> {}));
+            this.oldPathMatcher.add(new HttpHandlerEntry(GET, "/hello" + i, routingConfig, Collections.emptySet(), (ctx) -> {}));
         }
     }
 
@@ -76,16 +76,16 @@ public class PathMatcherBenchmark {
 
 final class OldPathMatcher {
     @SuppressWarnings("Convert2Diamond")
-    private final EnumMap<HandlerType, ArrayList<HandlerEntry>> handlerEntries = new EnumMap<HandlerType, ArrayList<HandlerEntry>>(
+    private final EnumMap<HandlerType, ArrayList<HttpHandlerEntry>> handlerEntries = new EnumMap<HandlerType, ArrayList<HttpHandlerEntry>>(
         Arrays.stream(HandlerType.values()).collect(Collectors.toMap((handler) -> handler, (handler) -> new ArrayList<>()))
     );
 
-    public void add(HandlerEntry entry) {
+    public void add(HttpHandlerEntry entry) {
         handlerEntries.get(entry.getType()).add(entry);
     }
 
-    public List<HandlerEntry> findEntries(HandlerType handlerType, String requestUri) {
-        var results = new ArrayList<HandlerEntry>();
+    public List<HttpHandlerEntry> findEntries(HandlerType handlerType, String requestUri) {
+        var results = new ArrayList<HttpHandlerEntry>();
         handlerEntries.get(handlerType).forEach(entry -> {
             if (match(entry, requestUri)) {
                 results.add(entry);
@@ -94,10 +94,9 @@ final class OldPathMatcher {
         return results;
     }
 
-    private boolean match(HandlerEntry entry, String requestPath) {
+    private boolean match(HttpHandlerEntry entry, String requestPath) {
         if (entry.getPath().equals("*")) return true;
         if (entry.getPath().equals(requestPath)) return true;
         return entry.matches(requestPath);
     }
 }
-

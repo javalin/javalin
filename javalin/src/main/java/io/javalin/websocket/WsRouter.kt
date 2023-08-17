@@ -12,7 +12,7 @@ class WsRouter(private val routerConfig: RouterConfig) {
     /** Add a WebSocket handler. */
     fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsConfig>, roles: Set<RouteRole>) {
         wsPathMatcher.add(
-            WsEntry(
+            WsHandlerEntry(
                 type = handlerType,
                 path = path,
                 routerConfig = routerConfig,

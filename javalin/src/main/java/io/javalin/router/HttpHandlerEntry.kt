@@ -7,7 +7,7 @@ import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.router.matcher.PathParser
 import io.javalin.security.RouteRole
 
-data class HandlerEntry(
+data class HttpHandlerEntry(
     val type: HandlerType,
     val path: String,
     val routerConfig: RouterConfig,

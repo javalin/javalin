@@ -21,8 +21,8 @@ import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsExceptionHandler
 import io.javalin.websocket.WsHandlerType
 import io.javalin.websocket.WsHandlerType.WEBSOCKET
-import io.javalin.websocket.WsHandlerType.WS_AFTER
-import io.javalin.websocket.WsHandlerType.WS_BEFORE
+import io.javalin.websocket.WsHandlerType.WEBSOCKET_AFTER
+import io.javalin.websocket.WsHandlerType.WEBSOCKET_BEFORE
 import java.util.function.Consumer
 
 class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRoutingApi<JavalinDefaultRouting> {
@@ -273,7 +273,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     /**
      * Adds a WebSocket before handler for the specified path to the instance.
      */
-    fun wsBefore(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WS_BEFORE, path, wsConfig)
+    fun wsBefore(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WEBSOCKET_BEFORE, path, wsConfig)
 
     /**
      * Adds a WebSocket before handler for all routes in the instance.
@@ -283,7 +283,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     /**
      * Adds a WebSocket after handler for the specified path to the instance.
      */
-    fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WS_AFTER, path, wsConfig)
+    fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WEBSOCKET_AFTER, path, wsConfig)
 
     /**
      * Adds a WebSocket after handler for all routes in the instance.

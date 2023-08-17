@@ -16,7 +16,7 @@ import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
 import io.javalin.json.jsonMapper
-import io.javalin.router.HandlerEntry
+import io.javalin.router.HttpHandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
@@ -68,14 +68,14 @@ class JavalinServletContext(
         this.req = req
     }
 
-    fun update(handlerEntry: HandlerEntry, requestUri: String) = also {
-        handlerType = handlerEntry.type
-        if (matchedPath != handlerEntry.path) { // if the path has changed, we have to extract path params
-            matchedPath = handlerEntry.path
-            pathParamMap = handlerEntry.extractPathParams(requestUri)
+    fun update(httpHandlerEntry: HttpHandlerEntry, requestUri: String) = also {
+        handlerType = httpHandlerEntry.type
+        if (matchedPath != httpHandlerEntry.path) { // if the path has changed, we have to extract path params
+            matchedPath = httpHandlerEntry.path
+            pathParamMap = httpHandlerEntry.extractPathParams(requestUri)
         }
         if (handlerType != AFTER) {
-            endpointHandlerPath = handlerEntry.path
+            endpointHandlerPath = httpHandlerEntry.path
         }
     }
 
