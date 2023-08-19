@@ -13,6 +13,7 @@ import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import io.javalin.util.LoomUtil
 import jakarta.servlet.DispatcherType
+import jakarta.servlet.ServletRequestListener
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -237,6 +238,22 @@ class TestCustomJetty {
         TestUtil.test(filterJavalin) { _, http ->
             assertThat(http.get("/allowed").body).isEqualTo("Allowed!")
             assertThat(http.get("/anything-else").body).isEqualTo("Not allowed")
+        }
+    }
+
+    @Test
+    fun `ServletRequestListener is called`() {
+        val listenerJavalin = Javalin.create {
+            it.jetty.contextHandlerConfig { handler ->
+                handler.addEventListener(object: ServletRequestListener {
+                    override fun requestInitialized(sre: jakarta.servlet.ServletRequestEvent?) {
+                        sre?.servletRequest?.setAttribute("example", "called")
+                    }
+                })
+            }
+        }.get("/foo") { it.result(it.attribute<String>("example") ?: "notCalled") }
+        TestUtil.test(listenerJavalin) { _, http ->
+            assertThat(http.get("/foo").body).isEqualTo("called")
         }
     }
 
