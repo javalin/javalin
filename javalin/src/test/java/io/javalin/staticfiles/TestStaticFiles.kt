@@ -184,6 +184,18 @@ class TestStaticFiles {
     }
 
     @Test
+    fun `welcome files work without trailing slashes on hosted path`() = TestUtil.test(Javalin.create {
+        it.staticFiles.add {
+            it.directory = "/public"
+            it.location = Location.CLASSPATH
+            it.hostedPath = "/url-prefix"
+        }
+    }) { _, http ->
+        assertThat(http.get("/url-prefix/subdir").httpCode()).isEqualTo(OK)
+        assertThat(http.getBody("/url-prefix/subdir")).isEqualTo("<h1>Welcome file</h1>")
+    }
+
+    @Test
     fun `expires is set to max-age=0 by default`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/script.js").headers.getFirst(Header.CACHE_CONTROL)).isEqualTo("max-age=0")
     }
