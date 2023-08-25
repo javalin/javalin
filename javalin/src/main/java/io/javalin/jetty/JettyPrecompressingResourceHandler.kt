@@ -78,9 +78,11 @@ object JettyPrecompressingResourceHandler {
         return byteArrayOutputStream.toByteArray()
     }
 
-    private fun excludedMimeType(mimeType: String, compressionStrategy: CompressionStrategy) =
-        if (mimeType == "") false
-        else compressionStrategy.excludedMimeTypesFromCompression.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
+    private fun excludedMimeType(mimeType: String, compressionStrategy: CompressionStrategy) = when {
+        mimeType == "" -> false
+        compressionStrategy.allowedMimeTypes.contains(mimeType) -> false
+        else -> compressionStrategy.excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
+    }
 
     private fun findMatchingCompressor(
         contentTypeHeader: String,
@@ -91,4 +93,3 @@ object JettyPrecompressingResourceHandler {
             .map { it.trim() }
             .firstNotNullOfOrNull { compressionStrategy.compressors.forType(it) }
 }
-

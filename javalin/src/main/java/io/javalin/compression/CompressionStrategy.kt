@@ -57,8 +57,13 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
     /** 1500 is the size of a packet, compressing responses smaller than this serves no purpose */
     var defaultMinSizeForCompression = 1500
 
-    /** Those mime types will be processed using NONE compression strategy */
-    var excludedMimeTypesFromCompression = listOf(
+    /** these mime types will always be allowed */
+    var allowedMimeTypes = listOf(
+        "image/svg+xml" // we need to allow svg explicitly, because images in general are excluded
+    )
+
+    /** these mime types will be processed using NONE compression strategy */
+    var excludedMimeTypes = listOf(
         "image/",
         "audio/",
         "video/",

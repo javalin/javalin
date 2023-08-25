@@ -59,6 +59,6 @@ private fun findMatchingCompressor(
 
 
 private fun CompressionStrategy.allowsForCompression(contentType: String?): Boolean =
-    contentType == null || excludedMimeTypesFromCompression.none { excluded ->
+    contentType == null || allowedMimeTypes.contains(contentType) || excludedMimeTypes.none { excluded ->
         contentType.contains(excluded, ignoreCase = true)
     }

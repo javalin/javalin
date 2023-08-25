@@ -223,6 +223,25 @@ class TestCompression {
     }
 
     @Test
+    fun `svg images are compressed by default`() = TestUtil.test(Javalin.create {
+        it.staticFiles.add("/public", Location.CLASSPATH)
+        it.compression.brotliAndGzip()
+    }) { _, http ->
+        assertValidGzipResponse(http.origin, "/svg.svg")
+        assertValidBrotliResponse(http.origin, "/svg.svg")
+    }
+
+    @Test
+    fun `svg compression can be disabled`() = TestUtil.test(Javalin.create {
+        it.staticFiles.add("/public", Location.CLASSPATH)
+        it.compression.custom(CompressionStrategy(Brotli(), Gzip()).apply { allowedMimeTypes = listOf() })
+    }) { _, http ->
+        getResponse(http.origin, "/svg.svg", "gzip").let { response ->
+            assertThat(response.headers[Header.CONTENT_ENCODING]).isNull()
+        }
+    }
+
+    @Test
     @EnabledIf("brotliAvailable")
     fun `brotli works for large static files`() {
         val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
