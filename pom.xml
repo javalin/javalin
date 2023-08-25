@@ -60,7 +60,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <kotlin.version>1.8.21</kotlin.version>
+        <kotlin.version>1.9.10</kotlin.version>
         <kotlin.compiler.jvmTarget>11</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
@@ -85,25 +85,25 @@
         <!-- DEPENDENCIES -->
         <annotations.version>24.0.1</annotations.version>
         <jetty.version>11.0.15</jetty.version>
-        <jackson.version>2.15.0</jackson.version>
-        <jackson.databind.version>2.15.0</jackson.databind.version>
-        <brotli4j.version>1.11.0</brotli4j.version>
-        <logback.version>1.4.7</logback.version>
+        <jackson.version>2.15.2</jackson.version>
+        <jackson.databind.version>2.15.2</jackson.databind.version>
+        <brotli4j.version>1.12.0</brotli4j.version>
+        <logback.version>1.4.11</logback.version>
         <slf4j.version>2.0.7</slf4j.version>
         <gson.version>2.10.1</gson.version>
         <okhttp.version>4.11.0</okhttp.version>
 
         <!-- TEST DEPENDENCIES -->
-        <assertj.version>3.23.1</assertj.version>
-        <moshi.version>1.13.0</moshi.version>
-        <java.websocket.version>1.5.2</java.websocket.version>
+        <assertj.version>3.24.2</assertj.version>
+        <moshi.version>1.15.0</moshi.version>
+        <java.websocket.version>1.5.4</java.websocket.version>
         <junit.version>5.9.3</junit.version>
         <jmh.version>1.37</jmh.version>
-        <mockito.version>5.4.0</mockito.version>
-        <mockk.version>1.13.5</mockk.version>
-        <unirest.version>3.13.10</unirest.version>
-        <selenium.chrome.driver.version>4.9.1</selenium.chrome.driver.version>
-        <webdrivermanager.version>5.3.3</webdrivermanager.version>
+        <mockito.version>5.5.0</mockito.version>
+        <mockk.version>1.13.7</mockk.version>
+        <unirest.version>3.14.5</unirest.version>
+        <selenium.chrome.driver.version>4.11.0</selenium.chrome.driver.version>
+        <webdrivermanager.version>5.5.0</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
 
