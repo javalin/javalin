@@ -18,7 +18,7 @@ import java.util.stream.Collectors
 internal class VuePathMaster(val cfg: JavalinVueConfig) {
 
     internal val cachedPaths by javalinLazy { walkPaths() }
-    internal val cachedDependencyResolver by javalinLazy { VueDependencyResolver(cachedPaths, cfg.vueAppName) }
+    internal val cachedDependencyResolver by javalinLazy { VueDependencyResolver(cachedPaths, cfg.vueInstanceNameInJs) }
 
     fun walkPaths(): Set<Path> = Files.walk(cfg.rootDirectory, 20).use { it.collect(Collectors.toSet()) }
 

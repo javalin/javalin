@@ -116,7 +116,7 @@ class TestJavalinVue {
 
     @Test
     fun `vue3 component without state`() = VueTestUtil.test({
-        it.vue.vueAppName = "app"
+        it.vue.vueInstanceNameInJs = "app"
     }) { app, http ->
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
         app.get("/no-state", VueComponent("test-component-3"))
@@ -129,7 +129,7 @@ class TestJavalinVue {
 
     @Test
     fun `vue3 component with state`() = VueTestUtil.test({
-        it.vue.vueAppName = "app"
+        it.vue.vueInstanceNameInJs = "app"
         it.vue.stateFunction = { state }
     }) { app, http ->
         val encodedState = """{"pathParams":{"my-param":"test-path-param"},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()

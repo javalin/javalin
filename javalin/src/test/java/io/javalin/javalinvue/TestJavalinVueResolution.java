@@ -65,7 +65,7 @@ public class TestJavalinVueResolution {
     @Test
     public void resolveVue3DependencyTest() {
         VueTestUtil.test(config -> {
-            config.vue.vueAppName = "app";
+            config.vue.vueInstanceNameInJs = "app";
         }, (server, httpUtil) -> {
             server.get("/single-view", new VueComponent("<view-one-3></view-one-3>"));
             String body = httpUtil.getBody("/single-view");

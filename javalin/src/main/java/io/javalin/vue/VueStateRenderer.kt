@@ -17,7 +17,7 @@ internal object VueStateRenderer {
             )
             .urlEncodeForJavascript()
 
-        val prototypeOrGlobalConfig = if (cfg.vueAppName != null) "${cfg.vueAppName}.config.globalProperties" else "Vue.prototype"
+        val prototypeOrGlobalConfig = if (cfg.vueInstanceNameInJs != null) "${cfg.vueInstanceNameInJs}.config.globalProperties" else "Vue.prototype"
         return """
             <script nonce="@internalAddNonce">
                 window.JavalinVue = JSON.parse(decodeURIComponent('${urlEncodedState(state)}'))

@@ -19,7 +19,7 @@ class JavalinVueConfig {
         this.rootDirectory = if (location == Location.CLASSPATH) pathMaster.classpathPath(path, resourcesJarClass) else Paths.get(path)
     }
 
-    @JvmField var vueAppName: String? = null // only relevant for Vue 3 apps
+    @JvmField var vueInstanceNameInJs: String? = null // only relevant for Vue 3 apps
 
     @get:JvmSynthetic @set:JvmSynthetic internal var isDev: Boolean? = null // cached and easily accessible, is set on first request (can't be configured directly by end user)
     @JvmField var isDevFunction: (Context) -> Boolean = { it.isLocalhost() } // used to set isDev, will be called once
