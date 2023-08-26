@@ -17,9 +17,33 @@ import jakarta.servlet.http.HttpServletResponseWrapper
 object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        servlet.cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
+        servlet.router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
             submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
         }
+    }
+
+    val BEFORE_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
+        val willMatch = willMatch(servlet, ctx, requestUri)
+        servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
+            if (willMatch) {
+                submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+            }
+        }
+    }
+
+    private fun willMatch(
+        servlet: JavalinServlet,
+        ctx: JavalinServletContext,
+        requestUri: String
+    ): Boolean {
+        val hasGetHandlerForHeadRequest = ctx.method() == HEAD && servlet.router.hasHttpHandlerEntry(GET, requestUri)
+        val hasRegularHttpHandler =
+            servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() != null
+        val resourceHandlerMatch =
+            servlet.cfg.pvt.resourceHandler?.canHandle(ctx.req(), JavalinResourceResponseWrapper(ctx)) ?: false
+        val singlePageHandlerMatch = servlet.cfg.pvt.singlePageHandler.canHandle(ctx)
+
+        return hasGetHandlerForHeadRequest || hasRegularHttpHandler || resourceHandlerMatch || singlePageHandlerMatch
     }
 
     val HTTP = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
@@ -60,6 +84,15 @@ object DefaultTasks {
             }
             throw NotFoundResponse()
         })
+    }
+
+    val AFTER_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
+        val willMatch = willMatch(servlet, ctx, requestUri)
+        servlet.router.findHttpHandlerEntries(HandlerType.AFTER_MATCHED, requestUri).forEach { entry ->
+            if (willMatch) {
+                submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
+            }
+        }
     }
 
     val ERROR = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, _ ->
