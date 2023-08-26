@@ -73,6 +73,10 @@ class TestBeforeAfterMatched {
             it.result("i-see-slashes")
         }
 
+        app.afterMatched {
+            it.header("X-After-Star", "true")
+        }
+
         val res = http.get(path)
         assertThat(res.status).describedAs("$path - status")
             .isEqualTo(statusCode)
@@ -81,6 +85,8 @@ class TestBeforeAfterMatched {
         assertThat(res.headers.getFirst("X-Always")).describedAs("$path - Before")
             .isEqualTo("true")
         assertThat(res.headers.getFirst("X-Before-Star")).describedAs("$path - Before-Star")
+            .isEqualTo(beforeStar)
+        assertThat(res.headers.getFirst("X-After-Star")).describedAs("$path - After-Star")
             .isEqualTo(beforeStar)
         assertThat(res.headers.getFirst("X-Before-Sub-Curly")).describedAs("$path - Before-Sub-Curly")
             .isEqualTo(beforeSubCurly)
@@ -151,11 +157,48 @@ class TestBeforeAfterMatched {
         }
 
         val res = http.get("/html.html")
-        assertThat(res.status).isEqualTo(HttpStatus.OK.code)
-        assertThat(res.headers.getFirst("X-Matched-Before")).isEqualTo("true")
-        assertThat(res.headers.getFirst("X-Matched-After")).isEqualTo("true")
-        assertThat(res.headers.getFirst("Content-Type")).isEqualTo(ContentType.HTML)
-        assertThat(res.body).contains("<h1>HTML works</h1>")
+        assertThat(res.status).describedAs("status").isEqualTo(HttpStatus.OK.code)
+        assertThat(res.headers.getFirst("X-Matched-Before")).describedAs("before-header").isEqualTo("true")
+        assertThat(res.headers.getFirst("X-Matched-After")).describedAs("after-header").isEqualTo("true")
+        assertThat(res.headers.getFirst("Content-Type")).describedAs("content-type").isEqualTo(ContentType.HTML)
+        assertThat(res.body).describedAs("body").contains("<h1>HTML works</h1>")
+    }
+
+    @Test
+    fun `beforeMatched runs for ResourceHandler - precompress`() = TestUtil.test(Javalin.create { config ->
+        config.staticFiles.add {
+            it.directory = "public"
+            it.location = Location.CLASSPATH
+            it.precompress = true
+        }
+    }) { app, http ->
+        var afterMatchedRan = false
+        var afterRan = false
+        app.beforeMatched {
+            it.header("X-Matched-Before", "true")
+        }
+
+        app.afterMatched {
+            it.header("X-Matched-After", "true")
+            afterMatchedRan = true
+        }
+
+        app.after {
+            it.header("X-After", "true")
+            afterRan = true
+        }
+
+        val res = http.get("/html.html")
+        assertThat(res.status).describedAs("status").isEqualTo(HttpStatus.OK.code)
+        assertThat(res.headers).isNotNull
+        assertThat(res.headers.getFirst("X-Matched-Before")).describedAs("before-header").isEqualTo("true")
+        assertThat(afterMatchedRan).describedAs("after-matched-ran").isEqualTo(true)
+        assertThat(afterRan).describedAs("after-ran").isEqualTo(true)
+        // TODO: after handler setting headers do not work with precompressing resourceHandlers
+        assertThat(res.headers.getFirst("X-After")).describedAs("after-header").isEqualTo("true")
+        assertThat(res.headers.getFirst("X-Matched-After")).describedAs("after-matched-header").isEqualTo("true")
+        assertThat(res.headers.getFirst("Content-Type")).describedAs("content-type").isEqualTo(ContentType.HTML)
+        assertThat(res.body).describedAs("body").contains("<h1>HTML works</h1>")
     }
 }
 
