@@ -41,6 +41,14 @@ class SinglePageHandler {
         pathHandlerMap[hostedPath] = handler
     }
 
+    fun canHandle(ctx: Context): Boolean {
+        val accept = ctx.header(Header.ACCEPT) ?: ""
+        if (ContentType.HTML !in accept && "*/*" !in accept && accept != "") return false
+        if (pathPageMap.findByPath(ctx.path()) != null) return true
+        if (pathHandlerMap.findByPath(ctx.path()) != null) return true
+        return false
+    }
+
     fun handle(ctx: Context): Boolean {
         val accept = ctx.header(Header.ACCEPT) ?: ""
         if (ContentType.HTML !in accept && "*/*" !in accept && accept != "") return false

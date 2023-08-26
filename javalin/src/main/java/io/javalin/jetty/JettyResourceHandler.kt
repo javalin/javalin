@@ -14,6 +14,8 @@ import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
 import jakarta.servlet.ServletOutputStream
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.HttpServletResponseWrapper
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.io.EofException
@@ -39,6 +41,18 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (pvt.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.server!!)) else lateInitConfigs.add(config)
+
+    override fun canHandle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
+        val target = httpRequest.requestURI.removePrefix(httpRequest.contextPath)
+        handlers.filter { !it.config.skipFileFunction(httpRequest) }.forEach { handler ->
+            val resource = handler.getResource(target)
+            if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
+                // we assume that the handler will work correctly
+                return true
+            }
+        }
+        return false
+    }
 
     override fun handle(ctx: Context): Boolean {
         handlers.filter { !it.config.skipFileFunction(ctx.req()) }.forEach { handler ->
