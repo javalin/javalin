@@ -189,13 +189,13 @@ class TestApiBuilder {
 
     @Test
     fun `ApiBuilder works with two services at once`() = TestUtil.runLogLess {
-        Javalin
+        val app = Javalin
             .create { cfg1 ->
                 cfg1.router.apiBuilder {
                     get("/hello-1") { it.result("Hello-1") }
                 }
 
-                Javalin
+                val app2 = Javalin
                     .create { cfg2 ->
                         cfg2.router.apiBuilder {
                             get("/hello-2") { it.result("Hello-2") }
@@ -203,9 +203,10 @@ class TestApiBuilder {
                         }
                     }
                     .start(0)
-                    .use { app2 ->
+                    .also { app2 ->
                         assertThat(Unirest.get("http://localhost:${app2.port()}/hello-2").asString().body).isEqualTo("Hello-2")
                         assertThat(Unirest.get("http://localhost:${app2.port()}/hello-3").asString().body).isEqualTo("Hello-3")
+                        app2.stop()
                     }
 
                 cfg1.router.apiBuilder {
@@ -213,9 +214,10 @@ class TestApiBuilder {
                 }
             }
             .start(0)
-            .use { app1 ->
+            .also { app1 ->
                 assertThat(Unirest.get("http://localhost:${app1.port()}/hello-1").asString().body).isEqualTo("Hello-1")
                 assertThat(Unirest.get("http://localhost:${app1.port()}/hello-4").asString().body).isEqualTo("Hello-4")
+                app1.stop()
             }
     }
 
@@ -371,4 +373,3 @@ class TestApiBuilder {
     }
 
 }
-

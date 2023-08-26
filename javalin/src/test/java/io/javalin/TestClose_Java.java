@@ -21,7 +21,7 @@ class TestClose_Java {
             final Javalin app = Javalin.create();
 
             //noinspection EmptyTryBlock
-            try (final Javalin ignored = app.start(0)) {
+            try (final AutoClosableJavalin ignored = new AutoClosableJavalin(app).start(0)) {
                 // do nothing
             }
 
@@ -40,7 +40,7 @@ class TestClose_Java {
             });
 
             //noinspection EmptyTryBlock
-            try (final Javalin ignored = app.start(0)) {
+            try (final AutoClosableJavalin ignored = new AutoClosableJavalin(app).start(0)) {
                 // do nothing
             }
 
@@ -56,7 +56,7 @@ class TestClose_Java {
                 event.serverStopping(() -> log.append("Stopping"));
                 event.serverStopped(() -> log.append("Stopped"));
             });
-            try (final Javalin startedApp = app.start(0)) {
+            try (final AutoClosableJavalin startedApp = new AutoClosableJavalin(app).start(0)) {
                 //noinspection RedundantExplicitClose
                 startedApp.close();
             }

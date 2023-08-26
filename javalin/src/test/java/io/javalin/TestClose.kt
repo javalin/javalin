@@ -10,11 +10,20 @@ import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
+class AutoClosableJavalin(val javalin: Javalin) : AutoCloseable {
+    override fun close() {
+        javalin.stop()
+    }
+
+    fun start(port: Int): AutoClosableJavalin = also { javalin.start(port) }
+    fun jettyServer() = javalin.jettyServer()
+}
+
 class TestClose {
 
     @Test
     fun useStopsServer() = TestUtil.runLogLess {
-        val app = Javalin.create()
+        val app = AutoClosableJavalin(Javalin.create())
         app.start(0).use { }
         assertThat(app.jettyServer().server().isStopped).isTrue
     }
@@ -22,10 +31,10 @@ class TestClose {
     @Test
     fun useCallsLifecycleEvents() = TestUtil.runLogLess {
         var log = ""
-        val app = Javalin.create().events {
+        val app = AutoClosableJavalin(Javalin.create().events {
             it.serverStopping { log += "Stopping" }
             it.serverStopped { log += "Stopped" }
-        }
+        })
         app.start(0).use { }
         assertThat(log).isEqualTo("StoppingStopped")
     }
@@ -33,10 +42,10 @@ class TestClose {
     @Test
     fun closingInsideUseIsIdempotent() = TestUtil.runLogLess {
         var log = ""
-        val app = Javalin.create().events {
+        val app = AutoClosableJavalin(Javalin.create().events {
             it.serverStopping { log += "Stopping" }
             it.serverStopped { log += "Stopped" }
-        }
+        })
         app.start(0).use { it.close() }
         assertThat(app.jettyServer().server().isStopped).isTrue
         assertThat(log).isEqualTo("StoppingStopped")

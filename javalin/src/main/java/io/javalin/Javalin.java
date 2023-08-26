@@ -19,6 +19,7 @@ import io.javalin.jetty.JavalinJettyServlet;
 import io.javalin.jetty.JettyServer;
 import io.javalin.security.RouteRole;
 import io.javalin.util.Util;
+
 import java.util.function.Consumer;
 
 import io.javalin.websocket.WsConfig;
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import static io.javalin.util.Util.createLazy;
 
 @SuppressWarnings("unchecked")
-public class Javalin implements AutoCloseable, JavalinDefaultRoutingApi<Javalin> {
+public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
 
     /**
      * Do not use this field unless you know what you're doing.
@@ -63,7 +64,8 @@ public class Javalin implements AutoCloseable, JavalinDefaultRoutingApi<Javalin>
      * @see Javalin#create(Consumer)
      */
     public static Javalin create() {
-        return create(config -> {});
+        return create(config -> {
+        });
     }
 
     /**
@@ -130,30 +132,15 @@ public class Javalin implements AutoCloseable, JavalinDefaultRoutingApi<Javalin>
 
     /**
      * Synchronously stops the application instance.
-     * Recommended to use {@link Javalin#close} instead with Java's try-with-resources
-     * or Kotlin's {@code use}. This differs from {@link Javalin#close} by
-     * firing lifecycle events even if the server is stopping or already stopped.
-     * This could cause your listeners to observe nonsensical state transitions.
-     * E.g. started -> stopping -> stopped -> stopping -> stopped.
      *
      * @return stopped application instance.
-     * @see Javalin#close()
      */
     public Javalin stop() {
+        if (jettyServer.getValue().server().isStopping() || jettyServer.getValue().server().isStopped()) {
+            return this;
+        }
         jettyServer.getValue().stop();
         return this;
-    }
-
-    /**
-     * Synchronously stops the application instance.
-     * Can safely be called multiple times.
-     */
-    @Override
-    public void close() {
-        if (jettyServer.getValue().server().isStopping() || jettyServer.getValue().server().isStopped()) {
-            return;
-        }
-        stop();
     }
 
     public Javalin events(Consumer<EventConfig> listener) {
