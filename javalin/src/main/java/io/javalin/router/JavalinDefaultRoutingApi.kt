@@ -5,7 +5,9 @@ import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.AFTER
+import io.javalin.http.HandlerType.AFTER_MATCHED
 import io.javalin.http.HandlerType.BEFORE
+import io.javalin.http.HandlerType.BEFORE_MATCHED
 import io.javalin.http.HandlerType.DELETE
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
@@ -22,7 +24,9 @@ import io.javalin.websocket.WsExceptionHandler
 import io.javalin.websocket.WsHandlerType
 import io.javalin.websocket.WsHandlerType.WEBSOCKET
 import io.javalin.websocket.WsHandlerType.WEBSOCKET_AFTER
+import io.javalin.websocket.WsHandlerType.WEBSOCKET_AFTER_MATCHED
 import io.javalin.websocket.WsHandlerType.WEBSOCKET_BEFORE
+import io.javalin.websocket.WsHandlerType.WEBSOCKET_BEFORE_MATCHED
 import java.util.function.Consumer
 
 class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRoutingApi<JavalinDefaultRouting> {
@@ -233,6 +237,18 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     fun before(handler: Handler): API = before("*", handler)
 
     /**
+     * Adds a BEFORE_MATCHED request handler for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
+     */
+    fun beforeMatched(path: String, handler: Handler): API = addHttpHandler(BEFORE_MATCHED, path, handler)
+
+    /**
+     * Adds a BEFORE_MATCHED request handler for all routes in the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
+     */
+    fun beforeMatched(handler: Handler): API = beforeMatched("*", handler)
+
+    /**
      * Adds an AFTER request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
      */
@@ -243,6 +259,18 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
      */
     fun after(handler: Handler): API = after("*", handler)
+
+    /**
+     * Adds an AFTER_MATCHED request handler for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
+     */
+    fun afterMatched(path: String, handler: Handler): API = addHttpHandler(AFTER_MATCHED, path, handler)
+
+    /**
+     * Adds an AFTER_MATCHED request handler for all routes in the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
+     */
+    fun afterMatched(handler: Handler): API = afterMatched("*", handler)
 
     /**
      * Adds a WebSocket exception mapper to the instance.
@@ -281,6 +309,16 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     fun wsBefore(wsConfig: Consumer<WsConfig>): API = wsBefore("*", wsConfig)
 
     /**
+     * Adds a WebSocket before matched handler for the specified path to the instance.
+     */
+    fun wsBeforeMatched(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WEBSOCKET_BEFORE_MATCHED, path, wsConfig)
+
+    /**
+     * Adds a WebSocket before matched handler for all routes in the instance.
+     */
+    fun wsBeforeMatched(wsConfig: Consumer<WsConfig>): API = wsBeforeMatched("*", wsConfig)
+
+    /**
      * Adds a WebSocket after handler for the specified path to the instance.
      */
     fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WEBSOCKET_AFTER, path, wsConfig)
@@ -289,5 +327,15 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds a WebSocket after handler for all routes in the instance.
      */
     fun wsAfter(wsConfig: Consumer<WsConfig>): API = wsAfter("*", wsConfig)
+
+    /**
+     * Adds a WebSocket after matched handler for the specified path to the instance.
+     */
+    fun wsAfterMatched(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WEBSOCKET_AFTER_MATCHED, path, wsConfig)
+
+    /**
+     * Adds a WebSocket after matched handler for all routes in the instance.
+     */
+    fun wsAfterMatched(wsConfig: Consumer<WsConfig>): API = wsAfterMatched("*", wsConfig)
 
 }
