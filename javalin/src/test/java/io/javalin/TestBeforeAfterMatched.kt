@@ -1,4 +1,4 @@
-package io.javalin;
+package io.javalin
 
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -40,4 +40,6 @@ class TestBeforeAfterMatched {
         assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Not found")
         assertThat(http.getBody("/hello")).isEqualTo("static-before")
     }
+
+    // TODO: check singlePageHandler, ResourceHandler, head request on get handler
 }
