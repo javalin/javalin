@@ -14,7 +14,7 @@ import kotlin.LazyThreadSafetyMode.NONE
 typealias Check<T> = (T) -> Boolean
 
 data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: ValidationError<T>)
-data class ValidationError<T>(val message: String, val args: Map<String, Any?> = mapOf(), var value: Any? = null)
+data class ValidationError<T> @JvmOverloads constructor(val message: String, val args: Map<String, Any?> = mapOf(), var value: Any? = null)
 class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : RuntimeException()
 
 data class StringSource<T>(
