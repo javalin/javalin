@@ -9,7 +9,10 @@ package io.javalin.staticfiles
 import com.aayushatharva.brotli4j.Brotli4jLoader
 import com.aayushatharva.brotli4j.decoder.BrotliInputStream
 import io.javalin.Javalin
+import io.javalin.http.ContentType
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
+import io.javalin.http.staticfiles.Location
 import io.javalin.jetty.JettyPrecompressingResourceHandler
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestDependency
@@ -123,6 +126,22 @@ class TestStaticFilesPrecompressor {
         assertThat(http.getFile("/html.html", "gzip, br").contentEncoding()).isEqualTo("br")
         assertThat(http.getFile("/html.html", "br, gzip").contentEncoding()).isEqualTo("br")
         assertThat(http.getFile("/html.html", "deflate, gzip, br").contentEncoding()).isEqualTo("br")
+    }
+
+    @Test
+    fun `can set headers after precompressing handler is done`() = TestUtil.test(Javalin.create { config ->
+        config.staticFiles.add {
+            it.directory = "public"
+            it.location = Location.CLASSPATH
+            it.precompress = true
+        }
+    }) { app, http ->
+        app.after { it.header("X-After", "true") }
+        val res = http.get("/html.html")
+        assertThat(res.status).describedAs("status").isEqualTo(HttpStatus.OK.code)
+        assertThat(res.headers.getFirst("Content-Type")).describedAs("content-type").isEqualTo(ContentType.HTML)
+        assertThat(res.body).describedAs("body").contains("<h1>HTML works</h1>")
+        assertThat(res.headers.getFirst("X-After")).describedAs("after-header").isEqualTo("true")
     }
 
 

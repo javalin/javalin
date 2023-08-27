@@ -1,10 +1,9 @@
 package io.javalin.http.staticfiles;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import io.javalin.http.Context;
 
 public interface ResourceHandler {
-    boolean handle(HttpServletRequest httpRequest, HttpServletResponse httpResponse);
+    boolean handle(Context context);
 
     boolean addStaticFileConfig(StaticFileConfig config);
 }

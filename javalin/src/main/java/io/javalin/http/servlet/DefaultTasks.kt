@@ -48,7 +48,7 @@ object DefaultTasks {
                 return@Task
             }
             if (ctx.method() == HEAD || ctx.method() == GET) { // check for static resources (will write response if found)
-                if (servlet.cfg.pvt.resourceHandler?.handle(ctx.req(), JavalinResourceResponseWrapper(ctx)) == true) return@Task
+                if (servlet.cfg.pvt.resourceHandler?.handle(ctx) == true) return@Task
                 if (servlet.cfg.pvt.singlePageHandler.handle(ctx)) return@Task
             }
             if (ctx.handlerType() == HandlerType.BEFORE) { // no match, status will be 404 or 405 after this point
@@ -72,8 +72,4 @@ object DefaultTasks {
         }
     }
 
-}
-
-private class JavalinResourceResponseWrapper(private val ctx: Context) : HttpServletResponseWrapper(ctx.res()) {
-    override fun getOutputStream(): ServletOutputStream = ctx.outputStream()
 }

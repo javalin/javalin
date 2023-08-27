@@ -7,13 +7,14 @@
 package io.javalin.jetty
 
 import io.javalin.config.PrivateConfig
+import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
+import jakarta.servlet.ServletOutputStream
+import jakarta.servlet.http.HttpServletResponseWrapper
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.io.EofException
 import org.eclipse.jetty.server.HttpConnection
@@ -25,7 +26,6 @@ import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
 import java.nio.file.AccessDeniedException
-import kotlin.LazyThreadSafetyMode.NONE
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
 class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
@@ -40,22 +40,22 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (pvt.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.server!!)) else lateInitConfigs.add(config)
 
-    override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
-        val jettyRequest = HttpConnection.getCurrentConnection().httpChannel.request as Request
-        val target = httpRequest.requestURI.removePrefix(httpRequest.contextPath)
-        handlers.filter { !it.config.skipFileFunction(httpRequest) }.forEach { handler ->
+    override fun handle(ctx: Context): Boolean {
+        handlers.filter { !it.config.skipFileFunction(ctx.req()) }.forEach { handler ->
             try {
-                val resource = handler.getResource(target)
-                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
-                    handler.config.headers.forEach { httpResponse.setHeader(it.key, it.value) }
-                    if (handler.config.precompress) {
-                        return if (resource.isDirectoryWithWelcomeFile(handler, target))  // if it's a directory, we need to serve the welcome file
-                            JettyPrecompressingResourceHandler.handle(target, getWelcomeFile(handler, target), httpRequest, httpResponse, pvt.compressionStrategy)
-                        else
-                            JettyPrecompressingResourceHandler.handle(target, resource, httpRequest, httpResponse, pvt.compressionStrategy)
+                val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
+                val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
+                if (fileOrWelcomeFile != null) {
+                    handler.config.headers.forEach { ctx.header(it.key, it.value) } // set user headers
+                    return when (handler.config.precompress) {
+                        true -> JettyPrecompressingResourceHandler.handle(target, fileOrWelcomeFile, ctx, pvt.compressionStrategy)
+                        false -> {
+                            ctx.res().contentType = null // Jetty will only set the content-type if it's null
+                            runCatching { // we wrap the response to compress it with javalin's compression strategy
+                                handler.handle(target, jettyRequest(), ctx.req(), CompressingResponseWrapper(ctx))
+                            }.isSuccess
+                        }
                     }
-                    httpResponse.contentType = null // Jetty will only set the content-type if it's null
-                    return runCatching { handler.handle(target, jettyRequest, httpRequest, httpResponse) }.isSuccess
                 }
             } catch (e: Exception) { // it's fine, we'll just 404
                 if (e !is EofException) { // EofException is thrown when the client disconnects, which is fine
@@ -66,12 +66,11 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         return false
     }
 
-    private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
-    private fun getWelcomeFile(handler: ResourceHandler, target: String) =
-        handler.getResource("${target.removeSuffix("/")}/index.html")
+    private fun Resource?.fileOrNull(): Resource? = this?.takeIf { it.exists() && !it.isDirectory }
+    private fun fileOrWelcomeFile(handler: ResourceHandler, target: String): Resource? =
+        handler.getResource(target)?.fileOrNull() ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.fileOrNull()
 
-    private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String) =
-        this != null && this.isDirectory && getWelcomeFile(handler, target)?.exists() == true
+    private fun jettyRequest() = HttpConnection.getCurrentConnection().httpChannel.request as Request
 
 }
 
@@ -117,4 +116,8 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         return config.directory
     }
 
+}
+
+private class CompressingResponseWrapper(private val ctx: Context) : HttpServletResponseWrapper(ctx.res()) {
+    override fun getOutputStream(): ServletOutputStream = ctx.outputStream()
 }
