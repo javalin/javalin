@@ -1,6 +1,5 @@
 package io.javalin.http.servlet
 
-import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
@@ -10,9 +9,7 @@ import io.javalin.http.servlet.SubmitOrder.FIRST
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.security.accessManagerNotConfiguredException
-import jakarta.servlet.ServletOutputStream
 import io.javalin.util.Util.firstOrNull
-import jakarta.servlet.http.HttpServletResponseWrapper
 
 object DefaultTasks {
 
@@ -40,7 +37,7 @@ object DefaultTasks {
         val hasRegularHttpHandler =
             servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() != null
         val resourceHandlerMatch =
-            servlet.cfg.pvt.resourceHandler?.canHandle(ctx.req(), JavalinResourceResponseWrapper(ctx)) ?: false
+            servlet.cfg.pvt.resourceHandler?.canHandle(ctx) ?: false
         val singlePageHandlerMatch = servlet.cfg.pvt.singlePageHandler.canHandle(ctx)
 
         return hasGetHandlerForHeadRequest || hasRegularHttpHandler || resourceHandlerMatch || singlePageHandlerMatch

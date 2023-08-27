@@ -200,9 +200,8 @@ class TestBeforeAfterMatched {
         assertThat(res.headers.getFirst("X-Matched-Before")).describedAs("before-header").isEqualTo("true")
         assertThat(afterMatchedRan).describedAs("after-matched-ran").isEqualTo(true)
         assertThat(afterRan).describedAs("after-ran").isEqualTo(true)
-        // TODO: see #1985, once fixed these two line should work
-        //assertThat(res.headers.getFirst("X-After")).describedAs("after-header").isEqualTo("true")
-        //assertThat(res.headers.getFirst("X-Matched-After")).describedAs("after-matched-header").isEqualTo("true")
+        assertThat(res.headers.getFirst("X-After")).describedAs("after-header").isEqualTo("true")
+        assertThat(res.headers.getFirst("X-Matched-After")).describedAs("after-matched-header").isEqualTo("true")
         assertThat(res.headers.getFirst("Content-Type")).describedAs("content-type").isEqualTo(ContentType.HTML)
         assertThat(res.body).describedAs("body").contains("<h1>HTML works</h1>")
     }
