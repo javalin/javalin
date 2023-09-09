@@ -42,7 +42,7 @@ fun interface JavalinPlugin {
     fun repeatable(): Boolean = false
 
     /**
-     * The priority of the plugin that determines when it is started.
+     * The priority of the plugin that determines when it should be started.
      */
     fun priority(): PluginPriority = PluginPriority.NORMAL
 
