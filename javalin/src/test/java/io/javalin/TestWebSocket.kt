@@ -44,6 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * This test could be better
  */
+@Timeout(value = 2, unit = TimeUnit.SECONDS)
 class TestWebSocket {
 
     data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>())
