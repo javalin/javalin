@@ -1,6 +1,5 @@
 package io.javalin.plugin
 
-import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
 import java.util.function.Consumer
 
