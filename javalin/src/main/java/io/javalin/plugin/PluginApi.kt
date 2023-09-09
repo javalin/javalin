@@ -32,7 +32,7 @@ fun interface JavalinPlugin {
     /**
      * Called when the plugin is applied to the Javalin instance.
      */
-    fun onStart(app: Javalin)
+    fun onStart(config: JavalinConfig)
 
     /**
      * Checks if plugin can be registered multiple times.
