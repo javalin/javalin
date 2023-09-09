@@ -53,8 +53,7 @@ class JavalinConfig {
         @JvmStatic
         fun applyUserConfig(app: Javalin, cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
             userConfig.accept(cfg) // apply user config to the default config
-            cfg.pvt.pluginManager.initializePlugins(app)
-            cfg.router.initializers.forEach(Runnable::run) // run all router initializers
+            cfg.pvt.pluginManager.startPlugins(app)
             cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson() }
             cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
             cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }

@@ -19,15 +19,13 @@ class RouterConfig(internal val cfg: JavalinConfig) {
     @JvmField var caseInsensitiveRoutes = false
     // @formatter:on
 
-    internal val initializers = mutableListOf<Runnable>()
-
     internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->
         res.status = INTERNAL_SERVER_ERROR.code
         JavalinLogger.error("Fatal error occurred while servicing http-request", error)
     }
 
     fun <SETUP> mount(initializer: RoutingApiInitializer<SETUP>, setup: Consumer<SETUP> = Consumer {}): RouterConfig = also {
-        initializers.add(Runnable { initializer.initialize(cfg, cfg.pvt.internalRouter, setup) })
+        initializer.initialize(cfg, cfg.pvt.internalRouter, setup)
     }
 
     fun apiBuilder(endpoints: EndpointGroup): RouterConfig {

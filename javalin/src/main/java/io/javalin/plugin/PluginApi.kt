@@ -6,19 +6,19 @@ import java.util.function.Consumer
 
 enum class PluginPriority {
     /**
-     * Plugins with priority EARLY will be initialized before other type of plugins.
+     * Plugins with priority EARLY will be started before other type of plugins.
      * These plugins should be focused on meta configuration and not on registering handlers.
      */
     EARLY,
 
     /**
-     * Plugins with priority NORMAL will be initialized after EARLY plugins and before LATE plugins.
+     * Plugins with priority NORMAL will be started after EARLY plugins and before LATE plugins.
      * This is a good default priority for most plugins.
      */
     NORMAL,
 
     /**
-     * Plugins with priority LATE will be initialized after other type of plugins.
+     * Plugins with priority LATE will be started after other type of plugins.
      * These plugins should be focused on meta analysis of the overall setup.
      */
     LATE
@@ -42,7 +42,7 @@ fun interface JavalinPlugin {
     fun repeatable(): Boolean = false
 
     /**
-     * The priority of this plugin.
+     * The priority of the plugin that determines when it is started.
      */
     fun priority(): PluginPriority = PluginPriority.NORMAL
 
