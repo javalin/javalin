@@ -6,8 +6,7 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.event.HandlerMetaInfo
-import io.javalin.event.WsHandlerMetaInfo
+import io.javalin.router.HttpHandlerEntry
 import io.javalin.util.implementingClassName
 import io.javalin.util.isClass
 import io.javalin.util.isJavaAnonymousLambda
@@ -19,11 +18,12 @@ import io.javalin.util.javaFieldName
 import io.javalin.util.kotlinFieldName
 import io.javalin.util.parentClass
 import io.javalin.util.runMethod
+import io.javalin.websocket.WsHandlerEntry
 
 object RouteOverviewUtil {
 
     @JvmStatic
-    fun createHtmlOverview(handlerInfo: List<HandlerMetaInfo>, wsHandlerInfo: List<WsHandlerMetaInfo>): String {
+    fun createHtmlOverview(handlerInfo: List<HttpHandlerEntry>, wsHandlerInfo: List<WsHandlerEntry>): String {
         return """
         <meta name='viewport' content='width=device-width, initial-scale=1'>
         <style>
@@ -163,7 +163,7 @@ object RouteOverviewUtil {
     }
 
     @JvmStatic
-    fun createJsonOverview(handlerInfo: List<HandlerMetaInfo>, wsHandlerInfo: List<WsHandlerMetaInfo>): String {
+    fun createJsonOverview(handlerInfo: List<HttpHandlerEntry>, wsHandlerInfo: List<WsHandlerEntry>): String {
         return """
             {
                 "handlers": [
