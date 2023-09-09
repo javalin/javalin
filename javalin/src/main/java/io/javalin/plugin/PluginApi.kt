@@ -29,11 +29,6 @@ fun interface JavalinPlugin {
     /**
      * Initialize properties and access configuration before any handler is registered.
      */
-    fun beforeInitialize(config: JavalinConfig): Unit = throw NotImplementedError()
-
-    /**
-     * Initialize properties and access configuration before any handler is registered.
-     */
     fun onInitialize(config: JavalinConfig) {}
 
     /**
