@@ -6,10 +6,9 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
-import io.javalin.event.HandlerMetaInfo
-import io.javalin.http.Header
+import io.javalin.http.HandlerType.OPTIONS
+import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
 import io.javalin.plugin.JavalinPlugin
 
 open class HttpAllowedMethodsPlugin : JavalinPlugin {
@@ -18,35 +17,20 @@ open class HttpAllowedMethodsPlugin : JavalinPlugin {
         object HttpAllowedMethods : HttpAllowedMethodsPlugin()
     }
 
-    private val endpoints = mutableMapOf<String, MutableSet<HandlerMetaInfo>>()
+    override fun onStart(config: JavalinConfig) {
+        config.events.serverStarted {
+            config.pvt.internalRouter.allHttpHandlers()
+                .filter { it.type.isHttpMethod }
+                .groupBy { it.path }
+                .forEach { (path, handlers) ->
+                    val allowedMethods = handlers.joinToString(",") { it.type.toString() }
 
-    override fun onInitialize(config: JavalinConfig) {
-        config.events.handlerAdded { handlerInfo ->
-            addOptionsToList(handlerInfo)
-        }
-    }
-
-    override fun onStart(app: Javalin) {
-        app.events {
-            it.serverStarted {
-                createOptionsEndPoint(app)
-            }
-        }
-    }
-
-    private fun addOptionsToList(handlerMetaInfo: HandlerMetaInfo) {
-        val endpoint = endpoints.getOrPut(handlerMetaInfo.path) { mutableSetOf(handlerMetaInfo) }
-        endpoint.add(handlerMetaInfo)
-    }
-
-    private fun createOptionsEndPoint(app: Javalin) {
-        endpoints.forEach { endpoint ->
-            app.options(endpoint.key) { ctx ->
-                ctx.header(
-                    Header.ACCESS_CONTROL_ALLOW_METHODS,
-                    endpoint.value.joinToString(",") { it.httpMethod.toString() }
-                )
-            }
+                    config.pvt.internalRouter.addHttpHandler(
+                        handlerType = OPTIONS,
+                        path = path,
+                        handler = { ctx -> ctx.header(ACCESS_CONTROL_ALLOW_METHODS, allowedMethods) }
+                    )
+                }
         }
     }
 
