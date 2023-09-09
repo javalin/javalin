@@ -43,6 +43,7 @@ class JavalinConfig {
      */
     @JvmField val pvt = PrivateConfig(this)
 
+    fun events(listener:Consumer<EventConfig>) { listener.accept(this.events) }
     fun accessManager(accessManager: AccessManager) { pvt.accessManager = accessManager }
     fun jsonMapper(jsonMapper: JsonMapper) { pvt.appAttributes[JSON_MAPPER_KEY] = jsonMapper }
     fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[FILE_RENDERER_KEY] = fileRenderer }

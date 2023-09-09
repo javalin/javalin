@@ -7,6 +7,7 @@
 
 package io.javalin
 
+import io.javalin.router.JavalinDefaultRouting
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -47,6 +48,21 @@ class TestLifecycleEvents {
         app.events { it.handlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }
         app.get("/test-path") {}
         assertThat(log).isEqualTo("/test-path/test-path")
+    }
+
+
+    @Test
+    fun `handlerAdded event works for router`() {
+        var routerLog = ""
+        TestUtil.test(Javalin.create { config ->
+            config.events { it.handlerAdded { handlerMetaInfo -> routerLog += handlerMetaInfo.path } }
+            config.router.mount(JavalinDefaultRouting.Default) {
+                it.get("/test") {}
+                it.post("/tast") {}
+            }
+        }) { app, _ ->
+            assertThat(routerLog).isEqualTo("/test/tast")
+        }
     }
 
     @Test
