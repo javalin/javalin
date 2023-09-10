@@ -6,7 +6,7 @@
 
 package io.javalin.micrometer
 
-import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.HandlerType
@@ -56,29 +56,31 @@ class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
         }
     }
 
-    private val config = config.createUserConfig(MicrometerConfig())
+    private val pluginConfig = config.createUserConfig(MicrometerConfig())
 
-    override fun onStart(app: Javalin) {
-        if (config.tagExceptionName) {
-            app.exception(Exception::class.java, exceptionHandler)
+    override fun onStart(config: JavalinConfig) {
+        val internalRouter = config.pvt.internalRouter
+
+        if (pluginConfig.tagExceptionName) {
+            internalRouter.addHttpExceptionHandler(Exception::class.java, exceptionHandler)
         }
 
-        app.unsafeConfig().jetty.modifyServer { server ->
-            server.insertHandler(TimedHandler(config.registry, config.tags, object : DefaultHttpJakartaServletRequestTagsProvider() {
+        config.jetty.modifyServer { server ->
+            server.insertHandler(TimedHandler(pluginConfig.registry, pluginConfig.tags, object : DefaultHttpJakartaServletRequestTagsProvider() {
                 override fun getTags(request: HttpServletRequest, response: HttpServletResponse): Iterable<Tag> {
-                    val exceptionName = if (config.tagExceptionName) {
+                    val exceptionName = if (pluginConfig.tagExceptionName) {
                         response.getHeader(EXCEPTION_HEADER)
                     } else {
                         "Unknown"
                     }
-                    val pathInfo = request.pathInfo.removePrefix(app.unsafeConfig().router.contextPath).prefixIfNot("/")
+                    val pathInfo = request.pathInfo.removePrefix(config.router.contextPath).prefixIfNot("/")
                     response.setHeader(EXCEPTION_HEADER, null)
                     val handlerType = HandlerType.valueOf(request.method)
-                    val uri = app.unsafeConfig().pvt.internalRouter.findHttpHandlerEntries(handlerType, pathInfo)
+                    val uri = internalRouter.findHttpHandlerEntries(handlerType, pathInfo)
                         .map { it.path }
                         .map { if (it == "/" || it.isBlank()) "root" else it }
-                        .map { if (!config.tagRedirectPaths && response.status in 300..399) "REDIRECTION" else it }
-                        .map { if (!config.tagNotFoundMappedPaths && response.status == 404) "NOT_FOUND" else it }
+                        .map { if (!pluginConfig.tagRedirectPaths && response.status in 300..399) "REDIRECTION" else it }
+                        .map { if (!pluginConfig.tagNotFoundMappedPaths && response.status == 404) "NOT_FOUND" else it }
                         .firstOrNull() ?: "NOT_FOUND"
                     return Tags.concat(
                         super.getTags(request, response),
@@ -88,11 +90,9 @@ class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
                 }
             }))
 
-            JettyServerThreadPoolMetrics(server.threadPool, config.tags).bindTo(config.registry)
-            app.events {
-                it.serverStarted {
-                    JettyConnectionMetrics.addToAllConnectors(server, config.registry, config.tags)
-                }
+            JettyServerThreadPoolMetrics(server.threadPool, pluginConfig.tags).bindTo(pluginConfig.registry)
+            config.events.serverStarted {
+                JettyConnectionMetrics.addToAllConnectors(server, pluginConfig.registry, pluginConfig.tags)
             }
         }
     }
