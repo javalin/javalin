@@ -1,6 +1,5 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
@@ -24,11 +23,9 @@ internal open class DevLoggingPlugin : JavalinPlugin {
         config.requestLogger.ws { wsDevLogger(it) }
     }
 
-    override fun onStart(app: Javalin) {
-        app.events { on ->
-            on.handlerAdded { handlerMetaInfo ->
-                JavalinLogger.info("JAVALIN HANDLER REGISTRATION DEBUG LOG: ${handlerMetaInfo.httpMethod}[${handlerMetaInfo.path}]")
-            }
+    override fun onStart(config: JavalinConfig) {
+        config.events.handlerAdded { handlerMetaInfo ->
+            JavalinLogger.info("JAVALIN HANDLER REGISTRATION DEBUG LOG: ${handlerMetaInfo.httpMethod}[${handlerMetaInfo.path}]")
         }
     }
 }

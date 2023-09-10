@@ -25,7 +25,7 @@ class TestPlugins {
         override fun onInitialize(config: JavalinConfig) {
             calls.add(Calls.INIT)
         }
-        override fun onStart(app: Javalin) {
+        override fun onStart(config: JavalinConfig) {
             calls.add(Calls.START)
         }
     }
@@ -81,7 +81,7 @@ class TestPlugins {
     }
 
     class MultiInstanceTestPlugin : JavalinPlugin {
-        override fun onStart(app: Javalin) {}
+        override fun onStart(config: JavalinConfig) {}
         override fun repeatable() = true
     }
 
@@ -102,18 +102,18 @@ class TestPlugins {
         class EarlyPlugin : JavalinPlugin {
             override fun priority() = EARLY
             override fun onInitialize(config: JavalinConfig) { calls.add("early-init") }
-            override fun onStart(app: Javalin) { calls.add("early-start") }
+            override fun onStart(config: JavalinConfig) { calls.add("early-start") }
         }
 
         class NormalPlugin : JavalinPlugin {
             override fun onInitialize(config: JavalinConfig) { calls.add("normal-init") }
-            override fun onStart(app: Javalin) { calls.add("normal-start") }
+            override fun onStart(config: JavalinConfig) { calls.add("normal-start") }
         }
 
         class LatePlugin : JavalinPlugin {
             override fun priority() = LATE
             override fun onInitialize(config: JavalinConfig) { calls.add("late-init") }
-            override fun onStart(app: Javalin) { calls.add("late-start") }
+            override fun onStart(config: JavalinConfig) { calls.add("late-start") }
         }
 
         Javalin.create { config ->
