@@ -1,6 +1,6 @@
 package io.javalin.plugin
 
-import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 
 class PluginManager internal constructor() {
 
@@ -14,7 +14,7 @@ class PluginManager internal constructor() {
         plugins.add(plugin)
     }
 
-    fun initializePlugins(app: Javalin) {
+    fun initializePlugins(config: JavalinConfig) {
         val initializedPlugins = enabledPlugins.toMutableSet()
 
         while (plugins.size != initializedPlugins.size) {
@@ -27,7 +27,7 @@ class PluginManager internal constructor() {
                 .sortedBy { it.priority() }
 
             for (plugin in pluginsToInitialize) {
-                plugin.onInitialize(app.unsafeConfig())
+                plugin.onInitialize(config)
                 initializedPlugins.add(plugin)
 
                 if (amountOfPlugins != plugins.size) {
@@ -41,7 +41,7 @@ class PluginManager internal constructor() {
             .filter { it !in enabledPlugins }
             .sortedBy { it.priority() }
             .forEach {
-                it.onStart(app)
+                it.onStart(config)
                 enabledPlugins.add(it)
             }
     }

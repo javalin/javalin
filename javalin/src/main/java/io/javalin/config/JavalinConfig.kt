@@ -50,10 +50,10 @@ class JavalinConfig {
 
     companion object {
         @JvmStatic
-        fun applyUserConfig(app: Javalin, cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
-            addValidationExceptionMapper(app) // add default mapper for validation
+        fun applyUserConfig(cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
+            addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
-            cfg.pvt.pluginManager.initializePlugins(app)
+            cfg.pvt.pluginManager.initializePlugins(cfg)
             cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson() }
             cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
             cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }

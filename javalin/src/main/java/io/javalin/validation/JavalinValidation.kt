@@ -6,7 +6,7 @@
 
 package io.javalin.validation
 
-import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus
 
 class MissingConverterException(val className: String) : RuntimeException()
@@ -46,11 +46,12 @@ object JavalinValidation {
         validators.flatMap { it.errors().entries }.associate { it.key to it.value }
 
     @JvmStatic
-    fun addValidationExceptionMapper(app: Javalin) {
-        app.exception(ValidationException::class.java) { e, ctx ->
+    fun addValidationExceptionMapper(cfg: JavalinConfig) {
+        cfg.pvt.internalRouter.addHttpExceptionHandler(ValidationException::class.java) { e, ctx ->
             ctx.json(e.errors).status(HttpStatus.BAD_REQUEST)
         }
     }
+
 }
 
 

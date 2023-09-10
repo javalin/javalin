@@ -21,14 +21,15 @@ open class HttpAllowedMethodsPlugin : JavalinPlugin {
         config.events.serverStarted {
             config.pvt.internalRouter.allHttpHandlers()
                 .filter { it.type.isHttpMethod }
-                .groupBy { it.path }
+                .groupBy({ it.path }, { it.type })
+                .mapValues { (_, handlers) -> (handlers + OPTIONS).toSet() }
                 .forEach { (path, handlers) ->
-                    val allowedMethods = handlers.joinToString(",") { it.type.toString() }
+                    val allowedMethods = handlers.joinToString(",")
 
                     config.pvt.internalRouter.addHttpHandler(
                         handlerType = OPTIONS,
                         path = path,
-                        handler = { ctx -> ctx.header(ACCESS_CONTROL_ALLOW_METHODS, allowedMethods) }
+                        handler = { it.header(ACCESS_CONTROL_ALLOW_METHODS, allowedMethods) }
                     )
                 }
         }
