@@ -54,13 +54,13 @@ class JavalinConfig {
         fun applyUserConfig(cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
-            cfg.pvt.pluginManager.startPlugins(app)
+            cfg.pvt.pluginManager.startPlugins(cfg)
             cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson() }
             cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
             cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }
             cfg.pvt.appAttributes.computeIfAbsent(MAX_REQUEST_SIZE_KEY) { cfg.http.maxRequestSize }
             cfg.pvt.appAttributes.computeIfAbsent(JAVALINVUE_CONFIG_KEY) { cfg.vue }
-            addValidationExceptionMapper(app) // add default mapper for validation
+            addValidationExceptionMapper(cfg) // add default mapper for validation
         }
     }
 
