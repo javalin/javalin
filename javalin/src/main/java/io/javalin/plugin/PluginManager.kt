@@ -1,6 +1,5 @@
 package io.javalin.plugin
 
-import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
 
 class PluginManager internal constructor(private val cfg: JavalinConfig) {
@@ -37,13 +36,13 @@ class PluginManager internal constructor(private val cfg: JavalinConfig) {
         }
     }
 
-    fun startPlugins(config: JavalinConfig) {
+    fun startPlugins() {
         initializedPlugins
             .asSequence()
             .filter { it !in enabledPlugins }
             .sortedBy { it.priority() }
             .forEach {
-                it.onStart(config)
+                it.onStart(cfg)
                 enabledPlugins.add(it)
             }
     }
