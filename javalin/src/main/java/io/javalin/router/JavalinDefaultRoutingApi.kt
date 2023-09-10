@@ -15,6 +15,8 @@ import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.HandlerType.PATCH
 import io.javalin.http.HandlerType.POST
 import io.javalin.http.HandlerType.PUT
+import io.javalin.http.HandlerType.WEBSOCKET_AFTER_UPGRADE
+import io.javalin.http.HandlerType.WEBSOCKET_BEFORE_UPGRADE
 import io.javalin.http.HttpStatus
 import io.javalin.http.sse.SseClient
 import io.javalin.http.sse.SseHandler
@@ -24,9 +26,7 @@ import io.javalin.websocket.WsExceptionHandler
 import io.javalin.websocket.WsHandlerType
 import io.javalin.websocket.WsHandlerType.WEBSOCKET
 import io.javalin.websocket.WsHandlerType.WEBSOCKET_AFTER
-import io.javalin.websocket.WsHandlerType.WEBSOCKET_AFTER_MATCHED
 import io.javalin.websocket.WsHandlerType.WEBSOCKET_BEFORE
-import io.javalin.websocket.WsHandlerType.WEBSOCKET_BEFORE_MATCHED
 import java.util.function.Consumer
 
 class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRoutingApi<JavalinDefaultRouting> {
@@ -309,14 +309,14 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     fun wsBefore(wsConfig: Consumer<WsConfig>): API = wsBefore("*", wsConfig)
 
     /**
-     * Adds a WebSocket before matched handler for the specified path to the instance.
+     * Adds a WebSocket before upgrade handler for the specified path to the instance.
      */
-    fun wsBeforeMatched(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WEBSOCKET_BEFORE_MATCHED, path, wsConfig)
+    fun wsBeforeUpgrade(path: String, handler: Handler): API = addHttpHandler(WEBSOCKET_BEFORE_UPGRADE, path, handler)
 
     /**
-     * Adds a WebSocket before matched handler for all routes in the instance.
+     * Adds a WebSocket before upgrade handler for all routes in the instance.
      */
-    fun wsBeforeMatched(wsConfig: Consumer<WsConfig>): API = wsBeforeMatched("*", wsConfig)
+    fun wsBeforeUpgrade(handler: Handler): API = wsBeforeUpgrade("*", handler)
 
     /**
      * Adds a WebSocket after handler for the specified path to the instance.
@@ -329,13 +329,13 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     fun wsAfter(wsConfig: Consumer<WsConfig>): API = wsAfter("*", wsConfig)
 
     /**
-     * Adds a WebSocket after matched handler for the specified path to the instance.
+     * Adds a WebSocket after upgrade handler for the specified path to the instance.
      */
-    fun wsAfterMatched(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WEBSOCKET_AFTER_MATCHED, path, wsConfig)
+    fun wsAfterUpgrade(path: String, handler: Handler): API = addHttpHandler(WEBSOCKET_AFTER_UPGRADE, path, handler)
 
     /**
-     * Adds a WebSocket after matched handler for all routes in the instance.
+     * Adds a WebSocket after upgrade handler for all routes in the instance.
      */
-    fun wsAfterMatched(wsConfig: Consumer<WsConfig>): API = wsAfterMatched("*", wsConfig)
+    fun wsAfterUpgrade(handler: Handler): API = wsAfterUpgrade("*", handler)
 
 }

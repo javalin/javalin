@@ -9,6 +9,7 @@ package io.javalin.jetty
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.http.servlet.JavalinServlet
@@ -68,9 +69,15 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
             pathParamMap = entry.extractPathParams(requestUri),
         )
         if (!allowedByAccessManager(entry, upgradeContext)) return res.sendError(HttpStatus.UNAUTHORIZED.code, HttpStatus.UNAUTHORIZED.message)
+        val beforeUpgradeHandlers = cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_BEFORE_UPGRADE, requestUri)
+        val afterUpgradeHandlers = cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
+
         req.setAttribute(upgradeContextKey, upgradeContext)
         setWsProtocolHeader(req, res)
+
+        beforeUpgradeHandlers.forEach { it.handle(upgradeContext, requestUri) }
         super.service(req, res) // everything is okay, perform websocket upgrade
+        afterUpgradeHandlers.forEach { it.handle(upgradeContext, requestUri) }
     }
 
     private val setUpgradeAllowed = Handler { it.attribute("javalin-ws-upgrade-allowed", true) }

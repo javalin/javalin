@@ -5,7 +5,7 @@
  */
 package io.javalin.websocket
 
-enum class WsHandlerType { WEBSOCKET_BEFORE, WEBSOCKET_BEFORE_MATCHED, WEBSOCKET, WEBSOCKET_AFTER_MATCHED, WEBSOCKET_AFTER }
+enum class WsHandlerType { WEBSOCKET_BEFORE, WEBSOCKET, WEBSOCKET_AFTER }
 
 fun interface WsConnectHandler {
     @Throws(Exception::class)
