@@ -1,6 +1,6 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Header.X_FORWARDED_PROTO
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.servlet.isLocalhost
@@ -8,6 +8,7 @@ import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.createUserConfig
+import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import org.eclipse.jetty.server.ServerConnector
 import java.util.function.Consumer
 
@@ -29,32 +30,33 @@ class SslRedirectPlugin(config: Consumer<SslRedirectPluginConfig> = Consumer {})
         object SslRedirect : SslRedirectPlugin.SslRedirect()
     }
 
-    private val config = config.createUserConfig(SslRedirectPluginConfig())
+    private val pluginConfig = config.createUserConfig(SslRedirectPluginConfig())
 
-    override fun onStart(app: Javalin) {
-        app.before { ctx ->
-            if (!config.redirectOnLocalhost && ctx.isLocalhost()) {
-                return@before
-            }
+    override fun onStart(config: JavalinConfig) {
+        config.router.mount(Default) {
+            it.before { ctx ->
+                if (!pluginConfig.redirectOnLocalhost && ctx.isLocalhost()) {
+                    return@before
+                }
 
-            val xForwardedProto = ctx.header(X_FORWARDED_PROTO)
+                val xForwardedProto = ctx.header(X_FORWARDED_PROTO)
 
-            if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
-                val urlWithHttps = ctx.fullUrl().replace("http", "https")
+                if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
+                    val urlWithHttps = ctx.fullUrl().replace("http", "https")
 
-                val urlWithHttpsAndPort = app.jettyServer()
-                    ?.takeIf { config.sslPort != null }
-                    ?.server()
-                    ?.connectors
-                    ?.filterIsInstance<ServerConnector>()
-                    ?.firstOrNull { urlWithHttps.contains(":${it.usedPort()}/") }
-                    ?.let { urlWithHttps.replaceFirst(":${it.usedPort()}/", ":${config.sslPort}/") }
-                    ?: urlWithHttps
+                    val urlWithHttpsAndPort = config.pvt.server
+                        ?.takeIf { pluginConfig.sslPort != null }
+                        ?.connectors
+                        ?.filterIsInstance<ServerConnector>()
+                        ?.firstOrNull { server -> urlWithHttps.contains(":${server.usedPort()}/") }
+                        ?.let { server -> urlWithHttps.replaceFirst(":${server.usedPort()}/", ":${pluginConfig.sslPort}/") }
+                        ?: urlWithHttps
 
-                ctx.redirect(
-                    location = urlWithHttpsAndPort,
-                    status = MOVED_PERMANENTLY
-                )
+                    ctx.redirect(
+                        location = urlWithHttpsAndPort,
+                        status = MOVED_PERMANENTLY
+                    )
+                }
             }
         }
     }

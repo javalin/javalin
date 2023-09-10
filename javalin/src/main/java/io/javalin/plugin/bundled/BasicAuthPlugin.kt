@@ -6,13 +6,14 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Header.WWW_AUTHENTICATE
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.createUserConfig
+import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.util.function.Consumer
 
 class BasicAuthPluginConfig : PluginConfiguration {
@@ -34,19 +35,21 @@ class BasicAuthPlugin(config: Consumer<BasicAuthPluginConfig>) : JavalinPlugin {
         object BasicAuth : BasicAuthPlugin.BasicAuth()
     }
 
-    private val config = config.createUserConfig(BasicAuthPluginConfig())
+    private val pluginConfig = config.createUserConfig(BasicAuthPluginConfig())
 
-    override fun onStart(app: Javalin) {
-        app.before { ctx ->
-            val matched = runCatching { ctx.basicAuthCredentials() }
-                .fold(
-                    onSuccess = { it?.username == config.username && it?.password == config.password },
-                    onFailure = { false }
-                )
+    override fun onStart(config: JavalinConfig) {
+        config.router.mount(Default) {
+            it.before { ctx ->
+                val matched = runCatching { ctx.basicAuthCredentials() }
+                    .fold(
+                        onSuccess = { auth -> auth?.username == pluginConfig.username && auth?.password == pluginConfig.password },
+                        onFailure = { false }
+                    )
 
-            if (!matched) {
-                ctx.header(WWW_AUTHENTICATE, "Basic")
-                throw UnauthorizedResponse()
+                if (!matched) {
+                    ctx.header(WWW_AUTHENTICATE, "Basic")
+                    throw UnauthorizedResponse()
+                }
             }
         }
     }

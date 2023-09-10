@@ -339,9 +339,6 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
-                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -471,6 +468,12 @@
                         </dependency>
                     </dependencies>
                     <configuration>
+                        <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                        <properties>
+                            <configurationParameters>
+                                junit.jupiter.execution.timeout.default = 1m
+                            </configurationParameters>
+                        </properties>
                         <!--
                         default: **/*$*
                         Source: https://maven.apache.org/surefire/maven-surefire-plugin/test-mojo.html#excludes

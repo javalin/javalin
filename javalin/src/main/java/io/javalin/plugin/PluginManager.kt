@@ -37,13 +37,13 @@ class PluginManager internal constructor(private val cfg: JavalinConfig) {
         }
     }
 
-    fun startPlugins(app: Javalin) {
+    fun startPlugins(config: JavalinConfig) {
         initializedPlugins
             .asSequence()
             .filter { it !in enabledPlugins }
             .sortedBy { it.priority() }
             .forEach {
-                it.onStart(app)
+                it.onStart(config)
                 enabledPlugins.add(it)
             }
     }

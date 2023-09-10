@@ -1,6 +1,5 @@
 package io.javalin.plugin
 
-import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
 import java.util.function.Consumer
 
@@ -34,7 +33,7 @@ fun interface JavalinPlugin {
     /**
      * Called when the plugin is applied to the Javalin instance.
      */
-    fun onStart(app: Javalin)
+    fun onStart(config: JavalinConfig)
 
     /**
      * Checks if plugin can be registered multiple times.
