@@ -43,6 +43,7 @@ class JavalinConfig {
      */
     @JvmField val pvt = PrivateConfig(this)
 
+    fun events(listener:Consumer<EventConfig>) { listener.accept(this.events) }
     fun accessManager(accessManager: AccessManager) { pvt.accessManager = accessManager }
     fun jsonMapper(jsonMapper: JsonMapper) { pvt.appAttributes[JSON_MAPPER_KEY] = jsonMapper }
     fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[FILE_RENDERER_KEY] = fileRenderer }
@@ -53,12 +54,13 @@ class JavalinConfig {
         fun applyUserConfig(cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
-            cfg.pvt.pluginManager.initializePlugins(cfg)
+            cfg.pvt.pluginManager.startPlugins()
             cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson() }
             cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
             cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }
             cfg.pvt.appAttributes.computeIfAbsent(MAX_REQUEST_SIZE_KEY) { cfg.http.maxRequestSize }
             cfg.pvt.appAttributes.computeIfAbsent(JAVALINVUE_CONFIG_KEY) { cfg.vue }
+            addValidationExceptionMapper(cfg) // add default mapper for validation
         }
     }
 

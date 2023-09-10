@@ -5,7 +5,6 @@ import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.PluginPriority.EARLY
 import io.javalin.plugin.PluginPriority.LATE
-import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -123,9 +122,9 @@ class TestPlugins {
         }
 
         assertThat(calls).containsExactly(
-            "early-init",
             "normal-init",
             "late-init",
+            "early-init",
             "early-start",
             "normal-start",
             "late-start"

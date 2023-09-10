@@ -20,7 +20,7 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField val eventManager = EventManager()
     @JvmField val wsRouter = WsRouter(cfg.router)
     @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, cfg.router)
-    @JvmField var pluginManager = PluginManager()
+    @JvmField var pluginManager = PluginManager(cfg)
     @JvmField var appAttributes: MutableMap<String, Any> = HashMap()
     @JvmField var requestLogger: RequestLogger? = null
     @JvmField var resourceHandler: ResourceHandler? = null

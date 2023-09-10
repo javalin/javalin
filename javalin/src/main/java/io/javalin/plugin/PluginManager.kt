@@ -2,9 +2,10 @@ package io.javalin.plugin
 
 import io.javalin.config.JavalinConfig
 
-class PluginManager internal constructor() {
+class PluginManager internal constructor(private val cfg: JavalinConfig) {
 
     private val plugins: MutableList<JavalinPlugin> = mutableListOf()
+    private val initializedPlugins: MutableSet<JavalinPlugin> = mutableSetOf()
     private val enabledPlugins: MutableSet<JavalinPlugin> = mutableSetOf()
 
     fun register(plugin: JavalinPlugin) {
@@ -12,22 +13,20 @@ class PluginManager internal constructor() {
             throw PluginAlreadyRegisteredException(plugin)
         }
         plugins.add(plugin)
+        initializePlugins()
     }
 
-    fun initializePlugins(config: JavalinConfig) {
-        val initializedPlugins = enabledPlugins.toMutableSet()
-
+    private fun initializePlugins() {
         while (plugins.size != initializedPlugins.size) {
             val amountOfPlugins = plugins.size
 
             val pluginsToInitialize = plugins
                 .asSequence()
-                .filter { it !in enabledPlugins }
                 .filter { it !in initializedPlugins }
                 .sortedBy { it.priority() }
 
             for (plugin in pluginsToInitialize) {
-                plugin.onInitialize(config)
+                plugin.onInitialize(cfg)
                 initializedPlugins.add(plugin)
 
                 if (amountOfPlugins != plugins.size) {
@@ -35,13 +34,15 @@ class PluginManager internal constructor() {
                 }
             }
         }
+    }
 
+    fun startPlugins() {
         initializedPlugins
             .asSequence()
             .filter { it !in enabledPlugins }
             .sortedBy { it.priority() }
             .forEach {
-                it.onStart(config)
+                it.onStart(cfg)
                 enabledPlugins.add(it)
             }
     }
