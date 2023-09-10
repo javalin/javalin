@@ -1,6 +1,6 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header
@@ -22,6 +22,7 @@ import io.javalin.plugin.bundled.CorsUtils.originFulfillsWildcardRequirements
 import io.javalin.plugin.bundled.CorsUtils.originsMatch
 import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
 import io.javalin.plugin.createUserConfig
+import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.util.*
 import java.util.function.Consumer
 
@@ -97,23 +98,28 @@ class CorsPlugin(config: Consumer<CorsPluginConfig>) : JavalinPlugin {
         }
     }
 
-    override fun onStart(app: Javalin) {
-        corsConfig.rules.forEach {
-            applySingleConfig(app, it)
-        }
-    }
+    override fun onStart(config: JavalinConfig) {
+        config.router.mount(Default) {
+            corsConfig.rules.forEach { corsRule ->
+                val origins = corsRule.allowedOrigins()
 
-    private fun applySingleConfig(app: Javalin, cfg: CorsRule) {
-        val origins = cfg.allowedOrigins()
-        require(origins.isNotEmpty() || cfg.reflectClientOrigin) { "Origins cannot be empty if `reflectClientOrigin` is false." }
-        require(origins.isEmpty() || !cfg.reflectClientOrigin) { "Cannot set `allowedOrigins` if `reflectClientOrigin` is true" }
-        app.before(cfg.path) { ctx ->
-            handleCors(ctx, cfg)
-        }
-        val validOptionStatusCodes = listOf(HttpStatus.NOT_FOUND, HttpStatus.METHOD_NOT_ALLOWED)
-        app.after(cfg.path) { ctx ->
-            if (ctx.method() == OPTIONS && ctx.status() in validOptionStatusCodes) { // CORS is enabled, so we return 200 for OPTIONS
-                ctx.result("").status(200)
+                require(origins.isNotEmpty() || corsRule.reflectClientOrigin) {
+                    "Origins cannot be empty if `reflectClientOrigin` is false."
+                }
+                require(origins.isEmpty() || !corsRule.reflectClientOrigin) {
+                    "Cannot set `allowedOrigins` if `reflectClientOrigin` is true"
+                }
+
+                val validOptionStatusCodes = listOf(HttpStatus.NOT_FOUND, HttpStatus.METHOD_NOT_ALLOWED)
+
+                it.before(corsRule.path) { ctx ->
+                    handleCors(ctx, corsRule)
+                }
+                it.after(corsRule.path) { ctx ->
+                    if (ctx.method() == OPTIONS && ctx.status() in validOptionStatusCodes) {
+                        ctx.result("").status(200) // CORS is enabled, so we return 200 for OPTIONS
+                    }
+                }
             }
         }
     }

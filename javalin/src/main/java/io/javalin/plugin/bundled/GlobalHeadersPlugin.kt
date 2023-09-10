@@ -6,11 +6,12 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
 import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
+import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.time.Duration
 import java.util.Locale
 import java.util.function.Consumer
@@ -27,10 +28,12 @@ class GlobalHeadersPlugin(config: Consumer<GlobalHeaderConfig> = Consumer {}) : 
 
     private val globalHeaderConfig = GlobalHeaderConfig().apply { config.accept(this) }
 
-    override fun onStart(app: Javalin) {
-        app.before { ctx ->
-            globalHeaderConfig.headers.forEach { (name, value) ->
-                ctx.header(name, value)
+    override fun onStart(config: JavalinConfig) {
+        config.router.mount(Default) {
+            it.before { ctx ->
+                globalHeaderConfig.headers.forEach { (name, value) ->
+                    ctx.header(name, value)
+                }
             }
         }
     }

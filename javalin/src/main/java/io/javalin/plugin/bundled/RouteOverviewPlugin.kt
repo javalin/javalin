@@ -1,5 +1,8 @@
 package io.javalin.plugin.bundled
 
+import io.javalin.config.JavalinConfig
+import io.javalin.event.HandlerMetaInfo
+import io.javalin.event.WsHandlerMetaInfo
 import io.javalin.Javalin
 import io.javalin.http.ContentType
 import io.javalin.http.Context
@@ -9,6 +12,7 @@ import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.PluginPriority
 import io.javalin.plugin.createUserConfig
+import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.router.InternalRouter
 import io.javalin.security.RouteRole
 import java.util.*
@@ -29,10 +33,12 @@ class RouteOverviewPlugin(config: Consumer<RouteOverviewPluginConfig> = Consumer
         object RouteOverview : RouteOverviewPlugin.RouteOverview()
     }
 
-    private val config = config.createUserConfig(RouteOverviewPluginConfig())
+    private val pluginConfig = config.createUserConfig(RouteOverviewPluginConfig())
 
-    override fun onStart(app: Javalin) {
-        app.get(config.path, { handle(it, app.unsafeConfig().pvt.internalRouter) }, *config.roles)
+    override fun onStart(config: JavalinConfig) {
+        config.router.mount(Default) {
+            it.get(pluginConfig.path, { ctx -> handle(ctx, config.pvt.internalRouter) }, *pluginConfig.roles)
+        }
     }
 
     private fun handle(ctx: Context, internalRouter: InternalRouter) {
