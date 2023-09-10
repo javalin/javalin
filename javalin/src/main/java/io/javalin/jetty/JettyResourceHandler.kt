@@ -40,19 +40,17 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (pvt.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.server!!)) else lateInitConfigs.add(config)
 
-    override fun canHandle(ctx: Context): Boolean {
-        handlers.filter { !it.config.skipFileFunction(ctx.req()) }.forEach { handler ->
-            val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
-            if (fileOrWelcomeFile(handler, target) != null) {
-                // we assume that the resource handler will work correctly
-                return true
-            }
+    override fun canHandle(ctx: Context) = nonSkippedHandlers().any { handler ->
+        return try {
+            fileOrWelcomeFile(handler, ctx.target) != null
+        } catch (e: Exception) {
+            e.message?.contains("Rejected alias reference") == true ||  // we want to say these are un-handleable (404)
+                e.message?.contains("Failed alias check") == true // we want to say these are un-handleable (404)
         }
-        return false
     }
 
     override fun handle(ctx: Context): Boolean {
-        handlers.filter { !it.config.skipFileFunction(ctx.req()) }.forEach { handler ->
+        nonSkippedHandlers().forEach { handler ->
             try {
                 val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
                 val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
@@ -82,6 +80,9 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         handler.getResource(target)?.fileOrNull() ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.fileOrNull()
 
     private fun jettyRequest() = HttpConnection.getCurrentConnection().httpChannel.request as Request
+
+    private fun nonSkippedHandlers() = handlers.filter { !it.config.skipFileFunction(jettyRequest()) }
+    private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
 
 }
 

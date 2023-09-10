@@ -207,7 +207,7 @@ class TestBeforeAfterMatched {
     }
 
     @Test
-    fun `alias problem does occur - todo!`() = TestUtil.test(Javalin.create{ config ->
+    fun `alias problem does not occur`() = TestUtil.test(Javalin.create{ config ->
         config.staticFiles.add {
             it.directory = "public"
             it.location = Location.CLASSPATH
@@ -218,8 +218,7 @@ class TestBeforeAfterMatched {
         }
 
         val slash = http.get("/file/")
-        // TODO: has to be fixed, should be NOT_FOUND
-        assertThat(slash.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
+        assertThat(slash.status).isEqualTo(HttpStatus.NOT_FOUND.code)
 
         val noSlash = http.get("/file")
         assertThat(noSlash.body).isEqualTo("TESTFILE")
