@@ -1,9 +1,6 @@
 package io.javalin.plugin.bundled
 
 import io.javalin.config.JavalinConfig
-import io.javalin.event.HandlerMetaInfo
-import io.javalin.event.WsHandlerMetaInfo
-import io.javalin.Javalin
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.Header
