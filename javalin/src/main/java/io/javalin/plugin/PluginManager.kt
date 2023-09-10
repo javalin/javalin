@@ -4,9 +4,9 @@ import io.javalin.config.JavalinConfig
 
 class PluginManager internal constructor(private val cfg: JavalinConfig) {
 
-    private val plugins: MutableList<JavalinPlugin> = mutableListOf()
-    private val initializedPlugins: MutableSet<JavalinPlugin> = mutableSetOf()
-    private val enabledPlugins: MutableSet<JavalinPlugin> = mutableSetOf()
+    private val plugins = mutableListOf<JavalinPlugin>()
+    private val initializedPlugins = mutableListOf<JavalinPlugin>()
+    private val enabledPlugins = mutableListOf<JavalinPlugin>()
 
     fun register(plugin: JavalinPlugin) {
         if (!plugin.repeatable() && plugins.any { it.javaClass == plugin.javaClass }) {
@@ -18,20 +18,14 @@ class PluginManager internal constructor(private val cfg: JavalinConfig) {
 
     private fun initializePlugins() {
         while (plugins.size != initializedPlugins.size) {
-            val amountOfPlugins = plugins.size
-
             val pluginsToInitialize = plugins
                 .asSequence()
                 .filter { it !in initializedPlugins }
                 .sortedBy { it.priority() }
 
             for (plugin in pluginsToInitialize) {
-                plugin.onInitialize(cfg)
                 initializedPlugins.add(plugin)
-
-                if (amountOfPlugins != plugins.size) {
-                    continue // plugin was registered during onInitialize, so we need to re-sort
-                }
+                plugin.onInitialize(cfg)
             }
         }
     }

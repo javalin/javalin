@@ -131,4 +131,32 @@ class TestPlugins {
         )
     }
 
+    @Test
+    fun `plugin should be able to register a new plugin in init phase`() {
+        val calls = mutableListOf<String>()
+
+        class Plugin3 : JavalinPlugin {
+            override fun onInitialize(config: JavalinConfig) { calls.add("3") }
+            override fun onStart(config: JavalinConfig) {}
+        }
+        class Plugin2 : JavalinPlugin {
+            override fun onInitialize(config: JavalinConfig) { calls.add("2") }
+            override fun onStart(config: JavalinConfig) {}
+        }
+        class Plugin1 : JavalinPlugin {
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("1")
+                config.registerPlugin(Plugin2())
+            }
+            override fun onStart(config: JavalinConfig) {}
+        }
+
+        Javalin.create { config ->
+            config.registerPlugin(Plugin1())
+            config.registerPlugin(Plugin3())
+        }
+
+        assertThat(calls).containsExactly("1", "2", "3")
+    }
+
 }
