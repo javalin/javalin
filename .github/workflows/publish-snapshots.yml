@@ -2,7 +2,7 @@ name: Snapshot build
 
 on:
   push:
-    branches: [ 'master' ]
+    branches: [ 'javalin-5x' ]
 
 jobs:
   publish:
