@@ -15,7 +15,7 @@ module io.javalin {
     exports io.javalin.plugin;
     exports io.javalin.plugin.bundled;
     exports io.javalin.rendering;
-    exports io.javalin.routing;
+    exports io.javalin.router;
     exports io.javalin.security;
     exports io.javalin.util;
     exports io.javalin.util.function;
