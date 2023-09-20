@@ -599,6 +599,41 @@ class TestWebSocket {
         client.disconnectBlocking()
     }
 
+    @Test
+    fun `wsBeforeUpgrade and wsAfterUpgrade are invoked`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade {
+            app.logger().log.add("before")
+        }
+
+        app.wsAfterUpgrade {
+            app.logger().log.add("after")
+        }
+
+        app.ws("/ws") {}
+        Unirest.get("http://localhost:${app.port()}/ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .asString()
+        assertThat(app.logger().log).containsExactly("before", "after")
+    }
+
+    @Test
+    fun `wsBeforeUpgrade can modify the upgrade request but wsAfterUpgrade can not`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade { ctx ->
+            ctx.header("X-Before", "demo")
+        }
+        app.wsAfterUpgrade { ctx ->
+            ctx.header("X-After", "after")
+        }
+
+        app.ws("/ws") {}
+        val response = Unirest.get("http://localhost:${app.port()}/ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .asString()
+        assertThat(response.headers.getFirst("X-Before")).isEqualTo("demo")
+        assertThat(response.headers.containsKey("X-After")).isFalse()
+    }
+
+
     // ********************************************************************************************
     // Helpers
     // ********************************************************************************************
