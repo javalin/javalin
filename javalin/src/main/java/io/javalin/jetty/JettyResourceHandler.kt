@@ -23,7 +23,6 @@ import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
 import java.nio.file.AccessDeniedException
-import kotlin.LazyThreadSafetyMode.NONE
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
 class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
@@ -97,6 +96,7 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
                 if (config.aliasCheck?.check(path, aliasResource) == true) aliasResource else throw AccessDeniedException("Failed alias check")
 
             config.hostedPath == "/" -> super.getResource(path) // same as regular ResourceHandler
+            path == config.hostedPath -> super.getResource("/")
             path.startsWith(config.hostedPath + "/") -> super.getResource(path.removePrefix(config.hostedPath))
             else -> EmptyResource.INSTANCE // files that don't start with hostedPath should not be accessible
         }

@@ -175,11 +175,29 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `directory root return welcome file if there is a welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
+    fun `directory root returns welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/subdir/").httpCode()).isEqualTo(OK)
         assertThat(http.getBody("/subdir/")).isEqualTo("<h1>Welcome file</h1>")
         assertThat(http.get("/subdir").httpCode()).isEqualTo(OK)
         assertThat(http.getBody("/subdir")).isEqualTo("<h1>Welcome file</h1>")
+    }
+
+    @Test
+    fun `directory root returns welcome file, when custom hostedPath matches path`() {
+        val staticWithCustomHostedPath = Javalin.create { config ->
+            config.staticFiles.add {
+                it.directory = "/public/subdir"
+                it.location = Location.CLASSPATH
+                it.hostedPath = "/subdir"
+            }
+        }
+
+        return TestUtil.test(staticWithCustomHostedPath) { _, http ->
+            assertThat(http.get("/subdir/").httpCode()).isEqualTo(OK)
+            assertThat(http.getBody("/subdir/")).isEqualTo("<h1>Welcome file</h1>")
+            assertThat(http.get("/subdir").httpCode()).isEqualTo(OK)
+            assertThat(http.getBody("/subdir")).isEqualTo("<h1>Welcome file</h1>")
+        }
     }
 
     @Test
