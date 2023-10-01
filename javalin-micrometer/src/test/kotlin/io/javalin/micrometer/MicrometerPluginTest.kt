@@ -8,7 +8,6 @@ package io.javalin.micrometer
 import io.javalin.Javalin
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
-import io.javalin.micrometer.MicrometerPlugin.Companion.Micrometer
 import io.javalin.testtools.JavalinTest
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
@@ -24,7 +23,7 @@ class MicrometerPluginTest {
     @Test
     fun `test that JettyConnectionMetrics is registered`() {
         val registry = SimpleMeterRegistry()
-        val micrometerApp = Javalin.create { cfg -> cfg.registerPlugin(Micrometer) { it.registry = registry } }
+        val micrometerApp = Javalin.create { cfg -> cfg.registerPlugin(MicrometerPlugin { it.registry = registry }) }
 
         JavalinTest.test(micrometerApp) { app, http ->
             app.get("/test") { it.json("Hello world") }
@@ -235,13 +234,13 @@ class MicrometerPluginTest {
         contextPath: String = "/"
     ) = Javalin.create { config ->
         config.router.contextPath = contextPath
-        config.registerPlugin(Micrometer) {
+        config.registerPlugin(MicrometerPlugin {
             it.registry = meterRegistry
             it.tags = Tags.empty()
             it.tagExceptionName = true
             it.tagRedirectPaths = tagRedirectPaths
             it.tagNotFoundMappedPaths = tagNotFoundMappedPaths
-        }
+        })
         if (autoGenerateEtags != null) config.http.generateEtags = autoGenerateEtags
 
         // must manually delegate to Micrometer exception handler for exception tags to be correct

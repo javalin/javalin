@@ -1,7 +1,7 @@
 package io.javalin
 
 import io.javalin.config.JavalinConfig
-import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.NoConfigPlugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.PluginPriority.EARLY
 import io.javalin.plugin.PluginPriority.LATE
@@ -20,10 +20,11 @@ class TestPlugins {
         START
     }
 
-    open inner class TestPlugin : JavalinPlugin {
+    open inner class TestPlugin : NoConfigPlugin() {
         override fun onInitialize(config: JavalinConfig) {
             calls.add(Calls.INIT)
         }
+
         override fun onStart(config: JavalinConfig) {
             calls.add(Calls.START)
         }
@@ -60,9 +61,11 @@ class TestPlugins {
         var called = false
 
         Javalin.create {
-            it.registerPlugin {
-                called = true
-            }
+            it.registerPlugin(object : NoConfigPlugin() {
+                override fun onStart(config: JavalinConfig) {
+                    called = true
+                }
+            })
         }
 
         assertThat(called).isTrue
@@ -75,11 +78,11 @@ class TestPlugins {
 
             assertThatThrownBy { it.registerPlugin(TestPlugin()) }
                 .isInstanceOf(PluginAlreadyRegisteredException::class.java)
-                .hasMessage("TestPlugin is already registered")
+                .hasMessageContaining("TestPlugin is already registered")
         }
     }
 
-    class MultiInstanceTestPlugin : JavalinPlugin {
+    class MultiInstanceTestPlugin : NoConfigPlugin() {
         override fun onStart(config: JavalinConfig) {}
         override fun repeatable() = true
     }
@@ -98,21 +101,36 @@ class TestPlugins {
     fun `plugins are initialized in the proper order`() {
         val calls = mutableListOf<String>()
 
-        class EarlyPlugin : JavalinPlugin {
+        class EarlyPlugin : NoConfigPlugin() {
             override fun priority() = EARLY
-            override fun onInitialize(config: JavalinConfig) { calls.add("early-init") }
-            override fun onStart(config: JavalinConfig) { calls.add("early-start") }
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("early-init")
+            }
+
+            override fun onStart(config: JavalinConfig) {
+                calls.add("early-start")
+            }
         }
 
-        class NormalPlugin : JavalinPlugin {
-            override fun onInitialize(config: JavalinConfig) { calls.add("normal-init") }
-            override fun onStart(config: JavalinConfig) { calls.add("normal-start") }
+        class NormalPlugin : NoConfigPlugin() {
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("normal-init")
+            }
+
+            override fun onStart(config: JavalinConfig) {
+                calls.add("normal-start")
+            }
         }
 
-        class LatePlugin : JavalinPlugin {
+        class LatePlugin : NoConfigPlugin() {
             override fun priority() = LATE
-            override fun onInitialize(config: JavalinConfig) { calls.add("late-init") }
-            override fun onStart(config: JavalinConfig) { calls.add("late-start") }
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("late-init")
+            }
+
+            override fun onStart(config: JavalinConfig) {
+                calls.add("late-start")
+            }
         }
 
         Javalin.create { config ->
@@ -135,19 +153,28 @@ class TestPlugins {
     fun `plugin should be able to register a new plugin in init phase`() {
         val calls = mutableListOf<String>()
 
-        class Plugin3 : JavalinPlugin {
-            override fun onInitialize(config: JavalinConfig) { calls.add("3") }
+        class Plugin3 : NoConfigPlugin() {
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("3")
+            }
+
             override fun onStart(config: JavalinConfig) {}
         }
-        class Plugin2 : JavalinPlugin {
-            override fun onInitialize(config: JavalinConfig) { calls.add("2") }
+
+        class Plugin2 : NoConfigPlugin() {
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("2")
+            }
+
             override fun onStart(config: JavalinConfig) {}
         }
-        class Plugin1 : JavalinPlugin {
+
+        class Plugin1 : NoConfigPlugin() {
             override fun onInitialize(config: JavalinConfig) {
                 calls.add("1")
                 config.registerPlugin(Plugin2())
             }
+
             override fun onStart(config: JavalinConfig) {}
         }
 

@@ -52,19 +52,8 @@ fun interface JavalinPlugin {
 
 }
 
-fun interface PluginFactory<PLUGIN : JavalinPlugin, CFG : PluginConfiguration> {
-
-    /**
-     * Create a new instance of the plugin with the given configuration.
-     */
-    fun create(config: Consumer<CFG>): PLUGIN
-
+abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfig: CONFIG) : JavalinPlugin {
+    protected val pluginConfig = defaultConfig.also { userConfig?.accept(it) } // apply user config to default config if present
 }
 
-/**
- * A marker interface for plugin configurations.
- */
-interface PluginConfiguration
-
-fun <CFG : PluginConfiguration> Consumer<CFG>.createUserConfig(cfg: CFG): CFG =
-    cfg.also { accept(it) }
+abstract class NoConfigPlugin : JavalinPlugin
