@@ -673,6 +673,45 @@ class TestWebSocket {
         assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN.code)
     }
 
+    @Test
+    fun `wsBeforeUpgrade does not work with skipRemainingHandlers`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade {
+            it.skipRemainingHandlers()
+        }
+
+        app.ws("/ws") { ws ->
+            ws.onConnect {
+                app.logger().log.add("connected")
+            }
+        }
+
+        val client = TestClient(app, "/ws")
+        client.connectAndDisconnect()
+        // this should be empty but it isn't
+        assertThat(app.logger().log).containsExactly("connected")
+    }
+
+    @Test
+    fun `wsBeforeUpgrade in full lifecycle`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade {
+            app.logger().log.add("before-upgrade")
+        }
+
+        app.wsAfterUpgrade {
+            app.logger().log.add("after-upgrade")
+        }
+
+        app.ws("/ws") { ws ->
+            ws.onConnect { app.logger().log.add("connect") }
+            ws.onMessage { app.logger().log.add("msg") }
+            ws.onClose { app.logger().log.add("close") }
+        }
+
+        val client = TestClient(app, "/ws")
+        client.connectSendAndDisconnect("test-message")
+        assertThat(app.logger().log).containsExactly("before-upgrade", "after-upgrade", "connect", "msg", "close")
+    }
+
 
     // ********************************************************************************************
     // Helpers
