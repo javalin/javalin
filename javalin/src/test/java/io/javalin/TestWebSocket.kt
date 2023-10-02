@@ -9,6 +9,7 @@ package io.javalin
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.json.toJsonString
 import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLogging
@@ -631,6 +632,25 @@ class TestWebSocket {
             .asString()
         assertThat(response.headers.getFirst("X-Before")).isEqualTo("demo")
         assertThat(response.headers.containsKey("X-After")).isFalse()
+    }
+
+    @Test
+    fun `wsBeforeUpgrade can stop an upgrade request in progress`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade { _ ->
+            throw IllegalStateException("denied")
+        }
+
+        app.ws("/ws") { ws ->
+            ws.onConnect {
+                app.logger().log.add("connected")
+            }
+        }
+
+        val response = Unirest.get("http://localhost:${app.port()}/ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .asString()
+        assertThat(response.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
+        assertThat(app.logger().log).isEmpty()
     }
 
 
