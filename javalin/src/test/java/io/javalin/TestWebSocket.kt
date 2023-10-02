@@ -674,7 +674,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun `wsBeforeUpgrade does not work with skipRemainingHandlers`() = TestUtil.test { app, _ ->
+    fun `wsBeforeUpgrade does work with skipRemainingHandlers`() = TestUtil.test { app, _ ->
         app.wsBeforeUpgrade {
             it.skipRemainingHandlers()
         }
@@ -685,10 +685,13 @@ class TestWebSocket {
             }
         }
 
+        app.exception(UnauthorizedResponse::class.java) { _, _ ->
+            app.logger().log.add("unauthorized")
+        }
+
         val client = TestClient(app, "/ws")
         client.connectAndDisconnect()
-        // this should be empty but it isn't
-        assertThat(app.logger().log).containsExactly("connected")
+        assertThat(app.logger().log).containsExactly("unauthorized")
     }
 
     @Test

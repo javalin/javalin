@@ -12,9 +12,11 @@ import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.AFTER
+import io.javalin.http.HandlerType.WEBSOCKET_BEFORE_UPGRADE
 import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
+import io.javalin.http.UnauthorizedResponse
 import io.javalin.json.jsonMapper
 import io.javalin.router.HttpHandlerEntry
 import io.javalin.security.BasicAuthCredentials
@@ -24,6 +26,7 @@ import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
+import java.lang.RuntimeException
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.Charset
@@ -141,7 +144,12 @@ class JavalinServletContext(
         userFutureSupplier = future
     }
 
-    override fun skipRemainingHandlers(): Context = also { tasks.clear() }
+    override fun skipRemainingHandlers(): Context = also {
+        tasks.clear()
+        if (handlerType() == WEBSOCKET_BEFORE_UPGRADE) {
+            throw UnauthorizedResponse()
+        }
+    }
 
     override fun writeJsonStream(stream: Stream<*>) {
         minSizeForCompression = 0
