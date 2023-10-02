@@ -653,6 +653,26 @@ class TestWebSocket {
         assertThat(app.logger().log).isEmpty()
     }
 
+    @Test
+    fun `wsBeforeUpgrade exception pattern can be combined with a custom exception handler`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade {
+            throw IllegalStateException("denied")
+        }
+
+        app.exception(IllegalStateException::class.java) { _, ctx ->
+            app.logger().log.add("exception handled")
+            ctx.status(HttpStatus.FORBIDDEN)
+        }
+
+        app.ws("/ws") {}
+
+        val response = Unirest.get("http://localhost:${app.port()}/ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .asString()
+        assertThat(app.logger().log).containsExactly("exception handled")
+        assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN.code)
+    }
+
 
     // ********************************************************************************************
     // Helpers

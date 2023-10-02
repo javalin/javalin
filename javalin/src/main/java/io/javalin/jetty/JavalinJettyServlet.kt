@@ -75,9 +75,13 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
         req.setAttribute(upgradeContextKey, upgradeContext)
         setWsProtocolHeader(req, res)
 
-        beforeUpgradeHandlers.forEach { it.handle(upgradeContext, requestUri) }
-        super.service(req, res) // everything is okay, perform websocket upgrade
-        afterUpgradeHandlers.forEach { it.handle(upgradeContext, requestUri) }
+        try {
+            beforeUpgradeHandlers.forEach { it.handle(upgradeContext, requestUri) }
+            super.service(req, res) // everything is okay, perform websocket upgrade
+            afterUpgradeHandlers.forEach { it.handle(upgradeContext, requestUri) }
+        } catch (e: Exception) {
+            cfg.pvt.internalRouter.handleHttpException(upgradeContext, e)
+        }
     }
 
     private val setUpgradeAllowed = Handler { it.attribute("javalin-ws-upgrade-allowed", true) }
