@@ -44,12 +44,12 @@ class TestCompression {
     }.addTestEndpoints()
 
     private fun superCompressingApp() = Javalin.create {
-        it.compression.custom(CompressionStrategy(Brotli(), Gzip()).apply { defaultMinSizeForCompression = 1 })
+        it.http.custom(CompressionStrategy(Brotli(), Gzip()).apply { defaultMinSizeForCompression = 1 })
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
     private fun brotliDisabledApp() = Javalin.create {
-        it.compression.custom(CompressionStrategy(null, Gzip()).apply { defaultMinSizeForCompression = testDocument.length })
+        it.http.custom(CompressionStrategy(null, Gzip()).apply { defaultMinSizeForCompression = testDocument.length })
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
@@ -90,7 +90,7 @@ class TestCompression {
 
     @Test
     fun `doesn't compress when compression is disabled`() = TestUtil.test(
-        Javalin.create { it.compression.none() }.addTestEndpoints()
+        Javalin.create { it.http.none() }.addTestEndpoints()
     ) { _, http ->
         Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // dynamic
             assertThat(response.body.length).isEqualTo(hugeLength)
@@ -126,7 +126,7 @@ class TestCompression {
     @Test
     fun `doesn't gzip when gzip is disabled`() {
         val gzipDisabledApp = Javalin.create {
-            it.compression.brotliOnly()
+            it.http.brotliOnly()
             it.staticFiles.add("/public", Location.CLASSPATH)
         }.addTestEndpoints()
         TestUtil.test(gzipDisabledApp) { _, http ->
@@ -214,7 +214,7 @@ class TestCompression {
     fun `gzip works for large static files`() {
         val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
         val gzipWebjars = Javalin.create {
-            it.compression.gzipOnly()
+            it.http.gzipOnly()
             it.staticFiles.enableWebjars()
         }
         TestUtil.test(gzipWebjars) { _, http ->
@@ -225,7 +225,7 @@ class TestCompression {
     @Test
     fun `svg images are compressed by default`() = TestUtil.test(Javalin.create {
         it.staticFiles.add("/public", Location.CLASSPATH)
-        it.compression.brotliAndGzip()
+        it.http.brotliAndGzip()
     }) { _, http ->
         assertValidGzipResponse(http.origin, "/svg.svg")
         assertValidBrotliResponse(http.origin, "/svg.svg")
@@ -234,7 +234,7 @@ class TestCompression {
     @Test
     fun `svg compression can be disabled`() = TestUtil.test(Javalin.create {
         it.staticFiles.add("/public", Location.CLASSPATH)
-        it.compression.custom(CompressionStrategy(Brotli(), Gzip()).apply { allowedMimeTypes = listOf() })
+        it.http.custom(CompressionStrategy(Brotli(), Gzip()).apply { allowedMimeTypes = listOf() })
     }) { _, http ->
         getResponse(http.origin, "/svg.svg", "gzip").let { response ->
             assertThat(response.headers[Header.CONTENT_ENCODING]).isNull()
@@ -246,7 +246,7 @@ class TestCompression {
     fun `brotli works for large static files`() {
         val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
         val compressedWebjars = Javalin.create {
-            it.compression.brotliOnly()
+            it.http.brotliOnly()
             it.staticFiles.enableWebjars()
         }
         TestUtil.test(compressedWebjars) { _, http ->
@@ -298,7 +298,7 @@ class TestCompression {
     fun `doesn't compress when static files were pre-compressed`() {
         val path = "/script.js"
         val gzipWebjars = Javalin.create {
-            it.compression.gzipOnly()
+            it.http.gzipOnly()
             it.staticFiles.enableWebjars()
             it.staticFiles.add { staticFiles ->
                 staticFiles.precompress = true
@@ -320,7 +320,7 @@ class TestCompression {
     private val sampleJson10k = buildSampleJson(500)
     private fun testValidCompressionHandler(handler: Handler) {
         val gzipTestApp = Javalin.create {
-            it.compression.gzipOnly()
+            it.http.gzipOnly()
         }.apply {
             get("/gzip-test", handler)
         }
@@ -328,7 +328,7 @@ class TestCompression {
             assertValidGzipResponse(http.origin, "/gzip-test")
         }
         val brotliTestApp = Javalin.create {
-            it.compression.brotliOnly()
+            it.http.brotliOnly()
         }.apply {
             get("/brotli-test", handler)
         }
@@ -338,7 +338,7 @@ class TestCompression {
     }
     private fun testValidUncompressedHandler(handler: Handler) {
         val uncompressedTestApp = Javalin.create {
-            it.compression.gzipOnly() // compression is enabled so that we can test minSizeForCompression thresholds
+            it.http.gzipOnly() // compression is enabled so that we can test minSizeForCompression thresholds
         }.apply {
             get("/uncompressed-test", handler)
         }

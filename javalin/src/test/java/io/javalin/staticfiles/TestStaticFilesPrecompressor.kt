@@ -31,7 +31,7 @@ class TestStaticFilesPrecompressor {
 
     private val configPrecompressionStaticResourceApp: Javalin by lazy {
         Javalin.create { javalin ->
-            javalin.compression.brotliAndGzip()
+            javalin.http.brotliAndGzip()
             javalin.staticFiles.add { staticFiles ->
                 staticFiles.directory = "META-INF/resources/webjars"
                 staticFiles.precompress = true
@@ -114,7 +114,7 @@ class TestStaticFilesPrecompressor {
 
     @Test
     fun `compression strategy is used`() = TestUtil.test(Javalin.create { config ->
-        config.compression.brotliOnly()
+        config.http.brotliOnly()
         config.staticFiles.add { staticFiles ->
             staticFiles.hostedPath = "/"
             staticFiles.directory = "/public"
