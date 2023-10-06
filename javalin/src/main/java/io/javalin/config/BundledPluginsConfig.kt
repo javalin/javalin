@@ -28,7 +28,7 @@ class BundledPluginsConfig(private val cfg: JavalinConfig) {
         }
 
     fun enableGlobalHeaders(globalHeaderConfig: Consumer<GlobalHeaderConfig>) = cfg.registerPlugin(GlobalHeaders, globalHeaderConfig)
-    fun enableCors(userConfig: Consumer<CorsPluginConfig>) = cfg.registerPlugin(Cors, userConfig)
+    fun enableCors(corsConfig: Consumer<CorsPluginConfig>) = cfg.registerPlugin(Cors, corsConfig)
     fun enableHttpAllowedMethodsOnRoutes() = cfg.registerPlugin(HttpAllowedMethods)
     fun enableDevLogging() = cfg.registerPlugin(DevLogging)
     fun enableRedirectToLowercasePaths() = cfg.registerPlugin(RedirectToLowercasePath)

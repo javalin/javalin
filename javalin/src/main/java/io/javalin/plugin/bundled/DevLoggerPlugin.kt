@@ -5,6 +5,7 @@ import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginFactory
 import io.javalin.router.InternalRouter
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
@@ -12,10 +13,10 @@ import io.javalin.websocket.WsContext
 import java.util.*
 import java.util.stream.Stream
 
-internal open class DevLoggingPlugin : JavalinPlugin {
+internal open class DevLoggingPlugin : JavalinPlugin<Unit>(DevLogging, Unit) {
 
     companion object {
-        object DevLogging : DevLoggingPlugin()
+        @JvmField val DevLogging = PluginFactory { DevLoggingPlugin() }
     }
 
     override fun onInitialize(config: JavalinConfig) {

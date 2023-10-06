@@ -13,7 +13,6 @@ import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.VARY
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.JavalinPlugin
-import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.bundled.CorsPluginConfig.CorsRule
 import io.javalin.plugin.bundled.CorsUtils.isValidOrigin
@@ -21,12 +20,11 @@ import io.javalin.plugin.bundled.CorsUtils.normalizeOrigin
 import io.javalin.plugin.bundled.CorsUtils.originFulfillsWildcardRequirements
 import io.javalin.plugin.bundled.CorsUtils.originsMatch
 import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
-import io.javalin.plugin.createUserConfig
 import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.util.*
 import java.util.function.Consumer
 
-class CorsPluginConfig : PluginConfiguration {
+class CorsPluginConfig {
     internal val rules = mutableListOf<CorsRule>()
 
     fun addRule(rule: Consumer<CorsRule>): CorsPluginConfig = also {
@@ -80,27 +78,21 @@ class CorsPluginConfig : PluginConfiguration {
     }
 }
 
-class CorsPlugin(config: Consumer<CorsPluginConfig>) : JavalinPlugin {
-
-    open class Cors : PluginFactory<CorsPlugin, CorsPluginConfig> {
-        override fun create(config: Consumer<CorsPluginConfig>): CorsPlugin = CorsPlugin(config)
-    }
+class CorsPlugin(config: Consumer<CorsPluginConfig>) : JavalinPlugin<CorsPluginConfig>(Cors, CorsPluginConfig(), config) {
 
     companion object {
-        object Cors : CorsPlugin.Cors()
+        @JvmField val Cors = PluginFactory { CorsPlugin(it) }
     }
 
-    private val corsConfig = config.createUserConfig(CorsPluginConfig())
-
     init {
-        require(corsConfig.rules.isNotEmpty()) {
+        require(pluginConfig.rules.isNotEmpty()) {
             "At least one cors config has to be provided. Use CorsContainer.add() to add one."
         }
     }
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount(Default) {
-            corsConfig.rules.forEach { corsRule ->
+            pluginConfig.rules.forEach { corsRule ->
                 val origins = corsRule.allowedOrigins()
 
                 require(origins.isNotEmpty() || corsRule.reflectClientOrigin) {

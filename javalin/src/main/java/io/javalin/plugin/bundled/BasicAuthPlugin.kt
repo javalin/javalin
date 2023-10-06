@@ -9,14 +9,13 @@ package io.javalin.plugin.bundled
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header.WWW_AUTHENTICATE
 import io.javalin.http.UnauthorizedResponse
+import io.javalin.plugin.Configurer
 import io.javalin.plugin.JavalinPlugin
-import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
-import io.javalin.plugin.createUserConfig
 import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.util.function.Consumer
 
-class BasicAuthPluginConfig : PluginConfiguration {
+class BasicAuthPluginConfig {
     @JvmField var username: String? = null
     @JvmField var password: String? = null
 }
@@ -25,17 +24,11 @@ class BasicAuthPluginConfig : PluginConfiguration {
  * Adds a filter that runs before every http request.
  * Note: It does not apply to websocket upgrade requests
  */
-class BasicAuthPlugin(config: Consumer<BasicAuthPluginConfig>) : JavalinPlugin {
-
-    open class BasicAuth : PluginFactory<BasicAuthPlugin, BasicAuthPluginConfig> {
-        override fun create(config: Consumer<BasicAuthPluginConfig>): BasicAuthPlugin = BasicAuthPlugin(config)
-    }
+class BasicAuthPlugin(configurer: Consumer<BasicAuthPluginConfig>) : JavalinPlugin<BasicAuthPluginConfig>(BasicAuth, BasicAuthPluginConfig(), configurer) {
 
     companion object {
-        object BasicAuth : BasicAuthPlugin.BasicAuth()
+        @JvmField val BasicAuth = PluginFactory { BasicAuthPlugin(it) }
     }
-
-    private val pluginConfig = config.createUserConfig(BasicAuthPluginConfig())
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount(Default) {

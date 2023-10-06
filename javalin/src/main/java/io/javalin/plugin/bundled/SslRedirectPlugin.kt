@@ -5,14 +5,12 @@ import io.javalin.http.Header.X_FORWARDED_PROTO
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.servlet.isLocalhost
 import io.javalin.plugin.JavalinPlugin
-import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
-import io.javalin.plugin.createUserConfig
 import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import org.eclipse.jetty.server.ServerConnector
 import java.util.function.Consumer
 
-class SslRedirectPluginConfig : PluginConfiguration {
+class SslRedirectPluginConfig {
     @JvmField var redirectOnLocalhost = false
     @JvmField var sslPort: Int? = null
 }
@@ -20,17 +18,13 @@ class SslRedirectPluginConfig : PluginConfiguration {
 /**
  * [SslRedirectPlugin] has to be the first registered plugin to properly handle all requests in 'before' handler.
  */
-class SslRedirectPlugin(config: Consumer<SslRedirectPluginConfig> = Consumer {}) : JavalinPlugin {
-
-    open class SslRedirect : PluginFactory<SslRedirectPlugin, SslRedirectPluginConfig> {
-        override fun create(config: Consumer<SslRedirectPluginConfig>): SslRedirectPlugin = SslRedirectPlugin(config)
-    }
+class SslRedirectPlugin(
+    config: Consumer<SslRedirectPluginConfig> = Consumer {}
+) : JavalinPlugin<SslRedirectPluginConfig>(SslRedirect, SslRedirectPluginConfig(), config) {
 
     companion object {
-        object SslRedirect : SslRedirectPlugin.SslRedirect()
+        @JvmField val SslRedirect = PluginFactory { SslRedirectPlugin(it) }
     }
-
-    private val pluginConfig = config.createUserConfig(SslRedirectPluginConfig())
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount(Default) {

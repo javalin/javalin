@@ -9,29 +9,26 @@ package io.javalin.plugin.bundled
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
 import io.javalin.plugin.JavalinPlugin
-import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.time.Duration
 import java.util.Locale
 import java.util.function.Consumer
 
-class GlobalHeadersPlugin(config: Consumer<GlobalHeaderConfig> = Consumer {}) : JavalinPlugin {
-
-    open class GlobalHeaders : PluginFactory<GlobalHeadersPlugin, GlobalHeaderConfig> {
-        override fun create(config: Consumer<GlobalHeaderConfig>): GlobalHeadersPlugin = GlobalHeadersPlugin(config)
-    }
+class GlobalHeadersPlugin(config: Consumer<GlobalHeaderConfig> = Consumer {}) : JavalinPlugin<GlobalHeaderConfig>(
+    defaultConfiguration = GlobalHeaderConfig(),
+    userConfig = config,
+    dsl = GlobalHeaders
+) {
 
     companion object {
-        object GlobalHeaders : GlobalHeadersPlugin.GlobalHeaders()
+        @JvmField val GlobalHeaders = PluginFactory { GlobalHeadersPlugin(it) }
     }
-
-    private val globalHeaderConfig = GlobalHeaderConfig().apply { config.accept(this) }
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount(Default) {
             it.before { ctx ->
-                globalHeaderConfig.headers.forEach { (name, value) ->
+                pluginConfig.headers.forEach { (name, value) ->
                     ctx.header(name, value)
                 }
             }
@@ -44,7 +41,7 @@ class GlobalHeadersPlugin(config: Consumer<GlobalHeaderConfig> = Consumer {}) : 
  * A plugin to configure arbitrary headers, with a focus on the OWASP secure headers project
  * https://owasp.org/www-project-secure-headers/
  */
-class GlobalHeaderConfig : PluginConfiguration {
+class GlobalHeaderConfig {
 
     val headers = mutableMapOf<String, String>()
 

@@ -3,6 +3,62 @@ package io.javalin.plugin
 import io.javalin.config.JavalinConfig
 import java.util.function.Consumer
 
+abstract class JavalinPlugin<CFG> @JvmOverloads constructor(
+    dsl: PluginFactory<out JavalinPlugin<CFG>, CFG>,
+    defaultConfiguration: CFG,
+    userConfig: Consumer<CFG> = Consumer {},
+    private val name: String? = null,
+    private val priority: PluginPriority = PluginPriority.NORMAL,
+    private val repeatable: Boolean = false
+) {
+
+    protected val pluginConfig = defaultConfiguration.also { userConfig.accept(it) }
+
+    /**
+     * Initialize properties and access configuration before any handler is registered.
+     */
+    open fun onInitialize(config: JavalinConfig) {}
+
+    /**
+     * Called when the plugin is applied to the Javalin instance.
+     */
+    open fun onStart(config: JavalinConfig) {}
+
+    /**
+     * Checks if plugin can be registered multiple times.
+     */
+    fun repeatable(): Boolean = repeatable
+
+    /**
+     * The priority of the plugin that determines when it should be started.
+     */
+    fun priority(): PluginPriority = priority
+
+    /**
+     * The name of this plugin.
+     */
+    fun name(): String = name ?: this::class.java.simpleName
+
+}
+
+fun interface Configurer<CFG> {
+
+    /**
+     * Configure the given configuration.
+     */
+    operator fun invoke(config: CFG)
+
+}
+
+fun interface PluginFactory<PLUGIN : JavalinPlugin<CFG>, CFG> {
+
+    /**
+     * Create a new instance of the plugin with the given configuration.
+     */
+    fun create(config: Consumer<CFG>): PLUGIN
+
+}
+
 enum class PluginPriority {
     /**
      * Plugins with priority EARLY will be started before other type of plugins.
@@ -22,49 +78,3 @@ enum class PluginPriority {
      */
     LATE
 }
-
-fun interface JavalinPlugin {
-
-    /**
-     * Initialize properties and access configuration before any handler is registered.
-     */
-    fun onInitialize(config: JavalinConfig) {}
-
-    /**
-     * Called when the plugin is applied to the Javalin instance.
-     */
-    fun onStart(config: JavalinConfig)
-
-    /**
-     * Checks if plugin can be registered multiple times.
-     */
-    fun repeatable(): Boolean = false
-
-    /**
-     * The priority of the plugin that determines when it should be started.
-     */
-    fun priority(): PluginPriority = PluginPriority.NORMAL
-
-    /**
-     * The name of this plugin.
-     */
-    fun name(): String = this.javaClass.simpleName
-
-}
-
-fun interface PluginFactory<PLUGIN : JavalinPlugin, CFG : PluginConfiguration> {
-
-    /**
-     * Create a new instance of the plugin with the given configuration.
-     */
-    fun create(config: Consumer<CFG>): PLUGIN
-
-}
-
-/**
- * A marker interface for plugin configurations.
- */
-interface PluginConfiguration
-
-fun <CFG : PluginConfiguration> Consumer<CFG>.createUserConfig(cfg: CFG): CFG =
-    cfg.also { accept(it) }

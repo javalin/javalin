@@ -34,7 +34,6 @@ class TestConfiguration {
             it.staticFiles.add("/public", Location.CLASSPATH)
             it.staticFiles.add("src/test/resources/public", Location.EXTERNAL)
             it.staticFiles.enableWebjars()
-            it.registerPlugin { }
             it.http.asyncTimeout = 10_000L
             it.http.generateEtags = true
             it.http.defaultContentType = ContentType.PLAIN

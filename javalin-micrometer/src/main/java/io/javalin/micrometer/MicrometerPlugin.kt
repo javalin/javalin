@@ -12,9 +12,7 @@ import io.javalin.http.ExceptionHandler
 import io.javalin.http.HandlerType
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.JavalinPlugin
-import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
-import io.javalin.plugin.createUserConfig
 import io.javalin.util.Util.firstOrNull
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
@@ -28,7 +26,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.util.function.Consumer
 
-class MicrometerConfig : PluginConfiguration {
+class MicrometerConfig {
     @JvmField var registry: MeterRegistry = Metrics.globalRegistry
     @JvmField var tags: Iterable<Tag> = Tags.empty()
     @JvmField var tagExceptionName: Boolean = false
@@ -36,27 +34,25 @@ class MicrometerConfig : PluginConfiguration {
     @JvmField var tagNotFoundMappedPaths: Boolean = false
 }
 
+private const val EXCEPTION_HEADER = "__micrometer_exception_name"
+
 /**
  * [MicrometerPlugin] has a private constructor, use
  * [MicrometerPlugin.create] to create a new instance.
  */
-class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
-
-    open class Micrometer : PluginFactory<MicrometerPlugin, MicrometerConfig> {
-        override fun create(config: Consumer<MicrometerConfig>) = MicrometerPlugin(config)
-    }
+class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin<MicrometerConfig>(Micrometer, MicrometerConfig(), config) {
 
     companion object {
-        private const val EXCEPTION_HEADER = "__micrometer_exception_name"
-        object Micrometer : MicrometerPlugin.Micrometer()
-        @JvmField var exceptionHandler = ExceptionHandler { e: Exception, ctx: Context ->
+        @JvmField
+        val Micrometer = PluginFactory { MicrometerPlugin(it) }
+
+        @JvmField
+        var exceptionHandler = ExceptionHandler { e: Exception, ctx: Context ->
             val simpleName = e.javaClass.simpleName
             ctx.header(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
-
-    private val pluginConfig = config.createUserConfig(MicrometerConfig())
 
     override fun onStart(config: JavalinConfig) {
         val internalRouter = config.pvt.internalRouter
