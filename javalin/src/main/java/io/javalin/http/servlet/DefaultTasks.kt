@@ -33,14 +33,13 @@ object DefaultTasks {
         ctx: JavalinServletContext,
         requestUri: String
     ): Boolean {
-        val hasGetHandlerForHeadRequest = ctx.method() == HEAD && servlet.router.hasHttpHandlerEntry(GET, requestUri)
-        val hasRegularHttpHandler =
-            servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() != null
-        val resourceHandlerMatch =
-            servlet.cfg.pvt.resourceHandler?.canHandle(ctx) ?: false
-        val singlePageHandlerMatch = servlet.cfg.pvt.singlePageHandler.canHandle(ctx)
-
-        return hasGetHandlerForHeadRequest || hasRegularHttpHandler || resourceHandlerMatch || singlePageHandlerMatch
+        return when {
+            ctx.method() == HEAD && servlet.router.hasHttpHandlerEntry(GET, requestUri) -> true
+            servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() != null -> true
+            servlet.cfg.pvt.resourceHandler?.canHandle(ctx) == true -> true
+            servlet.cfg.pvt.singlePageHandler.canHandle(ctx) -> true
+            else -> false
+        }
     }
 
     val HTTP = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
@@ -56,7 +55,7 @@ object DefaultTasks {
                                 handler = { submitTask(FIRST, Task { entry.handle(ctx, requestUri) }) }, // we wrap the handler with [submitTask] to treat it as a separate task
                                 ctx = ctx,
                                 routeRoles = entry.roles
-                            )
+                           )
                         }
                         else -> entry.handle(ctx, requestUri)
                     }
