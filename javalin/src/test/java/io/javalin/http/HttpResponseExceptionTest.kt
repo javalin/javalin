@@ -8,7 +8,7 @@ class HttpResponseExceptionTest {
 
     @Test
     fun `all HttpStatus values should be covered by an Exception class`() {
-        for (httpStatus in HttpStatus.values()) {
+        for (httpStatus in HttpStatus.entries) {
             if (httpStatus == HttpStatus.UNKNOWN) {
                 continue
             }
