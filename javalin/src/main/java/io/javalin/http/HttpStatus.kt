@@ -1,6 +1,5 @@
 package io.javalin.http
 
-
 enum class HttpStatus(val code: Int, val message: String) {
     CONTINUE(100, "Continue"),
     SWITCHING_PROTOCOLS(101, "Switching Protocols"),
@@ -65,15 +64,33 @@ enum class HttpStatus(val code: Int, val message: String) {
     NETWORK_AUTHENTICATION_REQUIRED(511, "Network Authentication Required"),
     UNKNOWN(-1, "Unknown HTTP code");
 
+    fun isInformational(): Boolean =
+        code in 100..199
+
+    fun isSuccess(): Boolean =
+        code in 200..299
+
+    fun isRedirection(): Boolean =
+        code in 300..399
+
+    fun isClientError(): Boolean =
+        code in 400..499
+
+    fun isServerError(): Boolean =
+        code in 500..599
+
+    fun isError(): Boolean =
+        isClientError() || isServerError()
+
     override fun toString(): String =
         "$code $message"
 
-
     companion object {
-        private val cachedValues: Array<HttpStatus> = HttpStatus.values()
 
         @JvmStatic
-        fun forStatus(status: Int) = cachedValues.find { it.code == status } ?: UNKNOWN
+        fun forStatus(status: Int): HttpStatus =
+            HttpStatus.entries.find { it.code == status } ?: UNKNOWN
+
     }
 
 }

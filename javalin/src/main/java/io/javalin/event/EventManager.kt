@@ -15,7 +15,7 @@ import java.util.function.Consumer
 
 class EventManager {
 
-    val lifecycleHandlers = JavalinLifecycleEvent.values().associateWith { HashSet<LifecycleEventListener>() }
+    val lifecycleHandlers = JavalinLifecycleEvent.entries.associateWith { HashSet<LifecycleEventListener>() }
     var handlerAddedHandlers = mutableSetOf<Consumer<HandlerMetaInfo>>()
     val wsHandlerAddedHandlers = mutableSetOf<Consumer<WsHandlerMetaInfo>>()
 

@@ -7,7 +7,7 @@ class HttpStatusCodeTest {
 
     @Test
     fun `fetching http codes by code should get the right code`() {
-        HttpStatus.values().forEach {
+        HttpStatus.entries.forEach {
             assertThat(HttpStatus.forStatus(it.code)).isEqualTo(it)
         }
     }
@@ -20,9 +20,53 @@ class HttpStatusCodeTest {
 
     @Test
     fun `http code provides formatted implementation of toString() method`() {
-        HttpStatus.values().forEach {
+        HttpStatus.entries.forEach {
             assertThat("${it.code} ${it.message}").isEqualTo(it.toString())
         }
+    }
+
+    @Test
+    fun `isInformational() should return true for informational status codes`() {
+        assertHttpStatusCodeRange(100..199) {
+            assertThat(it.isInformational()).isTrue()
+        }
+    }
+
+    @Test
+    fun `isSuccess() should return true for success status codes`() {
+        assertHttpStatusCodeRange(200..299) {
+            assertThat(it.isSuccess()).isTrue()
+        }
+    }
+
+    @Test
+    fun `isRedirection() should return true for redirection status codes`() {
+        assertHttpStatusCodeRange(300..399) {
+            assertThat(it.isRedirection()).isTrue()
+        }
+    }
+
+    @Test
+    fun `isClientError() and isError() should return true for client error status codes`() {
+        assertHttpStatusCodeRange(400..499) {
+            assertThat(it.isClientError()).isTrue()
+            assertThat(it.isError()).isTrue()
+        }
+    }
+
+    @Test
+    fun `isServerError() and isError() should return true for server error status codes`() {
+        assertHttpStatusCodeRange(500..599) {
+            assertThat(it.isServerError()).isTrue()
+            assertThat(it.isError()).isTrue()
+        }
+    }
+
+    private fun assertHttpStatusCodeRange(range: IntRange, assertion: (HttpStatus) -> Unit) {
+        range
+            .map { HttpStatus.forStatus(it) }
+            .filter { it != HttpStatus.UNKNOWN }
+            .forEach { assertion(it) }
     }
 
 }
