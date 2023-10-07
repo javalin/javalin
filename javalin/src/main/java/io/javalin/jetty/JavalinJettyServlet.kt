@@ -12,6 +12,7 @@ import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
+import io.javalin.http.servlet.EndOfLifecycleException
 import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.JavalinServletContextConfig
@@ -80,6 +81,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
             super.service(req, res) // everything is okay, perform websocket upgrade
             afterUpgradeHandlers.forEach { it.handle(upgradeContext, requestUri) }
         } catch (e: Exception) {
+            if (e is EndOfLifecycleException) return
             cfg.pvt.internalRouter.handleHttpException(upgradeContext, e)
         }
     }

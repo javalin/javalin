@@ -16,7 +16,6 @@ import io.javalin.http.HandlerType.WEBSOCKET_BEFORE_UPGRADE
 import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
-import io.javalin.http.UnauthorizedResponse
 import io.javalin.json.jsonMapper
 import io.javalin.router.HttpHandlerEntry
 import io.javalin.security.BasicAuthCredentials
@@ -26,7 +25,6 @@ import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
-import java.lang.RuntimeException
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.Charset
@@ -147,7 +145,7 @@ class JavalinServletContext(
     override fun skipRemainingHandlers(): Context = also {
         tasks.clear()
         if (handlerType() == WEBSOCKET_BEFORE_UPGRADE) {
-            throw UnauthorizedResponse()
+            throw EndOfLifecycleException()
         }
     }
 
@@ -239,3 +237,5 @@ fun readAndResetStreamIfPossible(stream: InputStream?, charset: Charset) = try {
 } catch (e: Exception) {
     "resultString unavailable (resultStream couldn't be reset)"
 }
+
+class EndOfLifecycleException : RuntimeException("Lifecycle has been ended early")

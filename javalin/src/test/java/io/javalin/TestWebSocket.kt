@@ -685,13 +685,14 @@ class TestWebSocket {
             }
         }
 
-        app.exception(UnauthorizedResponse::class.java) { _, _ ->
-            app.logger().log.add("unauthorized")
-        }
-
         val client = TestClient(app, "/ws")
         client.connectAndDisconnect()
-        assertThat(app.logger().log).containsExactly("unauthorized")
+        val response = Unirest.get("http://localhost:${app.port()}/ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .asString()
+        // this is kinda weird!
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(app.logger().log).isEmpty()
     }
 
     @Test
