@@ -7,7 +7,7 @@ class HttpStatusCodeTest {
 
     @Test
     fun `fetching http codes by code should get the right code`() {
-        HttpStatus.values().forEach {
+        HttpStatus.entries.forEach {
             assertThat(HttpStatus.forStatus(it.code)).isEqualTo(it)
         }
     }
@@ -20,7 +20,7 @@ class HttpStatusCodeTest {
 
     @Test
     fun `http code provides formatted implementation of toString() method`() {
-        HttpStatus.values().forEach {
+        HttpStatus.entries.forEach {
             assertThat("${it.code} ${it.message}").isEqualTo(it.toString())
         }
     }
