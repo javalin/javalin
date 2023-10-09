@@ -28,7 +28,7 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField var singlePageHandler = SinglePageHandler()
     @JvmField var wsLogger: WsConfig? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
-    @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
+    @JvmField var servletRequestLifecycle = mutableListOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
     // Jetty
     @JvmField var server: Server? = null
 

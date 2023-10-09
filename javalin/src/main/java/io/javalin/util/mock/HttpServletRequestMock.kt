@@ -2,6 +2,8 @@
 package io.javalin.util.mock
 
 import jakarta.servlet.AsyncContext
+import jakarta.servlet.AsyncEvent
+import jakarta.servlet.AsyncListener
 import jakarta.servlet.DispatcherType
 import jakarta.servlet.ReadListener
 import jakarta.servlet.RequestDispatcher
@@ -22,9 +24,14 @@ import java.security.Principal
 import java.util.Collections
 import java.util.Enumeration
 import java.util.Locale
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 @Suppress("MemberVisibilityCanBePrivate")
-open class HttpServletRequestMock(val state: RequestState = RequestState()) : HttpServletRequest {
+open class HttpServletRequestMock(
+    val state: RequestState,
+    val response: HttpServletResponseMock
+) : HttpServletRequest {
 
     class RequestState {
         @JvmField var protocol: String = "HTTP/1.1"
@@ -114,13 +121,16 @@ open class HttpServletRequestMock(val state: RequestState = RequestState()) : Ht
 
     override fun getServletContext(): ServletContext = state.servletContext!!
     override fun getRequestDispatcher(p0: String?): RequestDispatcher? { return state.requestDispatcher }
-    override fun startAsync(): AsyncContext = state.asyncContext!!
+    override fun startAsync(): AsyncContext {
+        val asyncContext = AsyncContextMock(this, response)
+        state.asyncContext = asyncContext
+        return asyncContext
+    }
     override fun startAsync(p0: ServletRequest?, p1: ServletResponse?): AsyncContext = startAsync()
     override fun isAsyncStarted(): Boolean = state.asyncContext != null
-    override fun isAsyncSupported(): Boolean = state.asyncContext != null
-    override fun getAsyncContext(): AsyncContext = state.asyncContext!!
+    override fun isAsyncSupported(): Boolean = true
+    override fun getAsyncContext(): AsyncContext? = state.asyncContext
     override fun getDispatcherType(): DispatcherType = state.dispatcherType
-    override fun getAuthType(): String = state.authType!!
 
     override fun getCookies(): Array<Cookie> = state.cookies.toTypedArray()
     override fun getHeader(header: String): String? = state.headers[header]?.firstOrNull()
@@ -138,6 +148,7 @@ open class HttpServletRequestMock(val state: RequestState = RequestState()) : Ht
     override fun getRequestURL(): StringBuffer = StringBuffer(state.requestURL)
     override fun getServletPath(): String = state.servletPath
 
+    override fun getAuthType(): String = state.authType!!
     override fun getRemoteUser(): String = state.remoteUser
     override fun isUserInRole(role: String?): Boolean = state.roles.contains(role)
     override fun getUserPrincipal(): Principal? = state.userPrincipal
@@ -160,6 +171,33 @@ open class HttpServletRequestMock(val state: RequestState = RequestState()) : Ht
     override fun getPart(p0: String?): Part = parts.first { it.name == p0 }
 
     override fun <T : HttpUpgradeHandler?> upgrade(p0: Class<T>?): T { throw UnsupportedOperationException("Not implemented") }
+}
+
+private class AsyncContextMock(
+    private val request: HttpServletRequestMock,
+    private val response: HttpServletResponseMock,
+    private val scheduler: ExecutorService = Executors.newSingleThreadExecutor()
+) : AsyncContext {
+    override fun getRequest(): ServletRequest = request
+    override fun getResponse(): ServletResponse = response
+    override fun hasOriginalRequestAndResponse(): Boolean = true
+    override fun dispatch() { throw NotImplementedError("dispatch()") }
+    override fun dispatch(path: String) { throw NotImplementedError("dispatch(path)") }
+    override fun dispatch(context: ServletContext, path: String) { throw NotImplementedError("dispatch(context, path)") }
+    override fun complete() { listeners.forEach { it.onComplete(AsyncEvent(this)) } }
+    override fun start(run: Runnable) {
+        scheduler.submit {
+            run.run()
+            listeners.forEach { it.onComplete(AsyncEvent(this)) }
+        }
+    }
+    private var listeners = mutableListOf<AsyncListener>()
+    override fun addListener(listener: AsyncListener) { listeners.add(listener) }
+    override fun addListener(listener: AsyncListener, servletRequest: ServletRequest, servletResponse: ServletResponse) { addListener(listener) }
+    override fun <T : AsyncListener?> createListener(clazz: Class<T>): T = clazz.getConstructor().newInstance()
+    private var timeout: Long = 0
+    override fun setTimeout(timeout: Long) { this.timeout = timeout; }
+    override fun getTimeout(): Long = timeout
 }
 
 class StubServletInputStream(private val inputStream: InputStream) : ServletInputStream() {

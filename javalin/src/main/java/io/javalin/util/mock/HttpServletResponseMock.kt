@@ -57,7 +57,7 @@ class HttpServletResponseMock(val state: ResponseState = ResponseState()) : Http
     override fun addHeader(header: String, value: String?) { state.headers[header] = value!! }
     override fun setIntHeader(header: String, value: Int) { state.headers[header] = value.toString() }
     override fun addIntHeader(header: String, value: Int) { state.headers[header] = value.toString() }
-    override fun getHeader(header: String): String = state.headers[header]!!
+    override fun getHeader(header: String): String? = state.headers[header]
     override fun getHeaders(header: String): MutableCollection<String> = mutableListOf(state.headers[header]!!)
     override fun getHeaderNames(): MutableCollection<String> = state.headers.keys
 

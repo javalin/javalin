@@ -4,13 +4,19 @@ import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.Header
+import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.JavalinServletContextConfig
+import io.javalin.http.servlet.SubmitOrder.LAST
+import io.javalin.http.servlet.Task
+import io.javalin.http.servlet.TaskInitializer
 import io.javalin.router.HttpHandlerEntry
 import io.javalin.util.mock.HttpServletRequestMock.RequestState
 import io.javalin.util.mock.HttpServletResponseMock.ResponseState
 import java.io.InputStream
+import java.util.concurrent.CountDownLatch
 import java.util.function.Consumer
+import kotlin.math.round
 import org.jetbrains.annotations.ApiStatus.Experimental
 
 @Experimental
@@ -30,29 +36,9 @@ data class ContextMock private constructor(
     fun withRequestState(requestState: Consumer<RequestState>): ContextMock = copy(requestStateCfg = requestStateCfg + requestState)
     fun withResponseState(responseState: Consumer<ResponseState>): ContextMock = copy(responseStateCfg = responseStateCfg + responseState)
 
-    fun create(requestState: RequestState, responseState: ResponseState): JavalinServletContext {
-        val cfg = JavalinServletContextConfig(
-            appAttributes = javalinConfig.pvt.appAttributes,
-            compressionStrategy = javalinConfig.pvt.compressionStrategy,
-            defaultContentType = javalinConfig.http.defaultContentType,
-            requestLoggerEnabled = false,
-        )
-
-        this.requestStateCfg.forEach { it.accept(requestState) }
-        val req = HttpServletRequestMock(requestState)
-
-        this.responseStateCfg.forEach { it.accept(responseState) }
-        val res = HttpServletResponseMock(responseState)
-
-        return JavalinServletContext(
-            cfg = cfg,
-            req = req,
-            res = res,
-        )
-    }
-
     fun execute(body: Consumer<Context>): Context {
-        val ctx = create(RequestState(), ResponseState())
+        val response = createResponse()
+        val ctx = JavalinServletContext(createServletContextConfig(), req = createRequest(response = response), res = response)
         body.accept(ctx)
         return ctx
     }
@@ -74,25 +60,41 @@ data class ContextMock private constructor(
             req.requestURL = "${req.scheme}://${req.serverName}:${req.serverPort}${req.contextPath}${req.requestURI}"
             req.inputStream = body?.toInputStream() ?: req.inputStream
         }
+        val response = createResponse()
+        val request = createRequest(requestState, response)
 
-        val ctx = create(
-            requestState = requestState,
-            responseState = ResponseState()
+        val await = CountDownLatch(1)
+        val javalinServlet = JavalinServlet(javalinConfig)
+        (javalinServlet.requestLifecycle as MutableList<TaskInitializer<JavalinServletContext>>).add(
+            TaskInitializer { submitTask, _, _, _ ->
+                submitTask(LAST, Task(skipIfExceptionOccurred = false) {
+                    await.countDown()
+                })
+            }
         )
+        javalinServlet.router.addHttpHandler(endpoint.method, endpoint.path, endpoint.handler)
+        val ctx = javalinServlet.handle(request, response)!!
+        await.await()
 
-        ctx.update(
-            httpHandlerEntry = HttpHandlerEntry(
-                type = endpoint.method,
-                path = endpoint.path,
-                routerConfig = javalinConfig.router,
-                roles = emptySet(),
-                handler = endpoint.handler
-            ),
-            requestUri = uri
-        )
-
-        endpoint.handler.handle(ctx)
         return ctx
     }
+
+    private fun createResponse(responseState: ResponseState = ResponseState()): HttpServletResponseMock {
+        this.responseStateCfg.forEach { it.accept(responseState) }
+        return HttpServletResponseMock(responseState)
+    }
+
+    private fun createRequest(requestState: RequestState = RequestState(), response: HttpServletResponseMock): HttpServletRequestMock {
+        this.requestStateCfg.forEach { it.accept(requestState) }
+        return HttpServletRequestMock(requestState, response)
+    }
+
+    private fun createServletContextConfig(): JavalinServletContextConfig =
+        JavalinServletContextConfig(
+            appAttributes = javalinConfig.pvt.appAttributes,
+            compressionStrategy = javalinConfig.pvt.compressionStrategy,
+            defaultContentType = javalinConfig.http.defaultContentType,
+            requestLoggerEnabled = false,
+        )
 
 }
