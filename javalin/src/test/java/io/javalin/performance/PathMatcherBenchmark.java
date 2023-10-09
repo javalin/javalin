@@ -77,7 +77,7 @@ public class PathMatcherBenchmark {
 final class OldPathMatcher {
     @SuppressWarnings("Convert2Diamond")
     private final EnumMap<HandlerType, ArrayList<HttpHandlerEntry>> handlerEntries = new EnumMap<HandlerType, ArrayList<HttpHandlerEntry>>(
-        Arrays.stream(HandlerType.values()).collect(Collectors.toMap((handler) -> handler, (handler) -> new ArrayList<>()))
+        HandlerType.getEntries().stream().collect(Collectors.toMap((handler) -> handler, (handler) -> new ArrayList<>()))
     );
 
     public void add(HttpHandlerEntry entry) {

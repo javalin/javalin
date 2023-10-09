@@ -14,7 +14,7 @@ import java.util.stream.Stream
 class PathMatcher {
 
     private val handlerEntries: Map<HandlerType, MutableList<HttpHandlerEntry>> =
-        HandlerType.values().associateWithTo(EnumMap(HandlerType::class.java)) { arrayListOf() }
+        HandlerType.entries.associateWithTo(EnumMap(HandlerType::class.java)) { arrayListOf() }
 
     fun add(entry: HttpHandlerEntry) {
         if (entry.type.isHttpMethod && handlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {

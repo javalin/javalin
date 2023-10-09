@@ -28,10 +28,9 @@ data class WsHandlerEntry(
  */
 class WsPathMatcher {
 
-    private val wsHandlerEntries = WsHandlerType.values()
-        .associateTo(EnumMap<WsHandlerType, MutableList<WsHandlerEntry>>(WsHandlerType::class.java)) {
-            it to mutableListOf()
-        }
+    private val wsHandlerEntries = WsHandlerType
+        .entries
+        .associateWithTo(EnumMap<WsHandlerType, MutableList<WsHandlerEntry>>(WsHandlerType::class.java)) { mutableListOf() }
 
     fun add(entry: WsHandlerEntry) {
         if (wsHandlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {

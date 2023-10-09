@@ -86,10 +86,11 @@ enum class HttpStatus(val code: Int, val message: String) {
         "$code $message"
 
     companion object {
-        private val cachedValues: Array<HttpStatus> = HttpStatus.values()
 
         @JvmStatic
-        fun forStatus(status: Int) = cachedValues.find { it.code == status } ?: UNKNOWN
+        fun forStatus(status: Int): HttpStatus =
+            HttpStatus.entries.find { it.code == status } ?: UNKNOWN
+
     }
 
 }
