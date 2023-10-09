@@ -78,8 +78,8 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      */
     public static Javalin create(Consumer<JavalinConfig> config) {
         JavalinConfig cfg = new JavalinConfig();
+        JavalinConfig.applyUserConfig(cfg, config); // mutates app.config and app (adds http-handlers)
         Javalin app = new Javalin(cfg);
-        JavalinConfig.applyUserConfig(app.cfg, config); // mutates app.config and app (adds http-handlers)
         app.jettyServer.getValue(); // initialize server if no plugin already did
         return app;
     }
