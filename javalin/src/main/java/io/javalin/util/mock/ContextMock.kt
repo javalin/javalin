@@ -1,9 +1,7 @@
 package io.javalin.util.mock
 
 import io.javalin.Javalin
-import io.javalin.compression.CompressionStrategy
 import io.javalin.config.JavalinConfig
-import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.http.servlet.JavalinServletContext
@@ -18,40 +16,32 @@ import org.jetbrains.annotations.ApiStatus.Experimental
 @Experimental
 @Suppress("DataClassPrivateConstructor")
 data class ContextMock private constructor(
-    private val javalinConfig: JavalinConfig?,
-    private val requestStateCfg: Consumer<RequestState>,
-    private val responseStateCfg: Consumer<ResponseState>
+    private val javalinConfig: JavalinConfig,
+    private val requestStateCfg: List<Consumer<RequestState>> = emptyList(),
+    private val responseStateCfg: List<Consumer<ResponseState>> = emptyList()
 ) {
 
     companion object {
-        @JvmStatic
-        fun create(): ContextMockBuilder = ContextMockBuilder()
+        @JvmStatic @JvmOverloads fun create(javalin: Javalin = Javalin.create()): ContextMock = ContextMock(javalin.unsafeConfig())
     }
 
-    class ContextMockBuilder(
-        private var javalinConfig: JavalinConfig? = null,
-        private var requestState: Consumer<RequestState> = Consumer {},
-        private var responseState: Consumer<ResponseState> = Consumer {},
-    ) {
-        @JvmOverloads
-        fun withJavalinConfiguration(javalin: Javalin = Javalin.create()): ContextMockBuilder = apply { this.javalinConfig = javalin.unsafeConfig() }
-        fun withRequestState(requestState: Consumer<RequestState>): ContextMockBuilder = apply { this.requestState = requestState }
-        fun withResponseState(responseState: Consumer<ResponseState>): ContextMockBuilder = apply { this.responseState = responseState }
-        fun build(): ContextMock = ContextMock(javalinConfig, requestState, responseState)
-    }
+    @JvmOverloads
+    fun withJavalinConfiguration(config: Consumer<JavalinConfig> = Consumer {}): ContextMock = copy(javalinConfig = Javalin.create(config).unsafeConfig())
+    fun withRequestState(requestState: Consumer<RequestState>): ContextMock = copy(requestStateCfg = requestStateCfg + requestState)
+    fun withResponseState(responseState: Consumer<ResponseState>): ContextMock = copy(responseStateCfg = responseStateCfg + responseState)
 
     fun create(requestState: RequestState, responseState: ResponseState): JavalinServletContext {
         val cfg = JavalinServletContextConfig(
-            appAttributes = javalinConfig?.pvt?.appAttributes ?: emptyMap(),
-            compressionStrategy = javalinConfig?.pvt?.compressionStrategy ?: CompressionStrategy.NONE,
-            defaultContentType = javalinConfig?.http?.defaultContentType ?: ContentType.HTML,
+            appAttributes = javalinConfig.pvt.appAttributes,
+            compressionStrategy = javalinConfig.pvt.compressionStrategy,
+            defaultContentType = javalinConfig.http.defaultContentType,
             requestLoggerEnabled = false,
         )
 
-        this.requestStateCfg.accept(requestState)
+        this.requestStateCfg.forEach { it.accept(requestState) }
         val req = HttpServletRequestMock(requestState)
 
-        this.responseStateCfg.accept(responseState)
+        this.responseStateCfg.forEach { it.accept(responseState) }
         val res = HttpServletResponseMock(responseState)
 
         return JavalinServletContext(
@@ -76,13 +66,13 @@ data class ContextMock private constructor(
 
     @JvmOverloads
     fun execute(endpoint: Endpoint, uri: String = endpoint.path, body: Body? = null): Context {
-        val requestState = RequestState().also {
-            it.headers[Header.HOST] = mutableListOf("localhost")
-            it.method = endpoint.method.name
-            it.contextPath = javalinConfig?.router?.contextPath?.takeIf { it != "/" } ?: ""
-            it.requestURI = uri
-            it.requestURL = "${it.scheme}://${it.serverName}:${it.serverPort}${it.contextPath}${it.requestURI}"
-            it.inputStream = body?.toInputStream() ?: it.inputStream
+        val requestState = RequestState().also { req ->
+            req.headers[Header.HOST] = mutableListOf(req.remoteAddr)
+            req.method = endpoint.method.name
+            req.contextPath = javalinConfig.router.contextPath.takeIf { it != "/" } ?: ""
+            req.requestURI = uri
+            req.requestURL = "${req.scheme}://${req.serverName}:${req.serverPort}${req.contextPath}${req.requestURI}"
+            req.inputStream = body?.toInputStream() ?: req.inputStream
         }
 
         val ctx = create(
@@ -94,7 +84,7 @@ data class ContextMock private constructor(
             httpHandlerEntry = HttpHandlerEntry(
                 type = endpoint.method,
                 path = endpoint.path,
-                routerConfig = javalinConfig?.router ?: Javalin.create().unsafeConfig().router,
+                routerConfig = javalinConfig.router,
                 roles = emptySet(),
                 handler = endpoint.handler
             ),

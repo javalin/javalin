@@ -31,12 +31,12 @@ open class HttpServletRequestMock(val state: RequestState = RequestState()) : Ht
         @JvmField var scheme: String = "http"
         @JvmField var serverName: String = "localhost"
         @JvmField var serverPort: Int = 80
-        @JvmField var remoteAddr: String = "localhost"
+        @JvmField var remoteAddr: String = "127.0.0.1"
         @JvmField var remoteHost: String = "localhost"
         @JvmField var secure: Boolean = false
         @JvmField var remotePort: Int = 80
         @JvmField var localName: String = "localhost"
-        @JvmField var localAddr: String = "localhost"
+        @JvmField var localAddr: String = "127.0.0.1"
         @JvmField var localPort: Int = -1
         @JvmField var realPath: String = ""
 
