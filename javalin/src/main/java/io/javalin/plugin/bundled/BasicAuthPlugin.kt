@@ -9,7 +9,6 @@ package io.javalin.plugin.bundled
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header.WWW_AUTHENTICATE
 import io.javalin.http.UnauthorizedResponse
-import io.javalin.plugin.Configurer
 import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginFactory
 import io.javalin.router.JavalinDefaultRouting.Companion.Default
