@@ -41,15 +41,6 @@ abstract class JavalinPlugin<CFG> @JvmOverloads constructor(
 
 }
 
-fun interface Configurer<CFG> {
-
-    /**
-     * Configure the given configuration.
-     */
-    operator fun invoke(config: CFG)
-
-}
-
 fun interface PluginFactory<PLUGIN : JavalinPlugin<CFG>, CFG> {
 
     /**
