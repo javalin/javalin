@@ -37,6 +37,7 @@ class JavalinConfig {
     @JvmField val events = EventConfig(this)
     @JvmField val vue = JavalinVueConfig()
     @JvmField val contextResolver = ContextResolverConfig()
+    @JvmField var defaultHost: String? = null
     @JvmField var defaultPort = 8080
     @JvmField var showJavalinBanner = true
     /**

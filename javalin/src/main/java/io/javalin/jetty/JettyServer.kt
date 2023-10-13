@@ -61,6 +61,7 @@ class JettyServer(
 
     @Throws(JavalinException::class)
     fun start(host: String?, port: Int?) {
+        Util.printHelpfulMessageIfLoggerIsMissing()
         if (started) {
             throw JavalinException("Server already started - Javalin instances cannot be reused.")
         }
@@ -80,7 +81,7 @@ class JettyServer(
             cfg.jetty.connectors.map{ it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
             if (connectors.isEmpty()) { // add default connector if no connectors are specified
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
-                    this.host = host
+                    this.host = host ?: cfg.defaultHost
                     this.port = port ?: cfg.defaultPort
                 })
             }
