@@ -40,6 +40,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
             compressionStrategy = cfg.pvt.compressionStrategy,
             requestLoggerEnabled = cfg.pvt.requestLogger != null,
             defaultContentType = cfg.http.defaultContentType,
+            defaultAsyncExecutor = cfg.http.defaultAsyncExecutor
         )
     }
 

@@ -1,16 +1,13 @@
 package io.javalin.json
 
-import io.javalin.util.ConcurrencyUtil
-import io.javalin.util.javalinLazy
 import java.io.InputStream
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
+import java.util.concurrent.ExecutorService
 
 object PipedStreamUtil {
 
-    private val executorService by javalinLazy { ConcurrencyUtil.executorService("JavalinPipedStreamingThreadPool") }
-
-    fun getInputStream(userCallback: (PipedOutputStream) -> Unit): InputStream {
+    fun getInputStream(executorService: ExecutorService, userCallback: (PipedOutputStream) -> Unit): InputStream {
         val pipedOutputStream = PipedOutputStream()
         val pipedInputStream = object : PipedInputStream(pipedOutputStream) {
             var exception: Exception? = null // possible exception from child thread

@@ -359,8 +359,7 @@ interface Context {
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun async(config: Consumer<AsyncTaskConfig>, task: ThrowingRunnable<Exception>) =
-        AsyncUtil.submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
+    fun async(config: Consumer<AsyncTaskConfig>, task: ThrowingRunnable<Exception>)
 
     /* @see [async] */
     fun async(task: ThrowingRunnable<Exception>) = async(config = {}, task = task)

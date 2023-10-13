@@ -11,6 +11,9 @@ import io.javalin.http.bodyAsClass
 import io.javalin.json.JavalinGson
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.ForkJoinPool
+import java.util.function.Supplier
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -42,9 +45,11 @@ internal class TestJavalinGson {
         assertThat(http.post("/").body(Gson().toJson(SerializableObject())).asString().body).isEqualTo(SerializableObject().value1)
     }
 
+    private val pipedExecutorService = Supplier<ExecutorService> { ForkJoinPool.commonPool() }
+
     @Test
     fun `JavalinGson properly handles json stream`() = TestUtil.test(Javalin.create {
-        it.jsonMapper(JavalinGson(Gson()))
+        it.jsonMapper(JavalinGson(Gson(), pipedExecutorService))
     }) { app, http ->
         app.get("/") { it.jsonStream(arrayOf("1")) }
         assertThat(http.get("/").body).isEqualTo("[\"1\"]")

@@ -15,7 +15,7 @@ import java.util.function.Consumer
 class JettyConfig(private val cfg: JavalinConfig) {
     //@formatter:off
     @JvmField val multipartConfig = MultipartConfig()
-    @JvmField var threadPool: ThreadPool = JettyServer.defaultThreadPool()
+    @JvmField var threadPool: ThreadPool? = null
     //@formatter:on
 
     var serverConsumers: MutableList<Consumer<Server>> = mutableListOf()

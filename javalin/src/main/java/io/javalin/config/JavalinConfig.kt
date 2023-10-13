@@ -26,7 +26,7 @@ import java.util.function.Consumer
 // `cfg.pvt` should be accessible, but usage should be discouraged (hence the naming)
 class JavalinConfig {
     //@formatter:off
-    @JvmField val http = HttpConfig()
+    @JvmField val http = HttpConfig(this)
     @JvmField val router = RouterConfig(this)
     @JvmField val jetty = JettyConfig(this)
     @JvmField val staticFiles = StaticFilesConfig(this)
@@ -38,6 +38,8 @@ class JavalinConfig {
     @JvmField val vue = JavalinVueConfig()
     @JvmField val contextResolver = ContextResolverConfig()
     @JvmField var showJavalinBanner = true
+    /** Determines if Javalin should use Loom. Set it to true to enable Loom integration. **/
+    @JvmField var useLoom = false
     /**
      * This is "private", only use it if you know what you're doing
      */
@@ -55,7 +57,7 @@ class JavalinConfig {
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
             cfg.pvt.pluginManager.startPlugins()
-            cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson() }
+            cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson(pipedStreamExecutorSupplier = cfg.http.pipedStreamExecutor) }
             cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
             cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }
             cfg.pvt.appAttributes.computeIfAbsent(MAX_REQUEST_SIZE_KEY) { cfg.http.maxRequestSize }

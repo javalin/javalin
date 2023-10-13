@@ -186,7 +186,9 @@ class TestCustomJetty {
     @Test
     fun `default server uses loom if available`() {
         if (!LoomUtil.loomAvailable) return
-        val defaultApp = Javalin.create()
+        val defaultApp = Javalin.create {
+            it.useLoom = true
+        }
         TestUtil.test(defaultApp) { app, http ->
             val isVirtual = Thread::class.java.getMethod("isVirtual")
             app.get("/") {

@@ -25,7 +25,8 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             appAttributes = cfg.pvt.appAttributes,
             compressionStrategy = cfg.pvt.compressionStrategy,
             requestLoggerEnabled = cfg.pvt.requestLogger != null,
-            defaultContentType = cfg.http.defaultContentType
+            defaultContentType = cfg.http.defaultContentType,
+            defaultAsyncExecutor = cfg.http.defaultAsyncExecutor
         )
     }
 

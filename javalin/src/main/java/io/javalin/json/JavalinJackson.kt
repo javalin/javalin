@@ -17,10 +17,21 @@ import io.javalin.util.javalinLazy
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.reflect.Type
+import java.util.concurrent.ExecutorService
 import java.util.function.Consumer
+import java.util.function.Supplier
 import java.util.stream.Stream
 
-class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
+class JavalinJackson @JvmOverloads constructor(
+    private var objectMapper: ObjectMapper? = null,
+    private var pipedStreamExecutorSupplier: (Supplier<ExecutorService>)? = null,
+) : JsonMapper {
+
+    private val pipedStreamExecutor by javalinLazy {
+        pipedStreamExecutorSupplier
+            ?.get()
+            ?: throw NotImplementedError("JavalinJackson does not support piped streams. Use JavalinJackson.create(ObjectMapper, pipedStreamExecutorSupplier)")
+    }
 
     val mapper by javalinLazy {
         if (!Util.classExists(CoreDependency.JACKSON.testClass)) {
@@ -46,7 +57,7 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
 
     override fun toJsonStream(obj: Any, type: Type): InputStream = when (obj) {
         is String -> obj.byteInputStream() // the default mapper treats strings as if they are already JSON
-        else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
+        else -> PipedStreamUtil.getInputStream(pipedStreamExecutor) { pipedOutputStream ->
             mapper.factory.createGenerator(pipedOutputStream).writeObject(obj)
         }
     }

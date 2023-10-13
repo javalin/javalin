@@ -6,15 +6,27 @@ import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
+import io.javalin.util.javalinLazy
 import java.io.BufferedWriter
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.lang.reflect.Type
+import java.util.concurrent.ExecutorService
+import java.util.function.Supplier
 import java.util.stream.Stream
 
-open class JavalinGson(private val gson: Gson = Gson()) : JsonMapper {
+open class JavalinGson @JvmOverloads constructor(
+    private val gson: Gson = Gson(),
+    private var pipedStreamExecutorSupplier: (Supplier<ExecutorService>)? = null,
+) : JsonMapper {
+
+    private val pipedStreamExecutor by javalinLazy {
+        pipedStreamExecutorSupplier
+            ?.get()
+            ?: throw NotImplementedError("JavalinGson does not support piped streams. Use JavalinGson.create(Gson, pipedStreamExecutorSupplier)")
+    }
 
     init {
         if (!Util.classExists(CoreDependency.GSON.testClass)) {
@@ -36,7 +48,7 @@ open class JavalinGson(private val gson: Gson = Gson()) : JsonMapper {
 
     override fun toJsonStream(obj: Any, type: Type): InputStream = when (obj) {
         is String -> obj.byteInputStream()
-        else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
+        else -> PipedStreamUtil.getInputStream(pipedStreamExecutor) { pipedOutputStream ->
             BufferedWriter(OutputStreamWriter(pipedOutputStream)).use { bufferedWriter ->
                 gson.toJson(obj, type, bufferedWriter)
             }

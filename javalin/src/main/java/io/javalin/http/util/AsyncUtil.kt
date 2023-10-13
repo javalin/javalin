@@ -2,7 +2,6 @@ package io.javalin.http.util
 
 import io.javalin.config.HttpConfig
 import io.javalin.http.Context
-import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.function.ThrowingRunnable
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
@@ -33,10 +32,8 @@ class AsyncTaskConfig(
 
 internal object AsyncUtil {
 
-    val defaultExecutor = ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool")
-
     /**
-     * Utility method that executes [task] asynchronously using [executor] ([defaultExecutor] by default).
+     * Utility method that executes [task] asynchronously using [asyncTaskConfig.executor] ([defaultExecutor] by default).
      * It also provides custom timeout handling via [onTimeout] callback registered directly on underlying [CompletableFuture],
      * so global [HttpConfig.asyncTimeout] does not affect this particular task.
      */
@@ -44,7 +41,7 @@ internal object AsyncUtil {
         context.future {
             context.req().asyncContext.timeout = 0 // we're using cf timeouts below, so we need to disable default jetty timeout listener
 
-            CompletableFuture.runAsync({ task.run() }, asyncTaskConfig.executor ?: defaultExecutor)
+            CompletableFuture.runAsync({ task.run() }, asyncTaskConfig.executor)
                 .let { taskFuture ->
                     asyncTaskConfig.timeout
                         .takeIf { it > 0 }

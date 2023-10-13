@@ -15,10 +15,13 @@ import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
+import io.javalin.http.util.AsyncTaskConfig
+import io.javalin.http.util.AsyncUtil
 import io.javalin.json.jsonMapper
 import io.javalin.router.HttpHandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
+import io.javalin.util.function.ThrowingRunnable
 import io.javalin.util.javalinLazy
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
@@ -29,7 +32,9 @@ import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Consumer
 import java.util.function.Supplier
 import kotlin.LazyThreadSafetyMode.*
 import java.util.stream.Stream
@@ -39,6 +44,7 @@ data class JavalinServletContextConfig(
     val compressionStrategy: CompressionStrategy,
     val requestLoggerEnabled: Boolean,
     val defaultContentType: String,
+    val defaultAsyncExecutor: Supplier<ExecutorService>
 )
 
 class JavalinServletContext(
@@ -135,6 +141,16 @@ class JavalinServletContext(
     }
 
     override fun resultInputStream(): InputStream? = resultStream
+
+    override fun async(config: Consumer<AsyncTaskConfig>, task: ThrowingRunnable<Exception>) =
+        AsyncUtil.submitAsyncTask(
+            context = this,
+            asyncTaskConfig = AsyncTaskConfig().also {
+                config.accept(it)
+                it.executor = it.executor ?: cfg.defaultAsyncExecutor.get()
+             },
+            task = task
+        )
 
     override fun future(future: Supplier<out CompletableFuture<*>>) {
         if (userFutureSupplier != null) throw IllegalStateException("Cannot override future from the same handler")

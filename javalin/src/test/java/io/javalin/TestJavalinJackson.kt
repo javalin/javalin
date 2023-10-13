@@ -11,6 +11,9 @@ import io.javalin.json.JavalinJackson
 import io.javalin.json.fromJsonString
 import io.javalin.json.toJsonString
 import io.javalin.testing.TestUtil
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.ForkJoinPool
+import java.util.function.Supplier
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import kotlin.streams.asStream
@@ -26,7 +29,6 @@ internal class TestJavalinJackson {
     fun `JavalinJackson can convert a large Stream to JSON`() {
         TestJsonMapper.convertLargeStreamToJson(JavalinJackson())
     }
-
 
     data class SerializableDataClass(val value1: String = "Default1", val value2: String)
 
@@ -56,9 +58,11 @@ internal class TestJavalinJackson {
         Assertions.assertThat(http.getBody("/")).isEqualTo("{}")
     }
 
+    private val pipedExecutorService = Supplier<ExecutorService> { ForkJoinPool.commonPool() }
+
     @Test
     fun `can write a JSON stream with JavalinJackson`() =
-        TestUtil.test(Javalin.create { it.jsonMapper(JavalinJackson()) }) { app, http ->
+        TestUtil.test(Javalin.create { it.jsonMapper(JavalinJackson(pipedStreamExecutorSupplier = pipedExecutorService)) }) { app, http ->
             data class Hello(val greet: String, val value: Long)
 
             var value = 0L

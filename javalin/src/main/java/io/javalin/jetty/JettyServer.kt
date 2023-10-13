@@ -15,6 +15,7 @@ import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import io.javalin.util.Util.getPort
+import io.javalin.util.javalinLazy
 import org.eclipse.jetty.http.HttpCookie
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.http.UriCompliance
@@ -51,7 +52,8 @@ class JettyServer(
         }.start()
     }
 
-    fun server() = cfg.pvt.server ?: defaultServer(cfg.jetty.threadPool).also { cfg.pvt.server = it } // make sure config has access to the update server instance
+    private val threadPool = javalinLazy { cfg.jetty.threadPool ?:  defaultThreadPool(cfg.useLoom)}
+    fun server() = cfg.pvt.server ?: defaultServer(threadPool.value).also { cfg.pvt.server = it } // make sure config has access to the update server instance
     fun port() = (server().connectors[0] as ServerConnector).localPort
 
     private var started = false
@@ -158,7 +160,12 @@ class JettyServer(
     }
 
     companion object {
-        fun defaultThreadPool() = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool", 8, 250)
+        fun defaultThreadPool(useLoom: Boolean): ThreadPool = ConcurrencyUtil.jettyThreadPool(
+            name = "JettyServerThreadPool",
+            minThreads = 8,
+            maxThreads = 250,
+            useLoom = useLoom
+        )
 
         fun defaultServer(threadPool: ThreadPool) = Server(threadPool).apply {
             addBean(LowResourceMonitor(this))
