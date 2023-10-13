@@ -9,6 +9,7 @@ package io.javalin.jetty
 import io.javalin.config.JavalinConfig
 import io.javalin.event.JavalinLifecycleEvent
 import io.javalin.http.ContentType
+import io.javalin.http.servlet.JavalinServlet
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinBindException
 import io.javalin.util.JavalinException
@@ -36,7 +37,7 @@ import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerI
 
 class JettyServer(
     private val cfg: JavalinConfig,
-    private val wsAndHttpServlet: JavalinJettyServlet,
+    private val javalinServlet: JavalinServlet
 ) {
 
     init {
@@ -72,6 +73,7 @@ class JettyServer(
                 JettyWebSocketServletContainerInitializer.configure(this, null)
                 contextPath = Util.normalizeContextPath(cfg.router.contextPath)
                 sessionHandler = defaultSessionHandler()
+                val wsAndHttpServlet = JavalinJettyServlet(cfg, javalinServlet)
                 addServlet(ServletHolder(wsAndHttpServlet), "/*")
                 cfg.jetty.servletContextHandlerConsumers.forEach{ it.accept(this) } // apply user config
             })

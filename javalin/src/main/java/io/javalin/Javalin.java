@@ -39,14 +39,12 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      */
     private final JavalinConfig cfg;
     protected final JavalinServlet javalinServlet;
-    protected final Lazy<JavalinJettyServlet> javalinJettyServlet;
     protected final Lazy<JettyServer> jettyServer;
 
     protected Javalin(JavalinConfig config) {
         this.cfg = config;
         this.javalinServlet = new JavalinServlet(cfg);
-        this.javalinJettyServlet = createLazy(() -> new JavalinJettyServlet(cfg, javalinServlet));
-        this.jettyServer = createLazy(() -> new JettyServer(this.cfg, javalinJettyServlet.getValue()));
+        this.jettyServer = createLazy(() -> new JettyServer(this.cfg, javalinServlet));
     }
 
     @NotNull
