@@ -81,7 +81,7 @@ class JettyServer(
             if (connectors.isEmpty()) { // add default connector if no connectors are specified
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
                     this.host = host
-                    this.port = port ?: 8080
+                    this.port = port ?: cfg.defaultPort
                 })
             }
         }
