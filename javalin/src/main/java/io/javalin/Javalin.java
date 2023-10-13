@@ -14,8 +14,6 @@ import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
 import io.javalin.http.Context;
-import io.javalin.http.servlet.JavalinServlet;
-import io.javalin.jetty.JavalinJettyServlet;
 import io.javalin.jetty.JettyServer;
 import io.javalin.security.RouteRole;
 import io.javalin.util.Util;
@@ -25,6 +23,7 @@ import java.util.function.Consumer;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
+import jakarta.servlet.Servlet;
 import kotlin.Lazy;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,13 +37,11 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      * Application config should be declared in {@link Javalin#create(Consumer)}.
      */
     private final JavalinConfig cfg;
-    protected final JavalinServlet javalinServlet;
     protected final Lazy<JettyServer> jettyServer;
 
     protected Javalin(JavalinConfig config) {
         this.cfg = config;
-        this.javalinServlet = new JavalinServlet(cfg);
-        this.jettyServer = createLazy(() -> new JettyServer(this.cfg, javalinServlet));
+        this.jettyServer = createLazy(() -> new JettyServer(this.cfg));
     }
 
     @NotNull
@@ -83,8 +80,8 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
     }
 
     // Get JavalinServlet (can be attached to other servlet containers)
-    public JavalinServlet javalinServlet() {
-        return this.javalinServlet;
+    public Servlet javalinServlet() {
+        return cfg.pvt.servlet.getValue();
     }
 
     /**

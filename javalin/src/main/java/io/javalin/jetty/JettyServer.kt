@@ -35,10 +35,7 @@ import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.ThreadPool
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
 
-class JettyServer(
-    private val cfg: JavalinConfig,
-    private val javalinServlet: JavalinServlet
-) {
+class JettyServer(private val cfg: JavalinConfig) {
 
     init {
         MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
@@ -73,8 +70,7 @@ class JettyServer(
                 JettyWebSocketServletContainerInitializer.configure(this, null)
                 contextPath = Util.normalizeContextPath(cfg.router.contextPath)
                 sessionHandler = defaultSessionHandler()
-                val wsAndHttpServlet = JavalinJettyServlet(cfg, javalinServlet)
-                addServlet(ServletHolder(wsAndHttpServlet), "/*")
+                addServlet(ServletHolder(cfg.pvt.servlet.value), "/*")
                 cfg.jetty.servletContextHandlerConsumers.forEach{ it.accept(this) } // apply user config
             })
             val httpConfiguration = defaultHttpConfiguration()

@@ -6,12 +6,16 @@ import io.javalin.http.RequestLogger
 import io.javalin.http.SinglePageHandler
 import io.javalin.router.InternalRouter
 import io.javalin.http.servlet.DefaultTasks
+import io.javalin.http.servlet.JavalinServlet
 import io.javalin.router.exception.JavaLangErrorHandler
 import io.javalin.http.staticfiles.ResourceHandler
+import io.javalin.jetty.JavalinJettyServlet
 import io.javalin.plugin.PluginManager
 import io.javalin.security.AccessManager
+import io.javalin.util.javalinLazy
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsRouter
+import jakarta.servlet.Servlet
 import org.eclipse.jetty.server.Server
 
 // @formatter:off
@@ -29,6 +33,13 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField var wsLogger: WsConfig? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
+    @JvmField var servlet: Lazy<Servlet> = javalinLazy {
+        val httpServlet = JavalinServlet(cfg)
+        when {
+            internalRouter.allWsHandlers().isNotEmpty() -> JavalinJettyServlet(cfg, httpServlet)
+            else -> httpServlet
+        }
+    }
     // Jetty
     @JvmField var server: Server? = null
 
