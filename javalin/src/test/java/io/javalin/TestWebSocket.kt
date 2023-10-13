@@ -17,6 +17,7 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.testing.fasterJacksonMapper
+import io.javalin.websocket.WsCloseStatus
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.pingFutures
 import kong.unirest.Unirest
@@ -537,7 +538,8 @@ class TestWebSocket {
             { client: TestClient -> client.send("NO_ARGS") } to CloseStatus(1000, "null"),
             { client: TestClient -> client.send("STATUS_OBJECT") } to CloseStatus(1001, "STATUS_OBJECT"),
             { client: TestClient -> client.send("CODE_AND_REASON") } to CloseStatus(1002, "CODE_AND_REASON"),
-            { client: TestClient -> client.send("UNEXPECTED") } to CloseStatus(1003, "UNEXPECTED")
+            { client: TestClient -> client.send("CLOSE_STATUS") } to CloseStatus(WsCloseStatus.RESERVED.code, "CODE_AND_REASON"),
+            { client: TestClient -> client.send("UNEXPECTED") } to CloseStatus(1004, "UNEXPECTED")
         )
 
         scenarios.forEach { (sendAction, closeStatus) ->
@@ -548,12 +550,14 @@ class TestWebSocket {
                             "NO_ARGS" -> ctx.closeSession()
                             "STATUS_OBJECT" -> ctx.closeSession(CloseStatus(1001, "STATUS_OBJECT"))
                             "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
-                            else -> ctx.closeSession(1003, "UNEXPECTED")
+                            "CLOSE_STATUS" -> ctx.closeSession(WsCloseStatus.RESERVED)
+                            else -> ctx.closeSession(1004, "UNEXPECTED")
                         }
                     }
                     ws.onClose {
                         assertThat(it.reason() ?: "null").isEqualTo(closeStatus.phrase)
                         assertThat(it.status()).isEqualTo(closeStatus.code)
+                        assertThat(it.closeStatus().code).isEqualTo(closeStatus.code)
                     }
                 }
                 TestClient(app, "/websocket", onOpen = { sendAction(it) }).connectBlocking()
