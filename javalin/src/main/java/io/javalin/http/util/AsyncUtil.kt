@@ -33,8 +33,8 @@ class AsyncTaskConfig(
 internal object AsyncUtil {
 
     /**
-     * Utility method that executes [task] asynchronously using [asyncTaskConfig.executor] ([defaultExecutor] by default).
-     * It also provides custom timeout handling via [onTimeout] callback registered directly on underlying [CompletableFuture],
+     * Utility method that executes [task] asynchronously using [AsyncTaskConfig.executor] ([HttpConfig.defaultAsyncExecutor] by default).
+     * It also provides custom timeout handling via [AsyncTaskConfig.onTimeout] callback registered directly on underlying [CompletableFuture],
      * so global [HttpConfig.asyncTimeout] does not affect this particular task.
      */
     fun submitAsyncTask(context: Context, asyncTaskConfig: AsyncTaskConfig, task: ThrowingRunnable<Exception>): Unit =
