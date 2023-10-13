@@ -12,6 +12,7 @@ import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.jetty.JavalinJettyServlet
 import io.javalin.plugin.PluginManager
 import io.javalin.security.AccessManager
+import io.javalin.util.Util
 import io.javalin.util.javalinLazy
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsRouter
@@ -36,7 +37,7 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField var servlet: Lazy<Servlet> = javalinLazy {
         val httpServlet = JavalinServlet(cfg)
         when {
-            internalRouter.allWsHandlers().isNotEmpty() -> JavalinJettyServlet(cfg, httpServlet)
+            Util.classExists("org.eclipse.jetty.websocket.server.JettyWebSocketServlet") -> JavalinJettyServlet(cfg, httpServlet)
             else -> httpServlet
         }
     }
