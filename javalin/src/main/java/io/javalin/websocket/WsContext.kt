@@ -17,7 +17,6 @@ import org.eclipse.jetty.websocket.api.Session
 import java.lang.reflect.Type
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
-import kotlin.LazyThreadSafetyMode.NONE
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
 
@@ -143,42 +142,49 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes ?: mapOf()
 
     /** Close the session */
-    fun closeSession() = session.close()
+    fun closeSession(): Unit = session.close()
 
     /** Close the session with a [CloseStatus] */
-    fun closeSession(closeStatus: CloseStatus) = session.close(closeStatus)
+    fun closeSession(closeStatus: CloseStatus): Unit = session.close(closeStatus)
 
     /** Close the session with a code and reason */
-    fun closeSession(code: Int, reason: String?) = session.close(code, reason)
+    fun closeSession(code: Int, reason: String?): Unit = session.close(code, reason)
 
-    override fun equals(other: Any?) = session == (other as WsContext).session
-    override fun hashCode() = session.hashCode()
+    /** Close the session with a [WsCloseStatus] */
+    @JvmOverloads
+    fun closeSession(closeStatus: WsCloseStatus, reason: String? = null): Unit = session.close(closeStatus.code, reason ?: closeStatus.message())
+
+    override fun equals(other: Any?): Boolean = session == (other as WsContext).session
+    override fun hashCode(): Int = session.hashCode()
 }
 
 class WsConnectContext(sessionId: String, session: Session) : WsContext(sessionId, session)
 
 class WsErrorContext(sessionId: String, session: Session, private val error: Throwable?) : WsContext(sessionId, session) {
     /** Get the [Throwable] error that occurred */
-    fun error() = error
+    fun error(): Throwable? = error
 }
 
 class WsCloseContext(sessionId: String, session: Session, private val statusCode: Int, private val reason: String?) : WsContext(sessionId, session) {
     /** The int status for why connection was closed */
-    fun status() = statusCode
+    fun status(): Int = statusCode
+
+    /** The enum status for why connection was closed */
+    fun closeStatus(): WsCloseStatus = WsCloseStatus.forStatusCode(statusCode)
 
     /** The reason for the close */
-    fun reason() = reason
+    fun reason(): String? = reason
 }
 
 class WsBinaryMessageContext(sessionId: String, session: Session, private val data: ByteArray, private val offset: Int, private val length: Int) : WsContext(sessionId, session) {
     /** Get the binary data of the message */
-    fun data() = data
+    fun data(): ByteArray = data
 
     /** Get the offset of the binary data */
-    fun offset() = offset
+    fun offset(): Int = offset
 
     /** Get the length of the binary data */
-    fun length() = length
+    fun length(): Int = length
 }
 
 class WsMessageContext(sessionId: String, session: Session, private val message: String) : WsContext(sessionId, session) {
