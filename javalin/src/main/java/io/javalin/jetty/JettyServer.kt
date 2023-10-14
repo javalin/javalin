@@ -81,8 +81,8 @@ class JettyServer(
             cfg.jetty.connectors.map{ it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
             if (connectors.isEmpty()) { // add default connector if no connectors are specified
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
-                    this.host = host ?: cfg.defaultHost
-                    this.port = port ?: cfg.defaultPort
+                    this.host = host ?: cfg.jetty.defaultHost
+                    this.port = port ?: cfg.jetty.defaultPort
                 })
             }
         }
