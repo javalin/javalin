@@ -50,7 +50,7 @@ class TestWebBrowser {
         TestUtil.runAndCaptureLogs {
             val payload = "Hello, Selenium!".repeat(150)
             val app = Javalin.create {
-                it.compression.brotliOnly()
+                it.http.brotliOnlyCompression()
                 it.registerPlugin(DevLogging)
             }.start(0)
             app.get("/hello") { it.result(payload) }
@@ -90,7 +90,7 @@ class TestWebBrowser {
 
     @Test
     fun `chrome can handle precompressed files GH-1958`() = TestUtil.test(Javalin.create { config ->
-        config.compression.brotliAndGzip() // this is the default
+        config.http.brotliAndGzipCompression() // this is the default
         config.staticFiles.add { staticFiles ->
             staticFiles.hostedPath = "/"
             staticFiles.directory = "/public"

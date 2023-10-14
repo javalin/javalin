@@ -71,7 +71,7 @@ class TestConfiguration {
     @Test
     fun `compression strategy can be customized by user`() {
         val app = Javalin.create {
-            it.compression.custom(CompressionStrategy(null, Gzip(2)))
+            it.http.customCompression(CompressionStrategy(null, Gzip(2)))
         }
         assertThat((app.unsafeConfig().pvt.compressionStrategy.compressors.forType(GZIP.typeName) as GzipCompressor).level).isEqualTo(2)
         assertThat(app.unsafeConfig().pvt.compressionStrategy.compressors.forType(BR.typeName)).isNull()
