@@ -27,7 +27,7 @@ class TestConfiguration {
 
     @Test
     fun `all config options`() = TestUtil.runLogLess {
-        val app = Javalin.start {
+        val app = Javalin.createAndStart {
             it.defaultPort = 0
             it.spaRoot.addFile("/", "/public/html.html")
             it.spaRoot.addFile("/", "src/test/resources/public/html.html", Location.EXTERNAL)

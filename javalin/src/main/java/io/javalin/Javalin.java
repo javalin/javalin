@@ -18,7 +18,6 @@ import io.javalin.http.servlet.JavalinServlet;
 import io.javalin.jetty.JavalinJettyServlet;
 import io.javalin.jetty.JettyServer;
 import io.javalin.security.RouteRole;
-import io.javalin.util.Util;
 
 import java.util.function.Consumer;
 
@@ -93,7 +92,7 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      * @see io.javalin.Javalin#create(java.util.function.Consumer)
      * @see Javalin#start()
      */
-    public static Javalin start(Consumer<JavalinConfig> config) {
+    public static Javalin createAndStart(Consumer<JavalinConfig> config) {
         return create(config).start();
     }
 
