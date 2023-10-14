@@ -117,9 +117,9 @@ You can find more examples in the [javalin-samples](https://github.com/javalin/j
 val app = Javalin.create { config ->
     config.http.defaultContentType = "application/json"
     config.http.generateEtags = true
-    config.http.brotliAndGzip()
     config.staticFiles.add("/public")
     config.asyncRequestTimeout = 10_000L
+    config.compression.brotliAndGzip()
     config.routing.caseInsensitiveRoutes = true
 }.routes {
     path("users") {
