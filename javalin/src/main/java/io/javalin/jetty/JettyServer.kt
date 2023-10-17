@@ -159,7 +159,7 @@ class JettyServer(
     }
 
     companion object {
-        fun defaultThreadPool() = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool", 8, 250)
+        fun defaultThreadPool(useVirtualThreads: Boolean) = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool", 8, 250, useVirtualThreads)
 
         fun defaultServer(threadPool: ThreadPool) = Server(threadPool).apply {
             addBean(LowResourceMonitor(this))
