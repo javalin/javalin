@@ -22,8 +22,10 @@ import java.util.stream.Stream
 
 class JavalinJackson(
     private var objectMapper: ObjectMapper? = null,
-    private val pipedStreamExecutor: PipedStreamExecutor = PipedStreamExecutor(false)
+    private val useVirtualThreads: Boolean = false,
 ) : JsonMapper {
+
+    private val pipedStreamExecutor: PipedStreamExecutor by javalinLazy { PipedStreamExecutor(useVirtualThreads) }
 
     val mapper by javalinLazy {
         if (!Util.classExists(CoreDependency.JACKSON.testClass)) {
