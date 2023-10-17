@@ -52,7 +52,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     override fun handle(ctx: Context): Boolean {
         nonSkippedHandlers().forEach { handler ->
             try {
-                val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
+                val target = ctx.target
                 val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
                 if (fileOrWelcomeFile != null) {
                     handler.config.headers.forEach { ctx.header(it.key, it.value) } // set user headers
@@ -81,7 +81,9 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     private fun jettyRequest() = HttpConnection.getCurrentConnection().httpChannel.request as Request
 
-    private fun nonSkippedHandlers() = handlers.filter { !it.config.skipFileFunction(jettyRequest()) }
+    private fun nonSkippedHandlers() =
+        handlers.asSequence().filter { !it.config.skipFileFunction(jettyRequest()) }
+
     private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
 
 }
