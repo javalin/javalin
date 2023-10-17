@@ -9,94 +9,164 @@ import io.javalin.http.servlet.DefaultTasks.ERROR
 import io.javalin.http.servlet.DefaultTasks.HTTP
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
+import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
-import java.util.stream.Stream
 
 class TestBeforeAfterMatched {
 
     @Test
     fun `beforeMatched and afterMatched work`() = TestUtil.test { app, http ->
-        app.before { ctx ->
-            ctx.result("foo")
-        }
-        app.beforeMatched { ctx ->
-            ctx.result("before-matched")
-        }
-        app.get("/hello") { ctx ->
-            ctx.result(ctx.result() + "-hello")
-        }
-        app.afterMatched { ctx ->
-            ctx.result(ctx.result() + "-after-matched")
-        }
-        app.after { ctx ->
-            ctx.result(ctx.result() + "!")
-        }
+        app.before { it.result("foo") }
+        app.beforeMatched { it.result("before-matched") }
+        app.get("/hello") { it.result(it.result() + "-hello") }
+        app.afterMatched { it.result(it.result() + "-after-matched") }
+        app.after { it.result(it.result() + "!") }
 
         assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Not Found!")
         assertThat(http.getBody("/hello")).isEqualTo("before-matched-hello-after-matched!")
     }
 
-    @ParameterizedTest
-    @MethodSource("io.javalin.BeforeAfterTestParams#withPath")
-    fun `beforeMatched with path only runs for specified paths`(
-        path: String,
-        statusCode: Int,
-        body: String?,
-        beforeStar: String?,
-        beforeSubCurly: String?,
+    @Test
+    fun `path - totally different path leads to 404 without global headers`() = TestUtil.test { app, http ->
+        setAppRoutes(app)
+        setHeaders(app)
+
+        val path = "/other"
+        val response = http.get(path)
+        assertResponse(
+            response,
+            path,
+            404,
+            "Not Found",
+            "",
+            "",
+            ""
+        )
+    }
+
+    @Test
+    fun `path - matching sub curly in beforeMatched but no matching http handler leads to 404`() = TestUtil.test { app, http ->
+        setAppRoutes(app)
+        setHeaders(app)
+
+        val path = "/sub/id/fake"
+        val response = http.get(path)
+        assertResponse(
+            response,
+            path,
+            404,
+            "Not Found",
+            "",
+            "",
+            ""
+        )
+    }
+
+    @Test
+    fun `path - matching angle brackets in beforeMatched but no matching http handler leads to 404`() = TestUtil.test { app, http ->
+        setAppRoutes(app)
+        setHeaders(app)
+
+        val path = "/angle/i/see/nothing"
+        val response = http.get(path)
+        assertResponse(
+            response,
+            path,
+            404,
+            "Not Found",
+            "",
+            "",
+            ""
+        )
+    }
+
+    @Test
+    fun `path - perfect match`() = TestUtil.test { app, http ->
+        setAppRoutes(app)
+        setHeaders(app)
+
+        val path = "/root"
+        val response = http.get(path)
+        assertResponse(
+            response,
+            path,
+            200,
+            "root",
+            "true",
+            "",
+            ""
+        )
+    }
+
+    @Test
+    fun `path - sub curly in before matched happy path`() = TestUtil.test { app, http ->
+        setAppRoutes(app)
+        setHeaders(app)
+
+        val path = "/sub/id/other/stuff"
+        val response = http.get(path)
+        assertResponse(
+            response,
+            path,
+            200,
+            "id-other-stuff",
+            "true",
+            "id",
+            ""
+        )
+    }
+
+    @Test
+    fun `path - angle brackets in beforeMatched happy path`() = TestUtil.test { app, http ->
+        setAppRoutes(app)
+        setHeaders(app)
+
+        val path = "/angle/i/see/slashes"
+        val response = http.get(path)
+        assertResponse(
+            response,
+            path,
+            200,
+            "i-see-slashes",
+            "true",
+            "",
+            "i/see/slashes"
+        )
+    }
+
+
+    private fun setAppRoutes(app: Javalin) {
+        app.get("/root") { it.result("root") }
+        app.get("/sub/id/other/stuff") { it.result("id-other-stuff") }
+        app.get("/angle/i/see/slashes") { it.result("i-see-slashes") }
+    }
+
+    private fun setHeaders(app: Javalin) {
+        app.before { it.header("X-Always", "true") }
+        app.beforeMatched { it.header("X-Before-Star", "true") }
+        app.beforeMatched("/sub/{p}*") { it.header("X-Before-Sub-Curly", it.pathParam("p")) }
+        app.beforeMatched("/angle/<a>") { it.header("X-Before-Angle", it.pathParam("a")) }
+        app.afterMatched { it.header("X-After-Star", "true") }
+    }
+
+    private fun assertResponse(
+        res: HttpResponse<String>, path: String,
+        statusCode: Int, body: String?,
+        beforeStar: String?, beforeSubCurly: String?,
         beforeAngle: String?
-    ) = TestUtil.test { app, http ->
-        app.before {
-            it.header("X-Always", "true")
-        }
-
-        app.beforeMatched {
-            it.header("X-Before-Star", "true")
-        }
-
-        app.beforeMatched("/sub/{p}*") {
-            it.header("X-Before-Sub-Curly", it.pathParam("p"))
-        }
-
-        app.beforeMatched("/angle/<a>") {
-            it.header("X-Before-Angle", it.pathParam("a"))
-        }
-
-        app.get("/root") {
-            it.result("root")
-        }
-
-        app.get("/sub/id/other/stuff") {
-            it.result("id-other-stuff")
-        }
-
-        app.get("/angle/i/see/slashes") {
-            it.result("i-see-slashes")
-        }
-
-        app.afterMatched {
-            it.header("X-After-Star", "true")
-        }
-
-        val res = http.get(path)
-        assertThat(res.status).describedAs("$path - status")
-            .isEqualTo(statusCode)
-        assertThat(res.body).describedAs("$path - body")
-            .isEqualTo(body)
-        assertThat(res.headers.getFirst("X-Always")).describedAs("$path - Before")
-            .isEqualTo("true")
-        assertThat(res.headers.getFirst("X-Before-Star")).describedAs("$path - Before-Star")
+    ) {
+        assertThat(res.status).describedAs("$path - status").isEqualTo(statusCode)
+        assertThat(res.body).describedAs("$path - body").isEqualTo(body)
+        assertThat(res.headers.getFirst("X-Always")).describedAs("$path - X-Always").isEqualTo("true")
+        assertThat(res.headers.getFirst("X-Before-Star")).describedAs("$path - X-Before-Star")
             .isEqualTo(beforeStar)
-        assertThat(res.headers.getFirst("X-After-Star")).describedAs("$path - After-Star")
+        assertThat(res.headers.getFirst("X-After-Star")).describedAs("$path - X-After-Star")
             .isEqualTo(beforeStar)
-        assertThat(res.headers.getFirst("X-Before-Sub-Curly")).describedAs("$path - Before-Sub-Curly")
+        assertThat(res.headers.getFirst("X-Before-Sub-Curly")).describedAs("$path - X-Before-Sub-Curly")
             .isEqualTo(beforeSubCurly)
-        assertThat(res.headers.getFirst("X-Before-Angle")).describedAs("$path - Before-Angle")
+        assertThat(res.headers.getFirst("X-Before-Angle")).describedAs("$path - X-Before-Angle")
             .isEqualTo(beforeAngle)
     }
 
@@ -106,9 +176,7 @@ class TestBeforeAfterMatched {
             it.result("static-before")
             it.skipRemainingHandlers()
         }
-        app.get("/hello") {
-            it.result("hello")
-        }
+        app.get("/hello") { it.result("hello") }
         assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Not Found")
         assertThat(http.getBody("/hello")).isEqualTo("static-before")
     }
@@ -119,13 +187,8 @@ class TestBeforeAfterMatched {
             ctx.result(ctx.attribute<String>("before") ?: "n/a")
         }
     }) { app, http ->
-        app.beforeMatched {
-            it.attribute("before", "matched")
-        }
-
-        app.afterMatched {
-            it.result(it.result() + "!")
-        }
+        app.beforeMatched { it.attribute("before", "matched") }
+        app.afterMatched { it.result(it.result() + "!") }
 
         assertThat(http.getBody("/")).isEqualTo("matched!")
         assertThat(http.getBody("/other")).isEqualTo("matched!")
@@ -133,17 +196,9 @@ class TestBeforeAfterMatched {
 
     @Test
     fun `beforeMatched fires for head request on get handler`() = TestUtil.test { app, http ->
-        app.beforeMatched {
-            it.status(HttpStatus.IM_A_TEAPOT)
-        }
-
-        app.get("/hello") {
-            it.result("hello")
-        }
-
-        app.afterMatched {
-            it.result(it.result() + "!")
-        }
+        app.beforeMatched { it.status(HttpStatus.IM_A_TEAPOT) }
+        app.get("/hello") { it.result("hello") }
+        app.afterMatched { it.result(it.result() + "!") }
 
         assertThat(http.call(kong.unirest.HttpMethod.HEAD, "/hello").status).isEqualTo(418)
         assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.IM_A_TEAPOT)
@@ -155,12 +210,8 @@ class TestBeforeAfterMatched {
     fun `beforeMatched runs for ResourceHandler`() = TestUtil.test(Javalin.create { config ->
         config.staticFiles.add("public", Location.CLASSPATH)
     }) { app, http ->
-        app.beforeMatched {
-            it.header("X-Matched-Before", "true")
-        }
-        app.afterMatched {
-            it.header("X-Matched-After", "true")
-        }
+        app.beforeMatched { it.header("X-Matched-Before", "true") }
+        app.afterMatched { it.header("X-Matched-After", "true") }
 
         val res = http.get("/html.html")
         assertThat(res.status).describedAs("status").isEqualTo(HttpStatus.OK.code)
@@ -180,9 +231,7 @@ class TestBeforeAfterMatched {
     }) { app, http ->
         var afterMatchedRan = false
         var afterRan = false
-        app.beforeMatched {
-            it.header("X-Matched-Before", "true")
-        }
+        app.beforeMatched { it.header("X-Matched-Before", "true") }
 
         app.afterMatched {
             it.header("X-Matched-After", "true")
@@ -207,15 +256,13 @@ class TestBeforeAfterMatched {
     }
 
     @Test
-    fun `alias problem does not occur`() = TestUtil.test(Javalin.create{ config ->
+    fun `alias problem does not occur`() = TestUtil.test(Javalin.create { config ->
         config.staticFiles.add {
             it.directory = "public"
             it.location = Location.CLASSPATH
         }
     }) { app, http ->
-        app.afterMatched {
-            it.header("X-After", "true")
-        }
+        app.afterMatched { it.header("X-After", "true") }
 
         val slash = http.get("/file/")
         assertThat(slash.status).isEqualTo(HttpStatus.NOT_FOUND.code)
@@ -227,16 +274,14 @@ class TestBeforeAfterMatched {
     }
 
     @Test
-    fun `alias problem does not occur with alias check`() = TestUtil.test(Javalin.create{ config ->
+    fun `alias problem does not occur with alias check`() = TestUtil.test(Javalin.create { config ->
         config.staticFiles.add {
             it.directory = "public"
             it.location = Location.CLASSPATH
             it.aliasCheck = ContextHandler.AliasCheck { _, _ -> true }
         }
     }) { app, http ->
-        app.afterMatched {
-            it.header("X-After", "true")
-        }
+        app.afterMatched { it.header("X-After", "true") }
 
         val noSlash = http.get("/file")
         assertThat(noSlash.body).isEqualTo("TESTFILE")
@@ -250,82 +295,25 @@ class TestBeforeAfterMatched {
     }
 
     @Test
-    fun `alias problem does not occur when the BEFORE_MATCHED stage is skipped`() = TestUtil.test(Javalin.create{ config ->
-        config.staticFiles.add {
-            it.directory = "public"
-            it.location = Location.CLASSPATH
-            it.aliasCheck = ContextHandler.AliasCheck { _, _ -> true }
+    fun `alias problem does not occur when the BEFORE_MATCHED stage is skipped`() =
+        TestUtil.test(Javalin.create { config ->
+            config.staticFiles.add {
+                it.directory = "public"
+                it.location = Location.CLASSPATH
+                it.aliasCheck = ContextHandler.AliasCheck { _, _ -> true }
+            }
+            config.pvt.servletRequestLifecycle = listOf(BEFORE, HTTP, AFTER_MATCHED, ERROR, AFTER)
+        }) { app, http ->
+            app.afterMatched { it.header("X-After", "true") }
+
+            val noSlash = http.get("/file")
+            assertThat(noSlash.body).isEqualTo("TESTFILE")
+            assertThat(noSlash.status).isEqualTo(HttpStatus.OK.code)
+            assertThat(noSlash.headers.getFirst("X-After")).isEqualTo("true")
+
+            val slash = http.get("/file/")
+            assertThat(slash.body).isEqualTo("TESTFILE")
+            assertThat(slash.status).isEqualTo(HttpStatus.OK.code)
+            assertThat(slash.headers.getFirst("X-After")).isEqualTo("true")
         }
-        config.pvt.servletRequestLifecycle = listOf(BEFORE, HTTP, AFTER_MATCHED, ERROR, AFTER)
-    }) { app, http ->
-        app.afterMatched {
-            it.header("X-After", "true")
-        }
-
-        val noSlash = http.get("/file")
-        assertThat(noSlash.body).isEqualTo("TESTFILE")
-        assertThat(noSlash.status).isEqualTo(HttpStatus.OK.code)
-        assertThat(noSlash.headers.getFirst("X-After")).isEqualTo("true")
-
-        val slash = http.get("/file/")
-        assertThat(slash.body).isEqualTo("TESTFILE")
-        assertThat(slash.status).isEqualTo(HttpStatus.OK.code)
-        assertThat(slash.headers.getFirst("X-After")).isEqualTo("true")
-    }
-}
-
-@Suppress("unused") // used a test method
-internal object BeforeAfterTestParams {
-    @JvmStatic
-    fun withPath(): Stream<Arguments> = Stream.of(
-        Arguments.of(
-            "/other",
-            404,
-            "Not Found",
-            "",
-            "",
-            "",
-        ),
-        Arguments.of(
-            "/sub/id/fake",
-            404,
-            "Not Found",
-            "",
-            "",
-            ""
-        ),
-        Arguments.of(
-            "/angle/i/see/nothing",
-            404,
-            "Not Found",
-            "",
-            "",
-            ""
-        ),
-        // happy paths
-        Arguments.of(
-            "/root",
-            200,
-            "root",
-            "true",
-            "",
-            "",
-        ),
-        Arguments.of(
-            "/sub/id/other/stuff",
-            200,
-            "id-other-stuff",
-            "true",
-            "id",
-            "",
-        ),
-        Arguments.of(
-            "/angle/i/see/slashes",
-            200,
-            "i-see-slashes",
-            "true",
-            "",
-            "i/see/slashes",
-        ),
-    )
 }
