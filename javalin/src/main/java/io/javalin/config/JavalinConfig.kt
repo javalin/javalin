@@ -26,12 +26,11 @@ import java.util.function.Consumer
 // `cfg.pvt` should be accessible, but usage should be discouraged (hence the naming)
 class JavalinConfig {
     //@formatter:off
-    @JvmField val http = HttpConfig()
+    @JvmField val http = HttpConfig(this)
     @JvmField val router = RouterConfig(this)
     @JvmField val jetty = JettyConfig(this)
     @JvmField val staticFiles = StaticFilesConfig(this)
     @JvmField val spaRoot = SpaRootConfig(this)
-    @JvmField val compression = CompressionConfig(this)
     @JvmField val requestLogger = RequestLoggerConfig(this)
     @JvmField val bundledPlugins = BundledPluginsConfig(this)
     @JvmField val events = EventConfig(this)
