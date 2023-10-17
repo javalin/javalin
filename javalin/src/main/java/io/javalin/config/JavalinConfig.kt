@@ -5,11 +5,13 @@
  */
 package io.javalin.config
 
-import io.javalin.Javalin
 import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
+import io.javalin.http.util.AsyncExecutor
+import io.javalin.http.util.AsyncExecutor.Companion.ASYNC_EXECUTOR_KEY
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
+import io.javalin.json.PipedStreamExecutor
 import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
@@ -36,6 +38,7 @@ class JavalinConfig {
     @JvmField val events = EventConfig(this)
     @JvmField val vue = JavalinVueConfig()
     @JvmField val contextResolver = ContextResolverConfig()
+    @JvmField var useVirtualThreads = false
     @JvmField var showJavalinBanner = true
     /**
      * This is "private", only use it if you know what you're doing
@@ -54,7 +57,8 @@ class JavalinConfig {
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
             cfg.pvt.pluginManager.startPlugins()
-            cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson() }
+            cfg.pvt.appAttributes[ASYNC_EXECUTOR_KEY] = AsyncExecutor(cfg.useVirtualThreads)
+            cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson(null, PipedStreamExecutor(cfg.useVirtualThreads)) }
             cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
             cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }
             cfg.pvt.appAttributes.computeIfAbsent(MAX_REQUEST_SIZE_KEY) { cfg.http.maxRequestSize }

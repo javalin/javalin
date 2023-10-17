@@ -20,7 +20,10 @@ import java.lang.reflect.Type
 import java.util.function.Consumer
 import java.util.stream.Stream
 
-class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
+class JavalinJackson(
+    private var objectMapper: ObjectMapper? = null,
+    private val pipedStreamExecutor: PipedStreamExecutor = PipedStreamExecutor(false)
+) : JsonMapper {
 
     val mapper by javalinLazy {
         if (!Util.classExists(CoreDependency.JACKSON.testClass)) {
@@ -46,7 +49,7 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
 
     override fun toJsonStream(obj: Any, type: Type): InputStream = when (obj) {
         is String -> obj.byteInputStream() // the default mapper treats strings as if they are already JSON
-        else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
+        else -> pipedStreamExecutor.getInputStream { pipedOutputStream ->
             mapper.factory.createGenerator(pipedOutputStream).writeObject(obj)
         }
     }

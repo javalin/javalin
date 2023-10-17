@@ -17,7 +17,7 @@ class JettyConfig(private val cfg: JavalinConfig) {
     @JvmField var defaultHost: String? = null
     @JvmField var defaultPort = 8080
     @JvmField val multipartConfig = MultipartConfig()
-    @JvmField var threadPool: ThreadPool = JettyServer.defaultThreadPool()
+    @JvmField var threadPool: ThreadPool = JettyServer.defaultThreadPool(cfg.useVirtualThreads)
     //@formatter:on
 
     var serverConsumers: MutableList<Consumer<Server>> = mutableListOf()

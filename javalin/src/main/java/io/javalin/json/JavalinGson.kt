@@ -14,7 +14,10 @@ import java.io.OutputStreamWriter
 import java.lang.reflect.Type
 import java.util.stream.Stream
 
-open class JavalinGson(private val gson: Gson = Gson()) : JsonMapper {
+open class JavalinGson(
+    private val gson: Gson = Gson(),
+    private val pipedStreamExecutor: PipedStreamExecutor = PipedStreamExecutor(false)
+) : JsonMapper {
 
     init {
         if (!Util.classExists(CoreDependency.GSON.testClass)) {
@@ -36,7 +39,7 @@ open class JavalinGson(private val gson: Gson = Gson()) : JsonMapper {
 
     override fun toJsonStream(obj: Any, type: Type): InputStream = when (obj) {
         is String -> obj.byteInputStream()
-        else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
+        else -> pipedStreamExecutor.getInputStream { pipedOutputStream ->
             BufferedWriter(OutputStreamWriter(pipedOutputStream)).use { bufferedWriter ->
                 gson.toJson(obj, type, bufferedWriter)
             }
