@@ -12,7 +12,6 @@ import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.AFTER
-import io.javalin.http.HandlerType.WEBSOCKET_BEFORE_UPGRADE
 import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
@@ -144,9 +143,6 @@ class JavalinServletContext(
 
     override fun skipRemainingHandlers(): Context = also {
         tasks.clear()
-        if (handlerType() == WEBSOCKET_BEFORE_UPGRADE) {
-            throw EndOfLifecycleException()
-        }
     }
 
     override fun writeJsonStream(stream: Stream<*>) {
@@ -237,5 +233,3 @@ fun readAndResetStreamIfPossible(stream: InputStream?, charset: Charset) = try {
 } catch (e: Exception) {
     "resultString unavailable (resultStream couldn't be reset)"
 }
-
-class EndOfLifecycleException : RuntimeException("Lifecycle has been ended early")

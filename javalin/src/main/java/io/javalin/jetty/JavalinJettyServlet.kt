@@ -12,10 +12,10 @@ import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
-import io.javalin.http.servlet.EndOfLifecycleException
 import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.JavalinServletContextConfig
+import io.javalin.http.servlet.Task
 import io.javalin.security.accessManagerNotConfiguredException
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
@@ -70,19 +70,25 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
             pathParamMap = entry.extractPathParams(requestUri),
         )
         if (!allowedByAccessManager(entry, upgradeContext)) return res.sendError(HttpStatus.UNAUTHORIZED.code, HttpStatus.UNAUTHORIZED.message)
-        val beforeUpgradeHandlers = cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_BEFORE_UPGRADE, requestUri)
-        val afterUpgradeHandlers = cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
-
         req.setAttribute(upgradeContextKey, upgradeContext)
         setWsProtocolHeader(req, res)
+        // add before handlers
+        cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_BEFORE_UPGRADE, requestUri)
+            .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
+        // add actual upgrade handler
+        upgradeContext.tasks.offer(Task { super.service(req, res) })
+        // add after handlers
+        cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
+            .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
 
-        try {
-            beforeUpgradeHandlers.forEach { it.handle(upgradeContext, requestUri) }
-            super.service(req, res) // everything is okay, perform websocket upgrade
-            afterUpgradeHandlers.forEach { it.handle(upgradeContext, requestUri) }
-        } catch (e: Exception) {
-            if (e is EndOfLifecycleException) return
-            cfg.pvt.internalRouter.handleHttpException(upgradeContext, e)
+        while (upgradeContext.tasks.isNotEmpty()) {
+            try {
+                val task = upgradeContext.tasks.poll()
+                task.handler.handle()
+            } catch (e: Exception) {
+                cfg.pvt.internalRouter.handleHttpException(upgradeContext, e)
+                break
+            }
         }
     }
 
