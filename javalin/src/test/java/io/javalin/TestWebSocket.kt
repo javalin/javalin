@@ -679,9 +679,7 @@ class TestWebSocket {
 
     @Test
     fun `wsBeforeUpgrade does work with skipRemainingHandlers`() = TestUtil.test { app, _ ->
-        app.wsBeforeUpgrade {
-            it.skipRemainingHandlers()
-        }
+        app.wsBeforeUpgrade { it.status(HttpStatus.FORBIDDEN).skipRemainingHandlers() }
 
         app.ws("/ws") { ws ->
             ws.onConnect {
@@ -694,8 +692,7 @@ class TestWebSocket {
         val response = Unirest.get("http://localhost:${app.port()}/ws")
             .header(Header.SEC_WEBSOCKET_KEY, "not-null")
             .asString()
-        // this is kinda weird!
-        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN.code)
         assertThat(app.logger().log).isEmpty()
     }
 
