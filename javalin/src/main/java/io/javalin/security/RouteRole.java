@@ -6,10 +6,11 @@
 
 package io.javalin.security;
 
+import io.javalin.http.Context;
+
 /**
- * Marker interface for roles used in {@link AccessManager}.
- *
- * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
+ * Marker interface for roles used in route declarations.
+ * See {@link Context#routeRoles()}.
  */
 public interface RouteRole {
 }

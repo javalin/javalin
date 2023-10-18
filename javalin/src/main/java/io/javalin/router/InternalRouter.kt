@@ -34,10 +34,8 @@ open class InternalRouter(
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
-     * Requires an access manager to be set on the instance.
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     open fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): InternalRouter {
         val roleSet = HashSet(roles.asList())
@@ -121,7 +119,6 @@ open class InternalRouter(
 
     /**
      * Adds a specific WebSocket handler for the given path to the instance.
-     * Requires an access manager to be set on the instance.
      */
     open fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, vararg roles: RouteRole): InternalRouter {
         val roleSet = HashSet(roles.asList())

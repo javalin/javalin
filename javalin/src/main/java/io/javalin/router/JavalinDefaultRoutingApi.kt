@@ -96,10 +96,8 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
-     * Requires an access manager to be set on the instance.
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API
 
@@ -154,57 +152,43 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
 
     /**
      * Adds a GET request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     operator fun get(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(GET, path, handler, *roles)
 
     /**
      * Adds a POST request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun post(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(POST, path, handler, *roles)
 
     /**
      * Adds a PUT request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun put(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(PUT, path, handler, *roles)
 
     /**
      * Adds a PATCH request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun patch(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(PATCH, path, handler, *roles)
 
     /**
      * Adds a DELETE request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun delete(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(DELETE, path, handler, *roles)
 
     /**
      * Adds a HEAD request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun head(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HEAD, path, handler, *roles)
 
     /**
      * Adds a OPTIONS request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun options(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(OPTIONS, path, handler, *roles)
 
@@ -220,7 +204,6 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
-     * Requires an access manager to be set on the instance.
      */
     fun sse(path: String, client: Consumer<SseClient>, vararg roles: RouteRole): API = get(path, SseHandler(clientConsumer = client), *roles)
 
@@ -292,9 +275,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
 
     /**
      * Adds a WebSocket handler on the specified path with the specified roles.
-     * Requires an access manager to be set on the instance.
      * See: [WebSockets in docs](https://javalin.io/documentation.websockets)
-     * @see io.javalin.security.AccessManager
      */
     fun ws(path: String, ws: Consumer<WsConfig>, vararg roles: RouteRole): API = addWsHandler(WEBSOCKET, path, ws, *roles)
 
