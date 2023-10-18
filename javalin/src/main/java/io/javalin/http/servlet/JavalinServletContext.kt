@@ -141,7 +141,9 @@ class JavalinServletContext(
         userFutureSupplier = future
     }
 
-    override fun skipRemainingHandlers(): Context = also { tasks.clear() }
+    override fun skipRemainingHandlers(): Context = also {
+        tasks.clear()
+    }
 
     override fun writeJsonStream(stream: Stream<*>) {
         minSizeForCompression = 0

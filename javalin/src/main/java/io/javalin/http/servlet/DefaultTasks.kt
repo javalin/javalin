@@ -1,6 +1,5 @@
 package io.javalin.http.servlet
 
-import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
@@ -10,15 +9,36 @@ import io.javalin.http.servlet.SubmitOrder.FIRST
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.security.accessManagerNotConfiguredException
-import jakarta.servlet.ServletOutputStream
 import io.javalin.util.Util.firstOrNull
-import jakarta.servlet.http.HttpServletResponseWrapper
 
 object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        servlet.cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
+        servlet.router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
             submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+        }
+    }
+
+    val BEFORE_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
+        val willMatch = willMatch(servlet, ctx, requestUri)
+        servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
+            if (willMatch) {
+                submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+            }
+        }
+    }
+
+    private fun willMatch(
+        servlet: JavalinServlet,
+        ctx: JavalinServletContext,
+        requestUri: String
+    ): Boolean {
+        return when {
+            ctx.method() == HEAD && servlet.router.hasHttpHandlerEntry(GET, requestUri) -> true
+            servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() != null -> true
+            servlet.cfg.pvt.resourceHandler?.canHandle(ctx) == true -> true
+            servlet.cfg.pvt.singlePageHandler.canHandle(ctx) -> true
+            else -> false
         }
     }
 
@@ -35,7 +55,7 @@ object DefaultTasks {
                                 handler = { submitTask(FIRST, Task { entry.handle(ctx, requestUri) }) }, // we wrap the handler with [submitTask] to treat it as a separate task
                                 ctx = ctx,
                                 routeRoles = entry.roles
-                            )
+                           )
                         }
                         else -> entry.handle(ctx, requestUri)
                     }
@@ -60,6 +80,15 @@ object DefaultTasks {
             }
             throw NotFoundResponse()
         })
+    }
+
+    val AFTER_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
+        val willMatch = willMatch(servlet, ctx, requestUri)
+        servlet.router.findHttpHandlerEntries(HandlerType.AFTER_MATCHED, requestUri).forEach { entry ->
+            if (willMatch) {
+                submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
+            }
+        }
     }
 
     val ERROR = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, _ ->

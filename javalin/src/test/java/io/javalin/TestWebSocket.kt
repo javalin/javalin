@@ -9,6 +9,7 @@ package io.javalin
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.json.toJsonString
 import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLogging
@@ -602,6 +603,120 @@ class TestWebSocket {
         assertThat(app.logger().log.size).isEqualTo(0) // no pings sent during sleep after disabling pings
         client.disconnectBlocking()
     }
+
+    @Test
+    fun `wsBeforeUpgrade and wsAfterUpgrade are invoked`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade {
+            app.logger().log.add("before")
+        }
+
+        app.wsAfterUpgrade {
+            app.logger().log.add("after")
+        }
+
+        app.ws("/ws") {}
+        Unirest.get("http://localhost:${app.port()}/ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .asString()
+        assertThat(app.logger().log).containsExactly("before", "after")
+    }
+
+    @Test
+    fun `wsBeforeUpgrade can modify the upgrade request but wsAfterUpgrade can not`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade { ctx ->
+            ctx.header("X-Before", "demo")
+        }
+        app.wsAfterUpgrade { ctx ->
+            ctx.header("X-After", "after")
+        }
+
+        app.ws("/ws") {}
+        val response = Unirest.get("http://localhost:${app.port()}/ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .asString()
+        assertThat(response.headers.getFirst("X-Before")).isEqualTo("demo")
+        assertThat(response.headers.containsKey("X-After")).isFalse()
+    }
+
+    @Test
+    fun `wsBeforeUpgrade can stop an upgrade request in progress`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade { _ ->
+            throw IllegalStateException("denied")
+        }
+
+        app.ws("/ws") { ws ->
+            ws.onConnect {
+                app.logger().log.add("connected")
+            }
+        }
+
+        val response = Unirest.get("http://localhost:${app.port()}/ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .asString()
+        assertThat(response.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
+        assertThat(app.logger().log).isEmpty()
+    }
+
+    @Test
+    fun `wsBeforeUpgrade exception pattern can be combined with a custom exception handler`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade {
+            throw IllegalStateException("denied")
+        }
+
+        app.exception(IllegalStateException::class.java) { _, ctx ->
+            app.logger().log.add("exception handled")
+            ctx.status(HttpStatus.FORBIDDEN)
+        }
+
+        app.ws("/ws") {}
+
+        val response = Unirest.get("http://localhost:${app.port()}/ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .asString()
+        assertThat(app.logger().log).containsExactly("exception handled")
+        assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN.code)
+    }
+
+    @Test
+    fun `wsBeforeUpgrade does work with skipRemainingHandlers`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade { it.status(HttpStatus.FORBIDDEN).skipRemainingHandlers() }
+
+        app.ws("/ws") { ws ->
+            ws.onConnect {
+                app.logger().log.add("connected")
+            }
+        }
+
+        val client = TestClient(app, "/ws")
+        client.connectAndDisconnect()
+        val response = Unirest.get("http://localhost:${app.port()}/ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .asString()
+        assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN.code)
+        assertThat(app.logger().log).isEmpty()
+    }
+
+    @Test
+    fun `wsBeforeUpgrade in full lifecycle`() = TestUtil.test { app, _ ->
+        app.wsBeforeUpgrade {
+            app.logger().log.add("before-upgrade")
+        }
+
+        app.wsAfterUpgrade {
+            app.logger().log.add("after-upgrade")
+        }
+
+        app.ws("/ws") { ws ->
+            ws.onConnect { app.logger().log.add("connect") }
+            ws.onMessage { app.logger().log.add("msg") }
+            ws.onClose { app.logger().log.add("close") }
+        }
+
+        val client = TestClient(app, "/ws")
+        client.connectSendAndDisconnect("test-message")
+        assertThat(app.logger().log).containsExactly("before-upgrade", "after-upgrade", "connect", "msg", "close")
+    }
+
 
     // ********************************************************************************************
     // Helpers

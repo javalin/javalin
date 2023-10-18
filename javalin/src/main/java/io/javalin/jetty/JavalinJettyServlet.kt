@@ -9,11 +9,13 @@ package io.javalin.jetty
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.JavalinServletContextConfig
+import io.javalin.http.servlet.Task
 import io.javalin.security.accessManagerNotConfiguredException
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
@@ -70,7 +72,24 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
         if (!allowedByAccessManager(entry, upgradeContext)) return res.sendError(HttpStatus.UNAUTHORIZED.code, HttpStatus.UNAUTHORIZED.message)
         req.setAttribute(upgradeContextKey, upgradeContext)
         setWsProtocolHeader(req, res)
-        super.service(req, res) // everything is okay, perform websocket upgrade
+        // add before handlers
+        cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_BEFORE_UPGRADE, requestUri)
+            .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
+        // add actual upgrade handler
+        upgradeContext.tasks.offer(Task { super.service(req, res) })
+        // add after handlers
+        cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
+            .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
+
+        while (upgradeContext.tasks.isNotEmpty()) {
+            try {
+                val task = upgradeContext.tasks.poll()
+                task.handler.handle()
+            } catch (e: Exception) {
+                cfg.pvt.internalRouter.handleHttpException(upgradeContext, e)
+                break
+            }
+        }
     }
 
     private val setUpgradeAllowed = Handler { it.attribute("javalin-ws-upgrade-allowed", true) }
