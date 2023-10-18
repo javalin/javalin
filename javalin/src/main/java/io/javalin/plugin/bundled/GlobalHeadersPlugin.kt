@@ -29,7 +29,7 @@ class GlobalHeadersPlugin(config: Consumer<GlobalHeaderConfig> = Consumer {}) : 
     private val globalHeaderConfig = GlobalHeaderConfig().apply { config.accept(this) }
 
     override fun onStart(config: JavalinConfig) {
-        config.router.mount(Default) {
+        config.router.mount {
             it.before { ctx ->
                 globalHeaderConfig.headers.forEach { (name, value) ->
                     ctx.header(name, value)

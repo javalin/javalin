@@ -19,7 +19,6 @@ import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO;
 import static io.javalin.http.HttpStatus.OK;
-import static io.javalin.http.HttpStatus.UNAUTHORIZED;
 
 public class HelloWorldAuth {
 
@@ -29,7 +28,7 @@ public class HelloWorldAuth {
 
     public static void main(String[] args) {
         Javalin.create(config -> {
-            config.router.mountDefault(router -> {
+            config.router.mount(router -> {
                 router.beforeMatched(ctx -> {
                     Set<RouteRole> routeRoles = ctx.routeRoles();
                     String userRole = ctx.queryParam("role");

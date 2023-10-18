@@ -28,7 +28,7 @@ class TestAccessManager {
     enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private fun managedApp(cfg: ((JavalinConfig) -> Unit)? = null) = Javalin.create { config ->
-        config.router.mountDefault {
+        config.router.mount {
             it.beforeMatched { ctx ->
                 val role: RouteRole? = ctx.queryParam("role")?.let { MyRoles.valueOf(it) }
                 val routeRoles = ctx.routeRoles()

@@ -29,7 +29,7 @@ class RouterConfig(internal val cfg: JavalinConfig) {
         initializer.initialize(cfg, cfg.pvt.internalRouter, setup)
     }
 
-    fun mountDefault(setup: Consumer<JavalinDefaultRouting>) = mount(Default, setup)
+    fun mount(setup: Consumer<JavalinDefaultRouting>) = mount(Default, setup)
 
     fun apiBuilder(endpoints: EndpointGroup): RouterConfig {
         val apiBuilderInitializer = { cfg: JavalinConfig, internalRouter: InternalRouter, setup: Consumer<Void?> ->

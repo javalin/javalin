@@ -33,7 +33,7 @@ class RouteOverviewPlugin(config: Consumer<RouteOverviewPluginConfig> = Consumer
     private val pluginConfig = config.createUserConfig(RouteOverviewPluginConfig())
 
     override fun onStart(config: JavalinConfig) {
-        config.router.mount(Default) {
+        config.router.mount {
             it.get(pluginConfig.path, { ctx -> handle(ctx, config.pvt.internalRouter) }, *pluginConfig.roles)
         }
     }

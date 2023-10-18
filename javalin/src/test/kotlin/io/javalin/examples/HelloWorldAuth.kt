@@ -22,7 +22,7 @@ enum class MyRole : RouteRole {
 
 fun main() {
     Javalin.create { cfg ->
-        cfg.router.mountDefault {
+        cfg.router.mount {
             it.beforeMatched { ctx ->
                 val userRole = ctx.queryParam("role")?.let { MyRole.valueOf(it) } ?: throw UnauthorizedResponse()
                 val routeRoles = ctx.routeRoles()
