@@ -25,6 +25,7 @@ import io.javalin.http.util.SeekableWriter
 import io.javalin.json.jsonMapper
 import io.javalin.rendering.fileRenderer
 import io.javalin.security.BasicAuthCredentials
+import io.javalin.security.RouteRole
 import io.javalin.util.function.ThrowingRunnable
 import io.javalin.validation.BodyValidator
 import io.javalin.validation.Validator
@@ -467,6 +468,8 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     fun skipRemainingHandlers(): Context
+
+    fun routeRoles(): Set<RouteRole>
 
 }
 

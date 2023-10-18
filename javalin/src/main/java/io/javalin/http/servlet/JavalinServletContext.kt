@@ -18,6 +18,7 @@ import io.javalin.http.HttpStatus
 import io.javalin.json.jsonMapper
 import io.javalin.router.HttpHandlerEntry
 import io.javalin.security.BasicAuthCredentials
+import io.javalin.security.RouteRole
 import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
 import jakarta.servlet.ServletOutputStream
@@ -50,6 +51,7 @@ class JavalinServletContext(
     private val res: HttpServletResponse,
     private val startTimeNanos: Long? = if (cfg.requestLoggerEnabled) System.nanoTime() else null,
     private var handlerType: HandlerType = HandlerType.BEFORE,
+    private var routeRoles: Set<RouteRole> = emptySet(),
     private var matchedPath: String = "",
     private var pathParamMap: Map<String, String> = emptyMap(),
     internal var endpointHandlerPath: String = "",
@@ -143,6 +145,11 @@ class JavalinServletContext(
 
     override fun skipRemainingHandlers(): Context = also {
         tasks.clear()
+    }
+
+    override fun routeRoles() = routeRoles
+    internal fun setRouteRoles(routeRoles: Set<RouteRole>) {
+        this.routeRoles = routeRoles
     }
 
     override fun writeJsonStream(stream: Stream<*>) {

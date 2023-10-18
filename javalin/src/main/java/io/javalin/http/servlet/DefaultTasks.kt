@@ -5,10 +5,9 @@ import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.MethodNotAllowedResponse
 import io.javalin.http.NotFoundResponse
-import io.javalin.http.servlet.SubmitOrder.FIRST
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
-import io.javalin.security.accessManagerNotConfiguredException
+import io.javalin.security.RouteRole
 import io.javalin.util.Util.firstOrNull
 
 object DefaultTasks {
@@ -21,6 +20,7 @@ object DefaultTasks {
 
     val BEFORE_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         val willMatch = willMatch(servlet, ctx, requestUri)
+        ctx.setRouteRoles(matchedRoles(servlet, ctx, requestUri))
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
                 submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
@@ -42,24 +42,14 @@ object DefaultTasks {
         }
     }
 
+    private fun matchedRoles(servlet: JavalinServlet, ctx: JavalinServletContext, requestUri: String): Set<RouteRole> =
+        servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()?.roles ?: emptySet()
+
     val HTTP = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull { entry ->
             submitTask(
                 LAST,
-                Task {
-                    when {
-                        entry.roles.isNotEmpty() && servlet.cfg.pvt.accessManager == null -> throw accessManagerNotConfiguredException()
-                        entry.roles.isNotEmpty() && servlet.cfg.pvt.accessManager != null -> {
-                            ctx.update(entry, requestUri)
-                            servlet.cfg.pvt.accessManager?.manage(
-                                handler = { submitTask(FIRST, Task { entry.handle(ctx, requestUri) }) }, // we wrap the handler with [submitTask] to treat it as a separate task
-                                ctx = ctx,
-                                routeRoles = entry.roles
-                           )
-                        }
-                        else -> entry.handle(ctx, requestUri)
-                    }
-                }
+                Task { entry.handle(ctx, requestUri) }
             )
             return@TaskInitializer
         }

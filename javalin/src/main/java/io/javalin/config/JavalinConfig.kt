@@ -11,14 +11,12 @@ import io.javalin.http.util.AsyncExecutor.Companion.ASYNC_EXECUTOR_KEY
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
-import io.javalin.json.PipedStreamExecutor
 import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.rendering.FILE_RENDERER_KEY
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.NotImplementedRenderer
-import io.javalin.security.AccessManager
 import io.javalin.validation.JavalinValidation.addValidationExceptionMapper
 import io.javalin.vue.JAVALINVUE_CONFIG_KEY
 import io.javalin.vue.JavalinVueConfig
@@ -46,7 +44,6 @@ class JavalinConfig {
     @JvmField val pvt = PrivateConfig(this)
 
     fun events(listener:Consumer<EventConfig>) { listener.accept(this.events) }
-    fun accessManager(accessManager: AccessManager) { pvt.accessManager = accessManager }
     fun jsonMapper(jsonMapper: JsonMapper) { pvt.appAttributes[JSON_MAPPER_KEY] = jsonMapper }
     fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[FILE_RENDERER_KEY] = fileRenderer }
     //@formatter:on

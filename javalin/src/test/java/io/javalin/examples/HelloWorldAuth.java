@@ -8,7 +8,10 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
+import io.javalin.http.UnauthorizedResponse;
 import io.javalin.security.RouteRole;
+
+import java.util.Set;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
@@ -26,13 +29,14 @@ public class HelloWorldAuth {
 
     public static void main(String[] args) {
         Javalin.create(config -> {
-            config.accessManager((handler, ctx, routeRoles) -> {
-                String userRole = ctx.queryParam("role");
-                if (userRole != null && routeRoles.contains(MyRoles.valueOf(userRole))) {
-                    handler.handle(ctx);
-                } else {
-                    ctx.status(UNAUTHORIZED).result("Unauthorized");
-                }
+            config.router.mountDefault(router -> {
+                router.beforeMatched(ctx -> {
+                    Set<RouteRole> routeRoles = ctx.routeRoles();
+                    String userRole = ctx.queryParam("role");
+                    if (userRole == null || !routeRoles.contains(MyRoles.valueOf(userRole))) {
+                        throw new UnauthorizedResponse();
+                    }
+                });
             });
             config.router.apiBuilder(() -> {
                 get("/hello", ctx -> ctx.result("Hello World 1"), ROLE_ONE);
