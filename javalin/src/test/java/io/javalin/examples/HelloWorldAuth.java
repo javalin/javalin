@@ -15,14 +15,14 @@ import java.util.Set;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
-import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE;
-import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE;
-import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO;
+import static io.javalin.examples.HelloWorldAuth.JRole.ROLE_ONE;
+import static io.javalin.examples.HelloWorldAuth.JRole.ROLE_THREE;
+import static io.javalin.examples.HelloWorldAuth.JRole.ROLE_TWO;
 import static io.javalin.http.HttpStatus.OK;
 
 public class HelloWorldAuth {
 
-    enum MyRoles implements RouteRole {
+    enum JRole implements RouteRole {
         ROLE_ONE, ROLE_TWO, ROLE_THREE
     }
 
@@ -32,7 +32,7 @@ public class HelloWorldAuth {
                 router.beforeMatched(ctx -> {
                     Set<RouteRole> routeRoles = ctx.routeRoles();
                     String userRole = ctx.queryParam("role");
-                    if (userRole == null || !routeRoles.contains(MyRoles.valueOf(userRole))) {
+                    if (userRole == null || !routeRoles.contains(JRole.valueOf(userRole))) {
                         throw new UnauthorizedResponse();
                     }
                 });

@@ -9,14 +9,14 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
-import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE
-import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE
-import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO
+import io.javalin.examples.KRole.ROLE_ONE
+import io.javalin.examples.KRole.ROLE_THREE
+import io.javalin.examples.KRole.ROLE_TWO
 import io.javalin.http.HttpStatus
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.security.RouteRole
 
-enum class MyRole : RouteRole {
+enum class KRole : RouteRole {
     ROLE_ONE, ROLE_TWO, ROLE_THREE
 }
 
@@ -24,7 +24,7 @@ fun main() {
     Javalin.create { cfg ->
         cfg.router.mount {
             it.beforeMatched { ctx ->
-                val userRole = ctx.queryParam("role")?.let { MyRole.valueOf(it) } ?: throw UnauthorizedResponse()
+                val userRole = ctx.queryParam("role")?.let { KRole.valueOf(it) } ?: throw UnauthorizedResponse()
                 val routeRoles = ctx.routeRoles()
                 if (userRole !in routeRoles) {
                     throw UnauthorizedResponse()
