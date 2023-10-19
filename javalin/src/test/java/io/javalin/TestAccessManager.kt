@@ -7,8 +7,8 @@
 
 package io.javalin
 
-import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
-import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
+import io.javalin.TestAccessManager.MyRole.ROLE_ONE
+import io.javalin.TestAccessManager.MyRole.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.config.JavalinConfig
@@ -25,12 +25,12 @@ class TestAccessManager {
     // the AccessManager interface has been removed, but we are keeping
     // the test to make sure the functionality is still supported.
 
-    enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
+    enum class MyRole : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private fun managedApp(cfg: ((JavalinConfig) -> Unit)? = null) = Javalin.create { config ->
         config.router.mount {
             it.beforeMatched { ctx ->
-                val role: RouteRole? = ctx.queryParam("role")?.let { MyRoles.valueOf(it) }
+                val role: RouteRole? = ctx.queryParam("role")?.let { MyRole.valueOf(it) }
                 val routeRoles = ctx.routeRoles()
                 if (role !in routeRoles) {
                     throw UnauthorizedResponse()
