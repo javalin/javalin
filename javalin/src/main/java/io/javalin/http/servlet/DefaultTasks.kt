@@ -21,8 +21,8 @@ object DefaultTasks {
 
     val BEFORE_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         val willMatch by javalinLazy {
-            ctx.setRouteRoles(matchedRoles(servlet, ctx, requestUri)) // set roles for the matched handler
-            willMatch(servlet, ctx, requestUri)
+            ctx.setRouteRoles(servlet.matchedRoles(ctx, requestUri)) // set roles for the matched handler
+            servlet.willMatch(ctx, requestUri)
         }
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
@@ -36,7 +36,7 @@ object DefaultTasks {
             submitTask(
                 LAST,
                 Task {
-                    ctx.setRouteRoles(matchedRoles(servlet, ctx, requestUri)) // set roles for the matched handler
+                    ctx.setRouteRoles(servlet.matchedRoles(ctx, requestUri)) // set roles for the matched handler
                     entry.handle(ctx, requestUri)
                 }
             )
@@ -62,9 +62,9 @@ object DefaultTasks {
     }
 
     val AFTER_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        val willMatch by javalinLazy { willMatch(servlet, ctx, requestUri) }
+        val didMatch by javalinLazy { servlet.willMatch(ctx, requestUri) }
         servlet.router.findHttpHandlerEntries(HandlerType.AFTER_MATCHED, requestUri).forEach { entry ->
-            if (willMatch) {
+            if (didMatch) {
                 submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
             }
         }
@@ -80,21 +80,15 @@ object DefaultTasks {
         }
     }
 
-    private fun willMatch(
-        servlet: JavalinServlet,
-        ctx: JavalinServletContext,
-        requestUri: String
-    ): Boolean {
-        return when {
-            ctx.method() == HEAD && servlet.router.hasHttpHandlerEntry(GET, requestUri) -> true
-            servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() != null -> true
-            servlet.cfg.pvt.resourceHandler?.canHandle(ctx) == true -> true
-            servlet.cfg.pvt.singlePageHandler.canHandle(ctx) -> true
-            else -> false
-        }
+    private fun JavalinServlet.willMatch(ctx: JavalinServletContext, requestUri: String) = when {
+        ctx.method() == HEAD && this.router.hasHttpHandlerEntry(GET, requestUri) -> true
+        this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() != null -> true
+        this.cfg.pvt.resourceHandler?.canHandle(ctx) == true -> true
+        this.cfg.pvt.singlePageHandler.canHandle(ctx) -> true
+        else -> false
     }
 
-    private fun matchedRoles(servlet: JavalinServlet, ctx: JavalinServletContext, requestUri: String): Set<RouteRole> =
-        servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()?.roles ?: emptySet()
+    private fun JavalinServlet.matchedRoles(ctx: JavalinServletContext, requestUri: String): Set<RouteRole> =
+        this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()?.roles ?: emptySet()
 
 }
