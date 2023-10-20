@@ -13,7 +13,6 @@ import io.javalin.http.HttpStatus
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.json.toJsonString
 import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLogging
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
@@ -65,16 +64,18 @@ class TestWebSocket {
         }
 
     private fun accessManagedJavalin(): Javalin = Javalin.create().apply {
-        this.unsafeConfig().accessManager { handler, ctx, roles ->
+        this.wsBeforeUpgrade { ctx ->
             this.logger().log.add("handling upgrade request ...")
             when {
                 ctx.queryParam("exception") == "true" -> throw UnauthorizedResponse()
                 ctx.queryParam("allowed") == "true" -> {
                     this.logger().log.add("upgrade request valid!")
-                    handler.handle(ctx)
+                    return@wsBeforeUpgrade
                 }
-
-                else -> this.logger().log.add("upgrade request invalid!")
+                else -> {
+                    this.logger().log.add("upgrade request invalid!")
+                    ctx.skipRemainingHandlers()
+                }
             }
         }
         this.ws("/*") { ws ->
@@ -87,7 +88,7 @@ class TestWebSocket {
         val logger = TestLogger()
 
         TestUtil.test(contextPathJavalin { cfg ->
-            cfg.router.mount(Default) {
+            cfg.router.mount {
                 it.ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
                     ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
@@ -117,7 +118,7 @@ class TestWebSocket {
         val atomicInteger = AtomicInteger()
 
         TestUtil.test(contextPathJavalin { cfg ->
-            cfg.router.mount(Default) {
+            cfg.router.mount {
                 it.ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx ->
                         idMap[ctx] = atomicInteger.getAndIncrement()

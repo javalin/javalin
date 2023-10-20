@@ -7,16 +7,12 @@
 package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
-import io.javalin.http.Context
-import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
-import io.javalin.http.HttpStatus
 import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.JavalinServletContextConfig
 import io.javalin.http.servlet.Task
-import io.javalin.security.accessManagerNotConfiguredException
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -69,7 +65,6 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
             matchedPath = entry.path,
             pathParamMap = entry.extractPathParams(requestUri),
         )
-        if (!allowedByAccessManager(entry, upgradeContext)) return res.sendError(HttpStatus.UNAUTHORIZED.code, HttpStatus.UNAUTHORIZED.message)
         req.setAttribute(upgradeContextKey, upgradeContext)
         setWsProtocolHeader(req, res)
         // add before handlers
@@ -90,20 +85,6 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
                 break
             }
         }
-    }
-
-    private val setUpgradeAllowed = Handler { it.attribute("javalin-ws-upgrade-allowed", true) }
-
-    private fun allowedByAccessManager(entry: WsHandlerEntry, ctx: Context): Boolean = try {
-        when {
-            // we run upgrade-allowed-setter against user access manager to see if upgrade-request should be allowed
-            cfg.pvt.accessManager != null -> cfg.pvt.accessManager?.manage(setUpgradeAllowed, ctx, entry.roles)
-            entry.roles.isNotEmpty() -> throw accessManagerNotConfiguredException()
-            else -> setUpgradeAllowed.handle(ctx)
-        }
-        ctx.attribute<Boolean>("javalin-ws-upgrade-allowed") == true // attribute is true if access manger allowed the request
-    } catch (e: Exception) {
-        false
     }
 
     private fun setWsProtocolHeader(req: HttpServletRequest, res: HttpServletResponse) {

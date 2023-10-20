@@ -33,7 +33,7 @@ class SslRedirectPlugin(config: Consumer<SslRedirectPluginConfig> = Consumer {})
     private val pluginConfig = config.createUserConfig(SslRedirectPluginConfig())
 
     override fun onStart(config: JavalinConfig) {
-        config.router.mount(Default) {
+        config.router.mount {
             it.before { ctx ->
                 if (!pluginConfig.redirectOnLocalhost && ctx.isLocalhost()) {
                     return@before

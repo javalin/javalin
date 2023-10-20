@@ -211,26 +211,6 @@ class TestCors {
             }
 
         @Test
-        fun `works with AccessManager`() = TestUtil.test(Javalin.create {
-            it.registerPlugin(Cors) { cors ->
-                cors.addRule { it.reflectClientOrigin = true }
-            }
-            it.accessManager { _, ctx, _ -> ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message) }
-        }) { app, http ->
-            app.get("/", { it.result("Hello") }, TestAccessManager.MyRoles.ROLE_ONE)
-            assertThat(http.get("/").body).isEqualTo(UNAUTHORIZED.message)
-            val response = Unirest.options(http.origin)
-                .header(ORIGIN, "https://example.com")
-                .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
-                .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
-                .asString()
-            assertThat(response.header(ACCESS_CONTROL_ALLOW_HEADERS)).isEqualTo("123")
-            assertThat(response.header(ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("TEST")
-            assertThat(response.body).isBlank()
-            assertThat(response.status).isEqualTo(200)
-        }
-
-        @Test
         fun `works with options endpoint mapping`() = TestUtil.test(Javalin.create {
             it.registerPlugin(Cors) { cors ->
                 cors.addRule { it.reflectClientOrigin = true }
