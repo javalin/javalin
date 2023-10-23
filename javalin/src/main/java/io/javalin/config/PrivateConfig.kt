@@ -9,7 +9,6 @@ import io.javalin.http.servlet.DefaultTasks
 import io.javalin.router.exception.JavaLangErrorHandler
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.plugin.PluginManager
-import io.javalin.security.AccessManager
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsRouter
 import org.eclipse.jetty.server.Server
@@ -24,11 +23,10 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField var appAttributes: MutableMap<String, Any> = HashMap()
     @JvmField var requestLogger: RequestLogger? = null
     @JvmField var resourceHandler: ResourceHandler? = null
-    @JvmField var accessManager: AccessManager? = null
     @JvmField var singlePageHandler = SinglePageHandler()
     @JvmField var wsLogger: WsConfig? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
-    @JvmField var servletRequestLifecycle = mutableListOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
+    @JvmField var servletRequestLifecycle = mutableListOf(DefaultTasks.BEFORE, DefaultTasks.BEFORE_MATCHED, DefaultTasks.HTTP, DefaultTasks.AFTER_MATCHED, DefaultTasks.ERROR, DefaultTasks.AFTER)
     // Jetty
     @JvmField var server: Server? = null
 

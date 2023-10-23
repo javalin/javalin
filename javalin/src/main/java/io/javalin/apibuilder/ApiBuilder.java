@@ -80,7 +80,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a GET request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -101,7 +100,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a GET request handler with the given roles for the current path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -122,7 +120,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a POST request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -143,7 +140,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a POST request handler with the given roles for the current path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -164,7 +160,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a PUT request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -185,7 +180,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a PUT request handler with the given roles for the current path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -206,7 +200,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a PATCH request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -227,7 +220,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a PATCH request handler with the given roles for the current path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -248,7 +240,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a DELETE request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -269,7 +260,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a DELETE request handler with the given roles for the current path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -290,7 +280,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a HEAD request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
@@ -311,7 +300,6 @@ public class ApiBuilder implements RoutingApi {
      * Adds a HEAD request handler with the given roles for the current path to the instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
-     * @see io.javalin.security.AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull Handler handler, @NotNull RouteRole... roles) {

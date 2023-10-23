@@ -2,7 +2,6 @@
 
 <div align="center">
 
-
   <!--Logo-->
   <a href="https://github.com/javalin/javalin">
     <img src="img/javalin.png" alt="Logo" width="70%">
@@ -73,14 +72,14 @@ Please consider [:heart: Sponsoring](https://github.com/sponsors/tipsy) or starr
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>5.6.2</version>
+    <version>5.6.3</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```kotlin
-implementation("io.javalin:javalin:5.6.2")
+implementation("io.javalin:javalin:5.6.3")
 ```
 
 ### Start programming (Java)

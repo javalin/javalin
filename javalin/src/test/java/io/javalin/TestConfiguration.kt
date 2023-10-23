@@ -27,7 +27,8 @@ class TestConfiguration {
 
     @Test
     fun `all config options`() = TestUtil.runLogLess {
-        val app = Javalin.create {
+        val app = Javalin.createAndStart {
+            it.jetty.defaultPort = 0
             it.spaRoot.addFile("/", "/public/html.html")
             it.spaRoot.addFile("/", "src/test/resources/public/html.html", Location.EXTERNAL)
             it.spaRoot.addHandler("/", {})
@@ -57,7 +58,7 @@ class TestConfiguration {
             }
             it.jetty.modifyHttpConfiguration() { httpConfig -> }
             it.jetty.addConnector { server, _ -> ServerConnector(server) }
-        }.start(0)
+        }
         assertThat(app.jettyServer().started()).isTrue()
         app.stop()
     }
@@ -71,7 +72,7 @@ class TestConfiguration {
     @Test
     fun `compression strategy can be customized by user`() {
         val app = Javalin.create {
-            it.compression.custom(CompressionStrategy(null, Gzip(2)))
+            it.http.customCompression(CompressionStrategy(null, Gzip(2)))
         }
         assertThat((app.unsafeConfig().pvt.compressionStrategy.compressors.forType(GZIP.typeName) as GzipCompressor).level).isEqualTo(2)
         assertThat(app.unsafeConfig().pvt.compressionStrategy.compressors.forType(BR.typeName)).isNull()

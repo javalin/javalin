@@ -7,14 +7,12 @@
 package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
-import io.javalin.http.Context
-import io.javalin.http.Handler
+import io.javalin.http.HandlerType
 import io.javalin.http.Header
-import io.javalin.http.HttpStatus
 import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.JavalinServletContextConfig
-import io.javalin.security.accessManagerNotConfiguredException
+import io.javalin.http.servlet.Task
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -67,24 +65,26 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
             matchedPath = entry.path,
             pathParamMap = entry.extractPathParams(requestUri),
         )
-        if (!allowedByAccessManager(entry, upgradeContext)) return res.sendError(HttpStatus.UNAUTHORIZED.code, HttpStatus.UNAUTHORIZED.message)
         req.setAttribute(upgradeContextKey, upgradeContext)
         setWsProtocolHeader(req, res)
-        super.service(req, res) // everything is okay, perform websocket upgrade
-    }
+        // add before handlers
+        cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_BEFORE_UPGRADE, requestUri)
+            .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
+        // add actual upgrade handler
+        upgradeContext.tasks.offer(Task { super.service(req, res) })
+        // add after handlers
+        cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
+            .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
 
-    private val setUpgradeAllowed = Handler { it.attribute("javalin-ws-upgrade-allowed", true) }
-
-    private fun allowedByAccessManager(entry: WsHandlerEntry, ctx: Context): Boolean = try {
-        when {
-            // we run upgrade-allowed-setter against user access manager to see if upgrade-request should be allowed
-            cfg.pvt.accessManager != null -> cfg.pvt.accessManager?.manage(setUpgradeAllowed, ctx, entry.roles)
-            entry.roles.isNotEmpty() -> throw accessManagerNotConfiguredException()
-            else -> setUpgradeAllowed.handle(ctx)
+        while (upgradeContext.tasks.isNotEmpty()) {
+            try {
+                val task = upgradeContext.tasks.poll()
+                task.handler.handle()
+            } catch (e: Exception) {
+                cfg.pvt.internalRouter.handleHttpException(upgradeContext, e)
+                break
+            }
         }
-        ctx.attribute<Boolean>("javalin-ws-upgrade-allowed") == true // attribute is true if access manger allowed the request
-    } catch (e: Exception) {
-        false
     }
 
     private fun setWsProtocolHeader(req: HttpServletRequest, res: HttpServletResponse) {

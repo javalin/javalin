@@ -16,6 +16,7 @@ import io.javalin.http.servlet.getRequestCharset
 import io.javalin.http.servlet.readAndResetStreamIfPossible
 import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
 import io.javalin.http.servlet.throwContentTooLargeIfContentTooLarge
+import io.javalin.http.util.AsyncExecutor.Companion.asyncExecutor
 import io.javalin.http.util.AsyncTaskConfig
 import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.CookieStore
@@ -24,6 +25,7 @@ import io.javalin.http.util.SeekableWriter
 import io.javalin.json.jsonMapper
 import io.javalin.rendering.fileRenderer
 import io.javalin.security.BasicAuthCredentials
+import io.javalin.security.RouteRole
 import io.javalin.util.function.ThrowingRunnable
 import io.javalin.validation.BodyValidator
 import io.javalin.validation.Validator
@@ -360,7 +362,7 @@ interface Context {
      * so it's just not thread-safe.
      */
     fun async(config: Consumer<AsyncTaskConfig>, task: ThrowingRunnable<Exception>) =
-        AsyncUtil.submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
+        asyncExecutor().submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
 
     /* @see [async] */
     fun async(task: ThrowingRunnable<Exception>) = async(config = {}, task = task)
@@ -466,6 +468,8 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     fun skipRemainingHandlers(): Context
+
+    fun routeRoles(): Set<RouteRole>
 
 }
 

@@ -5,17 +5,29 @@ import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.MethodNotAllowedResponse
 import io.javalin.http.NotFoundResponse
-import io.javalin.http.servlet.SubmitOrder.FIRST
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
-import io.javalin.security.accessManagerNotConfiguredException
+import io.javalin.security.RouteRole
 import io.javalin.util.Util.firstOrNull
+import io.javalin.util.javalinLazy
 
 object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        servlet.cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
+        servlet.router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
             submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+        }
+    }
+
+    val BEFORE_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
+        val willMatch by javalinLazy {
+            ctx.setRouteRoles(servlet.matchedRoles(ctx, requestUri)) // set roles for the matched handler
+            servlet.willMatch(ctx, requestUri)
+        }
+        servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
+            if (willMatch) {
+                submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+            }
         }
     }
 
@@ -24,18 +36,8 @@ object DefaultTasks {
             submitTask(
                 LAST,
                 Task {
-                    when {
-                        entry.roles.isNotEmpty() && servlet.cfg.pvt.accessManager == null -> throw accessManagerNotConfiguredException()
-                        entry.roles.isNotEmpty() && servlet.cfg.pvt.accessManager != null -> {
-                            ctx.update(entry, requestUri)
-                            servlet.cfg.pvt.accessManager?.manage(
-                                handler = { submitTask(FIRST, Task { entry.handle(ctx, requestUri) }) }, // we wrap the handler with [submitTask] to treat it as a separate task
-                                ctx = ctx,
-                                routeRoles = entry.roles
-                            )
-                        }
-                        else -> entry.handle(ctx, requestUri)
-                    }
+                    ctx.setRouteRoles(servlet.matchedRoles(ctx, requestUri)) // set roles for the matched handler
+                    entry.handle(ctx, requestUri)
                 }
             )
             return@TaskInitializer
@@ -59,6 +61,15 @@ object DefaultTasks {
         })
     }
 
+    val AFTER_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
+        val didMatch by javalinLazy { servlet.willMatch(ctx, requestUri) }
+        servlet.router.findHttpHandlerEntries(HandlerType.AFTER_MATCHED, requestUri).forEach { entry ->
+            if (didMatch) {
+                submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
+            }
+        }
+    }
+
     val ERROR = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, _ ->
         submitTask(LAST, Task(skipIfExceptionOccurred = false) { servlet.router.handleHttpError(ctx.statusCode(), ctx) })
     }
@@ -68,5 +79,16 @@ object DefaultTasks {
             submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
         }
     }
+
+    private fun JavalinServlet.willMatch(ctx: JavalinServletContext, requestUri: String) = when {
+        ctx.method() == HEAD && this.router.hasHttpHandlerEntry(GET, requestUri) -> true
+        this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() != null -> true
+        this.cfg.pvt.resourceHandler?.canHandle(ctx) == true -> true
+        this.cfg.pvt.singlePageHandler.canHandle(ctx) -> true
+        else -> false
+    }
+
+    private fun JavalinServlet.matchedRoles(ctx: JavalinServletContext, requestUri: String): Set<RouteRole> =
+        this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()?.roles ?: emptySet()
 
 }

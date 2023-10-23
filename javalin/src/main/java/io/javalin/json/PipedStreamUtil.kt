@@ -6,9 +6,9 @@ import java.io.InputStream
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 
-object PipedStreamUtil {
+class PipedStreamExecutor(useVirtualThreads: Boolean) {
 
-    private val executorService by javalinLazy { ConcurrencyUtil.executorService("JavalinPipedStreamingThreadPool") }
+    private val executorService by javalinLazy { ConcurrencyUtil.executorService("JavalinPipedStreamingThreadPool", useVirtualThreads) }
 
     fun getInputStream(userCallback: (PipedOutputStream) -> Unit): InputStream {
         val pipedOutputStream = PipedOutputStream()
