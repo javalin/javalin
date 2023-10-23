@@ -8,7 +8,7 @@ package io.javalin
 
 import io.javalin.http.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
-import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLogging
+import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLoggingPlugin
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.captureStdOut
 import io.javalin.testing.WebDriverUtil
@@ -51,7 +51,7 @@ class TestWebBrowser {
             val payload = "Hello, Selenium!".repeat(150)
             val app = Javalin.create {
                 it.compression.brotliOnly()
-                it.registerPlugin(DevLogging)
+                it.registerPlugin(DevLoggingPlugin)
             }.start(0)
             app.get("/hello") { it.result(payload) }
             val logResult = captureStdOut {

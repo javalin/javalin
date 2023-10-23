@@ -40,11 +40,10 @@ private const val EXCEPTION_HEADER = "__micrometer_exception_name"
  * [MicrometerPlugin] has a private constructor, use
  * [MicrometerPlugin.create] to create a new instance.
  */
-class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin<MicrometerConfig>(Micrometer, MicrometerConfig(), config) {
+class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin<MicrometerConfig>(MicrometerPlugin, MicrometerConfig(), config) {
 
     companion object {
-        @JvmField
-        val Micrometer = PluginFactory { MicrometerPlugin(it) }
+        @JvmField val MicrometerPlugin = PluginFactory { MicrometerPlugin(it) }
 
         @JvmField
         var exceptionHandler = ExceptionHandler { e: Exception, ctx: Context ->

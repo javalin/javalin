@@ -4,14 +4,21 @@ import io.javalin.config.JavalinConfig
 import java.util.function.Consumer
 
 abstract class JavalinPlugin<CFG> @JvmOverloads constructor(
+    /** DSL component **/
     dsl: PluginFactory<out JavalinPlugin<CFG>, CFG>,
+    /** Configuration state that will be passed to user config consumer **/
     defaultConfiguration: CFG,
+    /** User configuration consumer **/
     userConfig: Consumer<CFG> = Consumer {},
+    /** Plugin name, by default it is the simple name of the plugin class **/
     private val name: String? = null,
+    /** Plugin priority, by default it is [PluginPriority.NORMAL] **/
     private val priority: PluginPriority = PluginPriority.NORMAL,
+    /** If the plugin can be registered multiple times, by default it is false **/
     private val repeatable: Boolean = false
 ) {
 
+    /** Plugin configuration **/
     protected val pluginConfig = defaultConfiguration.also { userConfig.accept(it) }
 
     /**

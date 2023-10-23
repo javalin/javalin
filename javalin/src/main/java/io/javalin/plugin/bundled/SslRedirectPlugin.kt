@@ -20,10 +20,10 @@ class SslRedirectPluginConfig {
  */
 class SslRedirectPlugin(
     config: Consumer<SslRedirectPluginConfig> = Consumer {}
-) : JavalinPlugin<SslRedirectPluginConfig>(SslRedirect, SslRedirectPluginConfig(), config) {
+) : JavalinPlugin<SslRedirectPluginConfig>(SslRedirectPlugin, SslRedirectPluginConfig(), config) {
 
     companion object {
-        @JvmField val SslRedirect = PluginFactory { SslRedirectPlugin(it) }
+        @JvmField val SslRedirectPlugin = PluginFactory { SslRedirectPlugin(it) }
     }
 
     override fun onStart(config: JavalinConfig) {

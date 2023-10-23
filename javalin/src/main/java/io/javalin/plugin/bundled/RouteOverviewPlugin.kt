@@ -18,15 +18,12 @@ class RouteOverviewPluginConfig {
     @JvmField var roles: Array<out RouteRole> = emptyArray()
 }
 
-class RouteOverviewPlugin(config: Consumer<RouteOverviewPluginConfig> = Consumer {}) : JavalinPlugin<RouteOverviewPluginConfig>(
-    defaultConfiguration = RouteOverviewPluginConfig(),
-    userConfig = config,
-    dsl = RouteOverview,
-    priority = PluginPriority.LATE,
-) {
+class RouteOverviewPlugin(
+    config: Consumer<RouteOverviewPluginConfig> = Consumer {}
+) : JavalinPlugin<RouteOverviewPluginConfig>(RouteOverviewPlugin, RouteOverviewPluginConfig(), config, priority = PluginPriority.LATE) {
 
     companion object {
-        @JvmField val RouteOverview = PluginFactory { RouteOverviewPlugin(it) }
+        @JvmField val RouteOverviewPlugin = PluginFactory { RouteOverviewPlugin(it) }
     }
 
     override fun onStart(config: JavalinConfig) {

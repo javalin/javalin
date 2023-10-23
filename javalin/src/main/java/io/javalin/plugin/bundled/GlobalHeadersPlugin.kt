@@ -15,14 +15,12 @@ import java.time.Duration
 import java.util.Locale
 import java.util.function.Consumer
 
-class GlobalHeadersPlugin(config: Consumer<GlobalHeaderConfig> = Consumer {}) : JavalinPlugin<GlobalHeaderConfig>(
-    defaultConfiguration = GlobalHeaderConfig(),
-    userConfig = config,
-    dsl = GlobalHeaders
-) {
+class GlobalHeadersPlugin(
+    config: Consumer<GlobalHeaderConfig> = Consumer {}
+) : JavalinPlugin<GlobalHeaderConfig>(GlobalHeadersPlugin, GlobalHeaderConfig(), config) {
 
     companion object {
-        @JvmField val GlobalHeaders = PluginFactory { GlobalHeadersPlugin(it) }
+        @JvmField val GlobalHeadersPlugin = PluginFactory { GlobalHeadersPlugin(it) }
     }
 
     override fun onStart(config: JavalinConfig) {

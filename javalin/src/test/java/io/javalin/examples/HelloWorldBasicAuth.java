@@ -10,14 +10,14 @@ package io.javalin.examples;
 import io.javalin.Javalin;
 import io.javalin.plugin.bundled.BasicAuthPlugin;
 
-import static io.javalin.plugin.bundled.BasicAuthPlugin.BasicAuth;
+import static io.javalin.plugin.bundled.BasicAuthPlugin.BasicAuthPlugin;
 
 public class HelloWorldBasicAuth {
 
     public static void main(String[] args) {
         Javalin
             .create(config -> {
-                config.registerPlugin(BasicAuth, basicAuthCfg -> {
+                config.registerPlugin(BasicAuthPlugin, basicAuthCfg -> {
                     basicAuthCfg.username = "panda";
                     basicAuthCfg.password = "bamboo";
                 });

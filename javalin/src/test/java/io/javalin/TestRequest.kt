@@ -13,7 +13,7 @@ import io.javalin.http.headerAsClass
 import io.javalin.http.queryParamAsClass
 import io.javalin.http.servlet.SESSION_CACHE_KEY_PREFIX
 import io.javalin.http.staticfiles.Location
-import io.javalin.plugin.bundled.BasicAuthPlugin.Companion.BasicAuth
+import io.javalin.plugin.bundled.BasicAuthPlugin.Companion.BasicAuthPlugin
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -270,7 +270,7 @@ class TestRequest {
     @Test
     fun `basic auth filter plugin works`() {
         val basicAuthApp = Javalin.create { cfg ->
-            cfg.registerPlugin(BasicAuth) {
+            cfg.registerPlugin(BasicAuthPlugin) {
                 it.username = "u"
                 it.password = "p"
             }

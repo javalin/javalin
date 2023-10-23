@@ -10,7 +10,6 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginFactory
-import io.javalin.plugin.PluginPriority
 import io.javalin.plugin.PluginPriority.EARLY
 import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.router.matcher.PathParser
@@ -25,10 +24,10 @@ import java.util.*
  * URL fragments ('Users' becomes 'users' above, but 'John' remains 'John').
  * When using this plugin, you can only add paths with lowercase URL fragments.
  */
-open class RedirectToLowercasePathPlugin : JavalinPlugin<Unit>(RedirectToLowercasePath, Unit, priority = EARLY) {
+open class RedirectToLowercasePathPlugin : JavalinPlugin<Unit>(RedirectToLowercasePathPlugin, Unit, priority = EARLY) {
 
     companion object {
-        @JvmField val RedirectToLowercasePath = PluginFactory { RedirectToLowercasePathPlugin() }
+        @JvmField val RedirectToLowercasePathPlugin = PluginFactory { RedirectToLowercasePathPlugin() }
     }
 
     override fun onInitialize(config: JavalinConfig) {

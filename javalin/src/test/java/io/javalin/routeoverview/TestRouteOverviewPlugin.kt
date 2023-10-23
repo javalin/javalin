@@ -3,7 +3,7 @@ package io.javalin.routeoverview
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.post
-import io.javalin.plugin.bundled.RouteOverviewPlugin.Companion.RouteOverview
+import io.javalin.plugin.bundled.RouteOverviewPlugin.Companion.RouteOverviewPlugin
 import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
@@ -29,7 +29,7 @@ class TestRouteOverviewPlugin {
 
     @Test
     fun `exposes routes added through router#apibuilder`() = TestUtil.test(Javalin.create { config ->
-        config.registerPlugin(RouteOverview) { it.path = "/overview" }
+        config.registerPlugin(RouteOverviewPlugin) { it.path = "/overview" }
         config.router.apiBuilder {
             get(uuid()) {}
             post(uuid()) {}
@@ -40,7 +40,7 @@ class TestRouteOverviewPlugin {
 
     @Test
     fun `exposes routes added through router#mount`() = TestUtil.test(Javalin.create { config ->
-        config.registerPlugin(RouteOverview) { it.path = "/overview" }
+        config.registerPlugin(RouteOverviewPlugin) { it.path = "/overview" }
         config.router.mount(Default) {
             it.get(uuid()) {}
             it.post(uuid()) {}
@@ -57,7 +57,7 @@ class TestRouteOverviewPlugin {
     }
 
     private fun routeOverviewJavalin(): Javalin = Javalin.create { config ->
-        config.registerPlugin(RouteOverview) { it.path = "/overview" }
+        config.registerPlugin(RouteOverviewPlugin) { it.path = "/overview" }
     }
 
     private fun unstartedJavalinWithRoutes() = routeOverviewJavalin().apply {

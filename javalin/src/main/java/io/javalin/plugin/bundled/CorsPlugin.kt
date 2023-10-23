@@ -78,10 +78,10 @@ class CorsPluginConfig {
     }
 }
 
-class CorsPlugin(config: Consumer<CorsPluginConfig>) : JavalinPlugin<CorsPluginConfig>(Cors, CorsPluginConfig(), config) {
+class CorsPlugin(config: Consumer<CorsPluginConfig>) : JavalinPlugin<CorsPluginConfig>(CorsPlugin, CorsPluginConfig(), config) {
 
     companion object {
-        @JvmField val Cors = PluginFactory { CorsPlugin(it) }
+        @JvmField val CorsPlugin = PluginFactory { CorsPlugin(it) }
     }
 
     init {

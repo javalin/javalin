@@ -12,10 +12,10 @@ import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
 import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginFactory
 
-open class HttpAllowedMethodsPlugin : JavalinPlugin<Unit>(HttpAllowedMethods, Unit) {
+open class HttpAllowedMethodsPlugin : JavalinPlugin<Unit>(HttpAllowedMethodsPlugin, Unit) {
 
     companion object {
-        @JvmField val HttpAllowedMethods = PluginFactory { HttpAllowedMethodsPlugin() }
+        @JvmField val HttpAllowedMethodsPlugin = PluginFactory { HttpAllowedMethodsPlugin() }
     }
 
     override fun onStart(config: JavalinConfig) {

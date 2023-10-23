@@ -14,7 +14,7 @@ import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.HttpStatus.SEE_OTHER
 import io.javalin.http.util.SeekableWriter
-import io.javalin.plugin.bundled.CorsPlugin.Companion.Cors
+import io.javalin.plugin.bundled.CorsPlugin.Companion.CorsPlugin
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
@@ -99,7 +99,7 @@ class TestResponse {
     @Test
     fun `gh-1409 entrypoint to analyze compression strategy lifecycle`() {
         val javalin = Javalin.create { javalinConfig ->
-            javalinConfig.registerPlugin(Cors) { cors -> cors.addRule { it.reflectClientOrigin = true } }
+            javalinConfig.registerPlugin(CorsPlugin) { cors -> cors.addRule { it.reflectClientOrigin = true } }
             javalinConfig.showJavalinBanner = false
             javalinConfig.http.maxRequestSize = 5_000_000
         }.start(9005)

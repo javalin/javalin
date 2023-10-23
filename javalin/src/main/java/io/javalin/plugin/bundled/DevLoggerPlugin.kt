@@ -13,10 +13,10 @@ import io.javalin.websocket.WsContext
 import java.util.*
 import java.util.stream.Stream
 
-internal open class DevLoggingPlugin : JavalinPlugin<Unit>(DevLogging, Unit) {
+internal open class DevLoggingPlugin : JavalinPlugin<Unit>(DevLoggingPlugin, Unit) {
 
     companion object {
-        @JvmField val DevLogging = PluginFactory { DevLoggingPlugin() }
+        @JvmField val DevLoggingPlugin = PluginFactory { DevLoggingPlugin() }
     }
 
     override fun onInitialize(config: JavalinConfig) {

@@ -16,7 +16,7 @@ import io.javalin.plugin.bundled.GlobalHeaderConfig.CrossOriginOpenerPolicy
 import io.javalin.plugin.bundled.GlobalHeaderConfig.CrossOriginResourcePolicy
 import io.javalin.plugin.bundled.GlobalHeaderConfig.ReferrerPolicy
 import io.javalin.plugin.bundled.GlobalHeaderConfig.XFrameOptions
-import io.javalin.plugin.bundled.GlobalHeadersPlugin.Companion.GlobalHeaders
+import io.javalin.plugin.bundled.GlobalHeadersPlugin.Companion.GlobalHeadersPlugin
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -125,7 +125,7 @@ class TestGlobalGlobalHeaderConfigPlugin {
     @Test
     fun `test headers are set on app`() {
         val testApp = Javalin.create { cfg ->
-            cfg.registerPlugin(GlobalHeaders) {
+            cfg.registerPlugin(GlobalHeadersPlugin) {
                 it.xContentTypeOptionsNoSniff()
                 it.clearSiteData(ClearSiteData.ANY)
             }

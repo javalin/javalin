@@ -23,10 +23,10 @@ class BasicAuthPluginConfig {
  * Adds a filter that runs before every http request.
  * Note: It does not apply to websocket upgrade requests
  */
-class BasicAuthPlugin(configurer: Consumer<BasicAuthPluginConfig>) : JavalinPlugin<BasicAuthPluginConfig>(BasicAuth, BasicAuthPluginConfig(), configurer) {
+class BasicAuthPlugin(configurer: Consumer<BasicAuthPluginConfig>) : JavalinPlugin<BasicAuthPluginConfig>(BasicAuthPlugin, BasicAuthPluginConfig(), configurer) {
 
     companion object {
-        @JvmField val BasicAuth = PluginFactory { BasicAuthPlugin(it) }
+        @JvmField val BasicAuthPlugin = PluginFactory { BasicAuthPlugin(it) }
     }
 
     override fun onStart(config: JavalinConfig) {
