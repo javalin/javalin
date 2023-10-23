@@ -5,7 +5,9 @@ import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.AFTER
+import io.javalin.http.HandlerType.AFTER_MATCHED
 import io.javalin.http.HandlerType.BEFORE
+import io.javalin.http.HandlerType.BEFORE_MATCHED
 import io.javalin.http.HandlerType.DELETE
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
@@ -13,6 +15,8 @@ import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.HandlerType.PATCH
 import io.javalin.http.HandlerType.POST
 import io.javalin.http.HandlerType.PUT
+import io.javalin.http.HandlerType.WEBSOCKET_AFTER_UPGRADE
+import io.javalin.http.HandlerType.WEBSOCKET_BEFORE_UPGRADE
 import io.javalin.http.HttpStatus
 import io.javalin.http.sse.SseClient
 import io.javalin.http.sse.SseHandler
@@ -92,10 +96,8 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
-     * Requires an access manager to be set on the instance.
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API
 
@@ -150,57 +152,43 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
 
     /**
      * Adds a GET request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     operator fun get(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(GET, path, handler, *roles)
 
     /**
      * Adds a POST request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun post(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(POST, path, handler, *roles)
 
     /**
      * Adds a PUT request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun put(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(PUT, path, handler, *roles)
 
     /**
      * Adds a PATCH request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun patch(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(PATCH, path, handler, *roles)
 
     /**
      * Adds a DELETE request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun delete(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(DELETE, path, handler, *roles)
 
     /**
      * Adds a HEAD request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun head(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HEAD, path, handler, *roles)
 
     /**
      * Adds a OPTIONS request handler with the given roles for the specified path to the instance.
-     * Requires an access manager to be set on the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
-     * @see io.javalin.security.AccessManager
      */
     fun options(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(OPTIONS, path, handler, *roles)
 
@@ -216,7 +204,6 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
-     * Requires an access manager to be set on the instance.
      */
     fun sse(path: String, client: Consumer<SseClient>, vararg roles: RouteRole): API = get(path, SseHandler(clientConsumer = client), *roles)
 
@@ -233,6 +220,18 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     fun before(handler: Handler): API = before("*", handler)
 
     /**
+     * Adds a BEFORE_MATCHED request handler for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
+     */
+    fun beforeMatched(path: String, handler: Handler): API = addHttpHandler(BEFORE_MATCHED, path, handler)
+
+    /**
+     * Adds a BEFORE_MATCHED request handler for all routes in the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
+     */
+    fun beforeMatched(handler: Handler): API = beforeMatched("*", handler)
+
+    /**
      * Adds an AFTER request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
      */
@@ -243,6 +242,18 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
      */
     fun after(handler: Handler): API = after("*", handler)
+
+    /**
+     * Adds an AFTER_MATCHED request handler for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
+     */
+    fun afterMatched(path: String, handler: Handler): API = addHttpHandler(AFTER_MATCHED, path, handler)
+
+    /**
+     * Adds an AFTER_MATCHED request handler for all routes in the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
+     */
+    fun afterMatched(handler: Handler): API = afterMatched("*", handler)
 
     /**
      * Adds a WebSocket exception mapper to the instance.
@@ -264,9 +275,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
 
     /**
      * Adds a WebSocket handler on the specified path with the specified roles.
-     * Requires an access manager to be set on the instance.
      * See: [WebSockets in docs](https://javalin.io/documentation.websockets)
-     * @see io.javalin.security.AccessManager
      */
     fun ws(path: String, ws: Consumer<WsConfig>, vararg roles: RouteRole): API = addWsHandler(WEBSOCKET, path, ws, *roles)
 
@@ -281,6 +290,16 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     fun wsBefore(wsConfig: Consumer<WsConfig>): API = wsBefore("*", wsConfig)
 
     /**
+     * Adds a WebSocket before upgrade handler for the specified path to the instance.
+     */
+    fun wsBeforeUpgrade(path: String, handler: Handler): API = addHttpHandler(WEBSOCKET_BEFORE_UPGRADE, path, handler)
+
+    /**
+     * Adds a WebSocket before upgrade handler for all routes in the instance.
+     */
+    fun wsBeforeUpgrade(handler: Handler): API = wsBeforeUpgrade("*", handler)
+
+    /**
      * Adds a WebSocket after handler for the specified path to the instance.
      */
     fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WEBSOCKET_AFTER, path, wsConfig)
@@ -289,5 +308,15 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds a WebSocket after handler for all routes in the instance.
      */
     fun wsAfter(wsConfig: Consumer<WsConfig>): API = wsAfter("*", wsConfig)
+
+    /**
+     * Adds a WebSocket after upgrade handler for the specified path to the instance.
+     */
+    fun wsAfterUpgrade(path: String, handler: Handler): API = addHttpHandler(WEBSOCKET_AFTER_UPGRADE, path, handler)
+
+    /**
+     * Adds a WebSocket after upgrade handler for all routes in the instance.
+     */
+    fun wsAfterUpgrade(handler: Handler): API = wsAfterUpgrade("*", handler)
 
 }

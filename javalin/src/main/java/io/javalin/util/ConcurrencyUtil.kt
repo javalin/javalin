@@ -17,12 +17,8 @@ import kotlin.concurrent.withLock
 
 object ConcurrencyUtil {
 
-    @Suppress("MemberVisibilityCanBePrivate")
-    // Determines if Javalin should use Loom. By default true, set it to false to disable Loom integration.
-    var useLoom = true
-
     @JvmStatic
-    fun executorService(name: String): ExecutorService = when (useLoom && isLoomAvailable()) {
+    fun executorService(name: String, useLoom: Boolean): ExecutorService = when (useLoom && isLoomAvailable()) {
         true -> LoomUtil.getExecutorService(name)
         false -> Executors.newCachedThreadPool(NamedThreadFactory(name))
     }
@@ -32,7 +28,7 @@ object ConcurrencyUtil {
         Executors.newSingleThreadScheduledExecutor(NamedThreadFactory(name))
 
     @JvmStatic
-    fun jettyThreadPool(name: String, minThreads: Int, maxThreads: Int): ThreadPool = when (useLoom && isLoomAvailable()) {
+    fun jettyThreadPool(name: String, minThreads: Int, maxThreads: Int, useLoom: Boolean): ThreadPool = when (useLoom && isLoomAvailable()) {
         true -> LoomUtil.getThreadPool(name)
         false -> QueuedThreadPool(maxThreads, minThreads, 60_000).apply { this.name = name }
     }
@@ -119,7 +115,7 @@ fun <T : Any?> javalinLazy(
     threadSafetyMode: LazyThreadSafetyMode = NONE,
     initializer: () -> T
 ): Lazy<T> = when (threadSafetyMode) {
-    SYNCHRONIZED -> if (ConcurrencyUtil.useLoom && ConcurrencyUtil.isLoomAvailable()) ReentrantLazy(initializer) else lazy(SYNCHRONIZED, initializer)
+    SYNCHRONIZED -> if (ConcurrencyUtil.isLoomAvailable()) ReentrantLazy(initializer) else lazy(SYNCHRONIZED, initializer)
     else -> lazy(threadSafetyMode, initializer)
 }
 

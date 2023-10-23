@@ -20,6 +20,8 @@ enum class HandlerType(val isHttpMethod: Boolean = true) {
     BEFORE(isHttpMethod = false),
     BEFORE_MATCHED(isHttpMethod = false),
     AFTER_MATCHED(isHttpMethod = false),
+    WEBSOCKET_BEFORE_UPGRADE(isHttpMethod = false),
+    WEBSOCKET_AFTER_UPGRADE(isHttpMethod = false),
     AFTER(isHttpMethod = false),
     INVALID(isHttpMethod = false);
 

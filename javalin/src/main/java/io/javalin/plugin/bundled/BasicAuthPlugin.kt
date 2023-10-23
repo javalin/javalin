@@ -30,7 +30,7 @@ class BasicAuthPlugin(configurer: Consumer<BasicAuthPluginConfig>) : JavalinPlug
     }
 
     override fun onStart(config: JavalinConfig) {
-        config.router.mount(Default) {
+        config.router.mount {
             it.before { ctx ->
                 val matched = runCatching { ctx.basicAuthCredentials() }
                     .fold(

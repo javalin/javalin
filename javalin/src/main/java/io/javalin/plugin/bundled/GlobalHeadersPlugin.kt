@@ -24,7 +24,7 @@ class GlobalHeadersPlugin(
     }
 
     override fun onStart(config: JavalinConfig) {
-        config.router.mount(Default) {
+        config.router.mount {
             it.before { ctx ->
                 pluginConfig.headers.forEach { (name, value) ->
                     ctx.header(name, value)

@@ -91,7 +91,7 @@ class CorsPlugin(config: Consumer<CorsPluginConfig>) : JavalinPlugin<CorsPluginC
     }
 
     override fun onStart(config: JavalinConfig) {
-        config.router.mount(Default) {
+        config.router.mount {
             pluginConfig.rules.forEach { corsRule ->
                 val origins = corsRule.allowedOrigins()
 

@@ -16,9 +16,9 @@ import io.javalin.plugin.bundled.RouteOverviewPlugin;
 import io.javalin.websocket.WsConfig;
 import org.jetbrains.annotations.NotNull;
 
-import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
-import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
-import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
+import static io.javalin.TestAccessManager.MyRole.ROLE_ONE;
+import static io.javalin.TestAccessManager.MyRole.ROLE_THREE;
+import static io.javalin.TestAccessManager.MyRole.ROLE_TWO;
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
