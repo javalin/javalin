@@ -17,10 +17,14 @@ class PathMatcher {
         HandlerType.entries.associateWithTo(EnumMap(HandlerType::class.java)) { arrayListOf() }
 
     fun add(entry: HttpHandlerEntry) {
-        if (entry.type.isHttpMethod && handlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {
-            throw IllegalArgumentException("Handler with type='${entry.type}' and path='${entry.path}' already exists.")
+        val type = entry.endpoint.method
+        val path = entry.endpoint.path
+
+        if (type.isHttpMethod && handlerEntries[type]!!.find { it.endpoint.method == type && it.endpoint.path == path } != null) {
+            throw IllegalArgumentException("Handler with type='${type}' and path='${path}' already exists.")
         }
-        handlerEntries[entry.type]!!.add(entry)
+
+        handlerEntries[type]!!.add(entry)
     }
 
     fun findEntries(handlerType: HandlerType, requestUri: String?): Stream<HttpHandlerEntry> =
@@ -34,7 +38,7 @@ class PathMatcher {
     internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
         handlerEntries[handlerType]!!.any { entry -> match(entry, requestUri) }
 
-    private fun match(entry: HttpHandlerEntry, requestPath: String): Boolean = when (entry.path) {
+    private fun match(entry: HttpHandlerEntry, requestPath: String): Boolean = when (entry.endpoint.path) {
         "*" -> true
         requestPath -> true
         else -> entry.matches(requestPath)

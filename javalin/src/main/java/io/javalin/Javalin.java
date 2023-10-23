@@ -10,6 +10,7 @@ package io.javalin;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
+import io.javalin.router.Endpoint;
 import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
@@ -206,8 +207,8 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
 
     @NotNull
     @Override
-    public Javalin addHttpHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        cfg.pvt.internalRouter.addHttpHandler(handlerType, path, handler, roles);
+    public Javalin addEndpoint(@NotNull Endpoint endpoint) {
+        cfg.pvt.internalRouter.addHttpEndpoint(endpoint);
         return this;
     }
 

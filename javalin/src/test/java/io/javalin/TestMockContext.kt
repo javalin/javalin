@@ -4,12 +4,12 @@ import io.javalin.http.HandlerType.GET
 import io.javalin.http.Header.HOST
 import io.javalin.http.Header.X_FORWARDED_FOR
 import io.javalin.http.HttpStatus.IM_A_TEAPOT
+import io.javalin.router.Endpoint
 import io.javalin.util.mock.ContextMock
-import io.javalin.util.mock.Endpoint
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-internal class TestStubMocks {
+internal class TestMockContext {
 
     object TestController {
 

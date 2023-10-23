@@ -71,13 +71,13 @@ class JavalinServletContext(
     }
 
     fun update(httpHandlerEntry: HttpHandlerEntry, requestUri: String) = also {
-        handlerType = httpHandlerEntry.type
-        if (matchedPath != httpHandlerEntry.path) { // if the path has changed, we have to extract path params
-            matchedPath = httpHandlerEntry.path
+        handlerType = httpHandlerEntry.endpoint.method
+        if (matchedPath != httpHandlerEntry.endpoint.path) { // if the path has changed, we have to extract path params
+            matchedPath = httpHandlerEntry.endpoint.path
             pathParamMap = httpHandlerEntry.extractPathParams(requestUri)
         }
         if (handlerType != AFTER) {
-            endpointHandlerPath = httpHandlerEntry.path
+            endpointHandlerPath = httpHandlerEntry.endpoint.path
         }
     }
 

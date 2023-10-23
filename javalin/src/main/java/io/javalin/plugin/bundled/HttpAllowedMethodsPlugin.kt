@@ -10,6 +10,7 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.router.Endpoint
 
 open class HttpAllowedMethodsPlugin : JavalinPlugin {
 
@@ -20,16 +21,20 @@ open class HttpAllowedMethodsPlugin : JavalinPlugin {
     override fun onStart(config: JavalinConfig) {
         config.events.serverStarted {
             config.pvt.internalRouter.allHttpHandlers()
-                .filter { it.type.isHttpMethod }
-                .groupBy({ it.path }, { it.type })
+                .asSequence()
+                .map { it.endpoint }
+                .filter { it.method.isHttpMethod }
+                .groupBy({ it.path }, { it.method })
                 .mapValues { (_, handlers) -> (handlers + OPTIONS).toSet() }
                 .forEach { (path, handlers) ->
                     val allowedMethods = handlers.joinToString(",")
 
-                    config.pvt.internalRouter.addHttpHandler(
-                        handlerType = OPTIONS,
-                        path = path,
-                        handler = { it.header(ACCESS_CONTROL_ALLOW_METHODS, allowedMethods) }
+                    config.pvt.internalRouter.addHttpEndpoint(
+                        Endpoint(
+                            method = OPTIONS,
+                            path = path,
+                            handler = { it.header(ACCESS_CONTROL_ALLOW_METHODS, allowedMethods) }
+                        )
                     )
                 }
         }

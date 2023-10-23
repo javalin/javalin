@@ -118,17 +118,19 @@ object RouteOverviewUtil {
                     </tr>
                 </thead>
                 ${
-            handlerInfo.map { (handlerType, path, handler, roles) ->
-                """
-                    <tr class="method $handlerType">
-                        <td>$handlerType</span></td>
-                        <td>$path</td>
-                        <td><b>${handler.metaInfo}</b></td>
-                        <td>$roles</td>
-                    </tr>
-                    """
-            }.joinToString("")
-        }
+                    handlerInfo
+                        .map { it.endpoint }
+                        .joinToString("") {
+                            """
+                            <tr class="method ${it.method}">
+                                <td>${it.method}</span></td>
+                                <td>${it.path}</td>
+                                <td><b>${it.handler.metaInfo}</b></td>
+                                <td>${it.roles}</td>
+                            </tr>
+                            """
+                        }
+                }
                 ${
             wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
                 """
@@ -168,16 +170,16 @@ object RouteOverviewUtil {
             {
                 "handlers": [
                 ${
-            handlerInfo.map { (handlerType, path, handler, roles) ->
+            handlerInfo.map { it.endpoint }.joinToString(",") {
                 """
                     {
-                        "path": "$path",
-                        "handlerType": "$handlerType",
-                        "metaInfo": "${handler.metaInfo}",
-                        "roles": "$roles"
+                        "path": "${it.path}",
+                        "handlerType": "${it.method}",
+                        "metaInfo": "${it.handler.metaInfo}",
+                        "roles": "${it.roles}"
                     }
                     """
-            }.joinToString(",")
+            }
         }
                 ],
                 "wsHandlers": [

@@ -5,6 +5,7 @@ import io.javalin.config.RouterConfig;
 import static io.javalin.http.HandlerType.GET;
 
 import io.javalin.http.HandlerType;
+import io.javalin.router.Endpoint;
 import io.javalin.router.HttpHandlerEntry;
 import io.javalin.router.matcher.PathMatcher;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -47,8 +48,8 @@ public class PathMatcherBenchmark {
         this.pathMatcher = new PathMatcher();
         var routingConfig = new RouterConfig(new JavalinConfig());
         for (int i = 0; i < 50; i++) {
-            this.pathMatcher.add(new HttpHandlerEntry(GET, "/hello" + i, routingConfig, Collections.emptySet(), (ctx) -> {}));
-            this.oldPathMatcher.add(new HttpHandlerEntry(GET, "/hello" + i, routingConfig, Collections.emptySet(), (ctx) -> {}));
+            this.pathMatcher.add(new HttpHandlerEntry(new Endpoint(GET, "/hello" + i, Collections.emptySet(), (ctx) -> {}), routingConfig));
+            this.oldPathMatcher.add(new HttpHandlerEntry(new Endpoint(GET, "/hello" + i, Collections.emptySet(), (ctx) -> {}), routingConfig));
         }
     }
 
@@ -81,7 +82,7 @@ final class OldPathMatcher {
     );
 
     public void add(HttpHandlerEntry entry) {
-        handlerEntries.get(entry.getType()).add(entry);
+        handlerEntries.get(entry.getEndpoint().getMethod()).add(entry);
     }
 
     public List<HttpHandlerEntry> findEntries(HandlerType handlerType, String requestUri) {
@@ -95,8 +96,8 @@ final class OldPathMatcher {
     }
 
     private boolean match(HttpHandlerEntry entry, String requestPath) {
-        if (entry.getPath().equals("*")) return true;
-        if (entry.getPath().equals(requestPath)) return true;
+        if (entry.getEndpoint().getPath().equals("*")) return true;
+        if (entry.getEndpoint().getPath().equals(requestPath)) return true;
         return entry.matches(requestPath);
     }
 }

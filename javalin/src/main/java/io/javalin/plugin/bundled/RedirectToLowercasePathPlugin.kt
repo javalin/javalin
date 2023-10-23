@@ -71,7 +71,7 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
                     .filter { it.isNotEmpty() }
                     .toTypedArray()
 
-                val serverSegments = PathParser(lowercaseRoute.path, config.router)
+                val serverSegments = PathParser(lowercaseRoute.endpoint.path, config.router)
                     .segments
 
                 serverSegments.forEachIndexed { index, serverSegment ->

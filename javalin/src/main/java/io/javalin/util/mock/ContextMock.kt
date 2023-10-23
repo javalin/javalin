@@ -10,13 +10,12 @@ import io.javalin.http.servlet.JavalinServletContextConfig
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.servlet.Task
 import io.javalin.http.servlet.TaskInitializer
-import io.javalin.router.HttpHandlerEntry
+import io.javalin.router.Endpoint
 import io.javalin.util.mock.HttpServletRequestMock.RequestState
 import io.javalin.util.mock.HttpServletResponseMock.ResponseState
 import java.io.InputStream
 import java.util.concurrent.CountDownLatch
 import java.util.function.Consumer
-import kotlin.math.round
 import org.jetbrains.annotations.ApiStatus.Experimental
 
 @Experimental
@@ -72,7 +71,7 @@ data class ContextMock private constructor(
                 })
             }
         )
-        javalinServlet.router.addHttpHandler(endpoint.method, endpoint.path, endpoint.handler)
+        javalinServlet.router.addHttpEndpoint(endpoint)
         val ctx = javalinServlet.handle(request, response)!!
         await.await()
 

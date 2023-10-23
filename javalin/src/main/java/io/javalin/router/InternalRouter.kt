@@ -37,15 +37,14 @@ open class InternalRouter(
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    open fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): InternalRouter {
-        val roleSet = HashSet(roles.asList())
-        httpPathMatcher.add(HttpHandlerEntry(handlerType, path, routerConfig, roleSet, handler))
+    open fun addHttpEndpoint(endpoint: Endpoint): InternalRouter {
+        httpPathMatcher.add(HttpHandlerEntry(endpoint, routerConfig))
         eventManager.fireHandlerAddedEvent(
             HandlerMetaInfo(
-                httpMethod = handlerType,
-                path = Util.prefixContextPath(routerConfig.contextPath, path),
-                handler = handler,
-                roles = roleSet
+                httpMethod = endpoint.method,
+                path = Util.prefixContextPath(routerConfig.contextPath, endpoint.path),
+                handler = endpoint.handler,
+                roles = endpoint.roles
             )
         )
         return this
