@@ -8,12 +8,13 @@ class PluginManager internal constructor(private val cfg: JavalinConfig) {
     private val initializedPlugins = mutableListOf<JavalinPlugin<*>>()
     private val enabledPlugins = mutableListOf<JavalinPlugin<*>>()
 
-    fun register(plugin: JavalinPlugin<*>) {
+    fun <PLUGIN : JavalinPlugin<*>> register(plugin: PLUGIN): PLUGIN {
         if (!plugin.repeatable() && plugins.any { it.javaClass == plugin.javaClass }) {
             throw PluginAlreadyRegisteredException(plugin)
         }
         plugins.add(plugin)
         initializePlugins()
+        return plugin
     }
 
     private fun initializePlugins() {

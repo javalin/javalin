@@ -62,11 +62,10 @@ class JavalinConfig {
         }
     }
 
-    fun registerPlugin(plugin: JavalinPlugin<*>): JavalinConfig = also {
+    fun <PLUGIN : JavalinPlugin<*>> registerPlugin(plugin: PLUGIN): PLUGIN =
         pvt.pluginManager.register(plugin)
-    }
 
-    fun <PLUGIN : JavalinPlugin<CFG>, CFG> registerPlugin(factory: PluginFactory<PLUGIN, CFG>, cfg: Consumer<CFG> = Consumer {}) =
+    fun <PLUGIN : JavalinPlugin<CFG>, CFG> registerPlugin(factory: PluginFactory<PLUGIN, CFG>, cfg: Consumer<CFG> = Consumer {}): PLUGIN =
         registerPlugin(factory.create(cfg))
 
 }

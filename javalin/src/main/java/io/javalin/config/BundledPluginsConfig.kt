@@ -1,6 +1,7 @@
 package io.javalin.config
 
 import io.javalin.plugin.bundled.BasicAuthPlugin.Companion.BasicAuthPlugin
+import io.javalin.plugin.bundled.BasicAuthPluginConfig
 import io.javalin.plugin.bundled.CorsPlugin.Companion.CorsPlugin
 import io.javalin.plugin.bundled.CorsPluginConfig
 import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLoggingPlugin
@@ -15,23 +16,25 @@ import java.util.function.Consumer
 
 class BundledPluginsConfig(private val cfg: JavalinConfig) {
 
-    fun enableRouteOverview(path: String, vararg roles: RouteRole = emptyArray()) =
+    fun enableRouteOverview(path: String, vararg roles: RouteRole = emptyArray()): BundledPluginsConfig = also {
         cfg.registerPlugin(RouteOverviewPlugin) {
             it.path = path
             it.roles = roles
         }
+    }
 
-    fun enableBasicAuth(username: String, password: String) =
+    fun enableBasicAuth(username: String, password: String): BundledPluginsConfig = also {
         cfg.registerPlugin(BasicAuthPlugin) {
             it.username = username
             it.password = password
         }
+    }
 
-    fun enableGlobalHeaders(globalHeaderConfig: Consumer<GlobalHeaderConfig>) = cfg.registerPlugin(GlobalHeadersPlugin, globalHeaderConfig)
-    fun enableCors(corsConfig: Consumer<CorsPluginConfig>) = cfg.registerPlugin(CorsPlugin, corsConfig)
-    fun enableHttpAllowedMethodsOnRoutes() = cfg.registerPlugin(HttpAllowedMethodsPlugin)
-    fun enableDevLogging() = cfg.registerPlugin(DevLoggingPlugin)
-    fun enableRedirectToLowercasePaths() = cfg.registerPlugin(RedirectToLowercasePathPlugin)
-    fun enableSslRedirects() = cfg.registerPlugin(SslRedirectPlugin)
+    fun enableGlobalHeaders(globalHeaderConfig: Consumer<GlobalHeaderConfig>): BundledPluginsConfig = also { cfg.registerPlugin(GlobalHeadersPlugin, globalHeaderConfig) }
+    fun enableCors(corsConfig: Consumer<CorsPluginConfig>): BundledPluginsConfig = also { cfg.registerPlugin(CorsPlugin, corsConfig) }
+    fun enableHttpAllowedMethodsOnRoutes(): BundledPluginsConfig = also { cfg.registerPlugin(HttpAllowedMethodsPlugin) }
+    fun enableDevLogging(): BundledPluginsConfig = also { cfg.registerPlugin(DevLoggingPlugin) }
+    fun enableRedirectToLowercasePaths(): BundledPluginsConfig = also { cfg.registerPlugin(RedirectToLowercasePathPlugin) }
+    fun enableSslRedirects(): BundledPluginsConfig = also { cfg.registerPlugin(SslRedirectPlugin) }
 
 }
