@@ -1,5 +1,6 @@
 package io.javalin
 
+import io.javalin.http.ContentType
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.Header.HOST
 import io.javalin.http.Header.X_FORWARDED_FOR
@@ -12,37 +13,29 @@ import org.junit.jupiter.api.Test
 internal class TestMockContext {
 
     object TestController {
-
-        val defaultApiEndpoint = Endpoint(
-            method = GET,
-            path = "/api/{simple}/<complex>",
-            handler = { it.result("Hello ${it.ip()}").status(IM_A_TEAPOT) }
-        )
-
-        val asyncApiEndpoint = Endpoint(
-            method = GET,
-            path = "/api/async",
-            handler = { it.async { it.result("Welcome to the future") } }
-        )
+        val defaultApiEndpoint = Endpoint(GET, "/api/{simple}/<complex>") { it.result("Hello ${it.ip()}").status(IM_A_TEAPOT) }
+        val asyncApiEndpoint = Endpoint(GET, "/api/async") { it.async { it.result("Welcome to the future") } }
     }
 
-    private val contextMock = ContextMock.create()
+    private val contextMock = ContextMock.create {
+        it.req.contentType = ContentType.JAVASCRIPT
+    }
 
     @Test
     fun `should handle result`() {
-        val context = contextMock.execute(TestController.defaultApiEndpoint)
+        val context = TestController.defaultApiEndpoint.handle(contextMock)
         assertThat(context.result()).isEqualTo("Hello 127.0.0.1")
     }
 
     @Test
     fun `should handle status`() {
-        val context = contextMock.execute(TestController.defaultApiEndpoint)
+        val context = TestController.defaultApiEndpoint.handle(contextMock)
         assertThat(context.status()).isEqualTo(IM_A_TEAPOT)
     }
 
     @Test
     fun `should handle url related methods`() {
-        val context = contextMock.execute(TestController.defaultApiEndpoint, "/api/simple/comp/lex")
+        val context = TestController.defaultApiEndpoint.handle(contextMock, "/api/simple/comp/lex")
         assertThat(context.scheme()).isEqualTo("http")
         assertThat(context.host()).isEqualTo("127.0.0.1")
         assertThat(context.method()).isEqualTo(GET)
@@ -55,21 +48,16 @@ internal class TestMockContext {
 
     @Test
     fun `should apply test level configuration`() {
-        val context = contextMock
-            .withJavalinConfiguration {
-                it.contextResolver.ip = { ctx -> ctx.header(X_FORWARDED_FOR) ?: ctx.header(HOST)!! }
-            }
-            .withRequestState {
-                it.headers[X_FORWARDED_FOR] = mutableListOf("1.9.9.9")
-            }
-            .execute(TestController.defaultApiEndpoint)
-
+        val context = TestController.defaultApiEndpoint.handle(contextMock, "/api/simple/comp/lex") {
+            it.javalinConfiguration { it.contextResolver.ip = { ctx -> ctx.header(X_FORWARDED_FOR) ?: ctx.header(HOST)!! } }
+            it.req.headers[X_FORWARDED_FOR] = mutableListOf("1.9.9.9")
+        }
         assertThat(context.result()).isEqualTo("Hello 1.9.9.9")
     }
 
     @Test
     fun `should be handled as a real request`() {
-        val context = contextMock.execute(TestController.asyncApiEndpoint)
+        val context = TestController.asyncApiEndpoint.handle(contextMock)
         assertThat(context.result()).isEqualTo("Welcome to the future")
     }
 

@@ -11,20 +11,20 @@ import java.net.URLEncoder
 import java.util.Locale
 
 @Suppress("MemberVisibilityCanBePrivate")
-class HttpServletResponseMock(val state: ResponseState = ResponseState()) : HttpServletResponse {
+data class HttpServletResponseMock(val state: ResponseState = ResponseState()) : HttpServletResponse {
 
-    class ResponseState {
-        @JvmField var characterEncoding: String = "UTF-8"
-        @JvmField var contentType: String? = null
-        @JvmField var outputStream: ByteArrayOutputStream = ByteArrayOutputStream()
-        @JvmField var contentLength: Long = 0L
-        @JvmField var bufferSize: Int = 0
-        @JvmField var locale: Locale? = null
-        @JvmField var headers = mutableMapOf<String, String>()
-        @JvmField var error: Error? = null
-        @JvmField var redirectUrl: String? = null
-        @JvmField var status: Int = 200
-
+    data class ResponseState(
+        @JvmField var characterEncoding: String = "UTF-8",
+        @JvmField var contentType: String? = null,
+        @JvmField var outputStream: ByteArrayOutputStream = ByteArrayOutputStream(),
+        @JvmField var contentLength: Long = 0L,
+        @JvmField var bufferSize: Int = 0,
+        @JvmField var locale: Locale? = null,
+        @JvmField var headers: MutableMap<String, String> = mutableMapOf(),
+        @JvmField var error: Error? = null,
+        @JvmField var redirectUrl: String? = null,
+        @JvmField var status: Int = 200,
+    ) {
         val servletOutputStream by lazy { ServletOutputStreamImpl(outputStream) }
     }
 

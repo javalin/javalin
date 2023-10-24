@@ -28,58 +28,58 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 @Suppress("MemberVisibilityCanBePrivate")
-open class HttpServletRequestMock(
+data class HttpServletRequestMock(
     val state: RequestState,
     val response: HttpServletResponseMock
 ) : HttpServletRequest {
 
-    class RequestState {
-        @JvmField var protocol: String = "HTTP/1.1"
-        @JvmField var scheme: String = "http"
-        @JvmField var serverName: String = "localhost"
-        @JvmField var serverPort: Int = 80
-        @JvmField var remoteAddr: String = "127.0.0.1"
-        @JvmField var remoteHost: String = "localhost"
-        @JvmField var secure: Boolean = false
-        @JvmField var remotePort: Int = 80
-        @JvmField var localName: String = "localhost"
-        @JvmField var localAddr: String = "127.0.0.1"
-        @JvmField var localPort: Int = -1
-        @JvmField var realPath: String = ""
+    data class RequestState(
+        @JvmField var protocol: String = "HTTP/1.1",
+        @JvmField var scheme: String = "http",
+        @JvmField var serverName: String = "localhost",
+        @JvmField var serverPort: Int = 80,
+        @JvmField var remoteAddr: String = "127.0.0.1",
+        @JvmField var remoteHost: String = "localhost",
+        @JvmField var secure: Boolean = false,
+        @JvmField var remotePort: Int = 80,
+        @JvmField var localName: String = "localhost",
+        @JvmField var localAddr: String = "127.0.0.1",
+        @JvmField var localPort: Int = -1,
+        @JvmField var realPath: String = "",
 
-        @JvmField var servletPath = ""
-        @JvmField var requestURL = ""
-        @JvmField var requestURI = ""
-        @JvmField var pathInfo = ""
-        @JvmField var pathTranslated = ""
-        @JvmField var contextPath = ""
-        @JvmField var queryString = ""
-        @JvmField var parameters = mutableMapOf<String, Array<String>>()
+        @JvmField var servletPath: String = "",
+        @JvmField var requestURL: String = "",
+        @JvmField var requestURI: String = "",
+        @JvmField var pathInfo: String = "",
+        @JvmField var pathTranslated: String = "",
+        @JvmField var contextPath: String = "",
+        @JvmField var queryString: String = "",
+        @JvmField var parameters: MutableMap<String, Array<String>> = mutableMapOf(),
 
-        @JvmField var method: String = "GET"
-        @JvmField var headers = mutableMapOf<String, MutableList<String>>()
-        @JvmField var cookies = mutableListOf<Cookie>()
-        @JvmField var locale: Locale = Locale.getDefault()
-        @JvmField var remoteUser = ""
+        @JvmField var method: String = "GET",
+        @JvmField var headers: MutableMap<String, MutableList<String>> = mutableMapOf(),
+        @JvmField var cookies: MutableList<Cookie> = mutableListOf(),
+        @JvmField var locale: Locale = Locale.getDefault(),
+        @JvmField var remoteUser: String = "",
 
-        @JvmField var inputStream: InputStream = ByteArrayInputStream(ByteArray(0))
-        @JvmField var contentLength: Long = 0L
-        @JvmField var contentType: String? = null
-        @JvmField var characterEncodingValue: String = "UTF-8"
-        @JvmField var parts = mutableListOf<Part>()
+        @JvmField var inputStream: InputStream = ByteArrayInputStream(ByteArray(0)),
+        @JvmField var contentLength: Long = 0L,
+        @JvmField var contentType: String? = null,
+        @JvmField var characterEncodingValue: String = "UTF-8",
+        @JvmField var parts: MutableList<Part> = mutableListOf(),
 
-        @JvmField var attributes = mutableMapOf<String, Any>()
-        @JvmField var dispatcherType = DispatcherType.REQUEST
-        @JvmField var requestDispatcher: RequestDispatcher? = null
-        @JvmField var servletContext: ServletContext? = null
-        @JvmField var asyncContext: AsyncContext? = null
+        @JvmField var attributes: MutableMap<String, Any> = mutableMapOf(),
+        @JvmField var dispatcherType: DispatcherType = DispatcherType.REQUEST,
+        @JvmField var requestDispatcher: RequestDispatcher? = null,
+        @JvmField var servletContext: ServletContext? = null,
+        @JvmField var asyncContext: AsyncContext? = null,
 
-        @JvmField var authType: String? = null
-        @JvmField var roles = mutableListOf<String>()
-        @JvmField var userPrincipal: Principal? = null
-        @JvmField var requestedSessionId: String? = null
-        @JvmField var session: HttpSession? = null
-
+        @JvmField var authType: String? = null,
+        @JvmField var roles: MutableList<String> = mutableListOf(),
+        @JvmField var userPrincipal: Principal? = null,
+        @JvmField var requestedSessionId: String? = null,
+        @JvmField var session: HttpSession? = null,
+    ) {
         val cachedInputStream by lazy { inputStream.buffered() }
     }
 
