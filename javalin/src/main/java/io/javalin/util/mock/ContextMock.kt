@@ -9,6 +9,7 @@ import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.servlet.Task
 import io.javalin.http.servlet.TaskInitializer
 import io.javalin.router.Endpoint
+import io.javalin.router.Endpoint.EndpointExecutor
 import io.javalin.util.mock.HttpServletRequestMock.RequestState
 import io.javalin.util.mock.HttpServletResponseMock.ResponseState
 import java.util.concurrent.CountDownLatch
@@ -23,7 +24,7 @@ data class ContextMock private constructor(
         res = ResponseState(),
     ),
     private val userConfigs: List<Consumer<MockConfig>> = emptyList(),
-) {
+) : EndpointExecutor {
 
     companion object {
         @JvmStatic @JvmOverloads fun create(cfg: (Consumer<MockConfig>)? = null): ContextMock = ContextMock(userConfigs = cfg?.let { listOf(it) } ?: emptyList())
@@ -42,8 +43,17 @@ data class ContextMock private constructor(
         return ctx
     }
 
+    override fun execute(endpoint: Endpoint): Context {
+        return build().execute(endpoint)
+    }
+
     @JvmOverloads
-    fun execute(endpoint: Endpoint, uri: String = endpoint.path, body: Body? = null): Context {
+    fun build(uri: String? = null, body: Body? = null, cfg: (Consumer<MockConfig>)? = null): EndpointExecutor =
+        EndpointExecutor {
+            (cfg?.let { withMockConfig(it) } ?: this).execute(it, uri ?: it.path, body)
+        }
+
+    private fun execute(endpoint: Endpoint, uri: String = endpoint.path, body: Body? = null): Context {
         mockConfig.req.also { req ->
             req.headers[Header.HOST] = mutableListOf(req.remoteAddr)
             req.method = endpoint.method.name

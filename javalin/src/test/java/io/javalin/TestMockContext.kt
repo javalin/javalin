@@ -35,7 +35,7 @@ internal class TestMockContext {
 
     @Test
     fun `should handle url related methods`() {
-        val context = TestController.defaultApiEndpoint.handle(contextMock, "/api/simple/comp/lex")
+        val context = TestController.defaultApiEndpoint.handle(contextMock.build("/api/simple/comp/lex"))
         assertThat(context.scheme()).isEqualTo("http")
         assertThat(context.host()).isEqualTo("127.0.0.1")
         assertThat(context.method()).isEqualTo(GET)
@@ -48,10 +48,10 @@ internal class TestMockContext {
 
     @Test
     fun `should apply test level configuration`() {
-        val context = TestController.defaultApiEndpoint.handle(contextMock, "/api/simple/comp/lex") {
+        val context = TestController.defaultApiEndpoint.handle(contextMock.build("/api/simple/comp/lex") {
             it.javalinConfiguration { it.contextResolver.ip = { ctx -> ctx.header(X_FORWARDED_FOR) ?: ctx.header(HOST)!! } }
             it.req.headers[X_FORWARDED_FOR] = mutableListOf("1.9.9.9")
-        }
+        })
         assertThat(context.result()).isEqualTo("Hello 1.9.9.9")
     }
 

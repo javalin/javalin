@@ -21,13 +21,21 @@ class Endpoint @JvmOverloads constructor(
         return ctx
     }
 
-    @JvmOverloads
-    fun handle(
-        ctx: ContextMock,
-        uri: String = path,
-        body: Body? = null,
-        cfg: (Consumer<MockConfig>)? = null
-    ): Context =
-        ctx.withMockConfig { cfg?.accept(it) }.execute(this, uri, body)
+    fun interface EndpointExecutor {
+        fun execute(endpoint: Endpoint): Context
+    }
+
+    fun handle(executor: EndpointExecutor): Context {
+        return executor.execute(this)
+    }
+
+//    @JvmOverloads
+//    fun handle(
+//        ctx: ContextMock,
+//        uri: String = path,
+//        body: Body? = null,
+//        cfg: (Consumer<MockConfig>)? = null
+//    ): Context =
+//        ctx.withMockConfig { cfg?.accept(it) }.execute(this, uri, body)
 
 }
