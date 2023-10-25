@@ -36,6 +36,18 @@ data class ContextMock private constructor(
             userConfigs = userConfigs + cfg
         )
 
+    fun build(body: Body? = null, cfg: MockConfigurer? = null): EndpointExecutor = build(null, body, cfg)
+
+    @JvmOverloads
+    fun build(uri: String? = null, body: Body? = null, cfg: MockConfigurer? = null): EndpointExecutor =
+        EndpointExecutor { endpoint ->
+            execute(endpoint, uri ?: endpoint.path, body, cfg)
+        }
+
+    override fun execute(endpoint: Endpoint): Context {
+        return build().execute(endpoint)
+    }
+
     fun execute(body: Consumer<Context>): Context {
         val (req, res) = createMockReqAndRes()
         val ctx = JavalinServletContext(createServletContextConfig(), req = req, res = res)
@@ -43,17 +55,9 @@ data class ContextMock private constructor(
         return ctx
     }
 
-    override fun execute(endpoint: Endpoint): Context {
-        return build().execute(endpoint)
-    }
-
-    @JvmOverloads
-    fun build(uri: String? = null, body: Body? = null, cfg: MockConfigurer? = null): EndpointExecutor =
-        EndpointExecutor {
-            (cfg?.let { withMockConfig(it) } ?: this).execute(it, uri ?: it.path, body)
-        }
-
-    private fun execute(endpoint: Endpoint, uri: String = endpoint.path, body: Body? = null): Context {
+    private fun execute(endpoint: Endpoint, uri: String = endpoint.path, body: Body? = null, cfg: MockConfigurer? = null): Context {
+        val (request, response) = createMockReqAndRes()
+        body?.init(mockConfig)
         mockConfig.req.also { req ->
             req.headers[Header.HOST] = mutableListOf(req.remoteAddr)
             req.method = endpoint.method.name
@@ -61,8 +65,10 @@ data class ContextMock private constructor(
             req.requestURI = uri
             req.requestURL = "${req.scheme}://${req.serverName}:${req.serverPort}${req.contextPath}${req.requestURI}"
             req.inputStream = body?.toInputStream() ?: req.inputStream
+            req.contentType = body?.getContentType() ?: req.contentType
+            req.contentLength = body?.getContentLength() ?: req.contentLength
         }
-        val (request, response) = createMockReqAndRes()
+        cfg?.let { invokeMockConfigurerWithAsSamWithReceiver(it, mockConfig) }
 
         val await = CountDownLatch(1)
         val javalinServlet = JavalinServlet(mockConfig.javalinConfig)

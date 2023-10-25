@@ -45,8 +45,8 @@ data class HttpServletRequestMock(
         @JvmField var localName: String = "localhost",
         @JvmField var localAddr: String = "127.0.0.1",
         @JvmField var localPort: Int = -1,
-        @JvmField var realPath: String = "",
 
+        @JvmField var realPath: String = "",
         @JvmField var servletPath: String = "",
         @JvmField var requestURL: String = "",
         @JvmField var requestURI: String = "",
@@ -80,7 +80,9 @@ data class HttpServletRequestMock(
         @JvmField var requestedSessionId: String? = null,
         @JvmField var session: HttpSession? = null,
     ) {
-        val cachedInputStream by lazy { inputStream.buffered() }
+        fun addHeader(name: String, vararg values: String): RequestState = also {
+            headers.getOrPut(name) { mutableListOf() }.addAll(values)
+        }
     }
 
     override fun getAttribute(attribute: String?): Any? = state.attributes[attribute]
@@ -95,7 +97,7 @@ data class HttpServletRequestMock(
     override fun getContentLengthLong(): Long = state.contentLength
     override fun getContentType(): String? = state.contentType
 
-    override fun getInputStream(): ServletInputStream = StubServletInputStream(state.cachedInputStream)
+    override fun getInputStream(): ServletInputStream = StubServletInputStream(state.inputStream)
     override fun getReader(): BufferedReader = state.inputStream.bufferedReader()
 
     override fun getParameter(name: String?): String? = state.parameters[name]?.firstOrNull()
@@ -113,7 +115,7 @@ data class HttpServletRequestMock(
     override fun getLocales(): Enumeration<Locale> = Collections.enumeration(listOf(state.locale))
     override fun isSecure(): Boolean = state.secure
     @Deprecated("Deprecated")
-    override fun getRealPath(p0: String?): String? = state.realPath
+    override fun getRealPath(p0: String?): String = state.realPath
     override fun getRemotePort(): Int = state.remotePort
     override fun getLocalName(): String = state.localName
     override fun getLocalAddr(): String = state.localAddr
@@ -156,7 +158,7 @@ data class HttpServletRequestMock(
 
     override fun getSession(p0: Boolean): HttpSession? = state.session
     override fun getSession(): HttpSession? = state.session
-    override fun changeSessionId(): String? = throw UnsupportedOperationException("Not implemented")
+    override fun changeSessionId(): String = throw UnsupportedOperationException("Not implemented")
     override fun isRequestedSessionIdValid(): Boolean = throw UnsupportedOperationException("Not implemented")
     override fun isRequestedSessionIdFromCookie(): Boolean = throw UnsupportedOperationException("Not implemented")
     override fun isRequestedSessionIdFromURL(): Boolean = throw UnsupportedOperationException("Not implemented")
