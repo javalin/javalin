@@ -18,7 +18,7 @@ internal class TestMockContext {
     }
 
     private val contextMock = ContextMock.create {
-        it.req.contentType = ContentType.JAVASCRIPT
+        req.contentType = ContentType.JAVASCRIPT
     }
 
     @Test
@@ -49,8 +49,8 @@ internal class TestMockContext {
     @Test
     fun `should apply test level configuration`() {
         val context = TestController.defaultApiEndpoint.handle(contextMock.build("/api/simple/comp/lex") {
-            it.javalinConfiguration { it.contextResolver.ip = { ctx -> ctx.header(X_FORWARDED_FOR) ?: ctx.header(HOST)!! } }
-            it.req.headers[X_FORWARDED_FOR] = mutableListOf("1.9.9.9")
+            javalinConfiguration { it.contextResolver.ip = { ctx -> ctx.header(X_FORWARDED_FOR) ?: ctx.header(HOST)!! } }
+            req.headers[X_FORWARDED_FOR] = mutableListOf("1.9.9.9")
         })
         assertThat(context.result()).isEqualTo("Hello 1.9.9.9")
     }

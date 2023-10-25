@@ -23,14 +23,14 @@ data class ContextMock private constructor(
         req = RequestState(),
         res = ResponseState(),
     ),
-    private val userConfigs: List<Consumer<MockConfig>> = emptyList(),
+    private val userConfigs: List<MockConfigurer> = emptyList(),
 ) : EndpointExecutor {
 
     companion object {
-        @JvmStatic @JvmOverloads fun create(cfg: (Consumer<MockConfig>)? = null): ContextMock = ContextMock(userConfigs = cfg?.let { listOf(it) } ?: emptyList())
+        @JvmStatic @JvmOverloads fun create(cfg: MockConfigurer? = null): ContextMock = ContextMock(userConfigs = cfg?.let { listOf(it) } ?: emptyList())
     }
 
-    fun withMockConfig(cfg: Consumer<MockConfig>): ContextMock =
+    fun withMockConfig(cfg: MockConfigurer): ContextMock =
         copy(
             mockConfig = mockConfig.clone(),
             userConfigs = userConfigs + cfg
@@ -48,7 +48,7 @@ data class ContextMock private constructor(
     }
 
     @JvmOverloads
-    fun build(uri: String? = null, body: Body? = null, cfg: (Consumer<MockConfig>)? = null): EndpointExecutor =
+    fun build(uri: String? = null, body: Body? = null, cfg: MockConfigurer? = null): EndpointExecutor =
         EndpointExecutor {
             (cfg?.let { withMockConfig(it) } ?: this).execute(it, uri ?: it.path, body)
         }
@@ -81,7 +81,7 @@ data class ContextMock private constructor(
     }
 
     private fun createMockReqAndRes(): Pair<HttpServletRequestMock, HttpServletResponseMock> {
-        userConfigs.forEach { it.accept(mockConfig) }
+        userConfigs.forEach { invokeMockConfigurerWithAsSamWithReceiver(it, mockConfig) }
         val response = HttpServletResponseMock(mockConfig.res)
         val request = HttpServletRequestMock(mockConfig.req, response)
         return request to response
