@@ -1,6 +1,7 @@
 package io.javalin.util.mock
 
 fun interface MockConfigurer {
+    /** Apply changes to the [MockConfig] instance. */
     fun MockConfig.configure()
 }
 
