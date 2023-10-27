@@ -7,47 +7,37 @@
 
 package io.javalin
 
-import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
-import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
+import io.javalin.TestAccessManager.MyRole.ROLE_ONE
+import io.javalin.TestAccessManager.MyRole.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.config.JavalinConfig
-import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.UNAUTHORIZED
+import io.javalin.http.UnauthorizedResponse
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.util.concurrent.CompletableFuture
 
 class TestAccessManager {
 
-    enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
+    // the AccessManager interface has been removed, but we are keeping
+    // the test to make sure the functionality is still supported.
+
+    enum class MyRole : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private fun managedApp(cfg: ((JavalinConfig) -> Unit)? = null) = Javalin.create { config ->
-        config.accessManager { handler, ctx, routeRoles ->
-            val role: RouteRole? = ctx.queryParam("role")?.let { MyRoles.valueOf(it) }
-
-            when (role) {
-                in routeRoles -> handler.handle(ctx)
-                else -> ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message)
+        config.router.mount {
+            it.beforeMatched { ctx ->
+                val role: RouteRole? = ctx.queryParam("role")?.let { MyRole.valueOf(it) }
+                val routeRoles = ctx.routeRoles()
+                if (role !in routeRoles) {
+                    throw UnauthorizedResponse()
+                }
             }
         }
         cfg?.invoke(config)
-    }
-
-    @Test
-    fun `default AccessManager throws if roles are present`() = TestUtil.test { app, http ->
-        app.get("/secured", { it.result("Hello") }, ROLE_ONE)
-        assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo(INTERNAL_SERVER_ERROR.message)
-    }
-
-    @Test
-    fun `AccessManager does not run if roles are not present`() = TestUtil.test { app, http ->
-        app.get("/unsecured") { it.result("Hello") }
-        app.unsafeConfig().accessManager { _, _, _ -> throw RuntimeException() }
-        assertThat(http.getBody("/unsecured")).isEqualTo("Hello")
     }
 
     @Test
@@ -78,31 +68,6 @@ class TestAccessManager {
         assertThat(callWithRole(http.origin, "/users/1", "ROLE_ONE")).isEqualTo("My single user: 1")
         assertThat(callWithRole(http.origin, "/users/2", "ROLE_TWO")).isEqualTo("My single user: 2")
         assertThat(callWithRole(http.origin, "/users/3", "ROLE_THREE")).isEqualTo(UNAUTHORIZED.message)
-    }
-
-    @Test
-    fun `AccessManager supports path params`() = TestUtil.test(Javalin.create {
-        it.accessManager { _, ctx, _ ->
-            ctx.result(ctx.pathParam("userId"));
-        }
-    }) { app, http ->
-        app.get("/user/{userId}", {}, ROLE_ONE)
-        assertThat(http.get("/user/123").body).isEqualTo("123")
-    }
-
-    @Test
-    fun `AccessManager is handled as standalone layer by servlet`() = TestUtil.test(Javalin.create {
-        it.accessManager { handler, ctx, _ ->
-            ctx.future { CompletableFuture.completedFuture("Something async") }
-            handler.handle(ctx) // it shouldn't override values from current layer (like future supplier)
-        }
-    }) { app, http ->
-        app.get("/secured", { ctx ->
-            ctx.async {
-                ctx.result("Test")
-            }
-        }, ROLE_ONE)
-        assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Test")
     }
 
     private fun callWithRole(origin: String, path: String, role: String) =

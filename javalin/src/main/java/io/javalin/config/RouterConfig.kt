@@ -5,6 +5,7 @@ import io.javalin.apibuilder.EndpointGroup
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.router.InternalRouter
 import io.javalin.router.JavalinDefaultRouting
+import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.router.RoutingApiInitializer
 import io.javalin.router.exception.JavaLangErrorHandler
 import io.javalin.util.JavalinLogger
@@ -27,6 +28,8 @@ class RouterConfig(internal val cfg: JavalinConfig) {
     fun <SETUP> mount(initializer: RoutingApiInitializer<SETUP>, setup: Consumer<SETUP> = Consumer {}): RouterConfig = also {
         initializer.initialize(cfg, cfg.pvt.internalRouter, setup)
     }
+
+    fun mount(setup: Consumer<JavalinDefaultRouting>) = mount(Default, setup)
 
     fun apiBuilder(endpoints: EndpointGroup): RouterConfig {
         val apiBuilderInitializer = { cfg: JavalinConfig, internalRouter: InternalRouter, setup: Consumer<Void?> ->

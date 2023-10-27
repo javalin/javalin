@@ -16,7 +16,6 @@ import io.javalin.config.EventConfig;
 import io.javalin.http.Context;
 import io.javalin.jetty.JettyServer;
 import io.javalin.security.RouteRole;
-import io.javalin.util.Util;
 
 import java.util.function.Consumer;
 
@@ -55,7 +54,9 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
 
     /**
      * Creates a new instance without any custom configuration.
+     * The server does not run until {@link Javalin#start()} is called.
      *
+     * @return application instance
      * @see Javalin#create(Consumer)
      */
     public static Javalin create() {
@@ -67,7 +68,7 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      * Creates a new instance with the user provided configuration.
      * The server does not run until {@link Javalin#start()} is called.
      *
-     * @return application instance.
+     * @return application instance
      * @see Javalin#start()
      * @see Javalin#start(int)
      */
@@ -77,6 +78,17 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
         JavalinConfig.applyUserConfig(app.cfg, config); // mutates app.config and app (adds http-handlers)
         app.jettyServer.getValue(); // initialize server if no plugin already did
         return app;
+    }
+
+    /**
+     * Creates a new instance with the user provided configuration and starts it immediately.
+     *
+     * @return running application instance
+     * @see io.javalin.Javalin#create(java.util.function.Consumer)
+     * @see Javalin#start()
+     */
+    public static Javalin createAndStart(Consumer<JavalinConfig> config) {
+        return create(config).start();
     }
 
     // Get JavalinServlet (can be attached to other servlet containers)
@@ -95,7 +107,6 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      * @see Javalin#start()
      */
     public Javalin start(String host, int port) {
-        Util.printHelpfulMessageIfLoggerIsMissing();
         jettyServer.getValue().start(host, port);
         return this;
     }
@@ -110,7 +121,8 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      * @see Javalin#start()
      */
     public Javalin start(int port) {
-        return start(null, port);
+        jettyServer.getValue().start(null, port);
+        return this;
     }
 
     /**
@@ -122,7 +134,8 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      * @see Javalin#create()
      */
     public Javalin start() {
-        return start(null, -1);
+        jettyServer.getValue().start(null, null);
+        return this;
     }
 
     /**

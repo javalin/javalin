@@ -31,9 +31,9 @@ class AsyncTaskConfig(
     @JvmField var onTimeout: Consumer<Context>? = null,
 )
 
-internal object AsyncUtil {
+internal class AsyncExecutor(useVirtualThreads: Boolean) {
 
-    val defaultExecutor = ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool")
+    private val defaultExecutor = ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", useVirtualThreads)
 
     /**
      * Utility method that executes [task] asynchronously using [executor] ([defaultExecutor] by default).
@@ -65,6 +65,14 @@ internal object AsyncUtil {
                         ?: taskFuture
                 }
         }
+
+    companion object {
+        const val ASYNC_EXECUTOR_KEY = "javalin-async-executor"
+        fun Context.asyncExecutor(): AsyncExecutor = appAttribute(ASYNC_EXECUTOR_KEY)!!
+    }
+}
+
+internal object AsyncUtil {
 
     internal fun Context.isAsync(): Boolean =
         req().isAsyncStarted

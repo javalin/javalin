@@ -11,7 +11,6 @@ import io.javalin.router.exception.JavaLangErrorHandler
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.jetty.JavalinJettyServlet
 import io.javalin.plugin.PluginManager
-import io.javalin.security.AccessManager
 import io.javalin.util.Util
 import io.javalin.util.javalinLazy
 import io.javalin.websocket.WsConfig
@@ -29,11 +28,10 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField var appAttributes: MutableMap<String, Any> = HashMap()
     @JvmField var requestLogger: RequestLogger? = null
     @JvmField var resourceHandler: ResourceHandler? = null
-    @JvmField var accessManager: AccessManager? = null
     @JvmField var singlePageHandler = SinglePageHandler()
     @JvmField var wsLogger: WsConfig? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
-    @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
+    @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.BEFORE_MATCHED, DefaultTasks.HTTP, DefaultTasks.AFTER_MATCHED, DefaultTasks.ERROR, DefaultTasks.AFTER)
     @JvmField var servlet: Lazy<Servlet> = javalinLazy {
         val httpServlet = JavalinServlet(cfg)
         when {
