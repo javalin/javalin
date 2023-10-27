@@ -5,6 +5,7 @@
  */
 package io.javalin.config
 
+import io.javalin.Javalin
 import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
 import io.javalin.http.util.AsyncExecutor
 import io.javalin.http.util.AsyncExecutor.Companion.ASYNC_EXECUTOR_KEY
@@ -23,19 +24,35 @@ import java.util.function.Consumer
 
 // this class should be abbreviated `cfg` in the source code.
 // `cfg.pvt` should be accessible, but usage should be discouraged (hence the naming)
+/**
+ * Javalin configuration class.
+ * @see [Javalin.create]
+ */
 class JavalinConfig {
     //@formatter:off
+    /** The http layer configuration: etags, request size, timeout, etc */
     @JvmField val http = HttpConfig(this)
+    /** The routing configuration: context path, slash treatment, etc */
     @JvmField val router = RouterConfig(this)
+    /** The embedded Jetty webserver configuration */
     @JvmField val jetty = JettyConfig(this)
+    /** Static files and webjars configuration */
     @JvmField val staticFiles = StaticFilesConfig(this)
+    /** Single Page Application roots configuration */
     @JvmField val spaRoot = SpaRootConfig(this)
+    /** Request Logger configuration: http and websocket loggers */
     @JvmField val requestLogger = RequestLoggerConfig(this)
+    /** Bundled plugins configuration: enable bundled plugins or add custom ones */
     @JvmField val bundledPlugins = BundledPluginsConfig(this)
+    /** Events configuration */
     @JvmField val events = EventConfig(this)
+    /** Vue Plugin configuration */
     @JvmField val vue = JavalinVueConfig()
+    /** Context resolver implementation configuration */
     @JvmField val contextResolver = ContextResolverConfig()
+    /** Use virtual threads (based on Java Project Loom) */
     @JvmField var useVirtualThreads = false
+    /** Show the Javalin banner in the logs */
     @JvmField var showJavalinBanner = true
     @JvmField var validation = ValidationConfig()
     /**
@@ -48,8 +65,23 @@ class JavalinConfig {
      */
     @JvmField val pvt = PrivateConfig(this)
 
+    /**
+     * Adds an event listener to this Javalin Configuration.
+     * @param listener the listener
+     * @see [EventConfig]
+     */
     fun events(listener:Consumer<EventConfig>) { listener.accept(this.events) }
+
+    /**
+     * Sets the [JsonMapper] to be used in this Javalin Configuration.
+     * @param jsonMapper the [JsonMapper]
+     */
     fun jsonMapper(jsonMapper: JsonMapper) { pvt.jsonMapper = jsonMapper }
+
+    /**
+     * Sets the [FileRenderer] to be used in this Javalin Configuration.
+     * @param fileRenderer the [FileRenderer]
+     */
     fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[FILE_RENDERER_KEY] = fileRenderer }
     //@formatter:on
 
@@ -69,6 +101,11 @@ class JavalinConfig {
         }
     }
 
+    /**
+     * Register a plugin to this Javalin Configuration.
+     * @param T the type of the configuration class for the plugin
+     * @param plugin the [Plugin] to register
+     */
     fun <T> registerPlugin(plugin: Plugin<T>): Plugin<T> =
         plugin.also { pvt.pluginManager.register(plugin) }
 
