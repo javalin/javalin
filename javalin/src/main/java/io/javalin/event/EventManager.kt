@@ -13,13 +13,26 @@ import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsHandlerType
 import java.util.function.Consumer
 
+/**
+ * Class propagating events from the Jetty webserver to any registered listener.
+ */
 class EventManager {
 
     val lifecycleHandlers = JavalinLifecycleEvent.entries.associateWith { HashSet<LifecycleEventListener>() }
     var handlerAddedHandlers = mutableSetOf<Consumer<HandlerMetaInfo>>()
     val wsHandlerAddedHandlers = mutableSetOf<Consumer<WsHandlerMetaInfo>>()
 
-    fun fireEvent(javalinLifecycleEvent: JavalinLifecycleEvent) = lifecycleHandlers[javalinLifecycleEvent]?.forEach { it.handleEvent() }
+    /**
+     * Fires a Javalin Lifecycle Event.
+     * @param javalinLifecycleEvent the event to send to listeners
+     */
+    fun fireEvent(javalinLifecycleEvent: JavalinLifecycleEvent) =
+        lifecycleHandlers[javalinLifecycleEvent]?.forEach { it.handleEvent() }
+
+    /**
+     * Fires an event telling listeners that a new HTTP handler has been added.
+     * @param metaInfo the Handler metadata information
+     */
     fun fireHandlerAddedEvent(metaInfo: HandlerMetaInfo) = handlerAddedHandlers.onEach { it.accept(metaInfo) }
     fun fireWsHandlerAddedEvent(metaInfo: WsHandlerMetaInfo) = wsHandlerAddedHandlers.onEach { it.accept(metaInfo) }
 
@@ -29,6 +42,65 @@ class EventManager {
 
 }
 
-enum class JavalinLifecycleEvent { SERVER_STARTING, SERVER_STARTED, SERVER_START_FAILED, SERVER_STOP_FAILED, SERVER_STOPPING, SERVER_STOPPED }
-data class HandlerMetaInfo(val httpMethod: HandlerType, val path: String, val handler: Handler, val roles: Set<RouteRole>)
-data class WsHandlerMetaInfo(val handlerType: WsHandlerType, val path: String, val wsConfig: Consumer<WsConfig>, val roles: Set<RouteRole>)
+/**
+ * The possible Javalin lifecycle event
+ */
+enum class JavalinLifecycleEvent {
+    /**
+     * Event fired when attempting to start the Jetty Webserver
+     */
+    SERVER_STARTING,
+
+    /**
+     * Event fired when the Jetty Webserver was started successfully
+     */
+    SERVER_STARTED,
+
+    /**
+     * Event fired when an exception occurs while starting the Jetty Webserver
+     */
+    SERVER_START_FAILED,
+
+    /**
+     * Event fired when an exception occurs while stopping the Jetty Webserver
+     */
+    SERVER_STOP_FAILED,
+
+    /**
+     * Event fired when attempting to stop the Jetty Webserver
+     */
+    SERVER_STOPPING,
+
+    /**
+     * Event fired after the Jetty Webserver was stopped successfully
+     */
+    SERVER_STOPPED
+}
+
+/**
+ * Metadata information about a HTTP Handler.
+ * @param httpMethod the [HandlerType] method (e.g.: GET, POST, …)
+ * @param path the path (e.g.: "/home")
+ * @param handler the actual [Handler]
+ * @param roles the authorization roles
+ */
+data class HandlerMetaInfo(
+    val httpMethod: HandlerType,
+    val path: String,
+    val handler: Handler,
+    val roles: Set<RouteRole>
+)
+
+/**
+ *  Metadata information about a WebSocket Handler.
+ * @param handlerType the [WsHandlerType] method (e.g.: WEBSOCKET_BEFORE, WEBSOCKET, WEBSOCKET_AFTER)
+ * @param path the path (e.g.: "/home")
+ * @param wsConfig the actual [WsConfig] consumer
+ * @param roles the authorization roles
+ */
+data class WsHandlerMetaInfo(
+    val handlerType: WsHandlerType,
+    val path: String,
+    val wsConfig: Consumer<WsConfig>,
+    val roles: Set<RouteRole>
+)
