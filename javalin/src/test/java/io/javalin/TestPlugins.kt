@@ -2,6 +2,7 @@ package io.javalin
 
 import io.javalin.config.JavalinConfig
 import io.javalin.plugin.NoConfigPlugin
+import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.PluginPriority.EARLY
 import io.javalin.plugin.PluginPriority.LATE
@@ -10,6 +11,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import java.util.function.Consumer
 
 class TestPlugins {
 
@@ -184,6 +186,17 @@ class TestPlugins {
         }
 
         assertThat(calls).containsExactly("1", "2", "3")
+    }
+
+    @Test
+    fun `registerPlugin returns the registered plugin`() {
+        class PluginConfig(var value: String = "...")
+        class MyPlugin(userConfig: Consumer<PluginConfig>) : Plugin<PluginConfig>(userConfig, PluginConfig()) {
+            override fun onStart(config: JavalinConfig) {}
+            fun getPluginConfig() = pluginConfig // expose protected field
+        }
+        val myPlugin = JavalinConfig().registerPlugin(MyPlugin { it.value = "Hello" }) as MyPlugin
+        assertThat(myPlugin.getPluginConfig().value).isEqualTo("Hello")
     }
 
 }
