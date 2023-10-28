@@ -8,9 +8,8 @@ package io.javalin.plugin.bundled
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
-import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginPriority
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.router.matcher.PathParser
 import io.javalin.router.matcher.PathSegment
 import io.javalin.util.Util.firstOrNull
@@ -23,11 +22,7 @@ import java.util.*
  * URL fragments ('Users' becomes 'users' above, but 'John' remains 'John').
  * When using this plugin, you can only add paths with lowercase URL fragments.
  */
-open class RedirectToLowercasePathPlugin : JavalinPlugin {
-
-    companion object {
-        object RedirectToLowercasePath : RedirectToLowercasePathPlugin()
-    }
+open class RedirectToLowercasePathPlugin : Plugin<Void>() {
 
     override fun onInitialize(config: JavalinConfig) {
         if (config.router.caseInsensitiveRoutes) {

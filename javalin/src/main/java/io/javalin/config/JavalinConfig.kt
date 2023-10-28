@@ -11,9 +11,7 @@ import io.javalin.http.util.AsyncExecutor.Companion.ASYNC_EXECUTOR_KEY
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
-import io.javalin.plugin.JavalinPlugin
-import io.javalin.plugin.PluginConfiguration
-import io.javalin.plugin.PluginFactory
+import io.javalin.plugin.Plugin
 import io.javalin.rendering.FILE_RENDERER_KEY
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.NotImplementedRenderer
@@ -64,12 +62,7 @@ class JavalinConfig {
         }
     }
 
-    fun registerPlugin(plugin: JavalinPlugin): JavalinConfig = also {
-        pvt.pluginManager.register(plugin)
-    }
-
-    @JvmOverloads
-    fun <PLUGIN : JavalinPlugin, CFG : PluginConfiguration> registerPlugin(factory: PluginFactory<PLUGIN, CFG>, cfg: Consumer<CFG> = Consumer {}) =
-        registerPlugin(factory.create(cfg))
+    fun <T> registerPlugin(plugin: Plugin<T>): Plugin<T> =
+        plugin.also { pvt.pluginManager.register(plugin) }
 
 }

@@ -9,7 +9,7 @@ package io.javalin
 import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
-import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin.Companion.RedirectToLowercasePath
+import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import kong.unirest.HttpResponse
@@ -21,7 +21,7 @@ class TestRedirectToLowercasePathPlugin {
 
     private val testApp by lazy {
         Javalin.create {
-            it.registerPlugin(RedirectToLowercasePath)
+            it.registerPlugin(RedirectToLowercasePathPlugin())
         }
     }
 

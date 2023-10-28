@@ -23,48 +23,34 @@ enum class PluginPriority {
     LATE
 }
 
-fun interface JavalinPlugin {
-
-    /**
-     * Initialize properties and access configuration before any handler is registered.
-     */
-    fun onInitialize(config: JavalinConfig) {}
-
-    /**
-     * Called when the plugin is applied to the Javalin instance.
-     */
-    fun onStart(config: JavalinConfig)
-
-    /**
-     * Checks if plugin can be registered multiple times.
-     */
-    fun repeatable(): Boolean = false
-
-    /**
-     * The priority of the plugin that determines when it should be started.
-     */
-    fun priority(): PluginPriority = PluginPriority.NORMAL
-
-    /**
-     * The name of this plugin.
-     */
-    fun name(): String = this.javaClass.simpleName
-
-}
-
-fun interface PluginFactory<PLUGIN : JavalinPlugin, CFG : PluginConfiguration> {
-
-    /**
-     * Create a new instance of the plugin with the given configuration.
-     */
-    fun create(config: Consumer<CFG>): PLUGIN
-
-}
 
 /**
- * A marker interface for plugin configurations.
+ * Extend this class to create a plugin with a config.
+ * The config is created by combining a default config and a user config.
+ * The combined config is available as [pluginConfig] to the extending class.
  */
-interface PluginConfiguration
+abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfig: CONFIG? = null) {
 
-fun <CFG : PluginConfiguration> Consumer<CFG>.createUserConfig(cfg: CFG): CFG =
-    cfg.also { accept(it) }
+    /** Initialize properties and access configuration before any handler is registered. */
+    open fun onInitialize(config: JavalinConfig) {}
+
+    /** Called when the plugin is applied to the Javalin instance. */
+    open fun onStart(config: JavalinConfig) {}
+
+    /**Checks if plugin can be registered multiple times. */
+    open fun repeatable(): Boolean = false
+
+    /** The priority of the plugin that determines when it should be started. */
+    open fun priority(): PluginPriority = PluginPriority.NORMAL
+
+    /** The name of this plugin. */
+    open fun name(): String = this.javaClass.simpleName
+
+    /** The combined config of the plugin. */
+    protected val pluginConfig by lazy {
+        if (defaultConfig == null) {
+            throw IllegalArgumentException("Plugin ${this.javaClass.name} has no config.")
+        }
+        defaultConfig.also { userConfig?.accept(it) }
+    }
+}

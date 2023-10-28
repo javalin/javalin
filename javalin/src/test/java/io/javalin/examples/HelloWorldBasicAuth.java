@@ -9,17 +9,16 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 import io.javalin.plugin.bundled.BasicAuthPlugin;
-import io.javalin.plugin.bundled.BasicAuthPlugin.BasicAuth;
 
 public class HelloWorldBasicAuth {
 
     public static void main(String[] args) {
         Javalin
             .create(config -> {
-                config.registerPlugin(new BasicAuth(), basicAuthCfg -> {
+                config.registerPlugin(new BasicAuthPlugin(basicAuthCfg -> {
                     basicAuthCfg.username = "panda";
                     basicAuthCfg.password = "bamboo";
-                });
+                }));
                 config.registerPlugin(
                     new BasicAuthPlugin(basicAuthCfg -> {
                         basicAuthCfg.username = "panda";
