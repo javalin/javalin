@@ -59,7 +59,7 @@ class TestPlugins {
     }
 
     @Test
-    fun `registerPlugin should work with lambdas`() {
+    fun `registerPlugin should work with anonymous objects`() {
         var called = false
 
         Javalin.create {
@@ -85,7 +85,6 @@ class TestPlugins {
     }
 
     class MultiInstanceTestPlugin : NoConfigPlugin() {
-        override fun onStart(config: JavalinConfig) {}
         override fun repeatable() = true
     }
 
@@ -159,16 +158,12 @@ class TestPlugins {
             override fun onInitialize(config: JavalinConfig) {
                 calls.add("3")
             }
-
-            override fun onStart(config: JavalinConfig) {}
         }
 
         class Plugin2 : NoConfigPlugin() {
             override fun onInitialize(config: JavalinConfig) {
                 calls.add("2")
             }
-
-            override fun onStart(config: JavalinConfig) {}
         }
 
         class Plugin1 : NoConfigPlugin() {
@@ -176,8 +171,6 @@ class TestPlugins {
                 calls.add("1")
                 config.registerPlugin(Plugin2())
             }
-
-            override fun onStart(config: JavalinConfig) {}
         }
 
         Javalin.create { config ->
@@ -192,11 +185,10 @@ class TestPlugins {
     fun `registerPlugin returns the registered plugin`() {
         class PluginConfig(var value: String = "...")
         class MyPlugin(userConfig: Consumer<PluginConfig>) : Plugin<PluginConfig>(userConfig, PluginConfig()) {
-            override fun onStart(config: JavalinConfig) {}
-            fun getPluginConfig() = pluginConfig // expose protected field
+            val value = pluginConfig.value
         }
         val myPlugin = JavalinConfig().registerPlugin(MyPlugin { it.value = "Hello" }) as MyPlugin
-        assertThat(myPlugin.getPluginConfig().value).isEqualTo("Hello")
+        assertThat(myPlugin.value).isEqualTo("Hello")
     }
 
 }

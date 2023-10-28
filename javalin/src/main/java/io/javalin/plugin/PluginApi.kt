@@ -23,37 +23,33 @@ enum class PluginPriority {
     LATE
 }
 
-fun interface JavalinPlugin {
+interface JavalinPlugin {
 
-    /**
-     * Initialize properties and access configuration before any handler is registered.
-     */
+    /** Initialize properties and access configuration before any handler is registered. */
     fun onInitialize(config: JavalinConfig) {}
 
-    /**
-     * Called when the plugin is applied to the Javalin instance.
-     */
-    fun onStart(config: JavalinConfig)
+    /** Called when the plugin is applied to the Javalin instance. */
+    fun onStart(config: JavalinConfig) {}
 
-    /**
-     * Checks if plugin can be registered multiple times.
-     */
+    /**Checks if plugin can be registered multiple times. */
     fun repeatable(): Boolean = false
 
-    /**
-     * The priority of the plugin that determines when it should be started.
-     */
+    /** The priority of the plugin that determines when it should be started. */
     fun priority(): PluginPriority = PluginPriority.NORMAL
 
-    /**
-     * The name of this plugin.
-     */
+    /** The name of this plugin. */
     fun name(): String = this.javaClass.simpleName
 
 }
 
+/**
+ * Extend this class to create a plugin with a config.
+ * The config is created by combining a default config and a user config.
+ * The combined config is available as [pluginConfig] to the extending class.
+ */
 abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfig: CONFIG) : JavalinPlugin {
     protected val pluginConfig = defaultConfig.also { userConfig?.accept(it) } // apply user config to default config if present
 }
 
+/** Extend this class to create a plugin which has no config. */
 abstract class NoConfigPlugin : JavalinPlugin
