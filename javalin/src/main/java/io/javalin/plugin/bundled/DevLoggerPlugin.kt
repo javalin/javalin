@@ -4,7 +4,7 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
-import io.javalin.plugin.NoConfigPlugin
+import io.javalin.plugin.Plugin
 import io.javalin.router.InternalRouter
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
@@ -12,7 +12,7 @@ import io.javalin.websocket.WsContext
 import java.util.*
 import java.util.stream.Stream
 
-internal open class DevLoggingPlugin : NoConfigPlugin() {
+internal open class DevLoggingPlugin : Plugin<Void>() {
 
     override fun onInitialize(config: JavalinConfig) {
         config.requestLogger.http { ctx, ms -> requestDevLogger(config.pvt.internalRouter, ctx, ms) }

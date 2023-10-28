@@ -4,11 +4,11 @@ import io.javalin.config.JavalinConfig
 
 class PluginManager internal constructor(private val cfg: JavalinConfig) {
 
-    private val plugins = mutableListOf<JavalinPlugin>()
-    private val initializedPlugins = mutableListOf<JavalinPlugin>()
-    private val enabledPlugins = mutableListOf<JavalinPlugin>()
+    private val plugins = mutableListOf<Plugin<*>>()
+    private val initializedPlugins = mutableListOf<Plugin<*>>()
+    private val enabledPlugins = mutableListOf<Plugin<*>>()
 
-    fun register(plugin: JavalinPlugin) {
+    fun register(plugin: Plugin<*>) {
         if (!plugin.repeatable() && plugins.any { it.javaClass == plugin.javaClass }) {
             throw PluginAlreadyRegisteredException(plugin)
         }

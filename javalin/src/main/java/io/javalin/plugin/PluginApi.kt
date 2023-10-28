@@ -23,33 +23,34 @@ enum class PluginPriority {
     LATE
 }
 
-interface JavalinPlugin {
-
-    /** Initialize properties and access configuration before any handler is registered. */
-    fun onInitialize(config: JavalinConfig) {}
-
-    /** Called when the plugin is applied to the Javalin instance. */
-    fun onStart(config: JavalinConfig) {}
-
-    /**Checks if plugin can be registered multiple times. */
-    fun repeatable(): Boolean = false
-
-    /** The priority of the plugin that determines when it should be started. */
-    fun priority(): PluginPriority = PluginPriority.NORMAL
-
-    /** The name of this plugin. */
-    fun name(): String = this.javaClass.simpleName
-
-}
 
 /**
  * Extend this class to create a plugin with a config.
  * The config is created by combining a default config and a user config.
  * The combined config is available as [pluginConfig] to the extending class.
  */
-abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfig: CONFIG) : JavalinPlugin {
-    protected val pluginConfig = defaultConfig.also { userConfig?.accept(it) } // apply user config to default config if present
-}
+abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfig: CONFIG? = null) {
 
-/** Extend this class to create a plugin which has no config. */
-abstract class NoConfigPlugin : JavalinPlugin
+    /** Initialize properties and access configuration before any handler is registered. */
+    open fun onInitialize(config: JavalinConfig) {}
+
+    /** Called when the plugin is applied to the Javalin instance. */
+    open fun onStart(config: JavalinConfig) {}
+
+    /**Checks if plugin can be registered multiple times. */
+    open fun repeatable(): Boolean = false
+
+    /** The priority of the plugin that determines when it should be started. */
+    open fun priority(): PluginPriority = PluginPriority.NORMAL
+
+    /** The name of this plugin. */
+    open fun name(): String = this.javaClass.simpleName
+
+    /** The combined config of the plugin. */
+    protected val pluginConfig by lazy {
+        if (defaultConfig == null) {
+            throw IllegalArgumentException("Plugin ${this.javaClass.name} has no config.")
+        }
+        defaultConfig.also { userConfig?.accept(it) }
+    }
+}

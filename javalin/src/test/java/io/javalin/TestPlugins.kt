@@ -1,7 +1,6 @@
 package io.javalin
 
 import io.javalin.config.JavalinConfig
-import io.javalin.plugin.NoConfigPlugin
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.PluginPriority.EARLY
@@ -22,7 +21,7 @@ class TestPlugins {
         START
     }
 
-    open inner class TestPlugin : NoConfigPlugin() {
+    open inner class TestPlugin : Plugin<Void>() {
         override fun onInitialize(config: JavalinConfig) {
             calls.add(Calls.INIT)
         }
@@ -63,7 +62,7 @@ class TestPlugins {
         var called = false
 
         Javalin.create {
-            it.registerPlugin(object : NoConfigPlugin() {
+            it.registerPlugin(object : Plugin<Void>() {
                 override fun onStart(config: JavalinConfig) {
                     called = true
                 }
@@ -84,7 +83,7 @@ class TestPlugins {
         }
     }
 
-    class MultiInstanceTestPlugin : NoConfigPlugin() {
+    class MultiInstanceTestPlugin : Plugin<Void>() {
         override fun repeatable() = true
     }
 
@@ -102,7 +101,7 @@ class TestPlugins {
     fun `plugins are initialized in the proper order`() {
         val calls = mutableListOf<String>()
 
-        class EarlyPlugin : NoConfigPlugin() {
+        class EarlyPlugin : Plugin<Void>() {
             override fun priority() = EARLY
             override fun onInitialize(config: JavalinConfig) {
                 calls.add("early-init")
@@ -113,7 +112,7 @@ class TestPlugins {
             }
         }
 
-        class NormalPlugin : NoConfigPlugin() {
+        class NormalPlugin : Plugin<Void>() {
             override fun onInitialize(config: JavalinConfig) {
                 calls.add("normal-init")
             }
@@ -123,7 +122,7 @@ class TestPlugins {
             }
         }
 
-        class LatePlugin : NoConfigPlugin() {
+        class LatePlugin : Plugin<Void>() {
             override fun priority() = LATE
             override fun onInitialize(config: JavalinConfig) {
                 calls.add("late-init")
@@ -154,19 +153,19 @@ class TestPlugins {
     fun `plugin should be able to register a new plugin in init phase`() {
         val calls = mutableListOf<String>()
 
-        class Plugin3 : NoConfigPlugin() {
+        class Plugin3 : Plugin<Void>() {
             override fun onInitialize(config: JavalinConfig) {
                 calls.add("3")
             }
         }
 
-        class Plugin2 : NoConfigPlugin() {
+        class Plugin2 : Plugin<Void>() {
             override fun onInitialize(config: JavalinConfig) {
                 calls.add("2")
             }
         }
 
-        class Plugin1 : NoConfigPlugin() {
+        class Plugin1 : Plugin<Void>() {
             override fun onInitialize(config: JavalinConfig) {
                 calls.add("1")
                 config.registerPlugin(Plugin2())
@@ -191,4 +190,17 @@ class TestPlugins {
         assertThat(myPlugin.value).isEqualTo("Hello")
     }
 
+
+    @Test
+    fun `pluginConfig throws if defaultConfig is null`() {
+        assertThatThrownBy { Javalin.create{ it.registerPlugin(ThrowingPlugin()) }.start() }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Plugin io.javalin.ThrowingPlugin has no config.")
+    }
+}
+
+class ThrowingPlugin : Plugin<Void>() {
+    override fun onStart(config: JavalinConfig) {
+        pluginConfig // should throw
+    }
 }

@@ -9,9 +9,9 @@ package io.javalin.plugin.bundled
 import io.javalin.config.JavalinConfig
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
-import io.javalin.plugin.NoConfigPlugin
+import io.javalin.plugin.Plugin
 
-open class HttpAllowedMethodsPlugin : NoConfigPlugin() {
+open class HttpAllowedMethodsPlugin : Plugin<Void>() {
 
     override fun onStart(config: JavalinConfig) {
         config.events.serverStarted {
