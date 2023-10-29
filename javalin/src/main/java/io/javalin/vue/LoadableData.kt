@@ -9,6 +9,7 @@ const val loadableDataScript = """
             this._errorCallback = options.errorCallback ?? null;
             this.data = null;
             this.loading = true;
+            this.refreshing = false;
             this.loaded = false;
             this.loadError = null;
             this._load(options.cache ?? false); // initial load
