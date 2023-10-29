@@ -7,14 +7,15 @@ const val loadableDataScript = """
         constructor(url, options = {cache: false, errorCallback: null}) {
             this._url = url;
             this._errorCallback = options.errorCallback ?? null;
-            this.refresh(options.cache ?? false); // initial load
-            this.addRefreshListener(); // listen for global refresh events
-        }
-        refresh(cache = false) {
             this.data = null;
             this.loading = true;
+            this.refreshing = false;
             this.loaded = false;
             this.loadError = null;
+            this._load(options.cache ?? false); // initial load
+            this.addRefreshListener(); // listen for global refresh events
+        }
+        _load(cache = false) {
             let cacheKey = "LoadableData:" + this._url;
             if (cache) {
                 this.data = JSON.parse(localStorage.getItem(cacheKey)) || null;
@@ -32,10 +33,17 @@ const val loadableDataScript = """
                 }
             }).catch(error => {
                 this.loadError = error;
-                if (this._errorCallback !== null) { // should probably handle in UI
+                if (this._errorCallback !== null) {
                     this._errorCallback(error);
                 }
-            }).finally(() => this.loading = false);
+            }).finally(() => {
+                this.loading = false;
+                this.refreshing = false;
+            });
+        }
+        refresh() {
+            this.refreshing = true;
+            this._load(false); // refresh doesn't clear data, so no need to cache
         }
         refreshAll() {
             window.dispatchEvent(new CustomEvent("loadabledata-refresh", {detail: this._url}));
