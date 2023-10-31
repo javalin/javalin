@@ -91,7 +91,7 @@
         <logback.version>1.4.11</logback.version>
         <slf4j.version>2.0.7</slf4j.version>
         <gson.version>2.10.1</gson.version>
-        <okhttp.version>4.11.0</okhttp.version>
+        <okhttp.version>4.12.0</okhttp.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.24.2</assertj.version>
@@ -541,9 +541,6 @@
             <properties>
                 <gpg.skip>true</gpg.skip>
             </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
         </profile>
         <profile>
             <id>publish-snapshot</id>
@@ -553,6 +550,7 @@
         </profile>
         <profile>
             <id>sonatype-oss-release</id>
+            <!-- profile used by mvn release, uses default config -->
         </profile>
     </profiles>
 
