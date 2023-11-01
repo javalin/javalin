@@ -7,16 +7,16 @@
 package io.javalin.router.matcher
 
 import io.javalin.http.HandlerType
-import io.javalin.router.HttpHandlerEntry
+import io.javalin.router.ParsedEndpoint
 import java.util.*
 import java.util.stream.Stream
 
 class PathMatcher {
 
-    private val handlerEntries: Map<HandlerType, MutableList<HttpHandlerEntry>> =
+    private val handlerEntries: Map<HandlerType, MutableList<ParsedEndpoint>> =
         HandlerType.entries.associateWithTo(EnumMap(HandlerType::class.java)) { arrayListOf() }
 
-    fun add(entry: HttpHandlerEntry) {
+    fun add(entry: ParsedEndpoint) {
         val type = entry.endpoint.method
         val path = entry.endpoint.path
 
@@ -27,7 +27,7 @@ class PathMatcher {
         handlerEntries[type]!!.add(entry)
     }
 
-    fun findEntries(handlerType: HandlerType, requestUri: String?): Stream<HttpHandlerEntry> =
+    fun findEntries(handlerType: HandlerType, requestUri: String?): Stream<ParsedEndpoint> =
         when (requestUri) {
             null -> handlerEntries[handlerType]!!.stream()
             else -> handlerEntries[handlerType]!!.stream().filter { he -> match(he, requestUri) }
@@ -38,7 +38,7 @@ class PathMatcher {
     internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
         handlerEntries[handlerType]!!.any { entry -> match(entry, requestUri) }
 
-    private fun match(entry: HttpHandlerEntry, requestPath: String): Boolean = when (entry.endpoint.path) {
+    private fun match(entry: ParsedEndpoint, requestPath: String): Boolean = when (entry.endpoint.path) {
         "*" -> true
         requestPath -> true
         else -> entry.matches(requestPath)

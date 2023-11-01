@@ -2,8 +2,8 @@ package io.javalin.util.mock
 
 import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
-import io.javalin.util.mock.HttpServletRequestMock.RequestState
-import io.javalin.util.mock.HttpServletResponseMock.ResponseState
+import io.javalin.util.mock.stubs.HttpServletRequestMock.RequestState
+import io.javalin.util.mock.stubs.HttpServletResponseMock.ResponseState
 import java.util.function.Consumer
 
 data class MockConfig internal constructor(

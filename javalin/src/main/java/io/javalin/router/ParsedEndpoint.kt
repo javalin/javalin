@@ -4,7 +4,7 @@ import io.javalin.config.RouterConfig
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.router.matcher.PathParser
 
-class HttpHandlerEntry(
+class ParsedEndpoint(
     val endpoint: Endpoint,
     routerConfig: RouterConfig,
 ) {
@@ -12,7 +12,7 @@ class HttpHandlerEntry(
     private val pathParser = PathParser(endpoint.path, routerConfig)
 
     fun handle(ctx: JavalinServletContext, requestUri: String) {
-        endpoint.handler.handle(ctx.update(this, requestUri))
+        endpoint.handle(ctx.update(this, requestUri))
     }
 
     fun matches(requestUri: String): Boolean =

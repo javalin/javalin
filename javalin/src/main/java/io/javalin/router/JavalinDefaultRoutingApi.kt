@@ -111,7 +111,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
             Endpoint(
                 method = handlerType,
                 path = path,
-                roles = roles.toHashSet(),
+                roles = roles,
                 handler = handler
             )
         )

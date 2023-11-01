@@ -9,7 +9,9 @@ import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.servlet.Task
 import io.javalin.http.servlet.TaskInitializer
 import io.javalin.router.Endpoint
-import io.javalin.router.Endpoint.EndpointExecutor
+import io.javalin.router.EndpointExecutor
+import io.javalin.util.mock.stubs.HttpServletRequestMock
+import io.javalin.util.mock.stubs.HttpServletResponseMock
 import java.util.concurrent.CountDownLatch
 import java.util.function.Consumer
 import org.jetbrains.annotations.ApiStatus.Experimental

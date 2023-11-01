@@ -5,24 +5,37 @@ import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.security.RouteRole
 
-class Endpoint @JvmOverloads constructor(
+/**
+ * Represents an HTTP endpoint in the application.
+ *
+ * @param method The HTTP method of the endpoint
+ * @param path The path of the endpoint
+ * @param roles The roles that are allowed to access the endpoint (optional)
+ * @param handler The handler of the endpoint
+ */
+open class Endpoint @JvmOverloads constructor(
     val method: HandlerType,
     val path: String,
-    val roles: Set<RouteRole> = emptySet(),
-    val handler: Handler
+    vararg roles: RouteRole = emptyArray(),
+    internal val handler: Handler
 ) {
 
-    fun handle(ctx: Context): Context {
-        handler.handle(ctx)
-        return ctx
-    }
+    val roles = roles.toSet()
 
-    fun interface EndpointExecutor {
-        fun execute(endpoint: Endpoint): Context
-    }
+    /** Execute the endpoint handler with the given context */
+    fun handle(ctx: Context): Context =
+        ctx.also { handler.handle(ctx) }
 
-    fun handle(executor: EndpointExecutor): Context {
-        return executor.execute(this)
-    }
+    /** Execute the endpoint handler with the given executor */
+    fun handle(executor: EndpointExecutor): Context =
+        executor.execute(this)
 
+}
+
+/**
+ * Endpoint executor represents a component that is able to execute an endpoint,
+ * such as a router or a mock.
+ */
+fun interface EndpointExecutor {
+    fun execute(endpoint: Endpoint): Context
 }

@@ -6,7 +6,7 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.router.HttpHandlerEntry
+import io.javalin.router.ParsedEndpoint
 import io.javalin.util.implementingClassName
 import io.javalin.util.isClass
 import io.javalin.util.isJavaAnonymousLambda
@@ -23,7 +23,7 @@ import io.javalin.websocket.WsHandlerEntry
 object RouteOverviewUtil {
 
     @JvmStatic
-    fun createHtmlOverview(handlerInfo: List<HttpHandlerEntry>, wsHandlerInfo: List<WsHandlerEntry>): String {
+    fun createHtmlOverview(handlerInfo: List<ParsedEndpoint>, wsHandlerInfo: List<WsHandlerEntry>): String {
         return """
         <meta name='viewport' content='width=device-width, initial-scale=1'>
         <style>
@@ -165,7 +165,7 @@ object RouteOverviewUtil {
     }
 
     @JvmStatic
-    fun createJsonOverview(handlerInfo: List<HttpHandlerEntry>, wsHandlerInfo: List<WsHandlerEntry>): String {
+    fun createJsonOverview(handlerInfo: List<ParsedEndpoint>, wsHandlerInfo: List<WsHandlerEntry>): String {
         return """
             {
                 "handlers": [

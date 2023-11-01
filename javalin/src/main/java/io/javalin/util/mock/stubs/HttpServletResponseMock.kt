@@ -1,4 +1,4 @@
-package io.javalin.util.mock
+package io.javalin.util.mock.stubs
 
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.WriteListener
@@ -82,9 +82,9 @@ data class HttpServletResponseMock(val state: ResponseState = ResponseState()) :
 class ServletOutputStreamImpl(private val outputStream: OutputStream) : ServletOutputStream() {
     private var writeListener: WriteListener? = null
     override fun isReady(): Boolean = true
-    override fun setWriteListener(p0: WriteListener?) {
-        this.writeListener = p0
-        p0?.onWritePossible()
+    override fun setWriteListener(listener: WriteListener?) {
+        this.writeListener = listener
+        listener?.onWritePossible()
     }
     override fun write(p0: Int) { outputStream.write(p0) }
 }

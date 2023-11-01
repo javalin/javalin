@@ -13,16 +13,19 @@ import io.javalin.router.Endpoint
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.mock.Body
 import io.javalin.util.mock.ContextMock
+import java.lang.IllegalStateException
 import java.util.Base64
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class TestMockContext {
 
     object TestController {
         val defaultApiEndpoint = Endpoint(GET, "/api/{simple}/<complex>") { it.result("Hello ${it.ip()}").status(IM_A_TEAPOT) }
         val asyncApiEndpoint = Endpoint(GET, "/api/async") { it.async { it.result("Welcome to the future") } }
-        val consumeBody = Endpoint(POST, "/api/consume") { it.result(it.body()) }
+        val consumeBodyEndpoint = Endpoint(POST, "/api/consume") { it.result(it.body()) }
+        val sessionEndpoint = Endpoint(GET, "/api/session") { it.sessionAttribute("a", "b") }
     }
 
     private val contextMock = ContextMock.create {
@@ -67,7 +70,7 @@ internal class TestMockContext {
 
     @Test
     fun `should handle string body`() {
-        val context = TestController.consumeBody.handle(contextMock.build(Body.ofString("Panda")))
+        val context = TestController.consumeBodyEndpoint.handle(contextMock.build(Body.ofString("Panda")))
         assertThat(context.body()).isEqualTo("Panda")
         assertThat(context.contentType()).isEqualTo(ContentType.PLAIN)
         assertThat(context.contentLength()).isEqualTo(5)
@@ -75,7 +78,7 @@ internal class TestMockContext {
 
     @Test
     fun `should handle input stream body`() {
-        val context = TestController.consumeBody.handle(contextMock.build(Body.ofInputStream("Panda".byteInputStream())))
+        val context = TestController.consumeBodyEndpoint.handle(contextMock.build(Body.ofInputStream("Panda".byteInputStream())))
         assertThat(context.body()).isEqualTo("Panda")
         assertThat(context.contentType()).isEqualTo(ContentType.OCTET_STREAM)
         assertThat(context.contentLength()).isEqualTo(5)
@@ -84,11 +87,27 @@ internal class TestMockContext {
     @Test
     fun `should handle object body`() {
         data class PandaDto(val name: String)
-        val context = TestController.consumeBody.handle(contextMock.build(Body.ofObject(PandaDto("Kim"))))
+        val context = TestController.consumeBodyEndpoint.handle(contextMock.build(Body.ofObject(PandaDto("Kim"))))
         assertThat(context.body()).isEqualTo("""{"name":"Kim"}""")
         assertThat(context.bodyAsClass<PandaDto>()).isEqualTo(PandaDto("Kim"))
         assertThat(context.contentType()).isEqualTo(ContentType.JSON)
         assertThat(context.contentLength()).isEqualTo(14)
+    }
+
+    @Test
+    fun `should handle sessions`() {
+        val context = TestController.sessionEndpoint.handle(contextMock)
+        assertThat(context.sessionAttribute<String>("a")).isEqualTo("b")
+        assertThat(context.sessionAttributeMap()).isEqualTo(mapOf("a" to "b"))
+        assertThat(context.cachedSessionAttribute<String>("a")).isEqualTo("b")
+
+        val session = context.req().session
+        assertThat(session.isNew).isTrue()
+        assertThat(session.id).startsWith("mock-session-")
+
+        session.invalidate()
+        assertThrows<IllegalStateException> { session.invalidate() }
+        assertThrows<IllegalStateException> { session.isNew() }
     }
 
     @Test

@@ -1,6 +1,7 @@
 
-package io.javalin.util.mock
+package io.javalin.util.mock.stubs
 
+import io.javalin.util.mock.stubs.HttpSessionMock.HttpSessionState
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -156,8 +157,11 @@ data class HttpServletRequestMock(
     override fun getUserPrincipal(): Principal? = state.userPrincipal
     override fun getRequestedSessionId(): String? = state.requestedSessionId
 
-    override fun getSession(p0: Boolean): HttpSession? = state.session
-    override fun getSession(): HttpSession? = state.session
+    override fun getSession(create: Boolean): HttpSession? {
+        if (create) { state.session = state.session ?: HttpSessionMock(HttpSessionState(new = true)) }
+        return state.session
+    }
+    override fun getSession(): HttpSession? = getSession(true)
     override fun changeSessionId(): String = throw UnsupportedOperationException("Not implemented")
     override fun isRequestedSessionIdValid(): Boolean = throw UnsupportedOperationException("Not implemented")
     override fun isRequestedSessionIdFromCookie(): Boolean = throw UnsupportedOperationException("Not implemented")

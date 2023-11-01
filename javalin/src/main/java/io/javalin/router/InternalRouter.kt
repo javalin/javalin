@@ -38,7 +38,7 @@ open class InternalRouter(
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
     open fun addHttpEndpoint(endpoint: Endpoint): InternalRouter {
-        httpPathMatcher.add(HttpHandlerEntry(endpoint, routerConfig))
+        httpPathMatcher.add(ParsedEndpoint(endpoint, routerConfig))
         eventManager.fireHandlerAddedEvent(
             HandlerMetaInfo(
                 httpMethod = endpoint.method,
@@ -53,7 +53,7 @@ open class InternalRouter(
     /**
      * Get a list of all registered HTTP handlers.
      */
-    fun allHttpHandlers(): List<HttpHandlerEntry> = httpPathMatcher.allEntries()
+    fun allHttpHandlers(): List<ParsedEndpoint> = httpPathMatcher.allEntries()
 
     /**
      * Checks if the instance has a handler for the specified handlerType and path.
@@ -65,7 +65,7 @@ open class InternalRouter(
      * Finds all matching handlers for the specified handlerType and path.
      * @return a handler for the specified handlerType and path, or null if no handler is found
      */
-    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<HttpHandlerEntry> =
+    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<ParsedEndpoint> =
         httpPathMatcher.findEntries(handlerType, requestUri)
 
     /**
