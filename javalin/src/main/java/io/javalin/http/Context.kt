@@ -201,7 +201,7 @@ interface Context {
     fun <T> sessionAttribute(key: String): T? = req().getSession(false)?.getAttribute(key) as? T
 
     /** Get session attribute, and set value to null */
-    fun <T> consumeSessionAttribute(key: String) = sessionAttribute<T?>(key).also { this.sessionAttribute(key, null) }
+    fun <T> consumeSessionAttribute(key: String): T? = sessionAttribute<T?>(key).also { this.sessionAttribute(key, null) }
 
     /** Sets an attribute for the user session, and caches it on the request */
     fun cachedSessionAttribute(key: String, value: Any?) = cacheAndSetSessionAttribute(key, value, req())

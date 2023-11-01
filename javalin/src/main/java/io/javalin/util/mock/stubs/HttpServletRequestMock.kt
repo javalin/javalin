@@ -40,10 +40,10 @@ data class HttpServletRequestMock(
         @JvmField var serverName: String = "localhost",
         @JvmField var serverPort: Int = 80,
         @JvmField var remoteAddr: String = "127.0.0.1",
-        @JvmField var remoteHost: String = "localhost",
+        @JvmField var remoteHost: String = "127.0.0.1",
         @JvmField var secure: Boolean = false,
         @JvmField var remotePort: Int = 80,
-        @JvmField var localName: String = "localhost",
+        @JvmField var localName: String = "127.0.0.1",
         @JvmField var localAddr: String = "127.0.0.1",
         @JvmField var localPort: Int = -1,
 
@@ -54,7 +54,7 @@ data class HttpServletRequestMock(
         @JvmField var pathInfo: String = "",
         @JvmField var pathTranslated: String = "",
         @JvmField var contextPath: String = "",
-        @JvmField var queryString: String = "",
+        @JvmField var queryString: String? = null,
         @JvmField var parameters: MutableMap<String, Array<String>> = mutableMapOf(),
 
         @JvmField var method: String = "GET",
@@ -64,7 +64,7 @@ data class HttpServletRequestMock(
         @JvmField var remoteUser: String = "",
 
         @JvmField var inputStream: InputStream = ByteArrayInputStream(ByteArray(0)),
-        @JvmField var contentLength: Long = 0L,
+        @JvmField var contentLength: Long = -1L,
         @JvmField var contentType: String? = null,
         @JvmField var characterEncodingValue: String = "UTF-8",
         @JvmField var parts: MutableList<Part> = mutableListOf(),
@@ -129,7 +129,7 @@ data class HttpServletRequestMock(
         state.asyncContext = asyncContext
         return asyncContext
     }
-    override fun startAsync(p0: ServletRequest?, p1: ServletResponse?): AsyncContext = startAsync()
+    override fun startAsync(req: ServletRequest, res: ServletResponse): AsyncContext = startAsync()
     override fun isAsyncStarted(): Boolean = state.asyncContext != null
     override fun isAsyncSupported(): Boolean = true
     override fun getAsyncContext(): AsyncContext? = state.asyncContext
@@ -146,7 +146,7 @@ data class HttpServletRequestMock(
     override fun getPathInfo(): String = state.pathInfo
     override fun getPathTranslated(): String = state.pathTranslated
     override fun getContextPath(): String = state.contextPath
-    override fun getQueryString(): String = state.queryString
+    override fun getQueryString(): String? = state.queryString
     override fun getRequestURI(): String = state.requestURI
     override fun getRequestURL(): StringBuffer = StringBuffer(state.requestURL)
     override fun getServletPath(): String = state.servletPath

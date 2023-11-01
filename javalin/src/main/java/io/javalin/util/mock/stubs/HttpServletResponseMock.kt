@@ -86,5 +86,5 @@ class ServletOutputStreamImpl(private val outputStream: OutputStream) : ServletO
         this.writeListener = listener
         listener?.onWritePossible()
     }
-    override fun write(p0: Int) { outputStream.write(p0) }
+    override fun write(data: Int) { outputStream.write(data) }
 }

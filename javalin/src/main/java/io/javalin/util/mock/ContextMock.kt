@@ -32,19 +32,17 @@ import org.jetbrains.annotations.ApiStatus.Experimental
  */
 @Experimental
 class ContextMock private constructor(
-    private val mockConfig: MockConfig = MockConfig(),
+    val mockConfig: MockConfig = MockConfig(),
     private val userConfigs: List<MockConfigurer> = emptyList(),
 ) : EndpointExecutor {
 
     companion object {
-
         @JvmStatic
         @JvmOverloads
         fun create(configurer: MockConfigurer? = null): ContextMock =
             ContextMock(
                 userConfigs = configurer?.let { listOf(it) } ?: emptyList()
             )
-
     }
 
     /** Register additional [MockConfigurer]s. Each [ContextMock] can have multiple configurers, which are applied in registration order. */
@@ -82,7 +80,6 @@ class ContextMock private constructor(
         val (request, response) = createMockReqAndRes()
         body?.init(mockConfig)
         mockConfig.req.also { req ->
-            req.headers[Header.HOST] = mutableListOf(req.remoteAddr)
             req.method = endpoint.method.name
             req.contextPath = mockConfig.javalinConfig.router.contextPath.takeIf { it != "/" } ?: ""
             req.requestURI = uri
@@ -90,6 +87,12 @@ class ContextMock private constructor(
             req.inputStream = body?.toInputStream() ?: req.inputStream
             req.contentType = body?.getContentType() ?: req.contentType
             req.contentLength = body?.getContentLength() ?: req.contentLength
+            req.headers.computeIfAbsent(Header.CONNECTION) { mutableListOf("keep-alive") }
+            req.headers.computeIfAbsent(Header.HOST) { mutableListOf("localhost:${req.serverPort}") }
+            req.headers.computeIfAbsent(Header.USER_AGENT) { mutableListOf("javalin-mock/1.0") }
+            req.headers.computeIfAbsent(Header.ACCEPT_ENCODING) { mockConfig.javalinConfig.pvt.compressionStrategy.compressors.mapTo(ArrayList()) { it.encoding() } }
+            req.headers.computeIfAbsent(Header.CONTENT_TYPE) { req.contentType?.let { mutableListOf(it) } ?: mutableListOf() }
+            req.headers.computeIfAbsent(Header.CONTENT_LENGTH) { req.contentLength.takeIf { it > 0 }?.let { mutableListOf(it.toString()) } ?: mutableListOf() }
         }
         configurer?.let { invokeMockConfigurerWithAsSamWithReceiver(it, mockConfig) }
 

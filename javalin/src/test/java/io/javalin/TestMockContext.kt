@@ -3,6 +3,7 @@ package io.javalin
 import io.javalin.http.ContentType
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.POST
+import io.javalin.http.Header
 import io.javalin.http.Header.AUTHORIZATION
 import io.javalin.http.Header.HOST
 import io.javalin.http.Header.X_FORWARDED_FOR
@@ -11,10 +12,13 @@ import io.javalin.http.bodyAsClass
 import io.javalin.http.headerAsClass
 import io.javalin.router.Endpoint
 import io.javalin.security.BasicAuthCredentials
+import io.javalin.testing.TestUtil
 import io.javalin.util.mock.Body
 import io.javalin.util.mock.ContextMock
+import java.io.ByteArrayOutputStream
 import java.lang.IllegalStateException
 import java.util.Base64
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -27,6 +31,8 @@ internal class TestMockContext {
         val consumeBodyEndpoint = Endpoint(POST, "/api/consume") { it.result(it.body()) }
         val sessionEndpoint = Endpoint(GET, "/api/session") { it.sessionAttribute("a", "b") }
     }
+
+    data class PandaDto(val name: String)
 
     private val contextMock = ContextMock.create {
         req.contentType = ContentType.JAVASCRIPT
@@ -48,6 +54,7 @@ internal class TestMockContext {
     fun `should handle url related methods`() {
         val context = TestController.defaultApiEndpoint.handle(contextMock.build("/api/simple/comp/lex"))
         assertThat(context.scheme()).isEqualTo("http")
+        assertThat(context.protocol()).isEqualTo("HTTP/1.1")
         assertThat(context.host()).isEqualTo("127.0.0.1")
         assertThat(context.method()).isEqualTo(GET)
         assertThat(context.url()).isEqualTo("http://localhost:80/api/simple/comp/lex")
@@ -86,12 +93,22 @@ internal class TestMockContext {
 
     @Test
     fun `should handle object body`() {
-        data class PandaDto(val name: String)
         val context = TestController.consumeBodyEndpoint.handle(contextMock.build(Body.ofObject(PandaDto("Kim"))))
         assertThat(context.body()).isEqualTo("""{"name":"Kim"}""")
         assertThat(context.bodyAsClass<PandaDto>()).isEqualTo(PandaDto("Kim"))
         assertThat(context.contentType()).isEqualTo(ContentType.JSON)
         assertThat(context.contentLength()).isEqualTo(14)
+    }
+
+    @Test
+    fun `should handle output stream`() {
+        val outputStream = ByteArrayOutputStream()
+        Endpoint(GET, "/") { ctx ->
+            ctx.res().writer.use { it.print("Panda") }
+        }.handle(contextMock.build(Body.ofString("Panda")) {
+            res.outputStream = outputStream
+        })
+        assertThat(outputStream.toByteArray().decodeToString()).isEqualTo("Panda")
     }
 
     @Test
@@ -107,7 +124,7 @@ internal class TestMockContext {
 
         session.invalidate()
         assertThrows<IllegalStateException> { session.invalidate() }
-        assertThrows<IllegalStateException> { session.isNew() }
+        assertThrows<IllegalStateException> { session.isNew }
     }
 
     @Test
@@ -119,10 +136,87 @@ internal class TestMockContext {
     @Test
     fun `should support custom javalin configuration`() {
         val context = TestController.defaultApiEndpoint.handle(contextMock.build("/api/simple/comp/lex") {
-            javalinConfiguration { it.contextResolver.ip = { ctx -> ctx.header(X_FORWARDED_FOR) ?: ctx.header(HOST)!! } }
+            javalinConfig { it.contextResolver.ip = { ctx -> ctx.header(X_FORWARDED_FOR) ?: ctx.header(HOST)!! } }
             req.headers[X_FORWARDED_FOR] = mutableListOf("1.9.9.9")
         })
         assertThat(context.result()).isEqualTo("Hello 1.9.9.9")
+    }
+
+    @Test
+    fun `should return same defaults as regular unirest request to jetty`() = TestUtil.test { app, http ->
+        val endpointUrl = "/test/{test}/<tests>"
+        val requestedUrl = "/test/ab/c/d"
+        val userAgent = "javalin-mock/1.0"
+
+        val mock = ContextMock.create().withMockConfig {
+            this.req.serverPort = app.port()
+            this.req.localPort = app.port()
+            this.req.addHeader(Header.USER_AGENT, userAgent)
+        }
+        val mockedCtx = Endpoint(POST, endpointUrl) { it.result("Passed") }
+            .handle(mock.build(requestedUrl, Body.ofObject(PandaDto("Kim"))))
+
+        app.post(endpointUrl) { ctx ->
+            // Jetty
+
+            assertThat(mockedCtx.req().remoteAddr).isEqualTo(ctx.req().remoteAddr)
+            assertThat(mockedCtx.req().remoteHost).isEqualTo(ctx.req().remoteHost)
+            assertThat(mockedCtx.req().localAddr).isEqualTo(ctx.req().localAddr)
+            assertThat(mockedCtx.req().localName).isEqualTo(ctx.req().localName)
+            assertThat(mockedCtx.req().localPort).isEqualTo(ctx.req().localPort)
+            assertThat(mockedCtx.req().serverName).isEqualTo(ctx.req().serverName)
+            assertThat(mockedCtx.req().serverPort).isEqualTo(ctx.req().serverPort)
+
+            // Context
+
+            assertThat(mockedCtx.handlerType()).isEqualTo(ctx.handlerType())
+            assertThat(mockedCtx.matchedPath()).isEqualTo(ctx.matchedPath())
+            assertThat(mockedCtx.endpointHandlerPath()).isEqualTo(ctx.endpointHandlerPath())
+
+            assertThat(mockedCtx.contentLength()).isEqualTo(ctx.contentLength())
+            assertThat(mockedCtx.contentType()).isEqualTo(ctx.contentType())
+            assertThat(mockedCtx.method()).isEqualTo(ctx.method())
+            assertThat(mockedCtx.path()).isEqualTo(ctx.path())
+            assertThat(mockedCtx.port()).isEqualTo(ctx.port())
+            assertThat(mockedCtx.protocol()).isEqualTo(ctx.protocol())
+            assertThat(mockedCtx.contextPath()).isEqualTo(ctx.contextPath())
+            assertThat(mockedCtx.userAgent()).isEqualTo(ctx.userAgent())
+            assertThat(mockedCtx.characterEncoding()).isEqualTo(ctx.characterEncoding())
+            assertThat(mockedCtx.url()).isEqualTo(ctx.url())
+            assertThat(mockedCtx.fullUrl()).isEqualTo(ctx.fullUrl())
+            assertThat(mockedCtx.scheme()).isEqualTo(ctx.scheme())
+            assertThat(mockedCtx.host()).isEqualTo(ctx.host())
+            assertThat(mockedCtx.ip()).isEqualTo(ctx.ip())
+            assertThat(mockedCtx.body()).isEqualTo(ctx.body())
+            assertThat(mockedCtx.bodyAsBytes()).isEqualTo(ctx.bodyAsBytes())
+            assertThat(mockedCtx.bodyAsClass(PandaDto::class.java)).isEqualTo(ctx.bodyAsClass(PandaDto::class.java))
+
+            assertThat(mockedCtx.queryParamMap()).isEqualTo(ctx.queryParamMap())
+            assertThat(mockedCtx.queryParam("test")).isEqualTo(ctx.queryParam("test"))
+            assertThat(mockedCtx.formParamMap()).isEqualTo(ctx.formParamMap())
+            assertThat(mockedCtx.formParam("test")).isEqualTo(ctx.formParam("test"))
+            assertThat(mockedCtx.pathParamMap()).isEqualTo(ctx.pathParamMap())
+            assertThat(mockedCtx.pathParam("test")).isEqualTo(ctx.pathParam("test"))
+            assertThat(mockedCtx.attributeMap()).isEqualTo(ctx.attributeMap())
+            assertThat(mockedCtx.attribute<String>("test")).isEqualTo(ctx.attribute<String>("test"))
+            assertThat(mockedCtx.sessionAttributeMap()).isEqualTo(ctx.sessionAttributeMap())
+            assertThat(mockedCtx.sessionAttribute<String>("test")).isEqualTo(ctx.sessionAttribute<String>("test"))
+            assertThat(mockedCtx.cookieMap()).isEqualTo(ctx.cookieMap())
+            assertThat(mockedCtx.cookie("test")).isEqualTo(ctx.cookie("test"))
+            assertThat(mockedCtx.headerMap()).isEqualTo(ctx.headerMap())
+            assertThat(mockedCtx.header("test")).isEqualTo(ctx.header("test"))
+            assertThat(mockedCtx.uploadedFileMap()).isEqualTo(ctx.uploadedFileMap())
+
+            ctx.result("Passed")
+        }
+
+        val response = http.post(requestedUrl)
+            .body(PandaDto("Kim"))
+            .contentType(ContentType.JSON)
+            .header(Header.USER_AGENT, userAgent)
+            .asString()
+            .body
+        assertThat(response).isEqualTo("Passed")
     }
 
 }

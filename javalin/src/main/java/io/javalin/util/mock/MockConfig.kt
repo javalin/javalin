@@ -9,11 +9,11 @@ import java.util.function.Consumer
 data class MockConfig internal constructor(
     val req: RequestState = RequestState(),
     val res: ResponseState = ResponseState(),
-    internal var javalinConfig: JavalinConfig = Javalin.create().unsafeConfig()
+    var javalinConfig: JavalinConfig = Javalin.create().unsafeConfig()
 ) {
 
     /** Change Javalin config used to prepare the [Context] instance. */
-    fun javalinConfiguration(config: Consumer<JavalinConfig>) {
+    fun javalinConfig(config: Consumer<JavalinConfig>) {
         this.javalinConfig = Javalin.create(config).unsafeConfig()
     }
 
