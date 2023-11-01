@@ -1,4 +1,4 @@
-package io.javalin.util.mock.stubs
+package io.javalin.util.mock.servlet
 
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.WriteListener

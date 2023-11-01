@@ -1,7 +1,7 @@
 
-package io.javalin.util.mock.stubs
+package io.javalin.util.mock.servlet
 
-import io.javalin.util.mock.stubs.HttpSessionMock.HttpSessionState
+import io.javalin.util.mock.servlet.InMemoryHttpSession.HttpSessionState
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -158,7 +158,7 @@ data class HttpServletRequestMock(
     override fun getRequestedSessionId(): String? = state.requestedSessionId
 
     override fun getSession(create: Boolean): HttpSession? {
-        if (create) { state.session = state.session ?: HttpSessionMock(HttpSessionState(new = true)) }
+        if (create) { state.session = state.session ?: InMemoryHttpSession(HttpSessionState(new = true)) }
         return state.session
     }
     override fun getSession(): HttpSession? = getSession(true)

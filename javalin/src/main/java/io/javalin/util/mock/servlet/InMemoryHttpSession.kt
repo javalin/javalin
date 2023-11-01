@@ -1,5 +1,5 @@
 
-package io.javalin.util.mock.stubs
+package io.javalin.util.mock.servlet
 
 import jakarta.servlet.ServletContext
 import jakarta.servlet.http.HttpSession
@@ -9,7 +9,7 @@ import java.util.Enumeration
 import java.util.UUID
 
 @Suppress("DeprecatedCallableAddReplaceWith", "MemberVisibilityCanBePrivate")
-class HttpSessionMock(val state: HttpSessionState = HttpSessionState()) : HttpSession {
+class InMemoryHttpSession(val state: HttpSessionState = HttpSessionState()) : HttpSession {
 
     data class HttpSessionState(
         var creationTime: Long = System.currentTimeMillis(),
