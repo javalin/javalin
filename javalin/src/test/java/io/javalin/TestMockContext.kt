@@ -18,7 +18,6 @@ import io.javalin.util.mock.ContextMock
 import java.io.ByteArrayOutputStream
 import java.lang.IllegalStateException
 import java.util.Base64
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -55,7 +54,7 @@ internal class TestMockContext {
         val context = TestController.defaultApiEndpoint.handle(contextMock.build("/api/simple/comp/lex"))
         assertThat(context.scheme()).isEqualTo("http")
         assertThat(context.protocol()).isEqualTo("HTTP/1.1")
-        assertThat(context.host()).isEqualTo("127.0.0.1")
+        assertThat(context.host()).isEqualTo("localhost:80")
         assertThat(context.method()).isEqualTo(GET)
         assertThat(context.url()).isEqualTo("http://localhost:80/api/simple/comp/lex")
         assertThat(context.path()).isEqualTo("/api/simple/comp/lex")
