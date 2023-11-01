@@ -9,14 +9,10 @@ package io.javalin.plugin.bundled
 import io.javalin.config.JavalinConfig
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
-import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.Plugin
 import io.javalin.router.Endpoint
 
-open class HttpAllowedMethodsPlugin : JavalinPlugin {
-
-    companion object {
-        object HttpAllowedMethods : HttpAllowedMethodsPlugin()
-    }
+open class HttpAllowedMethodsPlugin : Plugin<Void>() {
 
     override fun onStart(config: JavalinConfig) {
         config.events.serverStarted {

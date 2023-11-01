@@ -12,7 +12,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.HttpStatus.CREATED
 import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.http.HttpStatus.OK
-import io.javalin.plugin.bundled.HttpAllowedMethodsPlugin.Companion.HttpAllowedMethods
+import io.javalin.plugin.bundled.HttpAllowedMethodsPlugin
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -22,7 +22,7 @@ class TestHttpAllowedMethodsPlugin {
 
     @Test
     fun `enableHttpOptionsForRoutes allows possible methods on routes`() {
-        val javalin = Javalin.create { it.registerPlugin(HttpAllowedMethods) }
+        val javalin = Javalin.create { it.registerPlugin(HttpAllowedMethodsPlugin()) }
         javalin.get("/") { it.result("Hello") }
         javalin.delete("/") { it.status(OK) }
         javalin.get("/users") { it.result("Users") }

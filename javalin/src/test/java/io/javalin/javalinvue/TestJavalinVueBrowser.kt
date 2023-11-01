@@ -138,7 +138,7 @@ class TestJavalinVueBrowser {
         assertThat(driver.checkWindow("localStorage.length === 0")).isTrue() // cache is false by default
         driver.createMaryOnBackend()
         driver.executeScript("window.ld.refresh()")
-        driver.waitForCondition("ld.loaded")
+        driver.waitForCondition("ld.refreshing === false")
         assertThat(driver.checkWindow("ld.data.length === 2")).isTrue()
     }
 
@@ -181,7 +181,7 @@ class TestJavalinVueBrowser {
         driver.createLoadableData("ld", "new LoadableData('/api/users')")
         driver.createMaryOnBackend()
         driver.executeScript("window.ld.refresh()")
-        driver.waitForCondition("ld.loaded") // refresh sets this to false
+        driver.waitForCondition("ld.refreshing === false")
         assertThat(driver.checkWindow("ld.data.length === 2")).isTrue()
     }
 
@@ -192,8 +192,8 @@ class TestJavalinVueBrowser {
         driver.createLoadableData("ld2", "new LoadableData('/api/users')")
         driver.createMaryOnBackend()
         driver.executeScript("window.ld1.refreshAll()")
-        driver.waitForCondition("ld1.loaded") // refresh sets this to false
-        driver.waitForCondition("ld2.loaded") // refresh sets this to false
+        driver.waitForCondition("ld1.refreshing === false") // refresh sets this to true, then false after load
+        driver.waitForCondition("ld1.refreshing === false") // refresh sets this to true, then false after load
         assertThat(driver.checkWindow("ld1.data.length === 2")).isTrue()
         assertThat(driver.checkWindow("ld2.data.length === 2")).isTrue()
     }
@@ -205,8 +205,8 @@ class TestJavalinVueBrowser {
         driver.createLoadableData("ld2", "new LoadableData('/api/otherUsers')")
         driver.createMaryOnBackend()
         driver.executeScript("window.ld1.refreshAll()")
-        driver.waitForCondition("ld1.loaded") // refresh sets this to false
-        driver.waitForCondition("ld2.loaded") // refresh sets this to false, although here it will remain false
+        driver.waitForCondition("ld1.refreshing === false") // refresh sets this to true, then false after load
+        driver.waitForCondition("ld1.refreshing === false") // refresh sets this to true, although here it will remain false
         assertThat(driver.checkWindow("ld1.data.length === 2")).isTrue()
         assertThat(driver.checkWindow("ld2.data.length === 1")).isTrue()
     }

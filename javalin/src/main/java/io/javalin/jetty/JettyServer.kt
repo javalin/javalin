@@ -9,6 +9,7 @@ package io.javalin.jetty
 import io.javalin.config.JavalinConfig
 import io.javalin.event.JavalinLifecycleEvent
 import io.javalin.http.ContentType
+import io.javalin.http.servlet.JavalinServlet
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinBindException
 import io.javalin.util.JavalinException
@@ -34,10 +35,7 @@ import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.ThreadPool
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
 
-class JettyServer(
-    private val cfg: JavalinConfig,
-    private val wsAndHttpServlet: JavalinJettyServlet,
-) {
+class JettyServer(private val cfg: JavalinConfig) {
 
     init {
         MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
@@ -73,7 +71,7 @@ class JettyServer(
                 JettyWebSocketServletContainerInitializer.configure(this, null)
                 contextPath = Util.normalizeContextPath(cfg.router.contextPath)
                 sessionHandler = defaultSessionHandler()
-                addServlet(ServletHolder(wsAndHttpServlet), "/*")
+                addServlet(ServletHolder(cfg.pvt.servlet.value), "/*")
                 cfg.jetty.servletContextHandlerConsumers.forEach{ it.accept(this) } // apply user config
             })
             val httpConfiguration = defaultHttpConfiguration()

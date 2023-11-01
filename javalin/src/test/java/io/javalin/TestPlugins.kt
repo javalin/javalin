@@ -1,7 +1,7 @@
 package io.javalin
 
 import io.javalin.config.JavalinConfig
-import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.PluginPriority.EARLY
 import io.javalin.plugin.PluginPriority.LATE
@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import java.util.function.Consumer
 
 class TestPlugins {
 
@@ -20,10 +21,11 @@ class TestPlugins {
         START
     }
 
-    open inner class TestPlugin : JavalinPlugin {
+    open inner class TestPlugin : Plugin<Void>() {
         override fun onInitialize(config: JavalinConfig) {
             calls.add(Calls.INIT)
         }
+
         override fun onStart(config: JavalinConfig) {
             calls.add(Calls.START)
         }
@@ -56,13 +58,15 @@ class TestPlugins {
     }
 
     @Test
-    fun `registerPlugin should work with lambdas`() {
+    fun `registerPlugin should work with anonymous objects`() {
         var called = false
 
         Javalin.create {
-            it.registerPlugin {
-                called = true
-            }
+            it.registerPlugin(object : Plugin<Void>() {
+                override fun onStart(config: JavalinConfig) {
+                    called = true
+                }
+            })
         }
 
         assertThat(called).isTrue
@@ -75,12 +79,11 @@ class TestPlugins {
 
             assertThatThrownBy { it.registerPlugin(TestPlugin()) }
                 .isInstanceOf(PluginAlreadyRegisteredException::class.java)
-                .hasMessage("TestPlugin is already registered")
+                .hasMessageContaining("TestPlugin is already registered")
         }
     }
 
-    class MultiInstanceTestPlugin : JavalinPlugin {
-        override fun onStart(config: JavalinConfig) {}
+    class MultiInstanceTestPlugin : Plugin<Void>() {
         override fun repeatable() = true
     }
 
@@ -98,21 +101,36 @@ class TestPlugins {
     fun `plugins are initialized in the proper order`() {
         val calls = mutableListOf<String>()
 
-        class EarlyPlugin : JavalinPlugin {
+        class EarlyPlugin : Plugin<Void>() {
             override fun priority() = EARLY
-            override fun onInitialize(config: JavalinConfig) { calls.add("early-init") }
-            override fun onStart(config: JavalinConfig) { calls.add("early-start") }
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("early-init")
+            }
+
+            override fun onStart(config: JavalinConfig) {
+                calls.add("early-start")
+            }
         }
 
-        class NormalPlugin : JavalinPlugin {
-            override fun onInitialize(config: JavalinConfig) { calls.add("normal-init") }
-            override fun onStart(config: JavalinConfig) { calls.add("normal-start") }
+        class NormalPlugin : Plugin<Void>() {
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("normal-init")
+            }
+
+            override fun onStart(config: JavalinConfig) {
+                calls.add("normal-start")
+            }
         }
 
-        class LatePlugin : JavalinPlugin {
+        class LatePlugin : Plugin<Void>() {
             override fun priority() = LATE
-            override fun onInitialize(config: JavalinConfig) { calls.add("late-init") }
-            override fun onStart(config: JavalinConfig) { calls.add("late-start") }
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("late-init")
+            }
+
+            override fun onStart(config: JavalinConfig) {
+                calls.add("late-start")
+            }
         }
 
         Javalin.create { config ->
@@ -135,20 +153,23 @@ class TestPlugins {
     fun `plugin should be able to register a new plugin in init phase`() {
         val calls = mutableListOf<String>()
 
-        class Plugin3 : JavalinPlugin {
-            override fun onInitialize(config: JavalinConfig) { calls.add("3") }
-            override fun onStart(config: JavalinConfig) {}
+        class Plugin3 : Plugin<Void>() {
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("3")
+            }
         }
-        class Plugin2 : JavalinPlugin {
-            override fun onInitialize(config: JavalinConfig) { calls.add("2") }
-            override fun onStart(config: JavalinConfig) {}
+
+        class Plugin2 : Plugin<Void>() {
+            override fun onInitialize(config: JavalinConfig) {
+                calls.add("2")
+            }
         }
-        class Plugin1 : JavalinPlugin {
+
+        class Plugin1 : Plugin<Void>() {
             override fun onInitialize(config: JavalinConfig) {
                 calls.add("1")
                 config.registerPlugin(Plugin2())
             }
-            override fun onStart(config: JavalinConfig) {}
         }
 
         Javalin.create { config ->
@@ -159,4 +180,27 @@ class TestPlugins {
         assertThat(calls).containsExactly("1", "2", "3")
     }
 
+    @Test
+    fun `registerPlugin returns the registered plugin`() {
+        class PluginConfig(var value: String = "...")
+        class MyPlugin(userConfig: Consumer<PluginConfig>) : Plugin<PluginConfig>(userConfig, PluginConfig()) {
+            val value = pluginConfig.value
+        }
+        val myPlugin = JavalinConfig().registerPlugin(MyPlugin { it.value = "Hello" }) as MyPlugin
+        assertThat(myPlugin.value).isEqualTo("Hello")
+    }
+
+
+    @Test
+    fun `pluginConfig throws if defaultConfig is null`() {
+        assertThatThrownBy { Javalin.create{ it.registerPlugin(ThrowingPlugin()) }.start() }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Plugin io.javalin.ThrowingPlugin has no config.")
+    }
+}
+
+class ThrowingPlugin : Plugin<Void>() {
+    override fun onStart(config: JavalinConfig) {
+        pluginConfig // should throw
+    }
 }
