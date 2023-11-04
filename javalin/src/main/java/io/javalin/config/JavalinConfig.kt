@@ -15,7 +15,9 @@ import io.javalin.plugin.Plugin
 import io.javalin.rendering.FILE_RENDERER_KEY
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.NotImplementedRenderer
-import io.javalin.validation.JavalinValidation.addValidationExceptionMapper
+import io.javalin.validation.Validation
+import io.javalin.validation.Validation.Companion.VALIDATION_KEY
+import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
 import io.javalin.vue.JAVALINVUE_CONFIG_KEY
 import io.javalin.vue.JavalinVueConfig
 import java.util.function.Consumer
@@ -36,6 +38,7 @@ class JavalinConfig {
     @JvmField val contextResolver = ContextResolverConfig()
     @JvmField var useVirtualThreads = false
     @JvmField var showJavalinBanner = true
+    @JvmField var validation = ValidationConfig()
     /**
      * This is "private", only use it if you know what you're doing
      */
@@ -53,12 +56,12 @@ class JavalinConfig {
             userConfig.accept(cfg) // apply user config to the default config
             cfg.pvt.pluginManager.startPlugins()
             cfg.pvt.appAttributes[ASYNC_EXECUTOR_KEY] = AsyncExecutor(cfg.useVirtualThreads)
+            cfg.pvt.appAttributes[VALIDATION_KEY] = Validation(cfg.validation)
             cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson(null, cfg.useVirtualThreads) }
             cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
             cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }
             cfg.pvt.appAttributes.computeIfAbsent(MAX_REQUEST_SIZE_KEY) { cfg.http.maxRequestSize }
             cfg.pvt.appAttributes.computeIfAbsent(JAVALINVUE_CONFIG_KEY) { cfg.vue }
-            addValidationExceptionMapper(cfg) // add default mapper for validation
         }
     }
 

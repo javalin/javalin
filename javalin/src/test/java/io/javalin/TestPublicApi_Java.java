@@ -5,7 +5,6 @@ import io.javalin.http.Cookie;
 import io.javalin.http.HttpStatus;
 import io.javalin.plugin.bundled.CorsPlugin;
 import io.javalin.http.Context;
-import io.javalin.validation.JavalinValidation;
 import io.javalin.validation.ValidationError;
 import io.javalin.validation.Validator;
 import io.javalin.websocket.WsConfig;
@@ -30,6 +29,7 @@ public class TestPublicApi_Java {
             .get("/", ctx -> ctx.result("Hello World"))
             .start(7070);
         var app = Javalin.create(config -> {
+            config.validation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
             config.registerPlugin(new CorsPlugin(cors -> {
                 cors.addRule(rule -> {
                     rule.path = "images*";
@@ -78,7 +78,6 @@ public class TestPublicApi_Java {
 
             Map<String, List<ValidationError<Integer>>> errors = ageValidator.errors();
 
-            JavalinValidation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
         });
 
         app.exception(NullPointerException.class, (e, ctx) -> { /* ... */ });

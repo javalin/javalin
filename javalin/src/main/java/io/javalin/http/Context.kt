@@ -18,7 +18,6 @@ import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
 import io.javalin.http.servlet.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.AsyncExecutor.Companion.asyncExecutor
 import io.javalin.http.util.AsyncTaskConfig
-import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
@@ -29,6 +28,7 @@ import io.javalin.security.RouteRole
 import io.javalin.util.function.ThrowingRunnable
 import io.javalin.validation.BodyValidator
 import io.javalin.validation.Validator
+import io.javalin.validation.validation
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -142,13 +142,13 @@ interface Context {
     fun bodyInputStream(): InputStream = req().inputStream
 
     /** Creates a typed [BodyValidator] for the body() value */
-    fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz, this.jsonMapper())
+    fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz, { bodyAsClass(clazz) })
 
     /** Gets a form param if it exists, else null */
     fun formParam(key: String): String? = formParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the formParam() value */
-    fun <T> formParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, formParam(key), key)
+    fun <T> formParamAsClass(key: String, clazz: Class<T>) = validation().validator(key, clazz, formParam(key))
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
@@ -169,7 +169,7 @@ interface Context {
     fun pathParam(key: String): String
 
     /** Creates a typed [Validator] for the pathParam() value */
-    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), key)
+    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = validation().validator(key, clazz, pathParam(key))
 
     /** Gets a map of all the [pathParamAsClass] keys and values. */
     fun pathParamMap(): Map<String, String>
@@ -178,14 +178,10 @@ interface Context {
     fun queryParam(key: String): String? = queryParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the queryParam() value */
-    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, queryParam(key), key)
+    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = validation().validator(key, clazz, queryParam(key))
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
-
-    /** Creates a typed [Validator] for the queryParams() value */
-    fun <T> queryParamsAsClass(key: String, clazz: Class<T>): Validator<List<T>> =
-        Validator.create(clazz, queryParams(key), key) as Validator<List<T>>
 
     /** Gets a map with all the query param keys and values. */
     fun queryParamMap(): Map<String, List<String>> = splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding() ?: "UTF-8")
@@ -241,7 +237,7 @@ interface Context {
     fun header(header: String): String? = req().getHeader(header)
 
     /** Creates a typed [Validator] for the header() value */
-    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header)
+    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = validation().validator(header, clazz, header(header))
 
     /** Gets a map with all the header keys and values on the request(). */
     fun headerMap(): Map<String, String> = req().headerNames.asSequence().associateWith { header(it)!! }
@@ -496,9 +492,6 @@ inline fun <reified T : Any> Context.headerAsClass(header: String): Validator<T>
 
 /** Reified version of [Context.queryParamAsClass] (Kotlin only) */
 inline fun <reified T : Any> Context.queryParamAsClass(key: String): Validator<T> = queryParamAsClass(key, T::class.java)
-
-/** Reified version of [Context.queryParamsAsClass] (Kotlin only) */
-inline fun <reified T : Any> Context.queryParamsAsClass(key: String): Validator<List<T>> = queryParamsAsClass(key, T::class.java)
 
 /** Reified version of [Context.formParamAsClass] (Kotlin only) */
 inline fun <reified T : Any> Context.formParamAsClass(key: String): Validator<T> = formParamAsClass(key, T::class.java)
