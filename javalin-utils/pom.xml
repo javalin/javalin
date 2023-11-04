@@ -13,14 +13,4 @@
     <modules>
         <module>javalin-context-mock</module>
     </modules>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.javalin</groupId>
-                <artifactId>javalin-context-mock</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 </project>
