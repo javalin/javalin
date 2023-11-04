@@ -9,7 +9,6 @@ package io.javalin.websocket
 import io.javalin.http.Context
 import io.javalin.jetty.upgradeContextKey
 import io.javalin.jetty.upgradeSessionAttrsKey
-import io.javalin.json.jsonMapper
 import io.javalin.util.javalinLazy
 import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.RemoteEndpoint

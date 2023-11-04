@@ -9,7 +9,6 @@ package io.javalin.http.util
 import io.javalin.http.Context
 import io.javalin.http.Cookie
 import io.javalin.json.fromJsonString
-import io.javalin.json.jsonMapper
 import io.javalin.json.toJsonString
 import java.util.*
 

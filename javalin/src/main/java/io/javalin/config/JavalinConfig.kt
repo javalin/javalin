@@ -8,7 +8,6 @@ package io.javalin.config
 import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
 import io.javalin.http.util.AsyncExecutor
 import io.javalin.http.util.AsyncExecutor.Companion.ASYNC_EXECUTOR_KEY
-import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
@@ -42,7 +41,7 @@ class JavalinConfig {
     @JvmField val pvt = PrivateConfig(this)
 
     fun events(listener:Consumer<EventConfig>) { listener.accept(this.events) }
-    fun jsonMapper(jsonMapper: JsonMapper) { pvt.appAttributes[JSON_MAPPER_KEY] = jsonMapper }
+    fun jsonMapper(jsonMapper: JsonMapper) { pvt.jsonMapper = jsonMapper }
     fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[FILE_RENDERER_KEY] = fileRenderer }
     //@formatter:on
 
@@ -53,7 +52,7 @@ class JavalinConfig {
             userConfig.accept(cfg) // apply user config to the default config
             cfg.pvt.pluginManager.startPlugins()
             cfg.pvt.appAttributes[ASYNC_EXECUTOR_KEY] = AsyncExecutor(cfg.useVirtualThreads)
-            cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson(null, cfg.useVirtualThreads) }
+            if (cfg.pvt.jsonMapper == null) { cfg.pvt.jsonMapper = JavalinJackson(null, cfg.useVirtualThreads) }
             cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
             cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }
             cfg.pvt.appAttributes.computeIfAbsent(MAX_REQUEST_SIZE_KEY) { cfg.http.maxRequestSize }

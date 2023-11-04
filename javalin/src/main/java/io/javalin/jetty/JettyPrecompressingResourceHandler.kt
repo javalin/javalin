@@ -6,8 +6,6 @@ import io.javalin.compression.forType
 import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.util.JavalinLogger
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream

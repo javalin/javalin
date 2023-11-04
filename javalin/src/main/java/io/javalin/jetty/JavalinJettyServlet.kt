@@ -13,6 +13,7 @@ import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.JavalinServletContextConfig
 import io.javalin.http.servlet.Task
+import io.javalin.util.javalinLazy
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -33,15 +34,7 @@ internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"
 class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
 
     private val httpServlet = JavalinServlet(cfg)
-
-    private val servletContextConfig by lazy {
-        JavalinServletContextConfig(
-            appAttributes = cfg.pvt.appAttributes,
-            compressionStrategy = cfg.pvt.compressionStrategy,
-            requestLoggerEnabled = cfg.pvt.requestLogger != null,
-            defaultContentType = cfg.http.defaultContentType,
-        )
-    }
+    private val servletContextConfig by javalinLazy { JavalinServletContextConfig.of(cfg) }
 
     override fun configure(factory: JettyWebSocketServletFactory) { // this is called once, before everything
         cfg.pvt.jetty.wsFactoryConfigs.forEach{ it.accept(factory) }

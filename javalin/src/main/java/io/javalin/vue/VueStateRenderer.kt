@@ -1,7 +1,6 @@
 package io.javalin.vue
 
 import io.javalin.http.Context
-import io.javalin.json.jsonMapper
 import io.javalin.json.toJsonString
 import org.eclipse.jetty.util.URIUtil
 
