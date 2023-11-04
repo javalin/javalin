@@ -78,7 +78,3 @@ inline fun <reified T : Any> JsonMapper.fromJsonString(json: String): T = fromJs
 
 @OptIn(ExperimentalStdlibApi::class)
 inline fun <reified T : Any> JsonMapper.fromJsonStream(json: InputStream): T = fromJsonStream(json, typeOf<T>().javaType)
-
-//const val JSON_MAPPER_KEY = "javalin-json-mapper"
-//fun Javalin.jsonMapper(): JsonMapper = this.attribute(JSON_MAPPER_KEY)
-//fun Context.jsonMapper(): JsonMapper = this.appAttribute(JSON_MAPPER_KEY)
