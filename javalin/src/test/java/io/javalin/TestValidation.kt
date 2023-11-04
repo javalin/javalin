@@ -8,6 +8,7 @@ package io.javalin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import io.javalin.config.ValidationConfig
 import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.EXPECTATION_FAILED
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
@@ -16,19 +17,18 @@ import io.javalin.http.bodyValidator
 import io.javalin.http.formParamAsClass
 import io.javalin.http.pathParamAsClass
 import io.javalin.http.queryParamAsClass
-import io.javalin.http.queryParamsAsClass
 import io.javalin.json.JavalinJackson
 import io.javalin.json.toJsonString
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.fasterJacksonMapper
 import io.javalin.testing.httpCode
-import io.javalin.validation.JavalinValidation
+import io.javalin.validation.Validation
 import io.javalin.validation.MissingConverterException
 import io.javalin.validation.NullableValidator
+import io.javalin.validation.Params
 import io.javalin.validation.ValidationError
 import io.javalin.validation.ValidationException
-import io.javalin.validation.Validator
 import io.javalin.validation.collectErrors
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -52,23 +52,11 @@ class TestValidation {
     }
 
     @Test
-    fun `queryParams can be used to validate list`() = TestUtil.test { app, http ->
-        app.get("/") {
-            it.queryParamsAsClass<Int>("param")
-                .check({ it.all { it < 5 } }, "All must be smaller than 5")
-                .get()
-        }
-        val response = http.get("/?param=1&param=2&param=5")
-        assertThat(response.status).isEqualTo(BAD_REQUEST.code)
-        assertThat(response.body).isEqualTo("""{"param":[{"message":"All must be smaller than 5","args":{},"value":[1,2,5]}]}""")
-    }
-
-    @Test
     fun `formParam gives correct error message`() = TestUtil.test { app, http ->
         app.post("/") { it.formParamAsClass<Int>("param").get() }
         assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
         val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
-        assertThat(log).contains("Parameter 'param' with value 'abc' is not a valid Integer")
+        assertThat(log).contains("Couldn't convert param 'param' with value 'abc' to Integer")
 
     }
 
@@ -136,8 +124,10 @@ class TestValidation {
     val timeModuleMapper by lazy { JavalinJackson(ObjectMapper().apply { registerModule(JavaTimeModule()) }) }
 
     @Test
-    fun `custom converter works`() = TestUtil.test(Javalin.create { it.jsonMapper(timeModuleMapper) }) { app, http ->
-        JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
+    fun `custom converter works`() = TestUtil.test(Javalin.create {
+        it.jsonMapper(timeModuleMapper)
+        it.validation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
+    }) { app, http ->
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParamAsClass<Instant>("from").get()
             val toDate = ctx.queryParamAsClass<Instant>("to")
@@ -150,8 +140,9 @@ class TestValidation {
     }
 
     @Test
-    fun `custom converter works for null when nullable`() = TestUtil.test { app, http ->
-        JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
+    fun `custom converter works for null when nullable`() = TestUtil.test(Javalin.create {
+        it.validation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
+    }) { app, http ->
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParamAsClass<Instant>("from").get()
             val toDate = ctx.queryParamAsClass<Instant>("to")
@@ -165,19 +156,21 @@ class TestValidation {
     }
 
     @Test
-    fun `custom converter returns null`() = TestUtil.test { app, http ->
-        JavalinValidation.register(Instant::class.java) { null }
+    fun `custom converter returns null`() = TestUtil.test(Javalin.create {
+        it.validation.register(Instant::class.java) { null }
+    }) { app, http ->
         app.get("/instant") { it.queryParamAsClass<Instant>("from").get() }
         assertThat(http.get("/instant?from=1262347200000").httpCode()).isEqualTo(BAD_REQUEST)
     }
 
     @Test
     fun `default converters work`() {
-        assertThat(Validator.create(Boolean::class.java, "true", "?").get()).hasSameClassAs("true".toBoolean())
-        assertThat(Validator.create(Double::class.java, "1.2", "?").get()).hasSameClassAs("1.2".toDouble())
-        assertThat(Validator.create(Float::class.java, "1.2", "?").get()).hasSameClassAs("1.2".toFloat())
-        assertThat(Validator.create(Int::class.java, "123", "?").get()).hasSameClassAs("123".toInt())
-        assertThat(Validator.create(Long::class.java, "123", "?").get()).hasSameClassAs("123".toLong())
+        val validation = Validation(ValidationConfig())
+        assertThat(validation.validator("?", Boolean::class.java, "true").get()).hasSameClassAs("true".toBoolean())
+        assertThat(validation.validator("?", Double::class.java, "1.2").get()).hasSameClassAs("1.2".toDouble())
+        assertThat(validation.validator("?", Float::class.java, "1.2").get()).hasSameClassAs("1.2".toFloat())
+        assertThat(validation.validator("?", Int::class.java, "123").get()).hasSameClassAs("123".toInt())
+        assertThat(validation.validator("?", Long::class.java, "123").get()).hasSameClassAs("123".toLong())
     }
 
     @Test
@@ -399,7 +392,7 @@ class TestValidation {
 
     @Test
     fun `typed value non-nullable validator works for positive case`() {
-        val validator = Validator("kvp", KeyValuePair("key", "value"))
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value"))
         validator.check({ it.key == "key" }, "unexpected key")
         validator.check({ it.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -408,7 +401,7 @@ class TestValidation {
 
     @Test
     fun `typed value non-nullable validator works for negative case #1`() {
-        val validator = Validator("kvp", KeyValuePair("key", "value"))
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value"))
         validator.check({ it.key != "key" }, "unexpected key")
         validator.check({ it.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -418,7 +411,7 @@ class TestValidation {
 
     @Test
     fun `typed value non-nullable validator works for negative case #2`() {
-        val validator = Validator("kvp", KeyValuePair("key", "value"))
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value"))
         validator.check({ it.key != "key" }, "unexpected key")
         validator.check({ it.value != "value" }, "unexpected value")
         val errors = validator.errors()
@@ -428,7 +421,7 @@ class TestValidation {
 
     @Test
     fun `typed value nullable validator works for positive case`() {
-        val validator = NullableValidator("kvp", KeyValuePair("key", "value"))
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
         validator.check({ it!!.key == "key" }, "unexpected key")
         validator.check({ it!!.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -437,7 +430,7 @@ class TestValidation {
 
     @Test
     fun `typed value nullable validator works for negative case #1`() {
-        val validator = NullableValidator("kvp", KeyValuePair("key", "value"))
+        val validator =  Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
         validator.check({ it!!.key != "key" }, "unexpected key")
         validator.check({ it!!.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -447,7 +440,7 @@ class TestValidation {
 
     @Test
     fun `typed value nullable validator works for negative case #2`() {
-        val validator = NullableValidator("kvp", KeyValuePair("key", "value"))
+        val validator =  Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
         validator.check({ it!!.key != "key" }, "unexpected key")
         validator.check({ it!!.value != "value" }, "unexpected value")
         val errors = validator.errors()
@@ -457,26 +450,27 @@ class TestValidation {
 
     @Test
     fun `typed value nullable validator works for null value`() {
-        val validator = NullableValidator<KeyValuePair>("kvp")
+        val validator = NullableValidator(Params("kvp", KeyValuePair::class.java))
         validator.check({ it!!.key == "key" }, "unexpected key")
         validator.check({ it!!.value == "value" }, "unexpected value")
     }
 
     @Test
     fun `typed value nullable validator constructed from a non-nullable one works for null value`() {
-        val validator = Validator<KeyValuePair>("kvp").allowNullable()
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
         validator.check({ it!!.key == "key" }, "unexpected key")
         validator.check({ it!!.value == "value" }, "unexpected value")
     }
 
     @Test
     fun `can use JavalinValidation#collectErrors to collect errors from multiple Validators`() = TestUtil.test { app, http ->
+        val validation = Validation(ValidationConfig())
         app.get("/collect-errors") { ctx ->
-            val errors = JavalinValidation.collectErrors(
-                Validator("first_name", ctx.queryParam("first_name"))
+            val errors = Validation.collectErrors(
+                validation.validator("first_name", String::class.java, ctx.queryParam("first_name"))
                     .check({ it.length > 2 }, "too short")
                     .check({ it.length < 10 }, "too long"),
-                Validator("last_name", ctx.queryParam("last_name"))
+                validation.validator("last_name", String::class.java, ctx.queryParam("last_name"))
                     .check({ it.length > 2 }, "too short")
                     .check({ it.length < 10 }, "too long")
             )

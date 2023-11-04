@@ -6,14 +6,13 @@
 
 package io.javalin.validation
 
-import io.javalin.json.JsonMapper
 import org.jetbrains.annotations.NotNull
 
 const val REQUEST_BODY = "REQUEST_BODY"
 
-open class BodyValidator<T>(stringValue: String?, clazz: Class<T>, jsonMapper: JsonMapper) : BaseValidator<T>(stringValue, clazz, REQUEST_BODY, jsonMapper) {
-    fun check(check: Check<T>, error: String) = check(REQUEST_BODY, check, error)
-    fun check(check: Check<T>, error: ValidationError<T>) = check(REQUEST_BODY, check, error)
+open class BodyValidator<T> internal constructor(value: String, clazz: Class<T>, valueSupplier: () -> T?) : BaseValidator<T>(Params("", clazz, value, valueSupplier = valueSupplier)) {
+    fun check(check: Check<T>, error: String) = check(fieldName = REQUEST_BODY, check, error)
+    fun check(check: Check<T>, error: ValidationError<T>) = check(fieldName = REQUEST_BODY, check, error)
     fun check(fieldName: String, check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as BodyValidator<T>
     fun check(fieldName: String, check: Check<T>, error: ValidationError<T>) = addRule(fieldName, { check(it!!) }, error) as BodyValidator<T>
 
