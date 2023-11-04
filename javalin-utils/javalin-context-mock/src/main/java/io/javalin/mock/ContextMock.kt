@@ -32,7 +32,7 @@ import org.jetbrains.annotations.ApiStatus.Experimental
  */
 @Experimental
 class ContextMock private constructor(
-    val mockConfig: ContextMockConfig = ContextMockConfig(),
+    private val mockConfig: ContextMockConfig = ContextMockConfig(),
     private val userConfigs: List<ContextMockConfigurer> = emptyList(),
 ) : EndpointExecutor {
 

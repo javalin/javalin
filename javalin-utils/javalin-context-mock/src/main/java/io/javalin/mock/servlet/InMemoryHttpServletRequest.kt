@@ -82,7 +82,7 @@ data class HttpServletRequestMock(
         @JvmField var roles: MutableList<String> = mutableListOf(),
         @JvmField var userPrincipal: Principal? = null,
         @JvmField var requestedSessionId: String? = null,
-        @JvmField var session: HttpSession? = null,
+        @JvmField var session: InMemoryHttpSession? = null,
     ) {
         fun addHeader(name: String, vararg values: String): RequestState = also {
             this.headers.getOrPut(name) { mutableListOf() }.addAll(values)
@@ -131,7 +131,7 @@ data class HttpServletRequestMock(
     override fun getLocalPort(): Int = state.localPort
 
     override fun getServletContext(): ServletContext = state.servletContext!!
-    override fun getRequestDispatcher(p0: String?): RequestDispatcher? { return state.requestDispatcher }
+    override fun getRequestDispatcher(pathname: String?): RequestDispatcher? = state.requestDispatcher
     override fun startAsync(): AsyncContext {
         val asyncContext = AsyncContextMock(this, response)
         state.asyncContext = asyncContext
@@ -170,12 +170,15 @@ data class HttpServletRequestMock(
         return state.session
     }
     override fun getSession(): HttpSession? = getSession(true)
-    override fun changeSessionId(): String = throw UnsupportedOperationException("Not implemented")
-    override fun isRequestedSessionIdValid(): Boolean = throw UnsupportedOperationException("Not implemented")
-    override fun isRequestedSessionIdFromCookie(): Boolean = throw UnsupportedOperationException("Not implemented")
-    override fun isRequestedSessionIdFromURL(): Boolean = throw UnsupportedOperationException("Not implemented")
+    override fun changeSessionId(): String {
+        state.session!!.state.id += "-changed"
+        return state.session!!.state.id
+    }
+    override fun isRequestedSessionIdValid(): Boolean = state.requestedSessionId != null
+    override fun isRequestedSessionIdFromCookie(): Boolean = state.requestedSessionId != null
+    override fun isRequestedSessionIdFromURL(): Boolean = state.requestedSessionId != null
     @Deprecated("Deprecated")
-    override fun isRequestedSessionIdFromUrl(): Boolean = throw UnsupportedOperationException("Not implemented")
+    override fun isRequestedSessionIdFromUrl(): Boolean = isRequestedSessionIdFromURL
 
     override fun authenticate(response: HttpServletResponse?): Boolean = throw UnsupportedOperationException("Not implemented")
     override fun login(user: String?, password: String?) { throw UnsupportedOperationException("Not implemented") }
