@@ -63,14 +63,16 @@ internal class TestMockContext {
     }
 
     @Test
+    @Suppress("UastIncorrectHttpHeaderInspection")
     fun `should handle header related methods`() {
-        val context = TestController.defaultApiEndpoint.handle(contextMock.build {
+        val context = Endpoint(GET, "/") { it.header("X-Key", "value") }.handle(contextMock.build {
             req.addHeader("Test", "007")
             req.addHeader(AUTHORIZATION, "Basic ${Base64.getEncoder().encodeToString("user:pass".toByteArray())}")
         })
         assertThat(context.header("Test")).isEqualTo("007")
         assertThat(context.basicAuthCredentials()).isEqualTo(BasicAuthCredentials("user", "pass"))
         assertThat(context.headerAsClass<Int>("Test").get()).isEqualTo(7)
+        assertThat(context.res().getHeader("X-Key")).isEqualTo("value")
     }
 
     @Test
