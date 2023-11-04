@@ -14,21 +14,14 @@ import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.AsyncUtil.addListener
 import io.javalin.http.util.AsyncUtil.isAsync
 import io.javalin.http.util.ETagGenerator
+import io.javalin.util.javalinLazy
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
 class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
-    private val servletContextConfig by lazy {
-        JavalinServletContextConfig(
-            appAttributes = cfg.pvt.appAttributes,
-            compressionStrategy = cfg.pvt.compressionStrategy,
-            requestLoggerEnabled = cfg.pvt.requestLogger != null,
-            defaultContentType = cfg.http.defaultContentType
-        )
-    }
-
+    private val servletContextConfig by javalinLazy { JavalinServletContextConfig.of(cfg) }
     val router = cfg.pvt.internalRouter
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {

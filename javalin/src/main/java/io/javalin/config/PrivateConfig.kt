@@ -11,6 +11,7 @@ import io.javalin.http.servlet.ServletEntry
 import io.javalin.router.exception.JavaLangErrorHandler
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.jetty.JettyUtil.createJettyServletWithWebsocketsIfAvailable
+import io.javalin.json.JsonMapper
 import io.javalin.plugin.PluginManager
 import io.javalin.util.javalinLazy
 import io.javalin.websocket.WsConfig
@@ -23,7 +24,8 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField val wsRouter = WsRouter(cfg.router)
     @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, cfg.router)
     @JvmField var pluginManager = PluginManager(cfg)
-    @JvmField var appAttributes: MutableMap<String, Any> = HashMap()
+    @JvmField var appAttributes: MutableMap<String, Any> = HashMap(5)
+    @JvmField var jsonMapper: JsonMapper? = null
     @JvmField var requestLogger: RequestLogger? = null
     @JvmField var resourceHandler: ResourceHandler? = null
     @JvmField var singlePageHandler = SinglePageHandler()

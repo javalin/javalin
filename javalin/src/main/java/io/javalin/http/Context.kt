@@ -21,7 +21,7 @@ import io.javalin.http.util.AsyncTaskConfig
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
-import io.javalin.json.jsonMapper
+import io.javalin.json.JsonMapper
 import io.javalin.rendering.fileRenderer
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
@@ -57,9 +57,6 @@ interface Context {
     /** Servlet response */
     fun res(): HttpServletResponse
 
-    /** Gets an attribute from the Javalin instance serving the request */
-    fun <T> appAttribute(key: String): T
-
     /** Gets the handler type of the current handler */
     fun handlerType(): HandlerType
 
@@ -68,6 +65,16 @@ interface Context {
 
     /** Gets the endpoint path that was used to match request (null in before, available in endpoint/after) */
     fun endpointHandlerPath(): String
+
+    ///////////////////////////////////////////////////////////////
+    // Config-ish methods
+    ///////////////////////////////////////////////////////////////
+
+    /** Gets an attribute from the Javalin instance serving the request */
+    fun <T> appAttribute(key: String): T
+
+    /** Get configured [JsonMapper] */
+    fun jsonMapper(): JsonMapper
 
     ///////////////////////////////////////////////////////////////
     // Request-ish methods

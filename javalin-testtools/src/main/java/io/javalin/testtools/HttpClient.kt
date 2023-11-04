@@ -2,7 +2,6 @@ package io.javalin.testtools
 
 import io.javalin.Javalin
 import io.javalin.http.ContentType
-import io.javalin.json.jsonMapper
 import io.javalin.json.toJsonString
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -48,7 +47,7 @@ class HttpClient(val app: Javalin, val okHttp: OkHttpClient) {
         return if (this == null) {
             ByteArray(0).toRequestBody(null, 0, 0)
         } else {
-            app.jsonMapper().toJsonString(this).toRequestBody(JSON_TYPE)
+            app.unsafeConfig().pvt.jsonMapper!!.toJsonString(this).toRequestBody(JSON_TYPE)
         }
     }
 
