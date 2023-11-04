@@ -88,7 +88,10 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      * @see Javalin#start()
      */
     public static Javalin createAndStart(Consumer<JavalinConfig> config) {
-        return create(config).start();
+        return create(cfg -> {
+            cfg.startupWatcherEnabled = false;
+            config.accept(cfg);
+        }).start();
     }
 
     // Get JavalinServlet (can be attached to other servlet containers)

@@ -40,6 +40,11 @@ class JavalinConfig {
     @JvmField var showJavalinBanner = true
     @JvmField var validation = ValidationConfig()
     /**
+     * By default, Javalin will print a warning after 5s if you create a Javalin instance without starting it.
+     * You can disable this behavior by setting this to false.
+     */
+    @JvmField var startupWatcherEnabled = true
+    /**
      * This is "private", only use it if you know what you're doing
      */
     @JvmField val pvt = PrivateConfig(this)
