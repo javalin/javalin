@@ -5,7 +5,6 @@ import io.javalin.http.Header.X_FORWARDED_PROTO
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.servlet.isLocalhost
 import io.javalin.plugin.Plugin
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import org.eclipse.jetty.server.ServerConnector
 import java.util.function.Consumer
 
@@ -31,7 +30,7 @@ class SslRedirectPlugin(userConfig: Consumer<SslRedirectPluginConfig>? = null) :
                 if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
                     val urlWithHttps = ctx.fullUrl().replace("http", "https")
 
-                    val urlWithHttpsAndPort = config.pvt.server
+                    val urlWithHttpsAndPort = config.pvt.jetty.server
                         ?.takeIf { pluginConfig.sslPort != null }
                         ?.connectors
                         ?.filterIsInstance<ServerConnector>()

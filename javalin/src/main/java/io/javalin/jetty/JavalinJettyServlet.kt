@@ -27,10 +27,12 @@ internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"
 
 /**
  * The [JavalinJettyServlet] is responsible for both WebSocket and HTTP requests.
- * It extends Jetty's [WebSocketServlet], and has a [JavalinServlet] as a constructor arg.
+ * It extends Jetty's [JettyWebSocketServlet], and has a [JavalinServlet] as a constructor arg.
  * It switches between WebSocket and HTTP in the [service] method.
  */
-class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: JavalinServlet) : JettyWebSocketServlet() {
+class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
+
+    private val httpServlet = JavalinServlet(cfg)
 
     private val servletContextConfig by lazy {
         JavalinServletContextConfig(
@@ -42,7 +44,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
     }
 
     override fun configure(factory: JettyWebSocketServletFactory) { // this is called once, before everything
-        cfg.jetty.wsFactoryConfigs.forEach{ it.accept(factory) }
+        cfg.pvt.jetty.wsFactoryConfigs.forEach{ it.accept(factory) }
         factory.setCreator(JettyWebSocketCreator { req, _ -> // this is called when a websocket is created (after [service])
             val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as JavalinServletContext
             req.httpServletRequest.setAttribute(upgradeContextKey, preUpgradeContext.changeBaseRequest(req.httpServletRequest))

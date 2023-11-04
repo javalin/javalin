@@ -31,14 +31,14 @@ import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     fun init() { // we delay the creation of ConfigurableHandler objects to get our logs in order during startup
-        handlers.addAll(lateInitConfigs.map { ConfigurableHandler(it, pvt.server!!) })
+        handlers.addAll(lateInitConfigs.map { ConfigurableHandler(it, pvt.jetty.server!!) })
     }
 
     private val lateInitConfigs = mutableListOf<StaticFileConfig>()
     private val handlers = mutableListOf<ConfigurableHandler>()
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
-        if (pvt.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.server!!)) else lateInitConfigs.add(config)
+        if (pvt.jetty.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.jetty.server!!)) else lateInitConfigs.add(config)
 
     override fun canHandle(ctx: Context) = nonSkippedHandlers().any { handler ->
         return try {

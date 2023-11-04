@@ -7,16 +7,14 @@ import io.javalin.http.SinglePageHandler
 import io.javalin.router.InternalRouter
 import io.javalin.http.servlet.DefaultTasks
 import io.javalin.http.servlet.JavalinServlet
+import io.javalin.http.servlet.ServletEntry
 import io.javalin.router.exception.JavaLangErrorHandler
 import io.javalin.http.staticfiles.ResourceHandler
-import io.javalin.jetty.JavalinJettyServlet
+import io.javalin.jetty.JettyUtil.createJettyServletWithWebsocketsIfAvailable
 import io.javalin.plugin.PluginManager
-import io.javalin.util.Util
 import io.javalin.util.javalinLazy
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsRouter
-import jakarta.servlet.Servlet
-import org.eclipse.jetty.server.Server
 
 // @formatter:off
 class PrivateConfig(val cfg: JavalinConfig) {
@@ -32,15 +30,10 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField var wsLogger: WsConfig? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
     @JvmField var servletRequestLifecycle = mutableListOf(DefaultTasks.BEFORE, DefaultTasks.BEFORE_MATCHED, DefaultTasks.HTTP, DefaultTasks.AFTER_MATCHED, DefaultTasks.ERROR, DefaultTasks.AFTER)
-    @JvmField var servlet: Lazy<Servlet> = javalinLazy {
-        val httpServlet = JavalinServlet(cfg)
-        when {
-            Util.classExists("org.eclipse.jetty.websocket.server.JettyWebSocketServlet") -> JavalinJettyServlet(cfg, httpServlet)
-            else -> httpServlet
-        }
-    }
+    @JvmField var servlet: Lazy<ServletEntry> = javalinLazy { createJettyServletWithWebsocketsIfAvailable(cfg) ?: ServletEntry(servlet = JavalinServlet(cfg)) }
+
     // Jetty
-    @JvmField var server: Server? = null
+    @JvmField var jetty = JettyInternalConfig()
 
     fun javaLangErrorHandler(handler: JavaLangErrorHandler): PrivateConfig = also {
         this.cfg.router.javaLangErrorHandler = handler

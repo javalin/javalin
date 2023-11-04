@@ -94,7 +94,7 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
 
     // Get JavalinServlet (can be attached to other servlet containers)
     public Servlet javalinServlet() {
-        return cfg.pvt.servlet.getValue();
+        return cfg.pvt.servlet.getValue().getServlet();
     }
 
     /**
