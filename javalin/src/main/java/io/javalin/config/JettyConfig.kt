@@ -20,42 +20,35 @@ class JettyConfig(private val cfg: JavalinConfig) {
     @JvmField var threadPool: ThreadPool = JettyServer.defaultThreadPool(cfg.useVirtualThreads)
     //@formatter:on
 
-    var serverConsumers: MutableList<Consumer<Server>> = mutableListOf()
-    var httpConfigurationConfigs: MutableList<Consumer<HttpConfiguration>> = mutableListOf()
-    var servletContextHandlerConsumers: MutableList<Consumer<ServletContextHandler>> = mutableListOf()
-    var wsFactoryConfigs: MutableList<Consumer<JettyWebSocketServletFactory>> = mutableListOf()
-    var connectors: MutableList<BiFunction<Server, HttpConfiguration, Connector>> = mutableListOf()
-
-
     /** Configure the jetty [Server]. This is useful if you want to configure Jetty features that are not exposed by Javalin.
      * Consider using the other methods in this class before resorting to this one.
      * It can be called multiple times, and the supplied consumers will be called in order. */
     fun modifyServer(server: Consumer<Server>) {
-        serverConsumers.add(server)
+        cfg.pvt.jetty.serverConsumers.add(server)
     }
 
     /** Configure the jetty [ServletContextHandler]. The [SessionHandler] can be set here.
      * It can be called multiple times, and the supplied consumers will be called in order. */
     fun modifyServletContextHandler(consumer: Consumer<ServletContextHandler>) {
-        servletContextHandlerConsumers.add(consumer)
+        cfg.pvt.jetty.servletContextHandlerConsumers.add(consumer)
     }
 
     /** Configure the jetty [JettyWebSocketServletFactory].
      * It can be called multiple times, and the supplied consumers will be called in order. */
     fun modifyJettyWebSocketServletFactory(wsFactoryConfig: Consumer<JettyWebSocketServletFactory>) {
-        wsFactoryConfigs.add(wsFactoryConfig)
+        cfg.pvt.jetty.wsFactoryConfigs.add(wsFactoryConfig)
     }
 
     /** Configure the [HttpConfiguration] to be used by the jetty [Server].
      * It can be called multiple times, and the supplied consumers will be called in order. */
     fun modifyHttpConfiguration(httpConfigurationConfig: Consumer<HttpConfiguration>) {
-        httpConfigurationConfigs.add(httpConfigurationConfig)
+        cfg.pvt.jetty.httpConfigurationConfigs.add(httpConfigurationConfig)
     }
 
     /** Add a [Connector] to the jetty [Server].
      * It can be called multiple times, and the supplied connectors will be added in order. */
     fun addConnector(connector : BiFunction<Server, HttpConfiguration, Connector>){
-        connectors.add(connector)
+        cfg.pvt.jetty.connectors.add(connector)
     }
 
 }
