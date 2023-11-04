@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull
 
 const val REQUEST_BODY = "REQUEST_BODY"
 
-open class BodyValidator<T>(value: String, clazz: Class<T>, valueSupplier: () -> T?) : BaseValidator<T>(null, Params("", clazz, value, valueSupplier = valueSupplier)) {
+open class BodyValidator<T> internal constructor(value: String, clazz: Class<T>, valueSupplier: () -> T?) : BaseValidator<T>(Params("", clazz, value, valueSupplier = valueSupplier)) {
     fun check(check: Check<T>, error: String) = check(fieldName = REQUEST_BODY, check, error)
     fun check(check: Check<T>, error: ValidationError<T>) = check(fieldName = REQUEST_BODY, check, error)
     fun check(fieldName: String, check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as BodyValidator<T>

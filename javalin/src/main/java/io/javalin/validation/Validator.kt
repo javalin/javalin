@@ -12,10 +12,10 @@ import org.jetbrains.annotations.NotNull
  * The non-nullable [Validator] uses [Rule] rules, but checks if value is null before calling them.
  * The [check] method wraps its non-nullable predicate in a nullable predicate
  */
-open class Validator<T>(typedValue: T? = null, params: Params<T>) : BaseValidator<T>(typedValue, params) {
+open class Validator<T> internal constructor(params: Params<T>) : BaseValidator<T>(params) {
 
     fun allowNullable(): NullableValidator<T> {
-        if (this.rules.isEmpty()) return NullableValidator(typedValue, params)
+        if (this.rules.isEmpty()) return NullableValidator(params)
         throw IllegalStateException("Validator#allowNullable must be called before adding rules")
     }
 

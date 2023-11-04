@@ -15,7 +15,7 @@ import io.javalin.validation.Validation.Companion.VALIDATION_KEY
 
 class MissingConverterException(val className: String) : RuntimeException()
 
-class Validation(private val validationConfig: ValidationConfig) {
+class Validation(private val validationConfig: ValidationConfig = ValidationConfig()) {
 
     private fun <T> convertValue(clazz: Class<T>, value: String?): T {
         val converter = validationConfig.converters[clazz] ?: throw MissingConverterException(clazz.name)
@@ -24,13 +24,16 @@ class Validation(private val validationConfig: ValidationConfig) {
 
     private fun <T> supportsClass(clazz: Class<T>) = validationConfig.converters[clazz] != null
 
-    fun <T> getValidator(clazz: Class<T>, value: String?, fieldName: String): Validator<T> {
+    fun <T> validator(fieldName: String, clazz: Class<T>, value: String?): Validator<T> {
         if (!supportsClass(clazz)) {
             JavalinLogger.info("Can't convert to ${clazz.name}. Register a converter using config.validation.registerConverter().")
             throw MissingConverterException(clazz.name)
         }
-        return Validator(null, Params(fieldName, clazz, value) { convertValue(clazz, value) })
+        return Validator(Params(fieldName, clazz, value) { convertValue(clazz, value) })
     }
+
+    fun <T> validator(fieldName: String, typedValue: T?): Validator<T> =
+         Validator(Params(fieldName, null, null, typedValue) { null })
 
     companion object {
 

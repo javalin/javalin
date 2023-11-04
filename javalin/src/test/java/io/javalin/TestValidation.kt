@@ -29,7 +29,6 @@ import io.javalin.validation.NullableValidator
 import io.javalin.validation.Params
 import io.javalin.validation.ValidationError
 import io.javalin.validation.ValidationException
-import io.javalin.validation.Validator
 import io.javalin.validation.collectErrors
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -167,11 +166,11 @@ class TestValidation {
     @Test
     fun `default converters work`() {
         val validation = Validation(ValidationConfig())
-        assertThat(validation.getValidator(Boolean::class.java, "true", "?").get()).hasSameClassAs("true".toBoolean())
-        assertThat(validation.getValidator(Double::class.java, "1.2", "?").get()).hasSameClassAs("1.2".toDouble())
-        assertThat(validation.getValidator(Float::class.java, "1.2", "?").get()).hasSameClassAs("1.2".toFloat())
-        assertThat(validation.getValidator(Int::class.java, "123", "?").get()).hasSameClassAs("123".toInt())
-        assertThat(validation.getValidator(Long::class.java, "123", "?").get()).hasSameClassAs("123".toLong())
+        assertThat(validation.validator("?", Boolean::class.java, "true").get()).hasSameClassAs("true".toBoolean())
+        assertThat(validation.validator("?", Double::class.java, "1.2").get()).hasSameClassAs("1.2".toDouble())
+        assertThat(validation.validator("?", Float::class.java, "1.2").get()).hasSameClassAs("1.2".toFloat())
+        assertThat(validation.validator("?", Int::class.java, "123").get()).hasSameClassAs("123".toInt())
+        assertThat(validation.validator("?", Long::class.java, "123").get()).hasSameClassAs("123".toLong())
     }
 
     @Test
@@ -393,7 +392,7 @@ class TestValidation {
 
     @Test
     fun `typed value non-nullable validator works for positive case`() {
-        val validator = Validator(KeyValuePair("key", "value"), Params("kvp"))
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value"))
         validator.check({ it.key == "key" }, "unexpected key")
         validator.check({ it.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -402,7 +401,7 @@ class TestValidation {
 
     @Test
     fun `typed value non-nullable validator works for negative case #1`() {
-        val validator = Validator(KeyValuePair("key", "value"), Params("kvp"))
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value"))
         validator.check({ it.key != "key" }, "unexpected key")
         validator.check({ it.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -412,7 +411,7 @@ class TestValidation {
 
     @Test
     fun `typed value non-nullable validator works for negative case #2`() {
-        val validator = Validator(KeyValuePair("key", "value"), Params("kvp"))
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value"))
         validator.check({ it.key != "key" }, "unexpected key")
         validator.check({ it.value != "value" }, "unexpected value")
         val errors = validator.errors()
@@ -422,7 +421,7 @@ class TestValidation {
 
     @Test
     fun `typed value nullable validator works for positive case`() {
-        val validator = NullableValidator(KeyValuePair("key", "value"), Params("kvp"))
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
         validator.check({ it!!.key == "key" }, "unexpected key")
         validator.check({ it!!.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -431,7 +430,7 @@ class TestValidation {
 
     @Test
     fun `typed value nullable validator works for negative case #1`() {
-        val validator = NullableValidator(KeyValuePair("key", "value"), Params("kvp", KeyValuePair::class.java))
+        val validator =  Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
         validator.check({ it!!.key != "key" }, "unexpected key")
         validator.check({ it!!.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -441,7 +440,7 @@ class TestValidation {
 
     @Test
     fun `typed value nullable validator works for negative case #2`() {
-        val validator = NullableValidator(KeyValuePair("key", "value"), Params("kvp"))
+        val validator =  Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
         validator.check({ it!!.key != "key" }, "unexpected key")
         validator.check({ it!!.value != "value" }, "unexpected value")
         val errors = validator.errors()
@@ -451,14 +450,14 @@ class TestValidation {
 
     @Test
     fun `typed value nullable validator works for null value`() {
-        val validator = NullableValidator(null, Params("kvp", KeyValuePair::class.java))
+        val validator = NullableValidator(Params("kvp", KeyValuePair::class.java))
         validator.check({ it!!.key == "key" }, "unexpected key")
         validator.check({ it!!.value == "value" }, "unexpected value")
     }
 
     @Test
     fun `typed value nullable validator constructed from a non-nullable one works for null value`() {
-        val validator = Validator(KeyValuePair("key", "value"), Params("kvp")).allowNullable()
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
         validator.check({ it!!.key == "key" }, "unexpected key")
         validator.check({ it!!.value == "value" }, "unexpected value")
     }
@@ -468,10 +467,10 @@ class TestValidation {
         val validation = Validation(ValidationConfig())
         app.get("/collect-errors") { ctx ->
             val errors = Validation.collectErrors(
-                validation.getValidator(String::class.java, ctx.queryParam("first_name"), "first_name")
+                validation.validator("first_name", String::class.java, ctx.queryParam("first_name"))
                     .check({ it.length > 2 }, "too short")
                     .check({ it.length < 10 }, "too long"),
-                validation.getValidator(String::class.java, ctx.queryParam("last_name"), "last_name")
+                validation.validator("last_name", String::class.java, ctx.queryParam("last_name"))
                     .check({ it.length > 2 }, "too short")
                     .check({ it.length < 10 }, "too long")
             )

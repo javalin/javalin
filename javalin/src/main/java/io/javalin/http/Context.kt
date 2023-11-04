@@ -148,7 +148,7 @@ interface Context {
     fun formParam(key: String): String? = formParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the formParam() value */
-    fun <T> formParamAsClass(key: String, clazz: Class<T>) = validation().getValidator(clazz, formParam(key), key)
+    fun <T> formParamAsClass(key: String, clazz: Class<T>) = validation().validator(key, clazz, formParam(key))
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
@@ -169,7 +169,7 @@ interface Context {
     fun pathParam(key: String): String
 
     /** Creates a typed [Validator] for the pathParam() value */
-    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = validation().getValidator(clazz, pathParam(key), key)
+    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = validation().validator(key, clazz, pathParam(key))
 
     /** Gets a map of all the [pathParamAsClass] keys and values. */
     fun pathParamMap(): Map<String, String>
@@ -178,7 +178,7 @@ interface Context {
     fun queryParam(key: String): String? = queryParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the queryParam() value */
-    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = validation().getValidator(clazz, queryParam(key), key)
+    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = validation().validator(key, clazz, queryParam(key))
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
@@ -237,7 +237,7 @@ interface Context {
     fun header(header: String): String? = req().getHeader(header)
 
     /** Creates a typed [Validator] for the header() value */
-    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = validation().getValidator(clazz, header(header), header)
+    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = validation().validator(header, clazz, header(header))
 
     /** Gets a map with all the header keys and values on the request(). */
     fun headerMap(): Map<String, String> = req().headerNames.asSequence().associateWith { header(it)!! }

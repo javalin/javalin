@@ -9,7 +9,7 @@ package io.javalin.validation
 /**
  * The NullableValidator is a [Validator] that allows null values, created by calling [Validator.allowNullable].
  */
-open class NullableValidator<T>(typedValue: T? = null, params: Params<T>) : BaseValidator<T>(typedValue, params) {
+open class NullableValidator<T> internal constructor(params: Params<T>) : BaseValidator<T>(params) {
     fun check(check: Check<T?>, error: String) = addRule(params.fieldName, check, error) as NullableValidator<T>
     fun check(check: Check<T?>, error: ValidationError<T>) = addRule(params.fieldName, check, error) as NullableValidator<T>
 }

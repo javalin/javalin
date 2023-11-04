@@ -19,14 +19,15 @@ data class Params<T>(
     val fieldName: String,
     val clazz: Class<T>? = null,
     val stringValue: String? = null,
+    val typedValue: T? = null,
     val valueSupplier: () -> T? = { null }
 )
 
-open class BaseValidator<T>(protected var typedValue: T?, protected val params: Params<T>) {
+open class BaseValidator<T> internal constructor(protected val params: Params<T>) {
     internal val rules = mutableListOf<Rule<T>>()
-
+    internal var typedValue: T? = null
     private val errors by javalinLazy {
-        typedValue = typedValue ?: try {
+        typedValue = params.typedValue ?: try {
             params.valueSupplier()
         } catch (e: Exception) {
             if (this is BodyValidator) {
