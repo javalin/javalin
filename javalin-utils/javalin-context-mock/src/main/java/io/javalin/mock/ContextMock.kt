@@ -77,8 +77,11 @@ class ContextMock private constructor(
     }
 
     private fun execute(endpoint: Endpoint, uri: String = endpoint.path, body: Body? = null, configurer: ContextMockConfigurer? = null): Context {
+        // create req & res using standard configurers
         val (request, response) = createMockReqAndRes()
+        // apply provided body to the request
         body?.init(mockConfig)
+        // apply defaults values
         mockConfig.req.also { req ->
             req.method = endpoint.method.name
             req.contextPath = mockConfig.javalinConfig.router.contextPath.takeIf { it != "/" } ?: ""
@@ -87,6 +90,11 @@ class ContextMock private constructor(
             req.inputStream = body?.toInputStream() ?: req.inputStream
             req.contentType = body?.getContentType() ?: req.contentType
             req.contentLength = body?.getContentLength() ?: req.contentLength
+        }
+        // run final request configurer for this particular request
+        configurer?.let { invokeMockConfigurerWithAsSamWithReceiver(it, mockConfig) }
+        // synchronize request state with headers
+        mockConfig.req.also { req ->
             req.headers.computeIfAbsent(Header.CONNECTION) { mutableListOf("keep-alive") }
             req.headers.computeIfAbsent(Header.HOST) { mutableListOf("localhost:${req.serverPort}") }
             req.headers.computeIfAbsent(Header.USER_AGENT) { mutableListOf("javalin-mock/1.0") }
@@ -94,7 +102,6 @@ class ContextMock private constructor(
             req.headers.computeIfAbsent(Header.CONTENT_TYPE) { req.contentType?.let { mutableListOf(it) } ?: mutableListOf() }
             req.headers.computeIfAbsent(Header.CONTENT_LENGTH) { req.contentLength.takeIf { it > 0 }?.let { mutableListOf(it.toString()) } ?: mutableListOf() }
         }
-        configurer?.let { invokeMockConfigurerWithAsSamWithReceiver(it, mockConfig) }
 
         val await = CountDownLatch(1)
         val javalinServlet = JavalinServlet(mockConfig.javalinConfig)

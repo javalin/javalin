@@ -110,6 +110,17 @@ internal class TestMockContext {
     }
 
     @Test
+    fun `should handle multipart files`() {
+        val context = Endpoint(POST, "/") {}.handle(contextMock.build { req.addPart("file", "panda.txt", "Panda".toByteArray()) })
+        val file = context.uploadedFile("file")!!
+        assertThat(file.filename()).isEqualTo("panda.txt")
+        assertThat(file.extension()).isEqualTo(".txt")
+        assertThat(file.contentType()).isEqualTo(ContentType.OCTET_STREAM)
+        assertThat(file.size()).isEqualTo("Panda".toByteArray().size.toLong())
+        assertThat(file.contentAndClose { it.readAllBytes() }).isEqualTo("Panda".toByteArray())
+    }
+
+    @Test
     fun `should handle sessions`() {
         val context = TestController.sessionEndpoint.handle(contextMock)
         assertThat(context.sessionAttribute<String>("a")).isEqualTo("b")

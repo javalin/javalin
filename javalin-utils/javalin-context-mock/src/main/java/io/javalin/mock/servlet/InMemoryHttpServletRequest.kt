@@ -1,7 +1,9 @@
 
 package io.javalin.mock.servlet
 
+import io.javalin.http.ContentType
 import io.javalin.mock.servlet.InMemoryHttpSession.HttpSessionState
+import io.javalin.mock.servlet.InMemoryPart.PartState
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -27,6 +29,7 @@ import java.util.Enumeration
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.function.Consumer
 
 @Suppress("MemberVisibilityCanBePrivate")
 data class HttpServletRequestMock(
@@ -82,7 +85,12 @@ data class HttpServletRequestMock(
         @JvmField var session: HttpSession? = null,
     ) {
         fun addHeader(name: String, vararg values: String): RequestState = also {
-            headers.getOrPut(name) { mutableListOf() }.addAll(values)
+            this.headers.getOrPut(name) { mutableListOf() }.addAll(values)
+        }
+        @JvmOverloads
+        fun addPart(field: String, file: String, data: ByteArray, partCfg: Consumer<PartState> = Consumer {}): RequestState = also {
+            this.contentType = ContentType.MULTIPART_FORM_DATA.mimeType
+            this.parts.add(InMemoryPart(PartState(field, file, data).also { partCfg.accept(it) }))
         }
     }
 
@@ -169,14 +177,14 @@ data class HttpServletRequestMock(
     @Deprecated("Deprecated")
     override fun isRequestedSessionIdFromUrl(): Boolean = throw UnsupportedOperationException("Not implemented")
 
-    override fun authenticate(p0: HttpServletResponse?): Boolean = throw UnsupportedOperationException("Not implemented")
-    override fun login(p0: String?, p1: String?) { throw UnsupportedOperationException("Not implemented") }
+    override fun authenticate(response: HttpServletResponse?): Boolean = throw UnsupportedOperationException("Not implemented")
+    override fun login(user: String?, password: String?) { throw UnsupportedOperationException("Not implemented") }
     override fun logout() { throw UnsupportedOperationException("Not implemented") }
 
-    override fun getParts(): MutableCollection<Part> = state.parts
-    override fun getPart(p0: String?): Part = parts.first { it.name == p0 }
+    override fun getParts(): Collection<Part> = state.parts
+    override fun getPart(name: String): Part = parts.first { it.name == name }
 
-    override fun <T : HttpUpgradeHandler?> upgrade(p0: Class<T>?): T { throw UnsupportedOperationException("Not implemented") }
+    override fun <T : HttpUpgradeHandler?> upgrade(type: Class<T>?): T { throw UnsupportedOperationException("Not implemented") }
 }
 
 private class AsyncContextMock(
