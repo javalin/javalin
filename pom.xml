@@ -6,6 +6,7 @@
         <module>javalin-bundle</module>
         <module>javalin-testtools</module>
         <module>javalin-micrometer</module>
+        <module>javalin-utils</module>
     </modules>
 
     <groupId>io.javalin</groupId>
@@ -85,6 +86,7 @@
         <!-- DEPENDENCIES -->
         <annotations.version>24.0.1</annotations.version>
         <jetty.version>11.0.16</jetty.version>
+        <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <brotli4j.version>1.12.0</brotli4j.version>
