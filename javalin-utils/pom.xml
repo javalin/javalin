@@ -13,4 +13,8 @@
     <modules>
         <module>javalin-context-mock</module>
     </modules>
+
+    <properties>
+        <copy-build-resources.skip>true</copy-build-resources.skip>
+    </properties>
 </project>
