@@ -15,7 +15,6 @@ import io.javalin.plugin.PluginManager
 import io.javalin.util.javalinLazy
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsRouter
-import org.eclipse.jetty.server.Server
 
 // @formatter:off
 class PrivateConfig(val cfg: JavalinConfig) {
@@ -33,7 +32,7 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.BEFORE_MATCHED, DefaultTasks.HTTP, DefaultTasks.AFTER_MATCHED, DefaultTasks.ERROR, DefaultTasks.AFTER)
     @JvmField var servlet: Lazy<ServletEntry> = javalinLazy { createJettyServletWithWebsocketsIfAvailable(cfg) ?: ServletEntry(servlet = JavalinServlet(cfg)) }
     // Jetty
-    @JvmField var server: Server? = null
+    @JvmField var jetty = JettyInternalConfig()
 
     fun javaLangErrorHandler(handler: JavaLangErrorHandler): PrivateConfig = also {
         this.cfg.router.javaLangErrorHandler = handler

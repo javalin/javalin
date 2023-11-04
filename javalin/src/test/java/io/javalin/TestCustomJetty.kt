@@ -66,7 +66,7 @@ class TestCustomJetty {
     fun `embedded server can have custom jetty Handler`() = TestUtil.runLogLess {
         val statisticsHandler = StatisticsHandler()
         val newServer = Server().apply { handler = statisticsHandler }
-        val app = Javalin.create { it.pvt.server =  newServer }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create { it.pvt.jetty.server =  newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 5
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -84,7 +84,7 @@ class TestCustomJetty {
         val requestLogHandler = RequestLogHandler().apply { requestLog = RequestLog { _, _ -> logCount.incrementAndGet() } }
         val handlerChain = StatisticsHandler().apply { handler = requestLogHandler }
         val newServer = Server().apply { handler = handlerChain }
-        val app = Javalin.create { it.pvt.server = newServer }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create { it.pvt.jetty.server = newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -102,7 +102,7 @@ class TestCustomJetty {
         val handlerCollection = HandlerCollection()
         val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
         val newServer = Server().apply { handler = handlerChain }
-        val app = Javalin.create { it.pvt.server = newServer }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create { it.pvt.jetty.server = newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -127,7 +127,7 @@ class TestCustomJetty {
         }
         val javalin = Javalin.create {
             it.jetty.modifyServletContextHandler { it.sessionHandler = fileSessionHandler }
-            it.pvt.server = newServer
+            it.pvt.jetty.server = newServer
         }.start(0)
         val httpHandler = (newServer.handlers[0] as ServletContextHandler)
         assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
@@ -153,7 +153,7 @@ class TestCustomJetty {
         }
         newServer.handler = handler
 
-        val javalin = Javalin.create { it.pvt.server = newServer }
+        val javalin = Javalin.create { it.pvt.jetty.server = newServer }
         TestUtil.test(javalin) { app, http ->
             app.get("/bar") { it.result("Hello") }
             assertThat(http.getBody("/foo/foo")).isEqualTo("yo dude")
@@ -173,7 +173,7 @@ class TestCustomJetty {
             }
         }
         val javalin = Javalin.create {
-            it.pvt.server = newServer
+            it.pvt.jetty.server = newServer
             it.router.contextPath = "/api"
         }
         TestUtil.test(javalin) { app, http ->

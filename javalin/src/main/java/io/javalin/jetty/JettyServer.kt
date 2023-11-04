@@ -48,7 +48,7 @@ class JettyServer(private val cfg: JavalinConfig) {
         }.start()
     }
 
-    fun server() = cfg.pvt.server ?: defaultServer(cfg.jetty.threadPool).also { cfg.pvt.server = it } // make sure config has access to the update server instance
+    fun server() = cfg.pvt.jetty.server ?: defaultServer(cfg.jetty.threadPool).also { cfg.pvt.jetty.server = it } // make sure config has access to the update server instance
     fun port() = (server().connectors[0] as ServerConnector).localPort
 
     private var started = false
@@ -65,18 +65,18 @@ class JettyServer(private val cfg: JavalinConfig) {
         started = true
         val startupTimer = System.currentTimeMillis()
         server().apply {
-            cfg.jetty.serverConsumers.forEach{ it.accept(this) } // apply user config
+            cfg.pvt.jetty.serverConsumers.forEach { it.accept(this) } // apply user config
             handler = handler.attachHandler(ServletContextHandler(SESSIONS).apply {
                 val (initializer, servlet) = cfg.pvt.servlet.value
                 if (initializer != null) this.addServletContainerInitializer(initializer)
                 contextPath = Util.normalizeContextPath(cfg.router.contextPath)
                 sessionHandler = defaultSessionHandler()
                 addServlet(ServletHolder(servlet), "/*")
-                cfg.jetty.servletContextHandlerConsumers.forEach{ it.accept(this) } // apply user config
+                cfg.pvt.jetty.servletContextHandlerConsumers.forEach { it.accept(this) } // apply user config
             })
             val httpConfiguration = defaultHttpConfiguration()
-            cfg.jetty.httpConfigurationConfigs.forEach{ it.accept(httpConfiguration) } // apply user config (before connectors)
-            cfg.jetty.connectors.map{ it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
+            cfg.pvt.jetty.httpConfigurationConfigs.forEach { it.accept(httpConfiguration) } // apply user config (before connectors)
+            cfg.pvt.jetty.connectors.map { it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
             if (connectors.isEmpty()) { // add default connector if no connectors are specified
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
                     this.host = host ?: cfg.jetty.defaultHost
