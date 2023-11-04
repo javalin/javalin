@@ -6,9 +6,10 @@
 
 package io.javalin;
 
+import io.javalin.config.ValidationConfig;
 import io.javalin.testing.TestUtil;
-import io.javalin.validation.JavalinValidation;
-import io.javalin.validation.Validator;
+import io.javalin.validation.Validation;
+
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,37 +52,25 @@ public class TestValidation_Java {
     }
 
     @Test
-    public void queryParams_can_be_used_to_validate_list() {
-        TestUtil.test((app, http) -> {
-            app.get("/", ctx -> {
-                ctx.queryParamsAsClass("param", Integer.class)
-                    .check(it -> it.stream().allMatch(number -> number < 5), "All must be smaller than 5")
-                    .get();
-            });
-            var response = http.get("/?param=1&param=2&param=5");
-            assertThat(response.getStatus()).isEqualTo(400);
-            assertThat(response.getBody()).contains("All must be smaller than 5");
-        });
-    }
-
-    @Test
     public void validator_works_from_java_too() {
-        JavalinValidation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
+        ValidationConfig validationConfig = new ValidationConfig();
+        validationConfig.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
+        Validation validation = new Validation(validationConfig);
         String intString = "123";
-        int myInt = Validator.create(Integer.class, intString, "?").get();
+        int myInt = validation.getValidator(Integer.class, intString, "?").get();
         assertThat(myInt).isEqualTo(123);
 
-        Instant fromDate = Validator.create(Instant.class, "1262347200000", "?").get();
-        Instant toDate = Validator.create(Instant.class, "1262347300000", "?")
+        Instant fromDate = validation.getValidator(Instant.class, "1262347200000", "?").get();
+        Instant toDate = validation.getValidator(Instant.class, "1262347300000", "?")
             .check(date -> date.isAfter(fromDate), "'to' has to be after 'from'")
             .get();
 
         assertThat(toDate.getEpochSecond()).isEqualTo(1262347300L);
-        assertThat(Validator.create(Boolean.class, "true", "?").get()).isInstanceOf(Boolean.class);
-        assertThat(Validator.create(Double.class, "1.2", "?").get()).isInstanceOf(Double.class);
-        assertThat(Validator.create(Float.class, "1.2", "?").get()).isInstanceOf(Float.class);
-        assertThat(Validator.create(Integer.class, "123", "?").get()).isInstanceOf(Integer.class);
-        assertThat(Validator.create(Long.class, "123", "?").get()).isInstanceOf(Long.class);
+        assertThat(validation.getValidator(Boolean.class, "true", "?").get()).isInstanceOf(Boolean.class);
+        assertThat(validation.getValidator(Double.class, "1.2", "?").get()).isInstanceOf(Double.class);
+        assertThat(validation.getValidator(Float.class, "1.2", "?").get()).isInstanceOf(Float.class);
+        assertThat(validation.getValidator(Integer.class, "123", "?").get()).isInstanceOf(Integer.class);
+        assertThat(validation.getValidator(Long.class, "123", "?").get()).isInstanceOf(Long.class);
     }
 
 }
