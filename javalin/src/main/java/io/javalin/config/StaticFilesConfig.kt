@@ -17,10 +17,7 @@ import java.util.function.Consumer
  */
 class StaticFilesConfig(private val cfg: JavalinConfig) {
 
-    /**
-     * Enable webjars access.
-     * They will be available at /webjars/name/version/file.ext.
-     */
+    /** Enable webjars access. They will be available at /webjars/name/version/file.ext. */
     fun enableWebjars() = add { staticFiles ->
         staticFiles.directory = "META-INF/resources/webjars"
         staticFiles.headers = mapOf(Header.CACHE_CONTROL to "max-age=31622400")
@@ -29,7 +26,7 @@ class StaticFilesConfig(private val cfg: JavalinConfig) {
     /**
      * Adds the given directory as a static file containers.
      * @param directory the directory where your files are located
-     * @param location the location of the static directory
+     * @param location the location of the static directory (default: CLASSPATH)
      */
     @JvmOverloads
     fun add(directory: String, location: Location = Location.CLASSPATH) = add { staticFiles ->

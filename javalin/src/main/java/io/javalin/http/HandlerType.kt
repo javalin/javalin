@@ -16,15 +16,10 @@ import io.javalin.router.JavalinDefaultRouting
  */
 enum class HandlerType(val isHttpMethod: Boolean = true) {
 
-    /**
-     * The HTTP GET method requests a representation of the specified resource.
-     */
+    /** The HTTP GET method requests a representation of the specified resource. */
     GET,
 
-    /**
-     * The HTTP POST method sends data to the server. The type of the body of the
-     * request is indicated by the Content-Type header.
-     */
+    /** The HTTP POST method sends data to the server. The type of the body of the request is indicated by the Content-Type header.*/
     POST,
 
     /**
@@ -46,27 +41,16 @@ enum class HandlerType(val isHttpMethod: Boolean = true) {
      */
     PATCH,
 
-    /**
-     * The HTTP DELETE request method deletes the specified resource.
-     */
+    /** The HTTP DELETE request method deletes the specified resource. */
     DELETE,
 
-    /**
-     * The HTTP HEAD method requests the headers that would be returned if
-     * the HEAD request's URL was instead requested with the HTTP GET method.
-     */
+    /** The HTTP HEAD method requests the headers that would be returned if  the HEAD request's URL was instead requested with the HTTP GET method.*/
     HEAD,
 
-    /**
-     * The HTTP TRACE method performs a message loop-back test along the path to
-     * the target resource, providing a useful debugging mechanism.
-     */
+    /** The HTTP TRACE method performs a message loop-back test along the path to the target resource, providing a useful debugging mechanism.*/
     TRACE,
 
-    /**
-     * The HTTP CONNECT method starts two-way communications with the requested
-     * resource. It can be used to open a tunnel.
-     */
+    /** The HTTP CONNECT method starts two-way communications with the requested resource. It can be used to open a tunnel. */
     CONNECT,
 
     /**

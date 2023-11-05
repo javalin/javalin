@@ -10,10 +10,7 @@ const val SAME_SITE = "SameSite"
  * Value to define the `SameSite` property of a cookie.
  */
 enum class SameSite(val value: String) {
-    /**
-     * Means that the browser sends the cookie with both cross-site and
-     * same-site requests.
-     */
+    /** Means that the browser sends the cookie with both cross-site and same-site requests.*/
     NONE("$SAME_SITE=None"),
 
     /**

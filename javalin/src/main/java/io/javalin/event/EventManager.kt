@@ -22,18 +22,11 @@ class EventManager {
     var handlerAddedHandlers = mutableSetOf<Consumer<HandlerMetaInfo>>()
     val wsHandlerAddedHandlers = mutableSetOf<Consumer<WsHandlerMetaInfo>>()
 
-    /**
-     * Fires a Javalin Lifecycle Event.
-     * @param javalinLifecycleEvent the event to send to listeners
-     */
-    fun fireEvent(javalinLifecycleEvent: JavalinLifecycleEvent) =
-        lifecycleHandlers[javalinLifecycleEvent]?.forEach { it.handleEvent() }
-
-    /**
-     * Fires an event telling listeners that a new HTTP handler has been added.
-     * @param metaInfo the Handler metadata information
-     */
+    /** Fires a Javalin Lifecycle Event to the listeners. */
+    fun fireEvent(javalinLifecycleEvent: JavalinLifecycleEvent) = lifecycleHandlers[javalinLifecycleEvent]?.forEach { it.handleEvent() }
+    /** Fires an event telling listeners that a new HTTP handler has been added.*/
     fun fireHandlerAddedEvent(metaInfo: HandlerMetaInfo) = handlerAddedHandlers.onEach { it.accept(metaInfo) }
+    /** Fires an event telling listeners that a new WebSocket handler has been added. */
     fun fireWsHandlerAddedEvent(metaInfo: WsHandlerMetaInfo) = wsHandlerAddedHandlers.onEach { it.accept(metaInfo) }
 
     internal fun addLifecycleEvent(event: JavalinLifecycleEvent, lifecycleEventListener: LifecycleEventListener) {
@@ -46,34 +39,17 @@ class EventManager {
  * The possible Javalin lifecycle event
  */
 enum class JavalinLifecycleEvent {
-    /**
-     * Event fired when attempting to start the Jetty Webserver
-     */
+    /** Event fired when attempting to start the Jetty Webserver */
     SERVER_STARTING,
-
-    /**
-     * Event fired when the Jetty Webserver was started successfully
-     */
+    /** Event fired when the Jetty Webserver was started successfully */
     SERVER_STARTED,
-
-    /**
-     * Event fired when an exception occurs while starting the Jetty Webserver
-     */
+    /** Event fired when an exception occurs while starting the Jetty Webserver */
     SERVER_START_FAILED,
-
-    /**
-     * Event fired when an exception occurs while stopping the Jetty Webserver
-     */
+    /** Event fired when an exception occurs while stopping the Jetty Webserver */
     SERVER_STOP_FAILED,
-
-    /**
-     * Event fired when attempting to stop the Jetty Webserver
-     */
+    /** Event fired when attempting to stop the Jetty Webserver */
     SERVER_STOPPING,
-
-    /**
-     * Event fired after the Jetty Webserver was stopped successfully
-     */
+    /** Event fired after the Jetty Webserver was stopped successfully */
     SERVER_STOPPED
 }
 

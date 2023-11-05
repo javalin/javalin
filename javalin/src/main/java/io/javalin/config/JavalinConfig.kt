@@ -60,14 +60,11 @@ class JavalinConfig {
      * You can disable this behavior by setting this to false.
      */
     @JvmField var startupWatcherEnabled = true
-    /**
-     * This is "private", only use it if you know what you're doing
-     */
+    /** This is "private", only use it if you know what you're doing */
     @JvmField val pvt = PrivateConfig(this)
 
     /**
      * Adds an event listener to this Javalin Configuration.
-     * @param listener the listener
      * @see [EventConfig]
      */
     fun events(listener:Consumer<EventConfig>) { listener.accept(this.events) }

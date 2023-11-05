@@ -16,7 +16,6 @@ import java.util.function.Consumer
 /**
  * Configuration to enable bundled plugins or add custom ones.
  *
- * @param cfg the parent Javalin Configuration
  * @see [JavalinConfig.bundledPlugins]
  */
 class BundledPluginsConfig(private val cfg: JavalinConfig) {
@@ -35,8 +34,6 @@ class BundledPluginsConfig(private val cfg: JavalinConfig) {
 
     /**
      * Enables the Basic Authentication plugin.
-     * @param username the authorized username
-     * @param password the authorized password
      * @see [BasicAuthPlugin]
      */
     fun enableBasicAuth(username: String, password: String) =
@@ -47,40 +44,22 @@ class BundledPluginsConfig(private val cfg: JavalinConfig) {
 
     /**
      * Enables the Global Headers plugin.
-     *
-     * @param globalHeaderConfig the global headers plugin configuration
      * @see [GlobalHeadersPlugin]
      */
     fun enableGlobalHeaders(globalHeadersConfig: Consumer<GlobalHeadersConfig>) = cfg.registerPlugin(GlobalHeadersPlugin(globalHeadersConfig))
 
     /**
      * Enables the Cors Plugin.
-     *
-     * @param userConfig the CORS plugin configuration
      * @see [GlobalHeadersPlugin]
      */
     fun enableCors(userConfig: Consumer<CorsPluginConfig>) = cfg.registerPlugin(CorsPlugin(userConfig))
-
-    /**
-     * Enables the HttpAllowedMethodsPlugin, automatically handling the Options request on configured routes.
-     */
+    /** Enables the HttpAllowedMethodsPlugin, automatically handling the Options request on configured routes. */
     fun enableHttpAllowedMethodsOnRoutes() = cfg.registerPlugin(HttpAllowedMethodsPlugin())
-
-    /**
-     * Enables the development debugging logger plugin.
-     */
+    /**  Enables the development debugging logger plugin. */
     fun enableDevLogging() = cfg.registerPlugin(DevLoggingPlugin())
-
-    /**
-     * Enables the RedirectToLowercasePath plugin.
-     */
+    /** Enables the RedirectToLowercasePath plugin. */
     fun enableRedirectToLowercasePaths() = cfg.registerPlugin(RedirectToLowercasePathPlugin())
-
-    /**
-     * Enables the SSL Redirects plugin, which redirect any http request to https.
-     *
-     * Note it must be the first plugin enabled to properly handle all requests.
-     */
+    /** Enables the SSL Redirects plugin, which redirect any http request to https. Note it must be the first plugin enabled to properly handle all requests.*/
     fun enableSslRedirects() = cfg.registerPlugin(SslRedirectPlugin())
 
 }

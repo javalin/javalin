@@ -17,7 +17,6 @@ import io.javalin.event.JavalinLifecycleEvent.SERVER_STOPPING
 import io.javalin.event.JavalinLifecycleEvent.SERVER_STOP_FAILED
 import io.javalin.event.WsHandlerMetaInfo
 import io.javalin.http.Handler
-import io.javalin.websocket.WsCloseHandler
 import java.util.function.Consumer
 
 /**
@@ -28,51 +27,25 @@ import java.util.function.Consumer
  */
 class EventConfig(private val cfg: JavalinConfig) {
 
-    /**
-     * Adds a callback to react on the Server Starting event.
-     * @param lifecycleEventListener the callback
-     */
+    /** Adds a callback to react on the Server Starting event. */
     fun serverStarting(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STARTING, lifecycleEventListener)
-    /**
-     * Adds a callback to react on the Server Started event.
-     * @param lifecycleEventListener the callback
-     */
+    /** Adds a callback to react on the Server Started event. */
     fun serverStarted(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STARTED, lifecycleEventListener)
-    /**
-     * Adds a callback to react on the Server Start Failed event.
-     * @param lifecycleEventListener the callback
-     */
+    /** Adds a callback to react on the Server Start Failed event. */
     fun serverStartFailed(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_START_FAILED, lifecycleEventListener)
-    /**
-     * Adds a callback to react on the Server Stop Failed event.
-     * @param lifecycleEventListener the callback
-     */
+    /** Adds a callback to react on the Server Stop Failed event. */
     fun serverStopFailed(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STOP_FAILED, lifecycleEventListener)
-    /**
-     * Adds a callback to react on the Server Stopping event.
-     * @param lifecycleEventListener the callback
-     */
+    /** Adds a callback to react on the Server Stopping event. */
     fun serverStopping(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STOPPING, lifecycleEventListener)
-    /**
-     * Adds a callback to react on the Server Stopped event.
-     * @param lifecycleEventListener the callback
-     */
+    /** Adds a callback to react on the Server Stopped event. */
     fun serverStopped(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STOPPED, lifecycleEventListener)
 
-    /**
-     * Adds a callback to react when a [Handler] is added.
-     *
-     * @param callback the callback
-     */
+    /** Adds a callback to react when a [Handler] is added. */
     fun handlerAdded(callback: Consumer<HandlerMetaInfo>) {
         eventManager.handlerAddedHandlers.add(callback);
     }
 
-    /**
-     * Adds a callback to react when a websocket Handler is added.
-     *
-     * @param callback the callback
-     */
+    /** Adds a callback to react when a websocket Handler is added. */
     fun wsHandlerAdded(callback: Consumer<WsHandlerMetaInfo>) {
         eventManager.wsHandlerAddedHandlers.add(callback);
     }

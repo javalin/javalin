@@ -17,10 +17,7 @@ class RouteOverviewPluginConfig {
     @JvmField var roles: Array<out RouteRole> = emptyArray()
 }
 
-/**
- * The route overview plugin provides you with a HTML and/or JSON overview of all the routes
- * registered on your Javalin application.
- */
+/** The route overview plugin provides you with a HTML and/or JSON overview of all the routes registered on your Javalin application. */
 class RouteOverviewPlugin(userConfig: Consumer<RouteOverviewPluginConfig>? = null) : Plugin<RouteOverviewPluginConfig>(userConfig, RouteOverviewPluginConfig()) {
 
     override fun onStart(config: JavalinConfig) {

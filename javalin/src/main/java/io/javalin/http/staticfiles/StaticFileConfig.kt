@@ -6,13 +6,9 @@ import io.javalin.http.Header
 import jakarta.servlet.http.HttpServletRequest
 import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
 
-/**
- * The static files location
- */
+/** The static files location. */
 enum class Location {
-    /**
-     * Static resources are available in the classpath (jar)
-     */
+    /** Static resources are available in the classpath (jar) */
     CLASSPATH,
 
     /**
@@ -44,14 +40,11 @@ data class StaticFileConfig(
     @JvmField val mimeTypes: MimeTypesConfig = MimeTypesConfig()
 ) {
     internal fun refinedToString(): String {
-        return this.toString()
-            .replace(", skipFileFunction=(jakarta.servlet.http.HttpServletRequest) -> kotlin.Boolean", "")
+        return this.toString().replace(", skipFileFunction=(jakarta.servlet.http.HttpServletRequest) -> kotlin.Boolean", "")
     }
 }
 
-/**
- * Configures static files Mime Types based on file extensions.
- */
+/** Configures static files Mime Types based on file extensions.*/
 class MimeTypesConfig {
     private val extensionToMimeType: MutableMap<String, String> = mutableMapOf()
 

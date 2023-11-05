@@ -20,24 +20,13 @@ import java.util.function.Consumer
 class RouterConfig(internal val cfg: JavalinConfig) {
 
     // @formatter:off
-    /**
-     * The context path (ex '/blog' if you are hosting an app on a subpath, like 'mydomain.com/blog')
-     */
+    /** The context path (ex '/blog' if you are hosting an app on a subpath, like 'mydomain.com/blog') */
     @JvmField var contextPath = "/"
-
-    /**
-     * If true, treat '/path' and '/path/' as the same path (default: true).
-     */
+    /** If true, treat '/path' and '/path/' as the same path (default: true). */
     @JvmField var ignoreTrailingSlashes = true
-
-    /**
-     * If true, treat '/path//subpath' and '/path/subpath' as the same path (default: false).
-     */
+    /** If true, treat '/path//subpath' and '/path/subpath' as the same path (default: false). */
     @JvmField var treatMultipleSlashesAsSingleSlash = false
-
-    /**
-     * If true, treat '/PATH' and '/path' as the same path (default: false).
-     */
+    /** If true, treat '/PATH' and '/path' as the same path (default: false). */
     @JvmField var caseInsensitiveRoutes = false
     // @formatter:on
 

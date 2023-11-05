@@ -12,18 +12,12 @@ import java.util.function.Consumer
  */
 class RequestLoggerConfig(private val cfg: JavalinConfig) {
 
-    /**
-     * Adds a request logger for HTTP requests.
-     * @param requestLogger the request logger
-     */
+    /** Adds a request logger for HTTP requests. */
     fun http(requestLogger: RequestLogger) {
         cfg.pvt.requestLogger = requestLogger
     }
 
-    /**
-     * Adds a request logger for websocket requests.
-     * @param ws the request logger
-     */
+    /** Adds a request logger for websocket requests. */
     fun ws(ws: Consumer<WsConfig>) {
         val logger = WsConfig()
         ws.accept(logger)

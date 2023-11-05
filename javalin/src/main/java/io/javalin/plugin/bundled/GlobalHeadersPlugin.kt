@@ -32,9 +32,7 @@ class GlobalHeadersPlugin(userConfig: Consumer<GlobalHeadersConfig>? = null) : P
 
 }
 
-/**
- * The Configuration for the [GlobalHeadersPlugin].
- */
+/** The Configuration for the [GlobalHeadersPlugin]. */
 class GlobalHeadersConfig {
 
     /** The headers to add to each request. */
@@ -57,18 +55,11 @@ class GlobalHeadersConfig {
             if (includeSubdomains) " ; includeSubDomains" else ""
     }
 
-    /**
-     * X-Frame-Options policy
-     */
+    /** X-Frame-Options policy */
     enum class XFrameOptions {
-        /**
-         * The page cannot be displayed in a frame, regardless of the site attempting to do so.
-         */
+        /** The page cannot be displayed in a frame, regardless of the site attempting to do so. */
         DENY,
-
-        /**
-         * The page can only be displayed if all ancestor frames are same origin to the page itself.
-         */
+        /** The page can only be displayed if all ancestor frames are same origin to the page itself. */
         SAMEORIGIN;
     }
 
@@ -134,33 +125,17 @@ class GlobalHeadersConfig {
         headers[Header.CONTENT_SECURITY_POLICY] = contentSecurityPolicy
     }
 
-    /**
-     *  X-Permitted-Cross-Domain-Policies
-     */
+    /** X-Permitted-Cross-Domain-Policies */
     enum class CrossDomainPolicy {
-        /**
-         * Will prevent the browser from MIME-sniffing a response away from the declared content-type.
-         */
+        /** Will prevent the browser from MIME-sniffing a response away from the declared content-type. */
         NONE,
-
-        /**
-         * Only this master policy file is allowed.
-         */
+        /** Only this master policy file is allowed. */
         MASTER_ONLY,
-
-        /**
-         * Only policy files served with Content-Type: text/x-cross-domain-policy are allowed.
-         */
+        /** Only policy files served with Content-Type: text/x-cross-domain-policy are allowed. */
         BY_CONTENT_TYPE,
-
-        /**
-         * Only policy files whose filenames are crossdomain.xml (i.e. URLs ending in /crossdomain.xml) are allowed.
-         */
+        /** Only policy files whose filenames are crossdomain.xml (i.e. URLs ending in /crossdomain.xml) are allowed. */
         BY_FTP_FILENAME,
-
-        /**
-         * All policy files on this target domain are allowed.
-         */
+        /** All policy files on this target domain are allowed. */
         ALL;
     }
 
@@ -179,57 +154,35 @@ class GlobalHeadersConfig {
         headers[Header.X_PERMITTED_CROSS_DOMAIN_POLICIES] = policy.name.toHttpHeaderValue()
     }
 
-    /**
-     * Referrer-Policy
-     */
+    /** Referrer-Policy */
     enum class ReferrerPolicy {
-        /**
-         * The Referer header will be omitted: sent requests do not include any referrer information.
-         */
+        /** The Referer header will be omitted: sent requests do not include any referrer information. */
         NO_REFERRER,
-
         /**
          * Send the origin, path, and querystring in Referer when the protocol security level stays
          * the same or improves (HTTP→HTTP, HTTP→HTTPS, HTTPS→HTTPS). Don't send the Referer header
          * for requests to less secure destinations (HTTPS→HTTP, HTTPS→file).
          */
         NO_REFERRER_WHEN_DOWNGRADE,
-
-        /**
-         * Send only the origin in the Referer header. For example, a document at
-         * https://example.com/page.html will send the referrer https://example.com/.
-         */
+        /** Send only the origin in the Referer header. For example, a document at https://example.com/page.html will send the referrer https://example.com/. */
         ORIGIN,
-
         /**
          * When performing a same-origin request to the same protocol level (HTTP→HTTP, HTTPS→HTTPS),
          * send the origin, path, and query string. Send only the origin for cross-origin requests
          * and requests to less secure destinations (HTTPS→HTTP).
          */
         ORIGIN_WHEN_CROSS_ORIGIN,
-
-        /**
-         * Send the origin, path, and query string for same-origin requests. Don't send the Referer
-         * header for cross-origin requests.
-         */
+        /** Send the origin, path, and query string for same-origin requests. Don't send the Referer header for cross-origin requests. */
         SAME_ORIGIN,
-
-        /**
-         * Send only the origin when the protocol security level stays the same (HTTPS→HTTPS).
-         * Don't send the Referer header to less secure destinations (HTTPS→HTTP).
-         */
+        /** Send only the origin when the protocol security level stays the same (HTTPS→HTTPS). Don't send the Referer header to less secure destinations (HTTPS→HTTP). */
         STRICT_ORIGIN,
-
         /**
          * Send the origin, path, and querystring when performing a same-origin request. For cross-origin
          * requests send the origin (only) when the protocol security level stays same (HTTPS→HTTPS).
          * Don't send the Referer header to less secure destinations (HTTPS→HTTP).
          */
         STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
-
-        /**
-         * Send the origin, path, and query string when performing any request, regardless of security.
-         */
+        /** Send the origin, path, and query string when performing any request, regardless of security. */
         UNSAFE_URL;
     }
 
@@ -247,9 +200,7 @@ class GlobalHeadersConfig {
         headers[Header.REFERRER_POLICY] = policy.name.toHttpHeaderValue()
     }
 
-    /**
-     * Directive for the Clear-Site-Data header.
-     */
+    /** Directive for the Clear-Site-Data header. */
     enum class ClearSiteData(name: String, val headerValue: String = '"' + name + '"') {
         /**
          * Indicates that the server wishes to remove locally cached data (the browser cache) for
@@ -257,7 +208,6 @@ class GlobalHeadersConfig {
          * like pre-rendered pages, script caches, WebGL shader caches, or address bar suggestions.
          */
         CACHE("cache"),
-
         /**
          * Indicates that the server wishes to remove all cookies for the origin of the response URL.
          * HTTP authentication credentials are also cleared out. This affects the entire registered
@@ -265,7 +215,6 @@ class GlobalHeadersConfig {
          * will have cookies cleared.
          */
         COOKIES("cookies"),
-
         /**
          * Indicates that the server wishes to remove all DOM storage for the origin of the response URL.
          * This includes storage mechanisms such as:localStorage, sessionStorage, IndexedDB,
@@ -273,13 +222,8 @@ class GlobalHeadersConfig {
          * Plugin data.
          */
         STORAGE("storage"),
-
-        /**
-         * Indicates that the server wishes to reload all browsing contexts for the origin
-         * of the response.
-         */
+        /** Indicates that the server wishes to reload all browsing contexts for the origin of the response. */
         EXECUTION_CONTEXTS("executionContexts"),
-
         /**
          * Indicates that the server wishes to clear all types of data for the origin of
          * the response. If more data types are added in future versions of this header,
@@ -303,16 +247,10 @@ class GlobalHeadersConfig {
         headers[Header.CLEAR_SITE_DATA] = data.joinToString(",", transform = ClearSiteData::headerValue)
     }
 
-    /**
-     *  Cross-Origin-Embedder-Policy
-     */
+    /** Cross-Origin-Embedder-Policy */
     enum class CrossOriginEmbedderPolicy {
-        /**
-         * This is the default value. Allows the document to fetch cross-origin resources without
-         * giving explicit permission through the CORS protocol or the Cross-Origin-Resource-Policy header.
-         */
+        /** This is the default value. Allows the document to fetch cross-origin resources without giving explicit permission through the CORS protocol or the Cross-Origin-Resource-Policy header. */
         UNSAFE_NONE,
-
         /**
          * A document can only load resources from the same origin, or resources explicitly marked as
          * loadable from another origin. If a cross-origin resource supports CORS, the cross-origin
@@ -336,26 +274,13 @@ class GlobalHeadersConfig {
         headers[Header.CROSS_ORIGIN_EMBEDDER_POLICY] = policy.name.toHttpHeaderValue()
     }
 
-    /**
-     *  Cross-Origin-Opener-Policy
-     */
+    /** Cross-Origin-Opener-Policy */
     enum class CrossOriginOpenerPolicy {
-        /**
-         * This is the default value. Allows the document to be added to its opener's browsing
-         * context group unless the opener itself has a COOP of same-origin or same-origin-allow-popups.
-         */
+        /** This is the default value. Allows the document to be added to its opener's browsing context group unless the opener itself has a COOP of same-origin or same-origin-allow-popups. */
         UNSAFE_NONE,
-
-        /**
-         * Retains references to newly opened windows or tabs that either don't set COOP or that opt out
-         * of isolation by setting a COOP of unsafe-none.
-         */
+        /** Retains references to newly opened windows or tabs that either don't set COOP or that opt out of isolation by setting a COOP of unsafe-none. */
         SAME_ORIGIN_ALLOW_POPUPS,
-
-        /**
-         * Isolates the browsing context exclusively to same-origin documents. Cross-origin documents
-         * are not loaded in the same browsing context.
-         */
+        /** Isolates the browsing context exclusively to same-origin documents. Cross-origin documents are not loaded in the same browsing context. */
         SAME_ORIGIN;
     }
 
@@ -373,24 +298,13 @@ class GlobalHeadersConfig {
         headers[Header.CROSS_ORIGIN_OPENER_POLICY] = policy.name.toHttpHeaderValue()
     }
 
-    /**
-     * Cross-Origin Resource Policy
-     */
+    /** Cross-Origin Resource Policy */
     enum class CrossOriginResourcePolicy {
-        /**
-         * Only requests from the same Site can read the resource.
-         */
+        /** Only requests from the same Site can read the resource. */
         SAME_SITE,
-
-        /**
-         * Only requests from the same origin (i.e. scheme + host + port) can read the resource.
-         */
+        /** Only requests from the same origin (i.e. scheme + host + port) can read the resource. */
         SAME_ORIGIN,
-
-        /**
-         * Requests from any origin (both same-site and cross-site) can read the resource.
-         * This is useful when COEP is used.
-         */
+        /** Requests from any origin (both same-site and cross-site) can read the resource. This is useful when COEP is used. */
         CROSS_ORIGIN;
     }
 
