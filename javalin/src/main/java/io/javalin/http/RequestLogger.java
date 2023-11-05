@@ -16,5 +16,12 @@ import org.jetbrains.annotations.NotNull;
  */
 @FunctionalInterface
 public interface RequestLogger {
+    /**
+     * Handles a request
+     *
+     * @param ctx             the current request context
+     * @param executionTimeMs the requests' execution time in milliseconds
+     * @throws Exception any exception while logging information about the request
+     */
     void handle(@NotNull Context ctx, @NotNull Float executionTimeMs) throws Exception;
 }

@@ -18,5 +18,11 @@ import org.jetbrains.annotations.NotNull;
  */
 @FunctionalInterface
 public interface ExceptionHandler<T extends Exception> {
+    /**
+     * Handles an exception thrown while handling a request
+     *
+     * @param exception the thrown exception
+     * @param ctx       the context of the request
+     */
     void handle(@NotNull T exception, @NotNull Context ctx);
 }

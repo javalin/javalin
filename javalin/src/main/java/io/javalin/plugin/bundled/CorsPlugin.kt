@@ -23,6 +23,7 @@ import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.util.*
 import java.util.function.Consumer
 
+/** Configuration for the [CorsPlugin]*/
 class CorsPluginConfig {
     internal val rules = mutableListOf<CorsRule>()
 
@@ -77,6 +78,7 @@ class CorsPluginConfig {
     }
 }
 
+/** The CORS plugin bundles the functionality to set CORS headers for some or all origins as required.*/
 class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPluginConfig>(userConfig, CorsPluginConfig()) {
 
     init {

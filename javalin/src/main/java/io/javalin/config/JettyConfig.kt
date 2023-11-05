@@ -11,7 +11,12 @@ import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
 import java.util.function.BiFunction
 import java.util.function.Consumer
 
-/**  Configures the embedded Jetty webserver. */
+/**
+ * Configures the embedded Jetty webserver.
+ *
+ * @param cfg the parent Javalin Configuration
+ * @see [JavalinConfig.jetty]
+ */
 class JettyConfig(private val cfg: JavalinConfig) {
     //@formatter:off
     @JvmField var defaultHost: String? = null
