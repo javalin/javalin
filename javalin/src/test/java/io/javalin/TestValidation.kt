@@ -6,6 +6,7 @@
 
 package io.javalin
 
+import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.javalin.config.ValidationConfig
@@ -496,5 +497,29 @@ class TestValidation {
             ctx.result(e.javaClass.name + ":" + e.className)
         }
         assertThat(http.get("/converter?date=20").body).contains("io.javalin.validation.MissingConverterException:java.util.Date")
+    }
+
+    @Test
+    fun `exception handler can access root cause exception without exposing to json`() = TestUtil.test { app, http ->
+        app.exception(ValidationException::class.java) { e, ctx ->
+            assertThat(e.errors["REQUEST_BODY"]).isNotNull()
+            assertThat(e.errors["REQUEST_BODY"]).hasSize(1)
+            assertThat(e.errors["REQUEST_BODY"]!!.first().privateDetails).hasSize(1)
+            val deserializationEx = e.errors["REQUEST_BODY"]!!.first().privateDetails!!["exception"]
+            assertThat(deserializationEx).isInstanceOf(JsonParseException::class.java)
+            assertThat((deserializationEx as JsonParseException).message).isEqualTo("Unrecognized token 'not': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')\n at [Source: (String)\"not-json\"; line: 1, column: 4]")
+            ctx.json(e.errors).status(400)
+        }
+
+        app.post("/json") { ctx ->
+            val obj = ctx.bodyValidator<SerializableObject>()
+                .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
+                .get()
+            ctx.result(obj.value1)
+        }
+
+        """{"REQUEST_BODY":[{"message":"DESERIALIZATION_FAILED","args":{},"value":"not-json"}]}""".let { expected ->
+            assertThat(http.post("/json").body("not-json").asString().body).isEqualTo(expected)
+        }
     }
 }

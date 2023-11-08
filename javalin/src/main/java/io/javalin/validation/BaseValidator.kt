@@ -6,13 +6,14 @@
 
 package io.javalin.validation
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
 
 typealias Check<T> = (T) -> Boolean
 
 data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: ValidationError<T>)
-data class ValidationError<T> @JvmOverloads constructor(val message: String, val args: Map<String, Any?> = mapOf(), var value: Any? = null)
+data class ValidationError<T> @JvmOverloads constructor(val message: String, val args: Map<String, Any?> = mapOf(), var value: Any? = null, @JsonIgnore val privateDetails: Map<String, Any?>? = null)
 class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : RuntimeException()
 
 data class Params<T>(
@@ -32,7 +33,7 @@ open class BaseValidator<T> internal constructor(protected val params: Params<T>
         } catch (e: Exception) {
             if (this is BodyValidator) {
                 JavalinLogger.info("Couldn't deserialize body to ${params.clazz?.simpleName}", e)
-                return@javalinLazy mapOf(REQUEST_BODY to listOf(ValidationError("DESERIALIZATION_FAILED", value = params.stringValue)))
+                return@javalinLazy mapOf(REQUEST_BODY to listOf(ValidationError("DESERIALIZATION_FAILED", value = params.stringValue, privateDetails = mapOf("exception" to e))))
             } else {
                 JavalinLogger.info("Couldn't convert param '${params.fieldName}' with value '${params.stringValue}' to ${params.clazz?.simpleName}")
                 return@javalinLazy mapOf(params.fieldName to listOf(ValidationError("TYPE_CONVERSION_FAILED", value = params.stringValue)))
