@@ -22,7 +22,7 @@ open class Validator<T> internal constructor(params: Params<T>) : BaseValidator<
     fun check(check: Check<T>, error: String) = addRule(params.fieldName, { check(it!!) }, error) as Validator<T>
     fun check(check: Check<T>, error: ValidationError<T>) = addRule(params.fieldName, { check(it!!) }, error) as Validator<T>
 
-    fun hasValue() = params.stringValue != null || typedValue != null
+    fun hasValue() = !params.stringValue.isNullOrEmpty() || typedValue != null
 
     @NotNull // there is a null-check in BaseValidator
     override fun get(): T = super.get()!!

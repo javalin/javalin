@@ -116,6 +116,16 @@ class TestValidation {
     }
 
     @Test
+    fun `hasValue does not throw exception if value is missing`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val hasValue = ctx.queryParamAsClass<Int>("my-qp").hasValue()
+            ctx.result("$hasValue")
+        }
+        assertThat(http.get("/").body).isEqualTo("false")
+        assertThat(http.get("/?my-qp=").body).isEqualTo("false")
+    }
+
+    @Test
     fun `unregistered converter fails`() = TestUtil.test { app, http ->
         app.get("/duration") { it.queryParamAsClass<Duration>("from").get() }
         assertThat(http.get("/duration?from=abc").status).isEqualTo(500)
