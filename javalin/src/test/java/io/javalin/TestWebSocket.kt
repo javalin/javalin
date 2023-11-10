@@ -89,7 +89,7 @@ class TestWebSocket {
 
         TestUtil.test(contextPathJavalin { cfg ->
             cfg.router.mount {
-                ws("/test-websocket-1") { ws ->
+                this.ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
                     ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
                 }
@@ -119,7 +119,7 @@ class TestWebSocket {
 
         TestUtil.test(contextPathJavalin { cfg ->
             cfg.router.mount {
-                ws("/test-websocket-1") { ws ->
+                this.ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx ->
                         idMap[ctx] = atomicInteger.getAndIncrement()
                         logger.log.add("${idMap[ctx]} connected")
@@ -234,7 +234,7 @@ class TestWebSocket {
     fun `headers and host are available in session`() = TestUtil.test { app, _ ->
         app.ws("/websocket") { ws ->
             ws.onConnect { ctx -> app.logger().log.add("Header: " + ctx.header("Test")!!) }
-            ws.onClose { ctx -> app.logger().log.add("Closed connection from: " + ctx.host()!!) }
+            ws.onClose { ctx -> app.logger().log.add("Closed connection from: " + ctx.host()) }
         }
         TestClient(app, "/websocket", mapOf("Test" to "HeaderParameter")).connectAndDisconnect()
         assertThat(app.logger().log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost")
