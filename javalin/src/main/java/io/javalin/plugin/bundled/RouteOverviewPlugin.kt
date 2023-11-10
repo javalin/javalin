@@ -6,7 +6,6 @@ import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginPriority
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.router.InternalRouter
 import io.javalin.security.RouteRole
 import java.util.*
@@ -22,7 +21,7 @@ class RouteOverviewPlugin(userConfig: Consumer<RouteOverviewPluginConfig>? = nul
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount {
-            it.get(pluginConfig.path, { ctx -> handle(ctx, config.pvt.internalRouter) }, *pluginConfig.roles)
+            get(pluginConfig.path, { ctx -> handle(ctx, config.pvt.internalRouter) }, *pluginConfig.roles)
         }
     }
 

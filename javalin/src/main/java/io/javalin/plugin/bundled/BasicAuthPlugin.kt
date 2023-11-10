@@ -10,7 +10,6 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.Header.WWW_AUTHENTICATE
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.plugin.Plugin
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.util.function.Consumer
 
 class BasicAuthPluginConfig {
@@ -26,7 +25,7 @@ class BasicAuthPlugin(userConfig: Consumer<BasicAuthPluginConfig>) : Plugin<Basi
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount {
-            it.before { ctx ->
+            before { ctx ->
                 val matched = runCatching { ctx.basicAuthCredentials() }
                     .fold(
                         onSuccess = { auth -> auth?.username == pluginConfig.username && auth?.password == pluginConfig.password },

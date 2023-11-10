@@ -19,7 +19,6 @@ import io.javalin.plugin.bundled.CorsUtils.normalizeOrigin
 import io.javalin.plugin.bundled.CorsUtils.originFulfillsWildcardRequirements
 import io.javalin.plugin.bundled.CorsUtils.originsMatch
 import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.util.*
 import java.util.function.Consumer
 
@@ -101,10 +100,10 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
 
                 val validOptionStatusCodes = listOf(HttpStatus.NOT_FOUND, HttpStatus.METHOD_NOT_ALLOWED)
 
-                it.before(corsRule.path) { ctx ->
+                before(corsRule.path) { ctx ->
                     handleCors(ctx, corsRule)
                 }
-                it.after(corsRule.path) { ctx ->
+                after(corsRule.path) { ctx ->
                     if (ctx.method() == OPTIONS && ctx.status() in validOptionStatusCodes) {
                         ctx.result("").status(200) // CORS is enabled, so we return 200 for OPTIONS
                     }

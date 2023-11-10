@@ -57,8 +57,8 @@ class TestLifecycleEvents {
         TestUtil.test(Javalin.create { config ->
             config.events { it.handlerAdded { handlerMetaInfo -> routerLog += handlerMetaInfo.path } }
             config.router.mount(JavalinDefaultRouting.Default) {
-                it.get("/test") {}
-                it.post("/tast") {}
+                get("/test") {}
+                post("/tast") {}
             }
         }) { app, _ ->
             assertThat(routerLog).isEqualTo("/test/tast")

@@ -50,7 +50,7 @@ open class RedirectToLowercasePathPlugin : Plugin<Void>() {
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount {
-            it.before { ctx ->
+            before { ctx ->
                 val requestUri = ctx.path().removePrefix(ctx.contextPath())
                 val router = config.pvt.internalRouter
 

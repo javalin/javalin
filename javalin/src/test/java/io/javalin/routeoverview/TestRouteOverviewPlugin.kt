@@ -4,7 +4,6 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.post
 import io.javalin.plugin.bundled.RouteOverviewPlugin
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -42,8 +41,8 @@ class TestRouteOverviewPlugin {
     fun `exposes routes added through router#mount`() = TestUtil.test(Javalin.create { config ->
         config.registerPlugin(RouteOverviewPlugin { it.path = "/overview" })
         config.router.mount {
-            it.get(uuid()) {}
-            it.post(uuid()) {}
+            this.get(uuid()) {}
+            this.post(uuid()) {}
         }
     }) { app, http ->
         assertAllPathsPresent(app, http)

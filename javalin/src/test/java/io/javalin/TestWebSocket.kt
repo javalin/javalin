@@ -89,7 +89,7 @@ class TestWebSocket {
 
         TestUtil.test(contextPathJavalin { cfg ->
             cfg.router.mount {
-                it.ws("/test-websocket-1") { ws ->
+                ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
                     ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
                 }
@@ -119,7 +119,7 @@ class TestWebSocket {
 
         TestUtil.test(contextPathJavalin { cfg ->
             cfg.router.mount {
-                it.ws("/test-websocket-1") { ws ->
+                ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx ->
                         idMap[ctx] = atomicInteger.getAndIncrement()
                         logger.log.add("${idMap[ctx]} connected")
