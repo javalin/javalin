@@ -12,6 +12,11 @@ import io.javalin.websocket.WsContext
 import java.util.*
 import java.util.stream.Stream
 
+/**
+ * The development debugging logger catches most of the interesting stuff about requests and responses,
+ * and logs it in an easy to read manner. It works both for HTTP and WebSocket requests. Only intended
+ * for use during development and/or debugging.
+ */
 internal open class DevLoggingPlugin : Plugin<Void>() {
 
     override fun onInitialize(config: JavalinConfig) {

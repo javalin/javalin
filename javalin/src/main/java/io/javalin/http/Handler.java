@@ -17,5 +17,13 @@ import org.jetbrains.annotations.NotNull;
  */
 @FunctionalInterface
 public interface Handler {
+    /**
+     * Handles a request.
+     *
+     * @param ctx the current request's context. Use this to process the request's
+     *            parameter (query, form params, body, …) and build up the response
+     *            (status code, payload, …)
+     * @throws Exception an exception while handling the request
+     */
     void handle(@NotNull Context ctx) throws Exception;
 }

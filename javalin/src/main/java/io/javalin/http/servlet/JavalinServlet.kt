@@ -15,23 +15,16 @@ import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.AsyncUtil.addListener
 import io.javalin.http.util.AsyncUtil.isAsync
 import io.javalin.http.util.ETagGenerator
+import io.javalin.util.javalinLazy
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
 class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
-    private val servletContextConfig by lazy {
-        JavalinServletContextConfig(
-            appAttributes = cfg.pvt.appAttributes,
-            compressionStrategy = cfg.pvt.compressionStrategy,
-            requestLoggerEnabled = cfg.pvt.requestLogger != null,
-            defaultContentType = cfg.http.defaultContentType
-        )
-    }
-
     val requestLifecycle = cfg.pvt.servletRequestLifecycle.toList()
     val router = cfg.pvt.internalRouter
+    private val servletContextConfig by javalinLazy { JavalinServletContextConfig.of(cfg) }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         handle(request, response)

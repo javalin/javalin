@@ -8,6 +8,7 @@ package io.javalin.http.servlet
 
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
+import io.javalin.config.JavalinConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
@@ -17,6 +18,7 @@ import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
 import io.javalin.json.jsonMapper
 import io.javalin.router.ParsedEndpoint
+import io.javalin.json.JsonMapper
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.JavalinLogger
@@ -40,7 +42,19 @@ data class JavalinServletContextConfig(
     val compressionStrategy: CompressionStrategy,
     val requestLoggerEnabled: Boolean,
     val defaultContentType: String,
-)
+    val jsonMapper: JsonMapper
+) {
+    companion object {
+        fun of(cfg: JavalinConfig): JavalinServletContextConfig =
+            JavalinServletContextConfig(
+                appAttributes = cfg.pvt.appAttributes,
+                compressionStrategy = cfg.pvt.compressionStrategy,
+                requestLoggerEnabled = cfg.pvt.requestLogger != null,
+                defaultContentType = cfg.http.defaultContentType,
+                jsonMapper = cfg.pvt.jsonMapper!!,
+            )
+        }
+}
 
 class JavalinServletContext(
     private val cfg: JavalinServletContextConfig,
@@ -86,6 +100,7 @@ class JavalinServletContext(
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> appAttribute(key: String): T = cfg.appAttributes[key] as T
+    override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 
     override fun endpointHandlerPath() = when {
         handlerType() != HandlerType.BEFORE -> endpointHandlerPath
@@ -154,7 +169,7 @@ class JavalinServletContext(
 
     override fun writeJsonStream(stream: Stream<*>) {
         minSizeForCompression = 0
-        jsonMapper().writeToOutputStream(stream, this.contentType(ContentType.APPLICATION_JSON).outputStream())
+        cfg.jsonMapper.writeToOutputStream(stream, this.contentType(ContentType.APPLICATION_JSON).outputStream())
     }
 }
 

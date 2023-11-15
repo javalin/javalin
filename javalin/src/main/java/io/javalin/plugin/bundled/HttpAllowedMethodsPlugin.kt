@@ -12,6 +12,14 @@ import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
 import io.javalin.plugin.Plugin
 import io.javalin.router.Endpoint
 
+/**
+ * Plugin adding automatically the Access-Control-Allow-Methods when sending an OPTIONS request to a valid path.
+ *
+ * The Access-Control-Allow-Methods response header specifies one or more methods allowed when accessing
+ * a resource in response to a preflight request.
+ *
+ * e.g.: `Access-Control-Allow-Methods: POST, DELETE`
+ */
 open class HttpAllowedMethodsPlugin : Plugin<Void>() {
 
     override fun onStart(config: JavalinConfig) {
