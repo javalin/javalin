@@ -16,7 +16,6 @@ import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
-import io.javalin.json.jsonMapper
 import io.javalin.router.ParsedEndpoint
 import io.javalin.json.JsonMapper
 import io.javalin.security.BasicAuthCredentials
