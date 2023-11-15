@@ -112,7 +112,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds a GET request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    operator fun get(path: String, handler: Handler): API = addHttpHandler(GET, path, handler)
+    fun get(path: String, handler: Handler): API = addHttpHandler(GET, path, handler)
 
     /**
      * Adds a POST request handler for the specified path to the instance.
@@ -154,7 +154,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds a GET request handler with the given roles for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    operator fun get(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(GET, path, handler, *roles)
+    fun get(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(GET, path, handler, *roles)
 
     /**
      * Adds a POST request handler with the given roles for the specified path to the instance.
