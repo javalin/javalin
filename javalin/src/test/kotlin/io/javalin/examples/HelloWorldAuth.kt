@@ -23,7 +23,7 @@ enum class KRole : RouteRole {
 fun main() {
     Javalin.create { cfg ->
         cfg.router.mount {
-            beforeMatched { ctx ->
+            it.beforeMatched { ctx ->
                 val userRole = ctx.queryParam("role")?.let { KRole.valueOf(it) } ?: throw UnauthorizedResponse()
                 val routeRoles = ctx.routeRoles()
                 if (userRole !in routeRoles) {

@@ -29,7 +29,7 @@ class TestAccessManager {
 
     private fun managedApp(cfg: ((JavalinConfig) -> Unit)? = null) = Javalin.create { config ->
         config.router.mount {
-            beforeMatched { ctx ->
+            it.beforeMatched { ctx ->
                 val role: RouteRole? = ctx.queryParam("role")?.let { MyRole.valueOf(it) }
                 val routeRoles = ctx.routeRoles()
                 if (role !in routeRoles) {

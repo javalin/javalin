@@ -20,7 +20,7 @@ class SslRedirectPlugin(userConfig: Consumer<SslRedirectPluginConfig>? = null) :
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount {
-            before { ctx ->
+            it.before { ctx ->
                 if (!pluginConfig.redirectOnLocalhost && ctx.isLocalhost()) {
                     return@before
                 }

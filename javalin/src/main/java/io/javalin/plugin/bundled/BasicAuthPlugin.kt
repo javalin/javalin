@@ -25,7 +25,7 @@ class BasicAuthPlugin(userConfig: Consumer<BasicAuthPluginConfig>) : Plugin<Basi
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount {
-            before { ctx ->
+            it.before { ctx ->
                 val matched = runCatching { ctx.basicAuthCredentials() }
                     .fold(
                         onSuccess = { auth -> auth?.username == pluginConfig.username && auth?.password == pluginConfig.password },

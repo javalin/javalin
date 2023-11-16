@@ -41,8 +41,8 @@ class TestRouteOverviewPlugin {
     fun `exposes routes added through router#mount`() = TestUtil.test(Javalin.create { config ->
         config.registerPlugin(RouteOverviewPlugin { it.path = "/overview" })
         config.router.mount {
-            this.get(uuid()) {}
-            this.post(uuid()) {}
+            it.get(uuid()) {}
+            it.post(uuid()) {}
         }
     }) { app, http ->
         assertAllPathsPresent(app, http)

@@ -7,6 +7,7 @@
 
 package io.javalin
 
+import io.javalin.config.mount
 import io.javalin.router.JavalinDefaultRouting
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat

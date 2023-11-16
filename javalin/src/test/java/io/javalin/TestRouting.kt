@@ -45,7 +45,7 @@ class TestRouting {
     @Test
     fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
         cfg.router.mount {
-            this.get("/hello") { it.result("Hello World") }
+            it.get("/hello") { ctx -> ctx.result("Hello World") }
         }
     }) { _, http ->
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")

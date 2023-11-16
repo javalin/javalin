@@ -1,3 +1,5 @@
+@file:Suppress("internal", "INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
+
 package io.javalin.config
 
 import io.javalin.apibuilder.ApiBuilder
@@ -11,6 +13,8 @@ import io.javalin.router.RoutingSetupScope
 import io.javalin.router.exception.JavaLangErrorHandler
 import io.javalin.router.invokeWithAsSamWithReceiver
 import io.javalin.util.JavalinLogger
+import java.util.function.Consumer
+import kotlin.internal.LowPriorityInOverloadResolution
 
 /**
  * Configuration for the Router.
@@ -36,11 +40,12 @@ class RouterConfig(internal val cfg: JavalinConfig) {
         JavalinLogger.error("Fatal error occurred while servicing http-request", error)
     }
 
-    fun <SETUP> mount(initializer: RoutingApiInitializer<SETUP>, setup: RoutingSetupScope<SETUP> = RoutingSetupScope {}): RouterConfig = also {
-        initializer.initialize(cfg, cfg.pvt.internalRouter, setup)
+    @LowPriorityInOverloadResolution
+    fun <SETUP> mount(initializer: RoutingApiInitializer<SETUP>, setup: Consumer<SETUP>): RouterConfig = also {
+        initializer.initialize(cfg, cfg.pvt.internalRouter) { setup.accept(this) }
     }
 
-    fun mount(setup: RoutingSetupScope<JavalinDefaultRouting>): RouterConfig =
+    fun mount(setup: Consumer<JavalinDefaultRouting>): RouterConfig =
         mount(Default, setup)
 
     fun apiBuilder(endpoints: EndpointGroup): RouterConfig {
@@ -55,4 +60,8 @@ class RouterConfig(internal val cfg: JavalinConfig) {
         return mount(apiBuilderInitializer) { endpoints.addEndpoints() }
     }
 
+}
+
+fun <SETUP> RouterConfig.mount(initializer: RoutingApiInitializer<SETUP>, setup: RoutingSetupScope<SETUP> = RoutingSetupScope {}): RouterConfig = also {
+    initializer.initialize(cfg, cfg.pvt.internalRouter, setup)
 }
