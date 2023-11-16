@@ -40,7 +40,7 @@ fun requestDevLogger(router: InternalRouter, ctx: Context, time: Float) = try {
                 router.findHttpHandlerEntries(HandlerType.AFTER, requestUri)
             )
             .flatMap { it }
-            .map { it.type.name + "=" + it.path }
+            .map { it.endpoint.method.name + "=" + it.endpoint.path }
         val resHeaders = res().headerNames.asSequence().map { it to res().getHeader(it) }.toMap()
         JavalinLogger.info(
             """|JAVALIN REQUEST DEBUG LOG:

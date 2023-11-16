@@ -67,7 +67,7 @@ class MicrometerPlugin(config: Consumer<MicrometerPluginConfig>) : Plugin<Microm
                     response.setHeader(EXCEPTION_HEADER, null)
                     val handlerType = HandlerType.valueOf(request.method)
                     val uri = internalRouter.findHttpHandlerEntries(handlerType, pathInfo)
-                        .map { it.path }
+                        .map { it.endpoint.path }
                         .map { if (it == "/" || it.isBlank()) "root" else it }
                         .map { if (!pluginConfig.tagRedirectPaths && response.status in 300..399) "REDIRECTION" else it }
                         .map { if (!pluginConfig.tagNotFoundMappedPaths && response.status == 404) "NOT_FOUND" else it }

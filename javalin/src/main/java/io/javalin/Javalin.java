@@ -10,6 +10,7 @@ package io.javalin;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
+import io.javalin.router.Endpoint;
 import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
@@ -74,8 +75,8 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      */
     public static Javalin create(Consumer<JavalinConfig> config) {
         JavalinConfig cfg = new JavalinConfig();
+        JavalinConfig.applyUserConfig(cfg, config); // mutates app.config and app (adds http-handlers)
         Javalin app = new Javalin(cfg);
-        JavalinConfig.applyUserConfig(app.cfg, config); // mutates app.config and app (adds http-handlers)
         app.jettyServer.getValue(); // initialize server if no plugin already did
         return app;
     }
@@ -204,8 +205,8 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
 
     @NotNull
     @Override
-    public Javalin addHttpHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        cfg.pvt.internalRouter.addHttpHandler(handlerType, path, handler, roles);
+    public Javalin addEndpoint(@NotNull Endpoint endpoint) {
+        cfg.pvt.internalRouter.addHttpEndpoint(endpoint);
         return this;
     }
 

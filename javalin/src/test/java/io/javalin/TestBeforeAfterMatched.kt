@@ -302,7 +302,7 @@ class TestBeforeAfterMatched {
                 it.location = Location.CLASSPATH
                 it.aliasCheck = ContextHandler.AliasCheck { _, _ -> true }
             }
-            config.pvt.servletRequestLifecycle = listOf(BEFORE, HTTP, AFTER_MATCHED, ERROR, AFTER)
+            config.pvt.servletRequestLifecycle = mutableListOf(BEFORE, HTTP, AFTER_MATCHED, ERROR, AFTER)
         }) { app, http ->
             app.afterMatched { it.header("X-After", "true") }
 

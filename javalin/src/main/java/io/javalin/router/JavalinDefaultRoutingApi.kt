@@ -44,8 +44,8 @@ class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRout
         cfg.pvt.internalRouter.addHttpErrorHandler(status, contentType, handler)
     }
 
-    override fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole) = apply {
-        cfg.pvt.internalRouter.addHttpHandler(handlerType, path, handler, *roles)
+    override fun addEndpoint(endpoint: Endpoint): JavalinDefaultRouting = apply {
+        cfg.pvt.internalRouter.addHttpEndpoint(endpoint)
     }
 
     override fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>) = apply {
@@ -99,14 +99,29 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API
+    fun addHttpHandler(httpMethod: HandlerType, path: String, handler: Handler): API = addHttpHandler(httpMethod, path, handler, *emptyArray())
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun addHttpHandler(httpMethod: HandlerType, path: String, handler: Handler): API = addHttpHandler(httpMethod, path, handler, *emptyArray())
+    fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API =
+        addEndpoint(
+            Endpoint(
+                method = handlerType,
+                path = path,
+                roles = roles,
+                handler = handler
+            )
+        )
+
+    /**
+     * Adds a request handler for the specified handlerType and path to the instance.
+     * This is the method that all the verb-methods (get/post/put/etc) call.
+     * See: [Handlers in docs](https://javalin.io/documentation.handlers)
+     */
+    fun addEndpoint(endpoint: Endpoint): API
 
     /**
      * Adds a GET request handler for the specified path to the instance.
