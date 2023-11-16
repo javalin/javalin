@@ -6,27 +6,23 @@
 
 package io.javalin.validation
 
-import io.javalin.util.JavalinLogger
 import org.jetbrains.annotations.NotNull
 
 /**
  * The non-nullable [Validator] uses [Rule] rules, but checks if value is null before calling them.
  * The [check] method wraps its non-nullable predicate in a nullable predicate
  */
-open class Validator<T>(fieldName: String, typedValue: T? = null, stringSource: StringSource<T>? = null) : BaseValidator<T>(fieldName, typedValue, stringSource) {
-
-    constructor(stringValue: String?, clazz: Class<T>, fieldName: String) :
-        this(fieldName, null, StringSource<T>(clazz, stringValue = stringValue))
+open class Validator<T> internal constructor(params: Params<T>) : BaseValidator<T>(params) {
 
     fun allowNullable(): NullableValidator<T> {
-        if (this.rules.isEmpty()) return NullableValidator(fieldName, typedValue, stringSource)
+        if (this.rules.isEmpty()) return NullableValidator(params)
         throw IllegalStateException("Validator#allowNullable must be called before adding rules")
     }
 
-    fun check(check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as Validator<T>
-    fun check(check: Check<T>, error: ValidationError<T>) = addRule(fieldName, { check(it!!) }, error) as Validator<T>
+    fun check(check: Check<T>, error: String) = addRule(params.fieldName, { check(it!!) }, error) as Validator<T>
+    fun check(check: Check<T>, error: ValidationError<T>) = addRule(params.fieldName, { check(it!!) }, error) as Validator<T>
 
-    fun hasValue() = stringSource?.stringValue != null || typedValue != null
+    fun hasValue() = !params.stringValue.isNullOrEmpty() || typedValue != null
 
     @NotNull // there is a null-check in BaseValidator
     override fun get(): T = super.get()!!
@@ -36,22 +32,4 @@ open class Validator<T>(fieldName: String, typedValue: T? = null, stringSource: 
     @NotNull
     override fun getOrThrow(exceptionFunction: (Map<String, List<ValidationError<Any>>>) -> Exception) = super.getOrThrow(exceptionFunction)!!
 
-    companion object {
-        @JvmStatic
-        fun <T> create(clazz: Class<T>, value: String?, fieldName: String) =
-            checkConverterExists(clazz) { Validator(value, clazz, fieldName) }
-
-        @JvmStatic
-        fun <T> create(clazz: Class<T>, value: List<String>, fieldName: String) =
-            checkConverterExists(clazz) { Validator(fieldName, null, StringSource(clazz, stringListValue = value)) }
-
-        private fun <T> checkConverterExists(clazz: Class<T>, supplier: () -> Validator<T>) : Validator<T> {
-            if (!JavalinValidation.hasConverter(clazz)) {
-                JavalinLogger.info("Can't convert to ${clazz.name}. Register a converter using JavalinValidation#register.")
-                throw MissingConverterException(clazz.name)
-            }
-            return supplier()
-        }
-    }
 }
-

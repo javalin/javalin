@@ -1,5 +1,6 @@
 package io.javalin.vue
 
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.servlet.isLocalhost
 import io.javalin.http.staticfiles.Location
@@ -8,6 +9,11 @@ import java.nio.file.Paths
 
 const val JAVALINVUE_CONFIG_KEY = "javalin-javalinvue-config"
 
+/**
+ * Configuration for the Vue plugin.
+ * @see [JavalinConfig.vue]
+ * @see [Online Doc](https://javalin.io/plugins/javalinvue)
+ */
 class JavalinVueConfig {
     //@formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var pathMaster = VuePathMaster(this)

@@ -1,7 +1,6 @@
 package io.javalin.http.sse
 
 import io.javalin.http.Context
-import io.javalin.json.jsonMapper
 import io.javalin.json.toJsonString
 import io.javalin.util.JavalinLogger
 import java.io.Closeable

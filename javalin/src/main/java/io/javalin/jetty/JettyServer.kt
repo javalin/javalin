@@ -32,20 +32,22 @@ import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.ThreadPool
-import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
 
 class JettyServer(private val cfg: JavalinConfig) {
 
     init {
         MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
-        Thread {
-            Thread.sleep(5000)
-            if (!started) {
-                JavalinLogger.startup("It looks like you created a Javalin instance, but you never started it.")
-                JavalinLogger.startup("Try: Javalin app = Javalin.create().start();")
-                JavalinLogger.startup("For more help, visit https://javalin.io/documentation#server-setup")
-            }
-        }.start()
+
+        if (cfg.startupWatcherEnabled) {
+            Thread {
+                Thread.sleep(5000)
+                if (!started) {
+                    JavalinLogger.startup("It looks like you created a Javalin instance, but you never started it.")
+                    JavalinLogger.startup("Try: Javalin app = Javalin.create().start();")
+                    JavalinLogger.startup("For more help, visit https://javalin.io/documentation#server-setup")
+                }
+            }.start()
+        }
     }
 
     fun server() = cfg.pvt.jetty.server ?: defaultServer(cfg.jetty.threadPool).also { cfg.pvt.jetty.server = it } // make sure config has access to the update server instance
