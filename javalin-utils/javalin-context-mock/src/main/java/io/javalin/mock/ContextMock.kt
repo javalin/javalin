@@ -131,6 +131,7 @@ class ContextMock private constructor(
             appAttributes = mockConfig.javalinConfig.pvt.appAttributes,
             compressionStrategy = mockConfig.javalinConfig.pvt.compressionStrategy,
             defaultContentType = mockConfig.javalinConfig.http.defaultContentType,
+            jsonMapper = mockConfig.javalinConfig.pvt.jsonMapper!!,
             requestLoggerEnabled = false,
         )
 

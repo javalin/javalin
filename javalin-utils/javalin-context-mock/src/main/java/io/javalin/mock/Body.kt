@@ -1,7 +1,6 @@
 package io.javalin.mock
 
 import io.javalin.http.ContentType
-import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JsonMapper
 import io.javalin.json.toJsonString
 import java.io.InputStream
@@ -54,7 +53,7 @@ interface Body {
             object : AbstractBody(contentType = contentType, contentLength = contentLength) {
                 private lateinit var content: ByteArray
                 override fun init(mockConfig: ContextMockConfig) {
-                    this.content = (mockConfig.javalinConfig.pvt.appAttributes[JSON_MAPPER_KEY] as JsonMapper).toJsonString(body).toByteArray()
+                    this.content = mockConfig.javalinConfig.pvt.jsonMapper!!.toJsonString(body).toByteArray()
                 }
                 override fun toInputStream(): InputStream = content.inputStream()
                 override fun getContentLength(): Long = content.size.toLong()
