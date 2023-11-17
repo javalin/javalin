@@ -2,6 +2,7 @@ package io.javalin.http.util
 
 import io.javalin.config.HttpConfig
 import io.javalin.http.Context
+import io.javalin.http.util.AsyncUtil.newAsyncListener
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.function.ThrowingRunnable
 import jakarta.servlet.AsyncContext
@@ -29,6 +30,11 @@ class AsyncTaskConfig(
      * This timeout listener is a part of request lifecycle, so you can still modify context here.
      */
     @JvmField var onTimeout: Consumer<Context>? = null,
+    /**
+     * Close listener executed when [AsyncContext] is closed/terminated.
+     * It's called when connection is already terminated, so you can't modify context here.
+     */
+    @JvmField var onError: Runnable? = null,
 )
 
 internal class AsyncExecutor(useVirtualThreads: Boolean) {
@@ -43,6 +49,12 @@ internal class AsyncExecutor(useVirtualThreads: Boolean) {
     fun submitAsyncTask(context: Context, asyncTaskConfig: AsyncTaskConfig, task: ThrowingRunnable<Exception>): Unit =
         context.future {
             context.req().asyncContext.timeout = 0 // we're using cf timeouts below, so we need to disable default jetty timeout listener
+
+            asyncTaskConfig.onError?.let { onError ->
+                context.req().asyncContext.addListener(newAsyncListener(
+                    onError = { onError.run() }
+                ))
+            }
 
             CompletableFuture.runAsync({ task.run() }, asyncTaskConfig.executor ?: defaultExecutor)
                 .let { taskFuture ->
@@ -72,23 +84,23 @@ internal class AsyncExecutor(useVirtualThreads: Boolean) {
     }
 }
 
-internal object AsyncUtil {
+object AsyncUtil {
 
     internal fun Context.isAsync(): Boolean =
         req().isAsyncStarted
 
-    internal fun AsyncContext.addListener(
-        onComplete: (AsyncEvent) -> Unit = {},
-        onError: (AsyncEvent) -> Unit = {},
+    @JvmOverloads
+    fun newAsyncListener(
         onStartAsync: (AsyncEvent) -> Unit = {},
+        onError: (AsyncEvent) -> Unit = {},
         onTimeout: (AsyncEvent) -> Unit = {},
-    ): AsyncContext = apply {
-        addListener(object : AsyncListener {
+        onComplete: (AsyncEvent) -> Unit = {},
+    ): AsyncListener =
+        object : AsyncListener {
             override fun onComplete(event: AsyncEvent) = onComplete(event)
             override fun onError(event: AsyncEvent) = onError(event)
             override fun onStartAsync(event: AsyncEvent) = onStartAsync(event)
             override fun onTimeout(event: AsyncEvent) = onTimeout(event)
-        })
-    }
+        }
 
 }

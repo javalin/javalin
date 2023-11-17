@@ -16,10 +16,13 @@ import java.io.InputStream
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.function.Consumer
+import kong.unirest.Unirest
+import kotlin.time.Duration.Companion.seconds
 
 @Timeout(value = 5, unit = SECONDS)
 internal class TestFuture {
@@ -285,6 +288,26 @@ internal class TestFuture {
             }
 
             assertThat(http.get("/").body).isEqualTo("Timeout")
+        }
+
+        @Test
+        fun `error and onError works`() = TestUtil.test { app, http ->
+            val blockingResource = CountDownLatch(1)
+
+            app.get("/") { ctx ->
+                ctx.async({ it.onError = Runnable { blockingResource.countDown() }}) {
+                    blockingResource.await()
+                }
+            }
+
+            runCatching {
+                Unirest.spawnInstance()
+                    .also { it.config().socketTimeout(1.seconds.inWholeMilliseconds.toInt()) }
+                    .get(http.origin + "/")
+                    .asString()
+            }
+
+            assertThat(blockingResource.count).isEqualTo(1)
         }
 
     }
