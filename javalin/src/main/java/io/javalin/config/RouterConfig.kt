@@ -61,7 +61,3 @@ class RouterConfig(internal val cfg: JavalinConfig) {
     }
 
 }
-
-fun <SETUP> RouterConfig.mount(initializer: RoutingApiInitializer<SETUP>, setup: RoutingSetupScope<SETUP> = RoutingSetupScope {}): RouterConfig = also {
-    initializer.initialize(cfg, cfg.pvt.internalRouter, setup)
-}

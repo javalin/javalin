@@ -7,7 +7,6 @@
 
 package io.javalin
 
-import io.javalin.config.mount
 import io.javalin.router.JavalinDefaultRouting
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -58,8 +57,8 @@ class TestLifecycleEvents {
         TestUtil.test(Javalin.create { config ->
             config.events { it.handlerAdded { handlerMetaInfo -> routerLog += handlerMetaInfo.path } }
             config.router.mount(JavalinDefaultRouting.Default) {
-                get("/test") {}
-                post("/tast") {}
+                it.get("/test") {}
+                it.post("/tast") {}
             }
         }) { app, _ ->
             assertThat(routerLog).isEqualTo("/test/tast")
