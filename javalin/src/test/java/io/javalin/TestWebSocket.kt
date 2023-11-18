@@ -234,7 +234,7 @@ class TestWebSocket {
     fun `headers and host are available in session`() = TestUtil.test { app, _ ->
         app.ws("/websocket") { ws ->
             ws.onConnect { ctx -> app.logger().log.add("Header: " + ctx.header("Test")!!) }
-            ws.onClose { ctx -> app.logger().log.add("Closed connection from: " + ctx.host()!!) }
+            ws.onClose { ctx -> app.logger().log.add("Closed connection from: " + ctx.host()) }
         }
         TestClient(app, "/websocket", mapOf("Test" to "HeaderParameter")).connectAndDisconnect()
         assertThat(app.logger().log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost")

@@ -9,7 +9,6 @@ package io.javalin.plugin.bundled
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
 import io.javalin.plugin.Plugin
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.time.Duration
 import java.util.Locale
 import java.util.function.Consumer

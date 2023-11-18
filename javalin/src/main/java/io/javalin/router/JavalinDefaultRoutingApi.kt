@@ -33,7 +33,7 @@ class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRout
 
     companion object {
         @JvmField
-        val Default = RoutingApiInitializer { cfg, _, setup -> setup.accept(JavalinDefaultRouting(cfg)) }
+        val Default = RoutingApiInitializer { cfg, _, setup -> setup.invokeWithAsSamWithReceiver(JavalinDefaultRouting(cfg)) }
     }
 
     override fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>) = apply {
