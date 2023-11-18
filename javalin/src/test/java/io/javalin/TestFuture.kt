@@ -20,7 +20,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
-import java.util.function.Consumer
 import kong.unirest.Unirest
 import kotlin.time.Duration.Companion.seconds
 
@@ -280,7 +279,7 @@ internal class TestFuture {
             app.get("/") { ctx ->
                 ctx.async({ config ->
                     config.timeout = 10L
-                    config.onTimeout = Consumer { it.result("Timeout") }
+                    config.onTimeout { it.result("Timeout") }
                 }) {
                     Thread.sleep(500L)
                     ctx.result("Result")
@@ -295,7 +294,7 @@ internal class TestFuture {
             val blockingResource = CountDownLatch(1)
 
             app.get("/") { ctx ->
-                ctx.async({ it.onError = Runnable { blockingResource.countDown() }}) {
+                ctx.async({ it.onError { blockingResource.countDown() }}) {
                     blockingResource.await()
                 }
             }

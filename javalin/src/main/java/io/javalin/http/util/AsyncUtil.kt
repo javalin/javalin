@@ -12,30 +12,47 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
-import java.util.function.Consumer
 
-class AsyncTaskConfig(
+fun interface TimeoutListener {
+    fun onTimeout(ctx: Context)
+}
+
+fun interface ErrorListener {
+    fun onError()
+}
+
+class AsyncTaskConfig {
     /**
      * Thread-pool used to execute the given task,
      * You can change this default in [io.javalin.config.JavalinConfig].
      */
-    @JvmField var executor: ExecutorService? = null,
+    @JvmField var executor: ExecutorService? = null
     /**
      * Timeout in milliseconds,
      * by default it's 0 which means timeout watcher is disabled.
      */
-    @JvmField var timeout: Long = 0,
+    @JvmField var timeout: Long = 0
+
+    @JvmSynthetic internal var onTimeout: TimeoutListener? = null
+
     /**
      * Timeout listener executed when [TimeoutException] is thrown in specified task.
      * This timeout listener is a part of request lifecycle, so you can still modify context here.
      */
-    @JvmField var onTimeout: Consumer<Context>? = null,
+    fun onTimeout(timeoutListener: TimeoutListener) {
+        this.onTimeout = timeoutListener
+    }
+
+    @JvmSynthetic internal var onError: ErrorListener? = null
+
     /**
      * Close listener executed when [AsyncContext] is closed/terminated.
      * It's called when connection is already terminated, so you can't modify context here.
      */
-    @JvmField var onError: Runnable? = null,
-)
+    fun onError(errorListener: ErrorListener) {
+        this.onError = errorListener
+    }
+}
 
 internal class AsyncExecutor(useVirtualThreads: Boolean) {
 
@@ -52,7 +69,7 @@ internal class AsyncExecutor(useVirtualThreads: Boolean) {
 
             asyncTaskConfig.onError?.let { onError ->
                 context.req().asyncContext.addListener(newAsyncListener(
-                    onError = { onError.run() }
+                    onError = { onError.onError() }
                 ))
             }
 
@@ -70,7 +87,7 @@ internal class AsyncExecutor(useVirtualThreads: Boolean) {
                                 exception as? TimeoutException
                                     ?: exception?.cause as? TimeoutException?
                                     ?: throw exception // rethrow if exception or its cause is not TimeoutException
-                                it.accept(context)
+                                it.onTimeout(context)
                                 null // handled
                             }
                         }
