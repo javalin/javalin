@@ -11,7 +11,7 @@ import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.router.RoutingApiInitializer
 import io.javalin.router.RoutingSetupScope
 import io.javalin.router.exception.JavaLangErrorHandler
-import io.javalin.router.invokeWithAsSamWithReceiver
+import io.javalin.router.invokeAsSamWithReceiver
 import io.javalin.util.JavalinLogger
 import java.util.function.Consumer
 import kotlin.internal.LowPriorityInOverloadResolution
@@ -52,7 +52,7 @@ class RouterConfig(internal val cfg: JavalinConfig) {
         val apiBuilderInitializer = { cfg: JavalinConfig, _: InternalRouter, setup: RoutingSetupScope<Void?> ->
             try {
                 ApiBuilder.setStaticJavalin(JavalinDefaultRouting(cfg))
-                setup.invokeWithAsSamWithReceiver(null)
+                setup.invokeAsSamWithReceiver(null)
             } finally {
                 ApiBuilder.clearStaticJavalin()
             }

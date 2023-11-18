@@ -12,6 +12,6 @@ fun interface RoutingSetupScope<SETUP> {
     fun SETUP.setup()
 }
 
-internal fun <SETUP> RoutingSetupScope<SETUP>.invokeWithAsSamWithReceiver(receiver: SETUP) {
+internal fun <SETUP> RoutingSetupScope<SETUP>.invokeAsSamWithReceiver(receiver: SETUP) {
     with(this) { receiver.setup() }
 }
