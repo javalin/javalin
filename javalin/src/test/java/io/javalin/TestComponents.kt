@@ -8,6 +8,7 @@ package io.javalin
 
 import com.google.gson.GsonBuilder
 import io.javalin.component.ComponentAccessor
+import io.javalin.component.ConfigurableComponentAccessor
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -15,31 +16,40 @@ import org.junit.jupiter.api.Test
 
 internal class TestComponents {
 
+    private class MyOtherThing(val test: String = "Test")
+    private val useMyOtherThing = ComponentAccessor(MyOtherThing::class.java)
+
+    @Test
+    fun `components can be accessed through the app`() = TestUtil.test(Javalin.create {
+        it.registerComponent(useMyOtherThing) { MyOtherThing() }
+    }) { app, _ ->
+        assertThat(app.component(useMyOtherThing).test).isEqualTo("Test")
+    }
+
     private class MyJson {
         fun render(obj: Any): String = GsonBuilder().create().toJson(obj)
     }
     private val useMyJson = ComponentAccessor(MyJson::class.java)
 
-    private class MyOtherThing {
-        val test = "Test"
-    }
-    private val useMyOtherThing = ComponentAccessor(MyOtherThing::class.java)
-
-    private val attributedJavalin = Javalin.create {
+    @Test
+    fun `components can be accessed through the Context`() = TestUtil.test(Javalin.create {
         it.registerComponent(useMyJson) { MyJson() }
-        it.registerComponent(useMyOtherThing) { MyOtherThing() }
-    }
-
-    @Test
-    fun `app attributes can be accessed through the app`() = TestUtil.test(attributedJavalin) { app, _ ->
-        assertThat(app.unsafeConfig().pvt.componentManager.resolve(useMyOtherThing, null).test).isEqualTo("Test")
-    }
-
-    @Test
-    fun `app attributes can be accessed through the Context`() = TestUtil.test(attributedJavalin) { app, http ->
+    }) { app, http ->
         val gson = GsonBuilder().create()
         app.get("/") { it.result(it.use(useMyJson).render(SerializableObject())) }
         assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
+    }
+
+    private class Database(val readOnly: Boolean)
+    private class TestCfg(var readOnlyTransaction: Boolean)
+    private val useDatabase = ConfigurableComponentAccessor(Database::class.java, { TestCfg(readOnlyTransaction = false) })
+
+    @Test
+    fun `configurable component returns requested component`() = TestUtil.test(Javalin.create {
+        it.registerComponent(useDatabase) { cfg, _ -> Database(cfg.readOnlyTransaction) }
+    }) { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.use(useDatabase) { it.readOnlyTransaction = true }.readOnly.toString()) }
+        assertThat(http.getBody("/")).isEqualTo("true")
     }
 
 }

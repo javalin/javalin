@@ -6,6 +6,7 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
+import io.javalin.testtools.TestTool.Companion.UseTestLogs
 import okhttp3.FormBody
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
