@@ -7,11 +7,13 @@
 package io.javalin.testing;
 
 import io.javalin.Javalin;
+import io.javalin.component.ComponentAccessor;
 import io.javalin.http.Handler;
 import io.javalin.util.JavalinLogger;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import kong.unirest.HttpMethod;
+import javax.annotation.Nullable;
 
 public class TestUtil {
 
@@ -23,6 +25,8 @@ public class TestUtil {
         test(Javalin.create(), test);
     }
 
+    public static ComponentAccessor<String> TEST_LOGS = new ComponentAccessor<>(String.class, "testlogs");
+
     public static void test(Javalin app, ThrowingBiConsumer<Javalin, HttpUtil> userCode) {
         RunResult result = runAndCaptureLogs(() -> {
             app.start(0);
@@ -32,7 +36,7 @@ public class TestUtil {
             http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
             app.stop();
         });
-        app.attribute("testlogs", result.logs);
+        app.unsafeConfig().registerComponent(TEST_LOGS, (ctx) -> result.logs);
         if (result.exception != null) {
             JavalinLogger.error("TestUtil#test failed - full log output below:\n" + result.logs);
             throw new RuntimeException(result.exception);

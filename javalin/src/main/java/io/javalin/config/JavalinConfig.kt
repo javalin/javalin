@@ -6,20 +6,24 @@
 package io.javalin.config
 
 import io.javalin.Javalin
-import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
-import io.javalin.http.util.AsyncExecutor
-import io.javalin.http.util.AsyncExecutor.Companion.ASYNC_EXECUTOR_KEY
+import io.javalin.component.ComponentAccessor
+import io.javalin.component.ComponentResolver
+import io.javalin.component.ConfigurableComponentAccessor
+import io.javalin.component.ConfigurableComponentResolver
+import io.javalin.config.ContextResolverConfig.Companion.CONTEXT_RESOLVER
+import io.javalin.http.servlet.MAX_REQUEST_SIZE
+import io.javalin.http.util.AsyncExecutor.Companion.ASYNC_EXECUTOR
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
-import io.javalin.rendering.FILE_RENDERER_KEY
 import io.javalin.rendering.FileRenderer
+import io.javalin.rendering.FileRenderer.Companion.FILE_RENDERER
 import io.javalin.rendering.NotImplementedRenderer
 import io.javalin.validation.Validation
-import io.javalin.validation.Validation.Companion.VALIDATION_KEY
+import io.javalin.validation.Validation.Companion.VALIDATION
 import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
-import io.javalin.vue.JAVALINVUE_CONFIG_KEY
 import io.javalin.vue.JavalinVueConfig
+import io.javalin.vue.JavalinVueConfig.Companion.VUE_CONFIG
 import java.util.function.Consumer
 
 // this class should be abbreviated `cfg` in the source code.
@@ -79,7 +83,7 @@ class JavalinConfig {
      * Sets the [FileRenderer] to be used in this Javalin Configuration.
      * @param fileRenderer the [FileRenderer]
      */
-    fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[FILE_RENDERER_KEY] = fileRenderer }
+    fun fileRenderer(fileRenderer: FileRenderer) { registerComponent(FILE_RENDERER) { fileRenderer } }
     //@formatter:on
 
     companion object {
@@ -88,22 +92,31 @@ class JavalinConfig {
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
             cfg.pvt.pluginManager.startPlugins()
-            cfg.pvt.appAttributes[ASYNC_EXECUTOR_KEY] = AsyncExecutor(cfg.useVirtualThreads)
-            cfg.pvt.appAttributes[VALIDATION_KEY] = Validation(cfg.validation)
+            cfg.pvt.componentManager.registerIfAbsent(ASYNC_EXECUTOR) { cfg.pvt.asyncExecutor.value }
+            val validation = Validation(cfg.validation)
+            cfg.pvt.componentManager.registerIfAbsent(VALIDATION) { validation }
             if (cfg.pvt.jsonMapper == null) { cfg.pvt.jsonMapper = JavalinJackson(null, cfg.useVirtualThreads) }
-            cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
-            cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }
-            cfg.pvt.appAttributes.computeIfAbsent(MAX_REQUEST_SIZE_KEY) { cfg.http.maxRequestSize }
-            cfg.pvt.appAttributes.computeIfAbsent(JAVALINVUE_CONFIG_KEY) { cfg.vue }
+            cfg.pvt.componentManager.registerIfAbsent(FILE_RENDERER) { NotImplementedRenderer() }
+            cfg.pvt.componentManager.registerIfAbsent(CONTEXT_RESOLVER) { cfg.contextResolver }
+            cfg.pvt.componentManager.registerIfAbsent(MAX_REQUEST_SIZE) { cfg.http.maxRequestSize }
+            cfg.pvt.componentManager.registerIfAbsent(VUE_CONFIG) { cfg.vue }
         }
+    }
+
+    fun <COMPONENT : Any?> registerComponent(key: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) {
+        pvt.componentManager.registerResolver(key, resolver)
+    }
+
+    fun <COMPONENT : Any?, CFG> registerComponent(key: ConfigurableComponentAccessor<COMPONENT, CFG>, resolver: ConfigurableComponentResolver<COMPONENT, CFG>) {
+        pvt.componentManager.registerResolver(key, resolver)
     }
 
     /**
      * Register a plugin to this Javalin Configuration.
-     * @param T the type of the configuration class for the plugin
+     * @param CFG the type of the configuration class for the plugin
      * @param plugin the [Plugin] to register
      */
-    fun <T> registerPlugin(plugin: Plugin<T>): Plugin<T> =
+    fun <CFG> registerPlugin(plugin: Plugin<CFG>): Plugin<CFG> =
         plugin.also { pvt.pluginManager.register(plugin) }
 
 }

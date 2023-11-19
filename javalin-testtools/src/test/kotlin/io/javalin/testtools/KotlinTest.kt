@@ -169,7 +169,7 @@ class KotlinTest {
             // Ignore
         }
 
-        assertThat(app.attribute("testlogs") as String).contains("Error in handler code")
+        assertThat(app.component(TEST_LOGS)).contains("Error in handler code")
     }
 
     private fun throwingTest(app: Javalin) {

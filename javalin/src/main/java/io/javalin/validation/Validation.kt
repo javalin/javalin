@@ -6,12 +6,11 @@
 
 package io.javalin.validation
 
+import io.javalin.component.ComponentAccessor
 import io.javalin.config.JavalinConfig
 import io.javalin.config.ValidationConfig
-import io.javalin.http.Context
 import io.javalin.http.HttpStatus
 import io.javalin.util.JavalinLogger
-import io.javalin.validation.Validation.Companion.VALIDATION_KEY
 
 class MissingConverterException(val className: String) : RuntimeException()
 
@@ -19,6 +18,7 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
 
     private fun <T> convertValue(clazz: Class<T>, value: String?): T {
         val converter = validationConfig.converters[clazz] ?: throw MissingConverterException(clazz.name)
+        @Suppress("UNCHECKED_CAST")
         return (if (value != null) converter.invoke(value) else null) as T
     }
 
@@ -36,8 +36,8 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
          Validator(Params(fieldName, null, null, typedValue) { null })
 
     companion object {
-
-        const val VALIDATION_KEY = "javalin-validation"
+        @JvmField
+        val VALIDATION = ComponentAccessor(Validation::class.java, "javalin-validation")
 
         @JvmStatic
         fun collectErrors(vararg validators: BaseValidator<*>) = collectErrors(validators.toList())
@@ -55,9 +55,6 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
     }
 
 }
-
-fun Context.validation(): Validation = this.appAttribute(VALIDATION_KEY)
-
 
 fun Iterable<BaseValidator<*>>.collectErrors(): Map<String, List<ValidationError<out Any?>>> =
     Validation.collectErrors(this)

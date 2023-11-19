@@ -7,9 +7,9 @@
 
 package io.javalin;
 
+import io.javalin.component.ComponentAccessor;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
-import io.javalin.http.HandlerType;
 import io.javalin.router.Endpoint;
 import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
@@ -17,9 +17,7 @@ import io.javalin.config.EventConfig;
 import io.javalin.http.Context;
 import io.javalin.jetty.JettyServer;
 import io.javalin.security.RouteRole;
-
 import java.util.function.Consumer;
-
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
@@ -29,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 import static io.javalin.util.Util.createLazy;
 
-@SuppressWarnings("unchecked")
 public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
 
     /**
@@ -169,24 +166,13 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
     }
 
     /**
-     * Registers an attribute on the instance.
-     * Instance is available on the {@link Context} through {@link Context#appAttribute}.
-     * Ex: app.attribute(MyExt.class, myExtInstance())
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin attribute(String key, Object value) {
-        cfg.pvt.appAttributes.put(key, value);
-        return this;
-    }
-
-    /**
      * Retrieve an attribute stored on the instance.
-     * Available on the {@link Context} through {@link Context#appAttribute}.
-     * Ex: app.attribute(MyExt.class).myMethod()
-     * Ex: ctx.appAttribute(MyExt.class).myMethod()
+     * Available on the {@link Context} through {@link Context#use(io.javalin.component.ComponentAccessor)}.
+     * Ex: app.component(MyExt).myMethod()
+     * Ex: ctx.use(MyExt).myMethod()
      */
-    public <T> T attribute(String key) {
-        return (T) cfg.pvt.appAttributes.get(key);
+    public <COMPONENT> COMPONENT component(ComponentAccessor<COMPONENT> accessor) {
+        return cfg.pvt.componentManager.resolve(accessor, null);
     }
 
     @NotNull
@@ -219,7 +205,7 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
 
     @NotNull
     @Override
-    public Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
+    public Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole @NotNull ... roles) {
         cfg.pvt.internalRouter.addWsHandler(handlerType, path, wsConfig, roles);
         return this;
     }

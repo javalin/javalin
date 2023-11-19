@@ -1,11 +1,8 @@
 package io.javalin.config
 
+import io.javalin.component.ComponentAccessor
 import io.javalin.http.Context
 import io.javalin.http.Header
-
-const val CONTEXT_RESOLVER_KEY = "javalin-context-resolver"
-
-fun Context.contextResolver() = this.appAttribute<ContextResolverConfig>(CONTEXT_RESOLVER_KEY)
 
 /**
  * Configure the implementation for Context functions.
@@ -13,6 +10,9 @@ fun Context.contextResolver() = this.appAttribute<ContextResolverConfig>(CONTEXT
  * @see [JavalinConfig.contextResolver]
  */
 class ContextResolverConfig {
+    companion object {
+        @JvmField val CONTEXT_RESOLVER = ComponentAccessor(ContextResolverConfig::class.java, "javalin-context-resolver")
+    }
     // @formatter:off
     /** The IP address resolver (default: reads the `remoteAddr` part of the request) */
     @JvmField var ip: (Context) -> String = { it.req().remoteAddr }

@@ -193,6 +193,6 @@ public class JavaTest {
             // Ignore
         }
 
-        assertThat((String) app.attribute("testlogs")).contains("Error in handler code");
+        assertThat(app.component(TestToolKt.getTEST_LOGS())).contains("Error in handler code");
     }
 }

@@ -1,5 +1,6 @@
 package io.javalin;
 
+import io.javalin.component.ComponentAccessor;
 import io.javalin.http.ContentType;
 import io.javalin.http.Cookie;
 import io.javalin.http.HttpStatus;
@@ -28,7 +29,9 @@ public class TestPublicApi_Java {
         Javalin.create(/*config*/)
             .get("/", ctx -> ctx.result("Hello World"))
             .start(7070);
+        var nameComponent = new ComponentAccessor<>(String.class);
         var app = Javalin.create(config -> {
+            config.registerComponent(nameComponent, ctx -> "name");
             config.validation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
             config.registerPlugin(new CorsPlugin(cors -> {
                 cors.addRule(rule -> {
@@ -208,7 +211,7 @@ public class TestPublicApi_Java {
             ctx.res();
             ctx.async(() -> {});
             ctx.handlerType();
-            ctx.appAttribute("name");
+            ctx.use(nameComponent);
             ctx.matchedPath();
             ctx.endpointHandlerPath();
             ctx.cookieStore();
