@@ -8,7 +8,8 @@ package io.javalin.http
 
 import io.javalin.component.ComponentAccessor
 import io.javalin.component.ConfigurableComponentAccessor
-import io.javalin.config.ContextResolverConfig.Companion.CONTEXT_RESOLVER
+import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
+import io.javalin.http.servlet.MaxRequestSize
 import io.javalin.http.servlet.attributeOrCompute
 import io.javalin.http.servlet.cacheAndSetSessionAttribute
 import io.javalin.http.servlet.cachedSessionAttributeOrCompute
@@ -17,7 +18,6 @@ import io.javalin.http.servlet.getCachedRequestAttributeOrSessionAttribute
 import io.javalin.http.servlet.getRequestCharset
 import io.javalin.http.servlet.readAndResetStreamIfPossible
 import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
-import io.javalin.http.servlet.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.AsyncExecutor
 import io.javalin.http.util.AsyncTaskConfig
 import io.javalin.http.util.CookieStore
@@ -29,7 +29,7 @@ import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.function.ThrowingRunnable
 import io.javalin.validation.BodyValidator
-import io.javalin.validation.Validation.Companion.VALIDATION
+import io.javalin.validation.Validation.Companion.UseValidation
 import io.javalin.validation.Validator
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
@@ -113,31 +113,31 @@ interface Context {
     fun characterEncoding(): String? = getRequestCharset(this)
 
     /** Gets the request url. */
-    fun url(): String = use(CONTEXT_RESOLVER).url.invoke(this)
+    fun url(): String = use(UseContextResolver).url.invoke(this)
 
     /** Gets the full request url, including query string (if present) */
-    fun fullUrl(): String = use(CONTEXT_RESOLVER).fullUrl.invoke(this)
+    fun fullUrl(): String = use(UseContextResolver).fullUrl.invoke(this)
 
     /** Gets the request scheme. */
-    fun scheme(): String = use(CONTEXT_RESOLVER).scheme.invoke(this)
+    fun scheme(): String = use(UseContextResolver).scheme.invoke(this)
 
     /** Gets the request host, or null. */
-    fun host(): String? = use(CONTEXT_RESOLVER).host.invoke(this)
+    fun host(): String? = use(UseContextResolver).host.invoke(this)
 
     /** Gets the request ip. */
-    fun ip(): String = use(CONTEXT_RESOLVER).ip.invoke(this)
+    fun ip(): String = use(UseContextResolver).ip.invoke(this)
 
     /** Gets the request body as a [String]. */
     fun body(): String = bodyAsBytes().toString(Charset.forName(characterEncoding() ?: "UTF-8"))
 
     /**
      * Gets the request body as a [ByteArray].
-     * Calling this method returns the body as a [ByteArray]. If [io.javalin.config.JavalinConfig.maxRequestSize]
+     * Calling this method returns the body as a [ByteArray]. If [io.javalin.config.HttpConfig.maxRequestSize]
      * is set and body is bigger than its value, a [io.javalin.http.HttpResponseException] is throw,
      * with status 413 CONTENT_TOO_LARGE.
      */
     fun bodyAsBytes(): ByteArray {
-        this.throwContentTooLargeIfContentTooLarge()
+        MaxRequestSize.throwContentTooLargeIfContentTooLarge(this)
         return req().inputStream.readBytes()
     }
 
@@ -160,7 +160,7 @@ interface Context {
     fun formParam(key: String): String? = formParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the formParam() value */
-    fun <T> formParamAsClass(key: String, clazz: Class<T>) = use(VALIDATION).validator(key, clazz, formParam(key))
+    fun <T> formParamAsClass(key: String, clazz: Class<T>) = use(UseValidation).validator(key, clazz, formParam(key))
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
@@ -181,7 +181,7 @@ interface Context {
     fun pathParam(key: String): String
 
     /** Creates a typed [Validator] for the pathParam() value */
-    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = use(VALIDATION).validator(key, clazz, pathParam(key))
+    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = use(UseValidation).validator(key, clazz, pathParam(key))
 
     /** Gets a map of all the [pathParamAsClass] keys and values. */
     fun pathParamMap(): Map<String, String>
@@ -190,7 +190,7 @@ interface Context {
     fun queryParam(key: String): String? = queryParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the queryParam() value */
-    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = use(VALIDATION).validator(key, clazz, queryParam(key))
+    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = use(UseValidation).validator(key, clazz, queryParam(key))
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
@@ -249,7 +249,7 @@ interface Context {
     fun header(header: String): String? = req().getHeader(header)
 
     /** Creates a typed [Validator] for the header() value */
-    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = use(VALIDATION).validator(header, clazz, header(header))
+    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = use(UseValidation).validator(header, clazz, header(header))
 
     /** Gets a map with all the header keys and values on the request(). */
     fun headerMap(): Map<String, String> = req().headerNames.asSequence().associateWith { header(it)!! }
@@ -370,7 +370,7 @@ interface Context {
      * so it's just not thread-safe.
      */
     fun async(config: Consumer<AsyncTaskConfig>, task: ThrowingRunnable<Exception>) =
-        use(AsyncExecutor.ASYNC_EXECUTOR).submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
+        use(AsyncExecutor.UseAsyncExecutor).submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
 
     /* @see [async] */
     fun async(task: ThrowingRunnable<Exception>) = async(config = {}, task = task)
@@ -466,7 +466,7 @@ interface Context {
      * Also sets content-type to text/html.
      * Determines the correct rendering-function based on the file extension.
      */
-    fun render(filePath: String, model: Map<String, Any?>): Context = html(use(FileRenderer.FILE_RENDERER).render(filePath, model, this))
+    fun render(filePath: String, model: Map<String, Any?>): Context = html(use(FileRenderer.UseFileRenderer).render(filePath, model, this))
 
     /** @see render() */
     fun render(filePath: String): Context = render(filePath, mutableMapOf())

@@ -37,7 +37,7 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
 
     companion object {
         @JvmField
-        val VALIDATION = ComponentAccessor(Validation::class.java, "javalin-validation")
+        val UseValidation = ComponentAccessor(Validation::class.java, "javalin-validation")
 
         @JvmStatic
         fun collectErrors(vararg validators: BaseValidator<*>) = collectErrors(validators.toList())

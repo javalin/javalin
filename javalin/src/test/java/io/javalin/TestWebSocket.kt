@@ -50,12 +50,12 @@ import java.util.concurrent.atomic.AtomicInteger
 class TestWebSocket {
 
     private data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>())
-    private val testLoggerAccessor = ComponentAccessor(TestLogger::class.java)
+    private val useTestLogger = ComponentAccessor(TestLogger::class.java)
 
     private fun Javalin.logger(): TestLogger {
         val logger = TestLogger()
-        this.unsafeConfig().pvt.componentManager.registerIfAbsent(testLoggerAccessor) { logger }
-        return component(testLoggerAccessor)
+        this.unsafeConfig().pvt.componentManager.registerIfAbsent(useTestLogger) { logger }
+        return component(useTestLogger)
     }
 
     private fun contextPathJavalin(cfg: ((JavalinConfig) -> Unit)? = null): Javalin =

@@ -29,9 +29,9 @@ public class TestPublicApi_Java {
         Javalin.create(/*config*/)
             .get("/", ctx -> ctx.result("Hello World"))
             .start(7070);
-        var nameComponent = new ComponentAccessor<>(String.class);
+        var useTestComponent = new ComponentAccessor<>(String.class);
         var app = Javalin.create(config -> {
-            config.registerComponent(nameComponent, ctx -> "name");
+            config.registerComponent(useTestComponent, ctx -> "name");
             config.validation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
             config.registerPlugin(new CorsPlugin(cors -> {
                 cors.addRule(rule -> {
@@ -211,7 +211,7 @@ public class TestPublicApi_Java {
             ctx.res();
             ctx.async(() -> {});
             ctx.handlerType();
-            ctx.use(nameComponent);
+            ctx.use(useTestComponent);
             ctx.matchedPath();
             ctx.endpointHandlerPath();
             ctx.cookieStore();

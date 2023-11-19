@@ -10,24 +10,25 @@ import io.javalin.component.ComponentAccessor
 import io.javalin.component.ComponentResolver
 import io.javalin.component.ConfigurableComponentAccessor
 import io.javalin.component.ConfigurableComponentResolver
-import io.javalin.config.ContextResolverConfig.Companion.CONTEXT_RESOLVER
-import io.javalin.http.servlet.MAX_REQUEST_SIZE
-import io.javalin.http.util.AsyncExecutor.Companion.ASYNC_EXECUTOR
+import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
+import io.javalin.http.servlet.MaxRequestSize.UseMaxRequestSize
+import io.javalin.http.util.AsyncExecutor.Companion.UseAsyncExecutor
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
 import io.javalin.rendering.FileRenderer
-import io.javalin.rendering.FileRenderer.Companion.FILE_RENDERER
+import io.javalin.rendering.FileRenderer.Companion.UseFileRenderer
 import io.javalin.rendering.NotImplementedRenderer
 import io.javalin.validation.Validation
-import io.javalin.validation.Validation.Companion.VALIDATION
+import io.javalin.validation.Validation.Companion.UseValidation
 import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
 import io.javalin.vue.JavalinVueConfig
-import io.javalin.vue.JavalinVueConfig.Companion.VUE_CONFIG
+import io.javalin.vue.JavalinVueConfig.Companion.UseVueConfig
 import java.util.function.Consumer
 
 // this class should be abbreviated `cfg` in the source code.
 // `cfg.pvt` should be accessible, but usage should be discouraged (hence the naming)
+
 /**
  * Javalin configuration class.
  * @see [Javalin.create]
@@ -58,6 +59,7 @@ class JavalinConfig {
     @JvmField var useVirtualThreads = false
     /** Show the Javalin banner in the logs */
     @JvmField var showJavalinBanner = true
+    /** Default validator configuration */
     @JvmField var validation = ValidationConfig()
     /**
      * By default, Javalin will print a warning after 5s if you create a Javalin instance without starting it.
@@ -83,33 +85,8 @@ class JavalinConfig {
      * Sets the [FileRenderer] to be used in this Javalin Configuration.
      * @param fileRenderer the [FileRenderer]
      */
-    fun fileRenderer(fileRenderer: FileRenderer) { registerComponent(FILE_RENDERER) { fileRenderer } }
-    //@formatter:on
-
-    companion object {
-        @JvmStatic
-        fun applyUserConfig(cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
-            addValidationExceptionMapper(cfg) // add default mapper for validation
-            userConfig.accept(cfg) // apply user config to the default config
-            cfg.pvt.pluginManager.startPlugins()
-            cfg.pvt.componentManager.registerIfAbsent(ASYNC_EXECUTOR) { cfg.pvt.asyncExecutor.value }
-            val validation = Validation(cfg.validation)
-            cfg.pvt.componentManager.registerIfAbsent(VALIDATION) { validation }
-            if (cfg.pvt.jsonMapper == null) { cfg.pvt.jsonMapper = JavalinJackson(null, cfg.useVirtualThreads) }
-            cfg.pvt.componentManager.registerIfAbsent(FILE_RENDERER) { NotImplementedRenderer() }
-            cfg.pvt.componentManager.registerIfAbsent(CONTEXT_RESOLVER) { cfg.contextResolver }
-            cfg.pvt.componentManager.registerIfAbsent(MAX_REQUEST_SIZE) { cfg.http.maxRequestSize }
-            cfg.pvt.componentManager.registerIfAbsent(VUE_CONFIG) { cfg.vue }
-        }
-    }
-
-    fun <COMPONENT : Any?> registerComponent(key: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) {
-        pvt.componentManager.registerResolver(key, resolver)
-    }
-
-    fun <COMPONENT : Any?, CFG> registerComponent(key: ConfigurableComponentAccessor<COMPONENT, CFG>, resolver: ConfigurableComponentResolver<COMPONENT, CFG>) {
-        pvt.componentManager.registerResolver(key, resolver)
-    }
+    fun fileRenderer(fileRenderer: FileRenderer) =
+        registerComponent(UseFileRenderer) { fileRenderer }
 
     /**
      * Register a plugin to this Javalin Configuration.
@@ -118,5 +95,46 @@ class JavalinConfig {
      */
     fun <CFG> registerPlugin(plugin: Plugin<CFG>): Plugin<CFG> =
         plugin.also { pvt.pluginManager.register(plugin) }
+
+    /**
+     * Register a new component resolver.
+     * @param COMPONENT the type of the component
+     * @param key unique [ComponentAccessor] for the component
+     * @param resolver the [ComponentResolver] for the component. This will be called each time the component is requested.
+     */
+    fun <COMPONENT : Any?> registerComponent(key: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) =
+        pvt.componentManager.registerResolver(key, resolver)
+
+    /**
+     * Register a new configurable component resolver.
+     * @param COMPONENT the type of the component
+     * @param CFG the type of the configuration class for the component
+     * @param key unique [ConfigurableComponentAccessor] for the component
+     * @param resolver the [ConfigurableComponentResolver] for the component. This will be called each time the component is requested.
+     */
+    fun <COMPONENT : Any?, CFG> registerComponent(key: ConfigurableComponentAccessor<COMPONENT, CFG>, resolver: ConfigurableComponentResolver<COMPONENT, CFG>) =
+        pvt.componentManager.registerResolver(key, resolver)
+
+    companion object {
+        @JvmStatic
+        fun applyUserConfig(cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
+            addValidationExceptionMapper(cfg) // add default mapper for validation
+            userConfig.accept(cfg) // apply user config to the default config
+            cfg.pvt.pluginManager.startPlugins()
+
+            if (cfg.pvt.jsonMapper == null) {
+                cfg.pvt.jsonMapper = JavalinJackson(null, cfg.useVirtualThreads)
+            }
+
+            val validation = Validation(cfg.validation)
+            cfg.pvt.componentManager.registerIfAbsent(UseValidation) { validation }
+            cfg.pvt.componentManager.registerIfAbsent(UseAsyncExecutor) { cfg.pvt.asyncExecutor.value }
+            cfg.pvt.componentManager.registerIfAbsent(UseFileRenderer) { NotImplementedRenderer() }
+            cfg.pvt.componentManager.registerIfAbsent(UseContextResolver) { cfg.contextResolver }
+            cfg.pvt.componentManager.registerIfAbsent(UseMaxRequestSize) { cfg.http.maxRequestSize }
+            cfg.pvt.componentManager.registerIfAbsent(UseVueConfig) { cfg.vue }
+        }
+    }
+    //@formatter:on
 
 }

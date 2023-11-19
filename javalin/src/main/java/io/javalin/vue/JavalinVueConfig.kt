@@ -15,7 +15,7 @@ import java.nio.file.Paths
  */
 class JavalinVueConfig {
     companion object {
-        @JvmField val VUE_CONFIG = ComponentAccessor(JavalinVueConfig::class.java, "javalin-javalinvue-config")
+        @JvmField val UseVueConfig = ComponentAccessor(JavalinVueConfig::class.java, "javalin-javalinvue-config")
     }
 
     //@formatter:off

@@ -217,14 +217,16 @@ fun Context.isLocalhost() = try {
     false
 }
 
-val MAX_REQUEST_SIZE = ComponentAccessor(Long::class.java, "javalin-max-request-size")
+object MaxRequestSize {
+    @JvmField val UseMaxRequestSize = ComponentAccessor(Long::class.java, "javalin-max-request-size")
 
-fun Context.throwContentTooLargeIfContentTooLarge() {
-    val maxRequestSize = use(MAX_REQUEST_SIZE)
+    fun throwContentTooLargeIfContentTooLarge(ctx: Context) {
+        val maxRequestSize = ctx.use(UseMaxRequestSize)
 
-    if (this.req().contentLength > maxRequestSize) {
-        JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
-        throw HttpResponseException(CONTENT_TOO_LARGE, CONTENT_TOO_LARGE.message)
+        if (ctx.req().contentLength > maxRequestSize) {
+            JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
+            throw HttpResponseException(CONTENT_TOO_LARGE, CONTENT_TOO_LARGE.message)
+        }
     }
 }
 
