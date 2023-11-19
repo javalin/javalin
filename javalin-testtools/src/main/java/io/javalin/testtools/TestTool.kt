@@ -20,10 +20,13 @@ data class TestConfig @JvmOverloads constructor(
     val okHttpClient: OkHttpClient = DefaultTestConfig.okHttpClient
 )
 
-@Suppress("UNCHECKED_CAST")
-public val TEST_LOGS: ComponentAccessor<String?> = ComponentAccessor(String::class.java as Class<String?>, "testlogs")
-
 class TestTool(private val testConfig: TestConfig = TestConfig()) {
+
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        @JvmField
+        val UseTestLogs: ComponentAccessor<String?> = ComponentAccessor(String::class.java as Class<String?>, "testlogs")
+    }
 
     class RunResult(val logs: String?, val exception: Throwable?)
 
@@ -40,7 +43,7 @@ class TestTool(private val testConfig: TestConfig = TestConfig()) {
             }
             app.stop()
         }
-        app.unsafeConfig().registerComponent(TEST_LOGS) { result.logs }
+        app.unsafeConfig().registerComponent(UseTestLogs) { result.logs }
         if (result.exception != null) {
             JavalinLogger.error("JavalinTest#test failed - full log output below:\n" + result.logs)
             throw result.exception
