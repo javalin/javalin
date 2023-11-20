@@ -4,7 +4,6 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.post
 import io.javalin.plugin.bundled.RouteOverviewPlugin
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat

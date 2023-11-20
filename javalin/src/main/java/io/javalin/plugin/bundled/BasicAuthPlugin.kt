@@ -10,7 +10,6 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.Header.WWW_AUTHENTICATE
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.plugin.Plugin
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import java.util.function.Consumer
 
 class BasicAuthPluginConfig {

@@ -15,7 +15,6 @@ import io.javalin.http.HandlerType.TRACE
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.router.matcher.MissingBracketsException
 import io.javalin.router.matcher.ParameterNamesNotUniqueException
 import io.javalin.router.matcher.WildcardBracketAdjacentException
@@ -43,11 +42,10 @@ class TestRouting {
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")
     }
 
-
     @Test
     fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
         cfg.router.mount {
-            it.get("/hello") { it.result("Hello World") }
+            it.get("/hello") { ctx -> ctx.result("Hello World") }
         }
     }) { _, http ->
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")

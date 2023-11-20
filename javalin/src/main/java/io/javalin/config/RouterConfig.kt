@@ -1,3 +1,5 @@
+@file:Suppress("internal", "INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
+
 package io.javalin.config
 
 import io.javalin.apibuilder.ApiBuilder
@@ -7,9 +9,12 @@ import io.javalin.router.InternalRouter
 import io.javalin.router.JavalinDefaultRouting
 import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.router.RoutingApiInitializer
+import io.javalin.router.RoutingSetupScope
 import io.javalin.router.exception.JavaLangErrorHandler
+import io.javalin.router.invokeAsSamWithReceiver
 import io.javalin.util.JavalinLogger
 import java.util.function.Consumer
+import kotlin.internal.LowPriorityInOverloadResolution
 
 /**
  * Configuration for the Router.
@@ -35,23 +40,24 @@ class RouterConfig(internal val cfg: JavalinConfig) {
         JavalinLogger.error("Fatal error occurred while servicing http-request", error)
     }
 
-    fun <SETUP> mount(initializer: RoutingApiInitializer<SETUP>, setup: Consumer<SETUP> = Consumer {}): RouterConfig = also {
-        initializer.initialize(cfg, cfg.pvt.internalRouter, setup)
+    @LowPriorityInOverloadResolution
+    fun <SETUP> mount(initializer: RoutingApiInitializer<SETUP>, setup: Consumer<SETUP>): RouterConfig = also {
+        initializer.initialize(cfg, cfg.pvt.internalRouter) { setup.accept(this) }
     }
 
-    fun mount(setup: Consumer<JavalinDefaultRouting>) = mount(Default, setup)
+    fun mount(setup: Consumer<JavalinDefaultRouting>): RouterConfig =
+        mount(Default, setup)
 
     fun apiBuilder(endpoints: EndpointGroup): RouterConfig {
-        val apiBuilderInitializer = { cfg: JavalinConfig, internalRouter: InternalRouter, setup: Consumer<Void?> ->
+        val apiBuilderInitializer = { cfg: JavalinConfig, _: InternalRouter, setup: RoutingSetupScope<Void?> ->
             try {
                 ApiBuilder.setStaticJavalin(JavalinDefaultRouting(cfg))
-                setup.accept(null)
+                setup.invokeAsSamWithReceiver(null)
             } finally {
                 ApiBuilder.clearStaticJavalin()
             }
         }
         return mount(apiBuilderInitializer) { endpoints.addEndpoints() }
     }
-
 
 }

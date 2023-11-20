@@ -3,6 +3,7 @@ package io.javalin.config
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.plugin.bundled.CorsPluginConfig
 import io.javalin.plugin.bundled.CorsPlugin
+import io.javalin.plugin.bundled.DevLoggerPluginConfig
 import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.plugin.bundled.GlobalHeadersConfig
 import io.javalin.plugin.bundled.GlobalHeadersPlugin
@@ -57,6 +58,8 @@ class BundledPluginsConfig(private val cfg: JavalinConfig) {
     fun enableHttpAllowedMethodsOnRoutes() = cfg.registerPlugin(HttpAllowedMethodsPlugin())
     /**  Enables the development debugging logger plugin. */
     fun enableDevLogging() = cfg.registerPlugin(DevLoggingPlugin())
+    /**  Enables the development debugging logger plugin with the specified config */
+    fun enableDevLogging(userConfig: Consumer<DevLoggerPluginConfig>) = cfg.registerPlugin(DevLoggingPlugin(userConfig))
     /** Enables the RedirectToLowercasePath plugin. */
     fun enableRedirectToLowercasePaths() = cfg.registerPlugin(RedirectToLowercasePathPlugin())
     /** Enables the SSL Redirects plugin, which redirect any http request to https. Note it must be the first plugin enabled to properly handle all requests.*/
