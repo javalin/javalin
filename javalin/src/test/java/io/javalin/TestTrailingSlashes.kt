@@ -18,10 +18,11 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.net.URLEncoder
 
-class TestTrailingSlashes {
+internal class TestTrailingSlashes {
+
     private val okHttp = OkHttpClient().newBuilder().build()
-    fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
-    val javalin = Javalin.create { it.router.ignoreTrailingSlashes = false; }
+    private fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
+    private val javalin = Javalin.create { it.router.ignoreTrailingSlashes = false; }
 
     @Test
     fun `trailing slashes are ignored by default`() = TestUtil.test { app, http ->
@@ -92,10 +93,10 @@ class TestTrailingSlashes {
     @Test
     fun `case sensitive urls work`() = TestUtil.test(javalin) { app, http ->
         app.get("/My-Url") { it.result("OK") }
-        assertThat(http.getBody("/MY-URL")).isEqualTo(NOT_FOUND.message)
+        assertThat(http.getBody("/MY-URL")).isEqualTo("Endpoint GET /MY-URL not found")
         assertThat(http.getBody("/My-Url")).isEqualTo("OK")
         app.get("/My-Url/") { it.result("OK/") }
-        assertThat(http.getBody("/MY-URL/")).isEqualTo(NOT_FOUND.message)
+        assertThat(http.getBody("/MY-URL/")).isEqualTo("Endpoint GET /MY-URL/ not found")
         assertThat(http.getBody("/My-Url/")).isEqualTo("OK/")
     }
 
@@ -155,7 +156,7 @@ class TestTrailingSlashes {
     ) { app, http ->
         assertThat(http.getBody("/test/path-param")).isEqualTo("path-param")
         assertThat(http.getBody("/test/path-param/")).isEqualTo("path-param/")
-        assertThat(http.getBody("/test/")).isEqualTo(NOT_FOUND.message)
+        assertThat(http.getBody("/test/")).isEqualTo("Endpoint GET /test/ not found")
         assertThat(http.getBody("/test")).isEqualTo("test")
     }
 

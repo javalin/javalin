@@ -24,7 +24,7 @@ class TestBeforeAfterMatched {
         app.afterMatched { it.result(it.result() + "-after-matched") }
         app.after { it.result(it.result() + "!") }
 
-        assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Not Found!")
+        assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Endpoint GET /other-path not found!")
         assertThat(http.getBody("/hello")).isEqualTo("before-matched-hello-after-matched!")
     }
 
@@ -39,7 +39,7 @@ class TestBeforeAfterMatched {
             response,
             path,
             404,
-            "Not Found",
+            "Endpoint $path not found",
             "",
             "",
             ""
@@ -57,7 +57,7 @@ class TestBeforeAfterMatched {
             response,
             path,
             404,
-            "Not Found",
+            "Endpoint $path not found",
             "",
             "",
             ""
@@ -75,7 +75,7 @@ class TestBeforeAfterMatched {
             response,
             path,
             404,
-            "Not Found",
+            "Endpoint $path not found",
             "",
             "",
             ""
@@ -177,7 +177,7 @@ class TestBeforeAfterMatched {
             it.skipRemainingHandlers()
         }
         app.get("/hello") { it.result("hello") }
-        assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Not Found")
+        assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Endpoint GET /other-path not found")
         assertThat(http.getBody("/hello")).isEqualTo("static-before")
     }
 

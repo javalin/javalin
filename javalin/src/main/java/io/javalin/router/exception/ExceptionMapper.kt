@@ -23,16 +23,18 @@ class ExceptionMapper(private val routerConfig: RouterConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
+    init {
+        handlers[HttpResponseException::class.java] = ExceptionHandler { e, ctx ->
+            HttpResponseExceptionMapper.handle(e as HttpResponseException, ctx)
+        }
+    }
+
     internal fun handle(ctx: Context, t: Throwable) {
         if (t is CompletionException && t.cause is Exception) {
             return handle(ctx, t.cause as Exception)
         }
         when {
             isSomewhatExpectedException(t) -> logDebugAndSetError(t, ctx.res())
-            t is Exception && HttpResponseExceptionMapper.canHandle(t) && noUserHandler(t) -> HttpResponseExceptionMapper.handle(
-                t as HttpResponseException,
-                ctx
-            )
             t is Exception -> Util.findByClass(handlers, t.javaClass)?.handle(t, ctx) ?: uncaughtException(ctx, t)
             else -> handleUnexpectedThrowable(ctx.res(), t)
         }
@@ -52,9 +54,6 @@ class ExceptionMapper(private val routerConfig: RouterConfig) {
         }
         return null
     }
-
-    private fun noUserHandler(exception: Exception) =
-        this.handlers[exception::class.java] == null && this.handlers[HttpResponseException::class.java] == null
 
 }
 
