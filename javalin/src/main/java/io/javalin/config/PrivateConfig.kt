@@ -31,8 +31,9 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField var singlePageHandler = SinglePageHandler()
     @JvmField var wsLogger: WsConfig? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
-    @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.BEFORE_MATCHED, DefaultTasks.HTTP, DefaultTasks.AFTER_MATCHED, DefaultTasks.ERROR, DefaultTasks.AFTER)
+    @JvmField var servletRequestLifecycle = mutableListOf(DefaultTasks.BEFORE, DefaultTasks.BEFORE_MATCHED, DefaultTasks.HTTP, DefaultTasks.AFTER_MATCHED, DefaultTasks.ERROR, DefaultTasks.AFTER)
     @JvmField var servlet: Lazy<ServletEntry> = javalinLazy { createJettyServletWithWebsocketsIfAvailable(cfg) ?: ServletEntry(servlet = JavalinServlet(cfg)) }
+
     // Jetty
     @JvmField var jetty = JettyInternalConfig()
 

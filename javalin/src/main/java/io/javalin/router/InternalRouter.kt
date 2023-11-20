@@ -37,15 +37,14 @@ open class InternalRouter(
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    open fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): InternalRouter {
-        val roleSet = HashSet(roles.asList())
-        httpPathMatcher.add(HttpHandlerEntry(handlerType, path, routerConfig, roleSet, handler))
+    open fun addHttpEndpoint(endpoint: Endpoint): InternalRouter {
+        httpPathMatcher.add(ParsedEndpoint(endpoint, routerConfig))
         eventManager.fireHandlerAddedEvent(
             HandlerMetaInfo(
-                httpMethod = handlerType,
-                path = Util.prefixContextPath(routerConfig.contextPath, path),
-                handler = handler,
-                roles = roleSet
+                httpMethod = endpoint.method,
+                path = Util.prefixContextPath(routerConfig.contextPath, endpoint.path),
+                handler = endpoint.handler,
+                roles = endpoint.roles
             )
         )
         return this
@@ -54,7 +53,7 @@ open class InternalRouter(
     /**
      * Get a list of all registered HTTP handlers.
      */
-    fun allHttpHandlers(): List<HttpHandlerEntry> = httpPathMatcher.allEntries()
+    fun allHttpHandlers(): List<ParsedEndpoint> = httpPathMatcher.allEntries()
 
     /**
      * Checks if the instance has a handler for the specified handlerType and path.
@@ -66,7 +65,7 @@ open class InternalRouter(
      * Finds all matching handlers for the specified handlerType and path.
      * @return a handler for the specified handlerType and path, or null if no handler is found
      */
-    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<HttpHandlerEntry> =
+    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<ParsedEndpoint> =
         httpPathMatcher.findEntries(handlerType, requestUri)
 
     /**

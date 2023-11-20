@@ -36,6 +36,27 @@ class TestLogging {
     }
 
     @Test
+    fun `dev logging does log static files by default`() {
+        assertThat(testStaticFiles(skipStaticFiles = false)).contains("script.js")
+    }
+
+    @Test
+    fun `can skip static files for dev logging`() {
+        assertThat(testStaticFiles(skipStaticFiles = true)).doesNotContain("script.js")
+    }
+
+    private fun testStaticFiles(skipStaticFiles: Boolean): String {
+        return captureStdOut {
+            TestUtil.test(Javalin.create {
+                it.staticFiles.add("/public")
+                it.registerPlugin(DevLoggingPlugin { it.skipStaticFiles = skipStaticFiles })
+            }) { _, http ->
+                assertThat(http.get("/script.js").body).isEqualTo("document.write(\"<h2>JavaScript works</h2>\");")
+            }
+        }
+    }
+
+    @Test
     fun `dev logging works with inputstreams`() = TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, http ->
         val fileStream = TestLogging::class.java.getResourceAsStream("/public/file")
         app.get("/") { it.result(fileStream) }

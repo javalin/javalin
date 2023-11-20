@@ -7,6 +7,7 @@
 package io.javalin.http.servlet
 
 import io.javalin.config.JavalinConfig
+import io.javalin.http.Context
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.REQUEST_TIMEOUT
 import io.javalin.http.servlet.SubmitOrder.FIRST
@@ -21,10 +22,15 @@ import jakarta.servlet.http.HttpServletResponse
 
 class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
-    private val servletContextConfig by javalinLazy { JavalinServletContextConfig.of(cfg) }
+    val requestLifecycle = cfg.pvt.servletRequestLifecycle.toList()
     val router = cfg.pvt.internalRouter
+    private val servletContextConfig by javalinLazy { JavalinServletContextConfig.of(cfg) }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
+        handle(request, response)
+    }
+
+    fun handle(request: HttpServletRequest, response: HttpServletResponse): Context? {
         try {
             val ctx = JavalinServletContext(
                 cfg = servletContextConfig,
@@ -39,11 +45,13 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                 }
             }
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
-            cfg.pvt.servletRequestLifecycle.forEach { it.createTasks(submitTask, this, ctx, requestUri) }
+            requestLifecycle.forEach { it.createTasks(submitTask, this, ctx, requestUri) }
 
             ctx.handleSync()
+            return ctx
         } catch (throwable: Throwable) {
             router.handleHttpUnexpectedThrowable(response, throwable)
+            return null
         }
     }
 

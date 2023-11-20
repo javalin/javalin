@@ -4,7 +4,6 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.post
 import io.javalin.plugin.bundled.RouteOverviewPlugin
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -51,7 +50,7 @@ class TestRouteOverviewPlugin {
 
     private fun assertAllPathsPresent(app: Javalin, http: HttpUtil) {
         val router = app.unsafeConfig().pvt.internalRouter
-        val allPaths = router.allHttpHandlers().map { it.path } + router.allWsHandlers().map { it.path }
+        val allPaths = router.allHttpHandlers().map { it.endpoint.path } + router.allWsHandlers().map { it.path }
         val overviewHtml = http.getBody("/overview")
         allPaths.forEach { assertThat(overviewHtml).contains(it) }
     }
