@@ -39,7 +39,7 @@ class TestBeforeAfterMatched {
             response,
             path,
             404,
-            "Endpoint $path not found",
+            "Endpoint GET $path not found",
             "",
             "",
             ""
@@ -57,7 +57,7 @@ class TestBeforeAfterMatched {
             response,
             path,
             404,
-            "Endpoint $path not found",
+            "Endpoint GET $path not found",
             "",
             "",
             ""
@@ -75,7 +75,7 @@ class TestBeforeAfterMatched {
             response,
             path,
             404,
-            "Endpoint $path not found",
+            "Endpoint GET $path not found",
             "",
             "",
             ""
