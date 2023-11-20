@@ -25,7 +25,7 @@ class ComponentManager {
     fun <COMPONENT> resolve(accessor: ComponentAccessor<COMPONENT>, ctx: Context?): COMPONENT =
         componentResolvers[accessor]
             ?.resolve(ctx) as COMPONENT
-            ?: throw IllegalStateException("No component resolver registered for ${accessor.id}")
+            ?: throw ComponentNotFoundException(accessor)
 
     @Suppress("UNCHECKED_CAST")
     fun <COMPONENT, CFG> resolve(accessor: ConfigurableComponentAccessor<COMPONENT, CFG>, config: Consumer<CFG>, ctx: Context?): COMPONENT =
@@ -36,6 +36,6 @@ class ComponentManager {
                 config.accept(cfg)
                 it.resolve(cfg, ctx)
             }
-            ?: throw IllegalStateException("No component resolver registered for ${accessor.id}")
+            ?: throw ComponentNotFoundException(accessor)
 
 }

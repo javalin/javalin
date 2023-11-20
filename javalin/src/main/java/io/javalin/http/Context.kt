@@ -9,6 +9,7 @@ package io.javalin.http
 import io.javalin.component.ComponentAccessor
 import io.javalin.component.ConfigurableComponentAccessor
 import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
+import io.javalin.http.ContentType.APPLICATION_JSON
 import io.javalin.http.servlet.MaxRequestSize
 import io.javalin.http.servlet.attributeOrCompute
 import io.javalin.http.servlet.cacheAndSetSessionAttribute
@@ -18,13 +19,13 @@ import io.javalin.http.servlet.getCachedRequestAttributeOrSessionAttribute
 import io.javalin.http.servlet.getRequestCharset
 import io.javalin.http.servlet.readAndResetStreamIfPossible
 import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
-import io.javalin.http.util.AsyncExecutor
+import io.javalin.http.util.AsyncExecutor.Companion.UseAsyncExecutor
 import io.javalin.http.util.AsyncTaskConfig
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.json.JsonMapper
-import io.javalin.rendering.FileRenderer
+import io.javalin.rendering.FileRenderer.Companion.UseFileRenderer
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.function.ThrowingRunnable
@@ -370,7 +371,7 @@ interface Context {
      * so it's just not thread-safe.
      */
     fun async(config: Consumer<AsyncTaskConfig>, task: ThrowingRunnable<Exception>) =
-        use(AsyncExecutor.UseAsyncExecutor).submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
+        use(UseAsyncExecutor).submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
 
     /* @see [async] */
     fun async(task: ThrowingRunnable<Exception>) = async(config = {}, task = task)
@@ -435,7 +436,7 @@ interface Context {
      * Serializes object to a JSON-string using the registered [io.javalin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun json(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonString(obj, type))
+    fun json(obj: Any, type: Type): Context = contentType(APPLICATION_JSON).result(jsonMapper().toJsonString(obj, type))
 
     /** @see [json] */
     fun json(obj: Any): Context = json(obj, obj::class.java)
@@ -444,7 +445,7 @@ interface Context {
      * Serializes object to a JSON-stream using the registered [io.javalin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun jsonStream(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonStream(obj, type))
+    fun jsonStream(obj: Any, type: Type): Context = contentType(APPLICATION_JSON).result(jsonMapper().toJsonStream(obj, type))
 
     /** @see [jsonStream] */
     fun jsonStream(obj: Any): Context = jsonStream(obj, obj::class.java)
@@ -466,7 +467,7 @@ interface Context {
      * Also sets content-type to text/html.
      * Determines the correct rendering-function based on the file extension.
      */
-    fun render(filePath: String, model: Map<String, Any?>): Context = html(use(FileRenderer.UseFileRenderer).render(filePath, model, this))
+    fun render(filePath: String, model: Map<String, Any?>): Context = html(use(UseFileRenderer).render(filePath, model, this))
 
     /** @see render() */
     fun render(filePath: String): Context = render(filePath, mutableMapOf())

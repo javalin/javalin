@@ -21,3 +21,7 @@ fun interface ComponentResolver<COMPONENT : Any?> {
 fun interface ConfigurableComponentResolver<COMPONENT : Any?, CFG> {
     fun resolve(config: CFG, ctx: Context?): COMPONENT
 }
+
+class ComponentNotFoundException(
+    accessor: ComponentAccessor<*>
+) : IllegalStateException("No component resolver registered for ${accessor.id}")
