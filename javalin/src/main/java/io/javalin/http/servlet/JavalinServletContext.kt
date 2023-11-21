@@ -70,7 +70,7 @@ class JavalinServletContext(
     internal var endpointHandlerPath: String = "",
     internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
     private var resultStream: InputStream? = null,
-    override var minSizeForCompression: Int = cfg.compressionStrategy.defaultMinSizeForCompression,
+    private var minSizeForCompression: Int = cfg.compressionStrategy.defaultMinSizeForCompression,
 ) : Context {
 
     init {
@@ -137,6 +137,10 @@ class JavalinServletContext(
         CompressedOutputStream(minSizeForCompression, cfg.compressionStrategy, this)
     }
     override fun outputStream(): ServletOutputStream = outputStreamWrapper.value
+
+    override fun minSizeForCompression(minSizeForCompression: Int) = also {
+        this.minSizeForCompression = minSizeForCompression
+    }
 
     override fun redirect(location: String, status: HttpStatus) {
         header(Header.LOCATION, location).status(status).result("Redirected")
