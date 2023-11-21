@@ -11,7 +11,7 @@ import io.javalin.http.Header
  */
 class ContextResolverConfig {
     companion object {
-        @JvmField val UseContextResolver = ComponentAccessor(ContextResolverConfig::class.java, "javalin-context-resolver")
+        internal val UseContextResolver = ComponentAccessor(ContextResolverConfig::class.java, "javalin-context-resolver")
     }
     // @formatter:off
     /** The IP address resolver (default: reads the `remoteAddr` part of the request) */
