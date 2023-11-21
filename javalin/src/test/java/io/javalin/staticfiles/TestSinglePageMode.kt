@@ -89,8 +89,8 @@ class TestSinglePageMode {
 
     @Test
     fun `SinglePageHandler doesn't affect JSON requests - classpath`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
-        assertThat(http.jsonGet("/").body).contains(NOT_FOUND.message)
-        assertThat(http.jsonGet("/not-a-file.html").body).contains(NOT_FOUND.message)
+        assertThat(http.jsonGet("/").body).contains("Endpoint GET / not found")
+        assertThat(http.jsonGet("/not-a-file.html").body).contains("Endpoint GET /not-a-file.html not found")
         assertThat(http.jsonGet("/not-a-file.html").httpCode()).isEqualTo(NOT_FOUND)
     }
 
@@ -111,7 +111,7 @@ class TestSinglePageMode {
 
     @Test
     fun `SinglePageHandler works for just subpaths - classpath`() = TestUtil.test(dualSinglePageApp_classPath) { _, http ->
-        assertThat(http.htmlGet("/").body).contains(NOT_FOUND.message)
+        assertThat(http.htmlGet("/").body).contains("Endpoint GET / not found")
         assertThat(http.htmlGet("/").httpCode()).isEqualTo(NOT_FOUND)
         assertThat(http.htmlGet("/admin").body).contains("Secret file")
         assertThat(http.htmlGet("/admin/not-a-path").body).contains("Secret file")

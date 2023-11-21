@@ -7,6 +7,7 @@ import io.javalin.http.MethodNotAllowedResponse
 import io.javalin.http.NotFoundResponse
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
+import io.javalin.router.EndpointNotFound
 import io.javalin.security.RouteRole
 import io.javalin.util.Util.firstOrNull
 import io.javalin.util.javalinLazy
@@ -57,7 +58,7 @@ object DefaultTasks {
             if (servlet.cfg.http.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
                 throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
             }
-            throw NotFoundResponse()
+            throw EndpointNotFound(method = ctx.method(), path = requestUri)
         })
     }
 

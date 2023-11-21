@@ -353,7 +353,7 @@ class TestCompression {
             ctx.contentType(ContentType.APPLICATION_JSON).result(sampleJson10k)
         }
         testValidUncompressedHandler { ctx ->
-            ctx.minSizeForCompression = sampleJson10k.length + 1
+            ctx.minSizeForCompression(sampleJson10k.length + 1)
             ctx.contentType(ContentType.APPLICATION_JSON).result(sampleJson10k)
         }
     }
@@ -362,7 +362,7 @@ class TestCompression {
     fun `compresses a large string of JSON with direct single byte writes to outputStream`() {
         testValidCompressionHandler { ctx ->
             ctx.contentType(ContentType.APPLICATION_JSON)
-            ctx.minSizeForCompression = 0 // must force compression to use single byte writes
+            ctx.minSizeForCompression(0) // must force compression to use single byte writes
             val out = ctx.outputStream()
             sampleJson10k.forEach { out.write(it.code) }
         }
@@ -382,7 +382,7 @@ class TestCompression {
         }
         testValidUncompressedHandler { ctx ->
             ctx.contentType(ContentType.APPLICATION_JSON)
-            ctx.minSizeForCompression = sampleJson10k.length + 1
+            ctx.minSizeForCompression(sampleJson10k.length + 1)
             val out = ctx.outputStream()
             sampleJson10k.map { it.code.toByte() }.toByteArray().let { bytes -> out.write(bytes) }
         }
@@ -392,7 +392,7 @@ class TestCompression {
     fun `compresses a small string of JSON with direct byte array writes to outputStream`() {
         testValidCompressionHandler { ctx ->
             ctx.contentType(ContentType.APPLICATION_JSON)
-            ctx.minSizeForCompression = 0 // must force compression since small string is below default threshold
+            ctx.minSizeForCompression(0) // must force compression since small string is below default threshold
             val out = ctx.outputStream()
             sampleJson100.map { it.code.toByte() }.toByteArray().let { bytes -> out.write(bytes) }
         }

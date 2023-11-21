@@ -314,11 +314,11 @@ interface Context {
     /**
      * The output stream returned by outputStream() will use compression (as specified in Javalin configuration), but
      * compression will happen only if the first write to the output stream is larger than `minSizeForCompression`.
-     * Setting this value to zero will cause compression to always be used. This value must be assigned before calling
-     * outputStream() for the first time. The default value is set to the value of
-     * [io.javalin.compression.CompressionStrategy.defaultMinSizeForCompression].
+     * Calling this function with a value of zero will cause compression to always be used.
+     * The default value is set to the value of [io.javalin.compression.CompressionStrategy.defaultMinSizeForCompression].
+     * This function must be called before calling [outputStream] for the first time.
      */
-    var minSizeForCompression: Int
+    fun minSizeForCompression(minSizeForCompression: Int): Context
 
     /**
      * Writes the specified inputStream as a seekable stream.
