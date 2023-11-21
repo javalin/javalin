@@ -350,7 +350,7 @@ class TestWebSocket {
         val maxTextSize = 1L
         val textToSend = "This text is far too long."
         val app = Javalin.create {
-            it.jetty.modifyJettyWebSocketServletFactory { wsFactory ->
+            it.jetty.modifyWebSocketServletFactory { wsFactory ->
                 wsFactory.maxTextMessageSize = maxTextSize
             }
         }.ws("/ws") { ws ->

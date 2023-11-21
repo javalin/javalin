@@ -16,11 +16,10 @@ import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
-import jakarta.servlet.http.HttpSessionEvent
-import jakarta.servlet.http.HttpSessionListener
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.junit.jupiter.api.Test
 
 class TestConfiguration {
@@ -47,16 +46,14 @@ class TestConfiguration {
             it.requestLogger.ws { ws -> }
             it.showJavalinBanner = false
             it.router.contextPath = "/"
-            it.jetty.modifyJettyWebSocketServletFactory() { factory -> }
+            it.jetty.defaultHost = "localhost"
+            it.jetty.defaultPort = 1234
+            it.jetty.threadPool = QueuedThreadPool()
+            it.jetty.modifyWebSocketServletFactory { factory -> }
             it.jetty.modifyServer { server -> }
-            it.jetty.modifyServletContextHandler { handler ->
-                handler.addEventListener(object : HttpSessionListener {
-                    override fun sessionCreated(e: HttpSessionEvent?) {}
-                    override fun sessionDestroyed(e: HttpSessionEvent?) {}
-                })
-            }
-            it.jetty.modifyHttpConfiguration() { httpConfig -> }
-            it.jetty.addConnector { server, _ -> ServerConnector(server) }
+            it.jetty.modifyServletContextHandler { handler -> }
+            it.jetty.modifyHttpConfiguration { httpConfig -> }
+            it.jetty.addConnector { server, httpConfig -> ServerConnector(server) }
         }
         assertThat(app.jettyServer().started()).isTrue()
         app.stop()
