@@ -3,7 +3,9 @@ package io.javalin.router
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
+import io.javalin.http.NotFoundResponse
 import io.javalin.security.RouteRole
+import org.eclipse.jetty.http.HttpMethod
 
 /**
  * Represents an HTTP endpoint in the application.
@@ -39,3 +41,8 @@ open class Endpoint @JvmOverloads constructor(
 fun interface EndpointExecutor {
     fun execute(endpoint: Endpoint): Context
 }
+
+class EndpointNotFound(
+    method: HandlerType,
+    path: String
+) : NotFoundResponse("Endpoint ${method.name} $path not found")

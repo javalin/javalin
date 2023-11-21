@@ -20,8 +20,8 @@ class TestStaticDirectorySlash {
     private val normalJavalin: Javalin by lazy { Javalin.create { it.staticFiles.add("public", Location.CLASSPATH) } }
 
     private val precompressingJavalin: Javalin by lazy {
-        Javalin.create {
-            it.staticFiles.add {
+        Javalin.create { cfg ->
+            cfg.staticFiles.add {
                 it.directory = "public"
                 it.location = Location.CLASSPATH
                 it.precompress = true
@@ -45,13 +45,13 @@ class TestStaticDirectorySlash {
     @Test
     fun `normal Javalin serves files but serves directory if it is a directory`() = TestUtil.test(normalJavalin) { _, http ->
         assertThat(http.getBody("/file")).isEqualTo("TESTFILE") // ok, is file = no slash
-        assertThat(http.getBody("/file/")).isEqualTo(NOT_FOUND.message) // nope, has slash must be directory
+        assertThat(http.getBody("/file/")).isEqualTo("Endpoint GET /file/ not found") // nope, has slash must be directory
     }
 
     @Test
     fun `precompressing Javalin serves files but serves directory if it is a directory`() = TestUtil.test(precompressingJavalin) { _, http ->
         assertThat(http.getBody("/file")).isEqualTo("TESTFILE") // ok, is file = no slash
-        assertThat(http.getBody("/file/")).isEqualTo(NOT_FOUND.message) // nope, has slash must be directory
+        assertThat(http.getBody("/file/")).isEqualTo("Endpoint GET /file/ not found") // nope, has slash must be directory
     }
 
 }

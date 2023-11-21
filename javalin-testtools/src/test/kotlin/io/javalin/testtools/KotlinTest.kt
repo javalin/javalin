@@ -100,7 +100,7 @@ class KotlinTest {
     @Test
     fun `testing full app works`() = JavalinTest.test(KotlinApp.app) { server, client ->
         assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, app!");
-        assertThat(client.get("/hello/").body?.string()).isEqualTo(NOT_FOUND.message); // KotlinApp.app won't ignore trailing slashes
+        assertThat(client.get("/hello/").body?.string()).isEqualTo("Endpoint GET /hello/ not found"); // KotlinApp.app won't ignore trailing slashes
     }
 
     val javalinTest = TestTool(TestConfig(false))

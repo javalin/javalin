@@ -172,7 +172,7 @@ class TestStaticFiles {
     @Test
     fun `directory root returns simple 404 if there is no welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/").httpCode()).isEqualTo(NOT_FOUND)
-        assertThat(http.getBody("/")).isEqualTo(NOT_FOUND.message)
+        assertThat(http.getBody("/")).isEqualTo("Endpoint GET / not found")
     }
 
     @Test

@@ -30,7 +30,7 @@ class TestFilters {
         app.before(TestUtil.okHandler)
         val response = http.call(HttpMethod.GET, "/hello")
         assertThat(response.httpCode()).isEqualTo(NOT_FOUND)
-        assertThat(response.body).isEqualTo(NOT_FOUND.message)
+        assertThat(response.body).isEqualTo("Endpoint GET /hello not found")
     }
 
     @Test
@@ -38,7 +38,7 @@ class TestFilters {
         app.before(TestUtil.okHandler)
         val response = http.call(HttpMethod.POST, "/hello")
         assertThat(response.httpCode()).isEqualTo(NOT_FOUND)
-        assertThat(response.body).isEqualTo(NOT_FOUND.message)
+        assertThat(response.body).isEqualTo("Endpoint POST /hello not found")
     }
 
     @Test
