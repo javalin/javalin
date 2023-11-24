@@ -17,9 +17,8 @@ public class HelloWorldAsync {
             ctx.async(
                 (asyncConfig) -> {
                     asyncConfig.timeout = 1000L;
-                    asyncConfig.onTimeout = timeoutCtx -> timeoutCtx.result("Request timed out :<");
-                },
-                () -> {
+                    asyncConfig.onTimeout = () -> ctx.result("Request timed out :<");
+                }, () -> {
                     Thread.sleep((long) (Math.random() * 2000L));
                     ctx.result("Hello Javalin");
                 }

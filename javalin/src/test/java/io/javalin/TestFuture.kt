@@ -277,7 +277,7 @@ internal class TestFuture {
             app.get("/") { ctx ->
                 ctx.async({ config ->
                     config.timeout = 10L
-                    config.onTimeout = Consumer { it.result("Timeout") }
+                    config.onTimeout = { ctx.result("Timeout") }
                 }) {
                     Thread.sleep(500L)
                     ctx.result("Result")

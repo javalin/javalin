@@ -28,7 +28,7 @@ class AsyncTaskConfig(
      * Timeout listener executed when [TimeoutException] is thrown in specified task.
      * This timeout listener is a part of request lifecycle, so you can still modify context here.
      */
-    @JvmField var onTimeout: Consumer<Context>? = null,
+    @JvmField var onTimeout: (() -> Any)? = null,
 )
 
 internal class AsyncExecutor(useVirtualThreads: Boolean) {
@@ -53,12 +53,12 @@ internal class AsyncExecutor(useVirtualThreads: Boolean) {
                 }
                 .let { taskFuture ->
                     asyncTaskConfig.onTimeout
-                        ?.let {
+                        ?.let { timeoutCallback ->
                             taskFuture.exceptionally { exception ->
                                 exception as? TimeoutException
                                     ?: exception?.cause as? TimeoutException?
                                     ?: throw exception // rethrow if exception or its cause is not TimeoutException
-                                it.accept(context)
+                                timeoutCallback()
                                 null // handled
                             }
                         }
