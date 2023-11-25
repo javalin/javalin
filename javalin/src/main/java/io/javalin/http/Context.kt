@@ -76,9 +76,6 @@ interface Context {
     /** Gets a component */
     fun <COMPONENT> use(accessor: ComponentAccessor<COMPONENT>): COMPONENT
 
-    /** Gets a component */
-    fun <COMPONENT, CFG> use(accessor: ConfigurableComponentAccessor<COMPONENT, CFG>, userConfig: Consumer<CFG>): COMPONENT
-
     /** Get configured [JsonMapper] */
     fun jsonMapper(): JsonMapper
 

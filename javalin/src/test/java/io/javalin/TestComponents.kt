@@ -42,13 +42,19 @@ internal class TestComponents {
 
     private class Database(val readOnly: Boolean)
     private class TestCfg(var readOnlyTransaction: Boolean)
+    @Suppress("DEPRECATION")
     private val useDatabase = ConfigurableComponentAccessor(Database::class.java, { TestCfg(readOnlyTransaction = false) })
 
+    @Suppress("DEPRECATION")
     @Test
     fun `configurable component returns requested component`() = TestUtil.test(Javalin.create {
-        it.registerComponent(useDatabase) { cfg, _ -> Database(cfg.readOnlyTransaction) }
+        it.pvt.componentManager.registerResolver(useDatabase) { cfg, _ -> Database(cfg.readOnlyTransaction) }
     }) { app, http ->
-        app.get("/") { ctx -> ctx.result(ctx.use(useDatabase) { it.readOnlyTransaction = true }.readOnly.toString()) }
+        app.get("/") { ctx ->
+            ctx.result(
+                app.unsafeConfig().pvt.componentManager.resolve(useDatabase, { it.readOnlyTransaction = true }, ctx).readOnly.toString()
+            )
+        }
         assertThat(http.getBody("/")).isEqualTo("true")
     }
 

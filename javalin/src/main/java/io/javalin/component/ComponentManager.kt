@@ -3,6 +3,7 @@ package io.javalin.component
 import io.javalin.http.Context
 import java.util.IdentityHashMap
 import java.util.function.Consumer
+import org.jetbrains.annotations.ApiStatus.Experimental
 
 class ComponentManager {
 
@@ -17,6 +18,8 @@ class ComponentManager {
         componentResolvers.putIfAbsent(accessor, resolver)
     }
 
+    @Experimental
+    @Deprecated("Experimental")
     fun <COMPONENT, CFG> registerResolver(accessor: ConfigurableComponentAccessor<COMPONENT, CFG>, resolver: ConfigurableComponentResolver<COMPONENT, CFG>) {
         configurableComponentResolvers[accessor] = resolver
     }
@@ -27,6 +30,8 @@ class ComponentManager {
             ?.resolve(ctx) as COMPONENT
             ?: throw ComponentNotFoundException(accessor)
 
+    @Experimental
+    @Deprecated("Experimental")
     @Suppress("UNCHECKED_CAST")
     fun <COMPONENT, CFG> resolve(accessor: ConfigurableComponentAccessor<COMPONENT, CFG>, config: Consumer<CFG>, ctx: Context?): COMPONENT =
         configurableComponentResolvers[accessor]

@@ -105,16 +105,6 @@ class JavalinConfig {
     fun <COMPONENT : Any?> registerComponent(key: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) =
         pvt.componentManager.registerResolver(key, resolver)
 
-    /**
-     * Register a new configurable component resolver.
-     * @param COMPONENT the type of the component
-     * @param CFG the type of the configuration class for the component
-     * @param key unique [ConfigurableComponentAccessor] for the component
-     * @param resolver the [ConfigurableComponentResolver] for the component. This will be called each time the component is requested.
-     */
-    fun <COMPONENT : Any?, CFG> registerComponent(key: ConfigurableComponentAccessor<COMPONENT, CFG>, resolver: ConfigurableComponentResolver<COMPONENT, CFG>) =
-        pvt.componentManager.registerResolver(key, resolver)
-
     companion object {
         @JvmStatic
         fun applyUserConfig(cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {

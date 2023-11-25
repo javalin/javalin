@@ -2,12 +2,15 @@ package io.javalin.component
 
 import io.javalin.http.Context
 import java.util.function.Supplier
+import org.jetbrains.annotations.ApiStatus.Experimental
 
 open class ComponentAccessor<COMPONENT : Any?> @JvmOverloads constructor(
     val type: Class<COMPONENT>,
     val id: String = type.name
 )
 
+@Deprecated("Experimental")
+@Experimental
 class ConfigurableComponentAccessor<COMPONENT : Any?, CFG> @JvmOverloads constructor(
     type: Class<COMPONENT>,
     val defaultConfig: Supplier<CFG>,
@@ -18,6 +21,8 @@ fun interface ComponentResolver<COMPONENT : Any?> {
     fun resolve(ctx: Context?): COMPONENT
 }
 
+@Deprecated("Experimental")
+@Experimental
 fun interface ConfigurableComponentResolver<COMPONENT : Any?, CFG> {
     fun resolve(config: CFG, ctx: Context?): COMPONENT
 }
