@@ -8,8 +8,6 @@ package io.javalin.config
 import io.javalin.Javalin
 import io.javalin.component.ComponentAccessor
 import io.javalin.component.ComponentResolver
-import io.javalin.component.ConfigurableComponentAccessor
-import io.javalin.component.ConfigurableComponentResolver
 import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
 import io.javalin.http.servlet.MaxRequestSize.UseMaxRequestSize
 import io.javalin.http.util.AsyncExecutor.Companion.UseAsyncExecutor
@@ -103,7 +101,7 @@ class JavalinConfig {
      * @param resolver the [ComponentResolver] for the component. This will be called each time the component is requested.
      */
     fun <COMPONENT : Any?> registerComponent(key: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) =
-        pvt.componentManager.registerResolver(key, resolver)
+        pvt.componentManager.register(key, resolver)
 
     companion object {
         @JvmStatic

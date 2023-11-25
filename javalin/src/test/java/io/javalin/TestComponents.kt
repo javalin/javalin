@@ -48,7 +48,7 @@ internal class TestComponents {
     @Suppress("DEPRECATION")
     @Test
     fun `configurable component returns requested component`() = TestUtil.test(Javalin.create {
-        it.pvt.componentManager.registerResolver(useDatabase) { cfg, _ -> Database(cfg.readOnlyTransaction) }
+        it.pvt.componentManager.register(useDatabase) { cfg, _ -> Database(cfg.readOnlyTransaction) }
     }) { app, http ->
         app.get("/") { ctx ->
             ctx.result(
