@@ -8,7 +8,7 @@ package io.javalin
 
 import com.google.gson.GsonBuilder
 import io.javalin.component.ComponentAccessor
-import io.javalin.component.ConfigurableComponentAccessor
+import io.javalin.component.ParametrizedComponentAccessor
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -41,13 +41,13 @@ internal class TestComponents {
     }
 
     private class Database(val readOnly: Boolean)
-    private class TestCfg(var readOnlyTransaction: Boolean)
+    private class DatabaseParameters(var readOnlyTransaction: Boolean)
     @Suppress("DEPRECATION")
-    private val useDatabase = ConfigurableComponentAccessor(Database::class.java, { TestCfg(readOnlyTransaction = false) })
+    private val useDatabase = ParametrizedComponentAccessor(Database::class.java, { DatabaseParameters(readOnlyTransaction = false) })
 
     @Suppress("DEPRECATION")
     @Test
-    fun `configurable component returns requested component`() = TestUtil.test(Javalin.create {
+    fun `parametrized component returns requested component`() = TestUtil.test(Javalin.create {
         it.pvt.componentManager.register(useDatabase) { cfg, _ -> Database(cfg.readOnlyTransaction) }
     }) { app, http ->
         app.get("/") { ctx ->

@@ -7,7 +7,6 @@
 package io.javalin.http
 
 import io.javalin.component.ComponentAccessor
-import io.javalin.component.ConfigurableComponentAccessor
 import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
 import io.javalin.http.ContentType.APPLICATION_JSON
 import io.javalin.http.servlet.MaxRequestSize

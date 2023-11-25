@@ -11,9 +11,9 @@ open class ComponentAccessor<COMPONENT : Any?> @JvmOverloads constructor(
 
 @Deprecated("Experimental")
 @Experimental
-class ConfigurableComponentAccessor<COMPONENT : Any?, CFG> @JvmOverloads constructor(
+class ParametrizedComponentAccessor<COMPONENT : Any?, PARAMETERS> @JvmOverloads constructor(
     type: Class<COMPONENT>,
-    val defaultConfig: Supplier<CFG>,
+    val defaultValues: Supplier<PARAMETERS>,
     id: String = type.name
 ) : ComponentAccessor<COMPONENT>(type, id)
 
@@ -23,7 +23,7 @@ fun interface ComponentResolver<COMPONENT : Any?> {
 
 @Deprecated("Experimental")
 @Experimental
-fun interface ConfigurableComponentResolver<COMPONENT : Any?, CFG> {
+fun interface ParametrizedComponentResolver<COMPONENT : Any?, CFG> {
     fun resolve(config: CFG, ctx: Context?): COMPONENT
 }
 

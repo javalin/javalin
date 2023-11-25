@@ -9,7 +9,7 @@ class ComponentManager {
 
     private val componentResolvers = IdentityHashMap<ComponentAccessor<*>, ComponentResolver<*>>()
     @Suppress("DEPRECATION")
-    private val configurableComponentResolvers = IdentityHashMap<ConfigurableComponentAccessor<*, *>, ConfigurableComponentResolver<*, *>>()
+    private val parametrizedComponentResolvers = IdentityHashMap<ParametrizedComponentAccessor<*, *>, ParametrizedComponentResolver<*, *>>()
 
     fun <COMPONENT> register(accessor: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) {
         componentResolvers[accessor] = resolver
@@ -22,8 +22,8 @@ class ComponentManager {
     @Experimental
     @Deprecated("Experimental")
     @Suppress("DEPRECATION")
-    fun <COMPONENT, CFG> register(accessor: ConfigurableComponentAccessor<COMPONENT, CFG>, resolver: ConfigurableComponentResolver<COMPONENT, CFG>) {
-        configurableComponentResolvers[accessor] = resolver
+    fun <COMPONENT, CFG> register(accessor: ParametrizedComponentAccessor<COMPONENT, CFG>, resolver: ParametrizedComponentResolver<COMPONENT, CFG>) {
+        parametrizedComponentResolvers[accessor] = resolver
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -35,13 +35,17 @@ class ComponentManager {
     @Experimental
     @Deprecated("Experimental")
     @Suppress("UNCHECKED_CAST", "DEPRECATION")
-    fun <COMPONENT, CFG> resolve(accessor: ConfigurableComponentAccessor<COMPONENT, CFG>, config: Consumer<CFG>, ctx: Context?): COMPONENT =
-        configurableComponentResolvers[accessor]
-            ?.let { it as ConfigurableComponentResolver<COMPONENT, CFG> }
+    fun <COMPONENT, PARAMETERS> resolve(
+        accessor: ParametrizedComponentAccessor<COMPONENT, PARAMETERS>,
+        userArguments: Consumer<PARAMETERS>,
+        ctx: Context?
+    ): COMPONENT =
+        parametrizedComponentResolvers[accessor]
+            ?.let { it as ParametrizedComponentResolver<COMPONENT, PARAMETERS> }
             ?.let {
-                val cfg = accessor.defaultConfig.get()
-                config.accept(cfg)
-                it.resolve(cfg, ctx)
+                val arguments = accessor.defaultValues.get()
+                userArguments.accept(arguments)
+                it.resolve(arguments, ctx)
             }
             ?: throw ComponentNotFoundException(accessor)
 

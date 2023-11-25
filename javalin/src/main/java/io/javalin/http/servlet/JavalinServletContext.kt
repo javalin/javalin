@@ -8,7 +8,6 @@ package io.javalin.http.servlet
 
 import io.javalin.component.ComponentAccessor
 import io.javalin.component.ComponentManager
-import io.javalin.component.ConfigurableComponentAccessor
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
 import io.javalin.config.JavalinConfig
@@ -36,7 +35,6 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Consumer
 import java.util.function.Supplier
 import kotlin.LazyThreadSafetyMode.*
 import java.util.stream.Stream
