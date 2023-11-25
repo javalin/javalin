@@ -102,10 +102,7 @@ class JavalinServletContext(
     override fun req(): HttpServletRequest = req
     override fun res(): HttpServletResponse = res
 
-    override fun <COMPONENT> use(accessor: ComponentAccessor<COMPONENT>): COMPONENT =
-        cfg.componentManager.resolve(accessor, this)
-    override fun <COMPONENT, CONFIG> use(accessor: ConfigurableComponentAccessor<COMPONENT, CONFIG>, userConfig: Consumer<CONFIG>): COMPONENT =
-        cfg.componentManager.resolve(accessor, userConfig, this)
+    override fun <COMPONENT> use(accessor: ComponentAccessor<COMPONENT>): COMPONENT = cfg.componentManager.resolve(accessor, this)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 
