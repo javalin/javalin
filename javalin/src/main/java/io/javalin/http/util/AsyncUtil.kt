@@ -2,24 +2,15 @@ package io.javalin.http.util
 
 import io.javalin.config.HttpConfig
 import io.javalin.http.Context
-import io.javalin.http.util.AsyncUtil.newAsyncListener
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.function.ThrowingRunnable
-import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
-
-fun interface TimeoutListener {
-    fun onTimeout(ctx: Context)
-}
-
-fun interface ErrorListener {
-    fun onError()
-}
+import java.util.function.Consumer
 
 class AsyncTaskConfig {
     /**
@@ -33,25 +24,16 @@ class AsyncTaskConfig {
      */
     @JvmField var timeout: Long = 0
 
-    @JvmSynthetic internal var onTimeout: TimeoutListener? = null
+    @JvmSynthetic internal var onTimeout: Consumer<Context>? = null
 
     /**
      * Timeout listener executed when [TimeoutException] is thrown in specified task.
      * This timeout listener is a part of request lifecycle, so you can still modify context here.
      */
-    fun onTimeout(timeoutListener: TimeoutListener) {
+    fun onTimeout(timeoutListener: Consumer<Context>) {
         this.onTimeout = timeoutListener
     }
 
-    @JvmSynthetic internal var onError: ErrorListener? = null
-
-    /**
-     * Close listener executed when [AsyncContext] is closed/terminated.
-     * It's called when connection is already terminated, so you can't modify context here.
-     */
-    fun onError(errorListener: ErrorListener) {
-        this.onError = errorListener
-    }
 }
 
 internal class AsyncExecutor(useVirtualThreads: Boolean) {
@@ -67,12 +49,6 @@ internal class AsyncExecutor(useVirtualThreads: Boolean) {
         context.future {
             context.req().asyncContext.timeout = 0 // we're using cf timeouts below, so we need to disable default jetty timeout listener
 
-            asyncTaskConfig.onError?.let { onError ->
-                context.req().asyncContext.addListener(newAsyncListener(
-                    onError = { onError.onError() }
-                ))
-            }
-
             CompletableFuture.runAsync({ task.run() }, asyncTaskConfig.executor ?: defaultExecutor)
                 .let { taskFuture ->
                     asyncTaskConfig.timeout
@@ -87,7 +63,7 @@ internal class AsyncExecutor(useVirtualThreads: Boolean) {
                                 exception as? TimeoutException
                                     ?: exception?.cause as? TimeoutException?
                                     ?: throw exception // rethrow if exception or its cause is not TimeoutException
-                                it.onTimeout(context)
+                                it.accept(context)
                                 null // handled
                             }
                         }
