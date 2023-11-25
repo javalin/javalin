@@ -4,7 +4,6 @@ import io.javalin.config.HttpConfig
 import io.javalin.http.Context
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.function.ThrowingRunnable
-import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
 import java.util.concurrent.CompletableFuture
@@ -13,23 +12,29 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
 import java.util.function.Consumer
 
-class AsyncTaskConfig(
+class AsyncTaskConfig {
     /**
      * Thread-pool used to execute the given task,
      * You can change this default in [io.javalin.config.JavalinConfig].
      */
-    @JvmField var executor: ExecutorService? = null,
+    @JvmField var executor: ExecutorService? = null
     /**
      * Timeout in milliseconds,
      * by default it's 0 which means timeout watcher is disabled.
      */
-    @JvmField var timeout: Long = 0,
+    @JvmField var timeout: Long = 0
+
+    @JvmSynthetic internal var onTimeout: Consumer<Context>? = null
+
     /**
      * Timeout listener executed when [TimeoutException] is thrown in specified task.
      * This timeout listener is a part of request lifecycle, so you can still modify context here.
      */
-    @JvmField var onTimeout: Consumer<Context>? = null,
-)
+    fun onTimeout(timeoutListener: Consumer<Context>) {
+        this.onTimeout = timeoutListener
+    }
+
+}
 
 internal class AsyncExecutor(useVirtualThreads: Boolean) {
 
@@ -72,23 +77,23 @@ internal class AsyncExecutor(useVirtualThreads: Boolean) {
     }
 }
 
-internal object AsyncUtil {
+object AsyncUtil {
 
     internal fun Context.isAsync(): Boolean =
         req().isAsyncStarted
 
-    internal fun AsyncContext.addListener(
-        onComplete: (AsyncEvent) -> Unit = {},
-        onError: (AsyncEvent) -> Unit = {},
+    @JvmOverloads
+    fun newAsyncListener(
         onStartAsync: (AsyncEvent) -> Unit = {},
+        onError: (AsyncEvent) -> Unit = {},
         onTimeout: (AsyncEvent) -> Unit = {},
-    ): AsyncContext = apply {
-        addListener(object : AsyncListener {
+        onComplete: (AsyncEvent) -> Unit = {},
+    ): AsyncListener =
+        object : AsyncListener {
             override fun onComplete(event: AsyncEvent) = onComplete(event)
             override fun onError(event: AsyncEvent) = onError(event)
             override fun onStartAsync(event: AsyncEvent) = onStartAsync(event)
             override fun onTimeout(event: AsyncEvent) = onTimeout(event)
-        })
-    }
+        }
 
 }
