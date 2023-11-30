@@ -23,9 +23,7 @@ data class TestConfig @JvmOverloads constructor(
 class TestTool(private val testConfig: TestConfig = TestConfig()) {
 
     companion object {
-        @Suppress("UNCHECKED_CAST")
-        @JvmField
-        val UseTestLogs: ComponentAccessor<String?> = ComponentAccessor(String::class.java as Class<String?>, "testlogs")
+        @JvmField val UseTestLogs: ComponentAccessor<String?> = ComponentAccessor("testlogs")
     }
 
     class RunResult(val logs: String?, val exception: Throwable?)
