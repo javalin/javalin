@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class TestWebSocket {
 
     private data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>())
-    private val useTestLogger = ComponentAccessor(TestLogger::class.java)
+    private val useTestLogger = ComponentAccessor<TestLogger>("test-logger")
 
     private fun Javalin.logger(): TestLogger {
         val logger = TestLogger()

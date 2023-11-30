@@ -34,7 +34,7 @@ class AsyncTaskConfig(
 class AsyncExecutor(private val defaultExecutor: ExecutorService) {
 
     companion object {
-        @JvmStatic val UseAsyncExecutor = ComponentAccessor(AsyncExecutor::class.java)
+        @JvmStatic val UseAsyncExecutor = ComponentAccessor<AsyncExecutor>("javalin-default-async-executor")
     }
 
     /**

@@ -24,7 +24,7 @@ public class TestUtil {
         test(Javalin.create(), test);
     }
 
-    public static ComponentAccessor<String> UseTestLogs = new ComponentAccessor<>(String.class, "testlogs");
+    public static ComponentAccessor<String> UseTestLogs = new ComponentAccessor<>("testlogs");
 
     public static void test(Javalin app, ThrowingBiConsumer<Javalin, HttpUtil> userCode) {
         RunResult result = runAndCaptureLogs(() -> {

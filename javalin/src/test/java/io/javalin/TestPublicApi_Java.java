@@ -29,7 +29,7 @@ public class TestPublicApi_Java {
         Javalin.create(/*config*/)
             .get("/", ctx -> ctx.result("Hello World"))
             .start(7070);
-        var useTestComponent = new ComponentAccessor<>(String.class);
+        var useTestComponent = new ComponentAccessor<String>("test-component");
         var app = Javalin.create(config -> {
             config.registerComponent(useTestComponent, ctx -> "name");
             config.validation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));

@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 internal class TestComponents {
 
     private class MyOtherThing(val test: String = "Test")
-    private val useMyOtherThing = ComponentAccessor(MyOtherThing::class.java)
+    private val useMyOtherThing = ComponentAccessor<MyOtherThing>("my-other-thing")
 
     @Test
     fun `components can be accessed through the app`() = TestUtil.test(Javalin.create {
@@ -29,7 +29,7 @@ internal class TestComponents {
     private class MyJson {
         fun render(obj: Any): String = GsonBuilder().create().toJson(obj)
     }
-    private val useMyJson = ComponentAccessor(MyJson::class.java)
+    private val useMyJson = ComponentAccessor<MyJson>("my-json")
 
     @Test
     fun `components can be accessed through the Context`() = TestUtil.test(Javalin.create {
@@ -43,7 +43,7 @@ internal class TestComponents {
     private class Database(val readOnly: Boolean)
     private class DatabaseParameters(var readOnlyTransaction: Boolean)
     @Suppress("DEPRECATION")
-    private val useDatabase = ParametrizedComponentAccessor(Database::class.java, { DatabaseParameters(readOnlyTransaction = false) })
+    private val useDatabase = ParametrizedComponentAccessor<Database, DatabaseParameters>("use-database") { DatabaseParameters(readOnlyTransaction = false) }
 
     @Suppress("DEPRECATION")
     @Test

@@ -217,7 +217,7 @@ fun Context.isLocalhost() = try {
 }
 
 internal object MaxRequestSize {
-    val UseMaxRequestSize = ComponentAccessor(Long::class.java, "javalin-max-request-size")
+    val UseMaxRequestSize = ComponentAccessor<Long>("javalin-max-request-size")
 
     fun throwContentTooLargeIfContentTooLarge(ctx: Context) {
         val maxRequestSize = ctx.use(UseMaxRequestSize)
