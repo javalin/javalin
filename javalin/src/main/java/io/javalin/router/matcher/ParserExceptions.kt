@@ -1,6 +1,5 @@
 package io.javalin.router.matcher
 
-
 class MissingBracketsException(segment: String, val path: String) : IllegalArgumentException(
     "This segment '$segment' is missing some brackets! Found in path '$path'"
 )

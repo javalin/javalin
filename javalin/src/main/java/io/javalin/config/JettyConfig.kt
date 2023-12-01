@@ -21,7 +21,7 @@ class JettyConfig(private val cfg: JavalinConfig) {
     //@formatter:off
     @JvmField var defaultHost: String? = null
     @JvmField var defaultPort = 8080
-    @JvmField val multipartConfig = MultipartConfig()
+    @JvmField var multipartConfig = MultipartConfig()
     @JvmField var threadPool: ThreadPool = JettyServer.defaultThreadPool(cfg.useVirtualThreads)
     //@formatter:on
 
@@ -40,7 +40,7 @@ class JettyConfig(private val cfg: JavalinConfig) {
 
     /** Configure the jetty [JettyWebSocketServletFactory].
      * It can be called multiple times, and the supplied consumers will be called in order. */
-    fun modifyJettyWebSocketServletFactory(wsFactoryConfig: Consumer<JettyWebSocketServletFactory>) {
+    fun modifyWebSocketServletFactory(wsFactoryConfig: Consumer<JettyWebSocketServletFactory>) {
         cfg.pvt.jetty.wsFactoryConfigs.add(wsFactoryConfig)
     }
 

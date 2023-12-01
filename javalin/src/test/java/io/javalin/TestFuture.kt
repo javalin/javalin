@@ -19,7 +19,6 @@ import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
-import java.util.function.Consumer
 
 @Timeout(value = 5, unit = SECONDS)
 internal class TestFuture {
@@ -277,7 +276,7 @@ internal class TestFuture {
             app.get("/") { ctx ->
                 ctx.async({ config ->
                     config.timeout = 10L
-                    config.onTimeout = Consumer { it.result("Timeout") }
+                    config.onTimeout { it.result("Timeout") }
                 }) {
                     Thread.sleep(500L)
                     ctx.result("Result")

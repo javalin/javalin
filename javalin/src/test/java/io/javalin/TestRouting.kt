@@ -13,8 +13,11 @@ import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.TRACE
 import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
 import io.javalin.http.HttpStatus.OK
+import io.javalin.http.NotFoundResponse
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin
+import io.javalin.router.EndpointNotFound
 import io.javalin.router.matcher.MissingBracketsException
 import io.javalin.router.matcher.ParameterNamesNotUniqueException
 import io.javalin.router.matcher.WildcardBracketAdjacentException
@@ -101,8 +104,24 @@ class TestRouting {
     @Test
     fun `all unmapped verbs return 404`() = TestUtil.test { _, http ->
         for (httpMethod in HttpMethod.all()) {
-            assertThat(http.call(httpMethod, "/unmapped").httpCode()).isEqualTo(NOT_FOUND)
+            val response = http.call(httpMethod, "/unmapped")
+            assertThat(response.httpCode()).isEqualTo(NOT_FOUND)
+
+            if (httpMethod != HttpMethod.HEAD) {
+                assertThat(response.body).isEqualTo("Endpoint ${httpMethod.name()} /unmapped not found")
+            }
         }
+    }
+
+    @Test
+    fun `can handle endpoint not found differently than regular 404`() = TestUtil.test { app, http ->
+        app.get("/user") { throw NotFoundResponse("User not found") }
+        app.exception(EndpointNotFound::class.java) { _, ctx -> ctx.status(METHOD_NOT_ALLOWED) }
+        val userNotFound = http.get("/user")
+        assertThat(userNotFound.httpCode()).isEqualTo(NOT_FOUND)
+        assertThat(userNotFound.body).isEqualTo("User not found")
+        val endpointNotFound = http.get("/guild")
+        assertThat(endpointNotFound.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
     }
 
     @Test
@@ -150,7 +169,7 @@ class TestRouting {
     @Test
     fun `wildcard last works`() = TestUtil.test { app, http ->
         app.get("/test/*") { it.result("!") }
-        assertThat(http.getBody("/test")).isEqualTo(NOT_FOUND.message)
+        assertThat(http.getBody("/test")).isEqualTo("Endpoint GET /test not found")
         assertThat(http.getBody("/test/1")).isEqualTo("!")
         assertThat(http.getBody("/test/tast")).isEqualTo("!")
     }

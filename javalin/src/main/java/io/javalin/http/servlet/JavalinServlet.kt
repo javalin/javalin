@@ -12,8 +12,8 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.REQUEST_TIMEOUT
 import io.javalin.http.servlet.SubmitOrder.FIRST
 import io.javalin.http.servlet.SubmitOrder.LAST
-import io.javalin.http.util.AsyncUtil.addListener
 import io.javalin.http.util.AsyncUtil.isAsync
+import io.javalin.http.util.AsyncUtil.newAsyncListener
 import io.javalin.http.util.ETagGenerator
 import io.javalin.util.javalinLazy
 import jakarta.servlet.http.HttpServlet
@@ -74,7 +74,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         if (!isAsync()) startAsyncAndAddDefaultTimeoutListeners() // start async if not already started
 
         val userFuture = handleTask { userFutureSupplier.get() } ?: return handleSync() // get future from supplier or handle error
-        req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) }) // cancel user's future if timeout occurs
+        req().asyncContext.addListener(newAsyncListener(onTimeout = { userFuture.cancel(true) })) // cancel user's future if timeout occurs
 
         userFuture
             .thenApply { handleSync() }
@@ -86,12 +86,12 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
     private fun JavalinServletContext.startAsyncAndAddDefaultTimeoutListeners() = req().startAsync().also {
         it.timeout = cfg.http.asyncTimeout
-        it.addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
+        it.addListener(newAsyncListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
             status(INTERNAL_SERVER_ERROR) // default error handling
             router.handleHttpError(statusCode(), this) // user defined error handling
             if (resultInputStream() == null) result(REQUEST_TIMEOUT.message) // write default response only if handler didn't do anything
             writeResponseAndLog()
-        })
+        }))
     }
 
     private fun <R> JavalinServletContext.handleTask(handler: TaskHandler<R>): R? =
