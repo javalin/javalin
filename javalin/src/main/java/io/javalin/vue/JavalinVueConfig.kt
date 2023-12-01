@@ -1,6 +1,6 @@
 package io.javalin.vue
 
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Component
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.servlet.isLocalhost
@@ -13,10 +13,7 @@ import java.nio.file.Paths
  * @see [JavalinConfig.vue]
  * @see [Online Doc](https://javalin.io/plugins/javalinvue)
  */
-class JavalinVueConfig {
-    companion object {
-        internal val UseVueConfig = ComponentAccessor<JavalinVueConfig>("javalin-javalinvue-config")
-    }
+class JavalinVueConfig : Component {
 
     //@formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var pathMaster = VuePathMaster(this)

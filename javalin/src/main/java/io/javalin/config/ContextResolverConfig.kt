@@ -1,6 +1,6 @@
 package io.javalin.config
 
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Component
 import io.javalin.http.Context
 import io.javalin.http.Header
 
@@ -9,10 +9,7 @@ import io.javalin.http.Header
  *
  * @see [JavalinConfig.contextResolver]
  */
-class ContextResolverConfig {
-    companion object {
-        internal val UseContextResolver = ComponentAccessor<ContextResolverConfig>("javalin-context-resolver")
-    }
+class ContextResolverConfig : Component {
     // @formatter:off
     /** The IP address resolver (default: reads the `remoteAddr` part of the request) */
     @JvmField var ip: (Context) -> String = { it.req().remoteAddr }

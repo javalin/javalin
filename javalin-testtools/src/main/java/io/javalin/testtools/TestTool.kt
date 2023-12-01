@@ -1,7 +1,7 @@
 package io.javalin.testtools
 
 import io.javalin.Javalin
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Component
 import io.javalin.util.JavalinLogger
 import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
@@ -20,11 +20,9 @@ data class TestConfig @JvmOverloads constructor(
     val okHttpClient: OkHttpClient = DefaultTestConfig.okHttpClient
 )
 
-class TestTool(private val testConfig: TestConfig = TestConfig()) {
+class TestLogs(@JvmField val value: String) : Component
 
-    companion object {
-        @JvmField val UseTestLogs: ComponentAccessor<String?> = ComponentAccessor("testlogs")
-    }
+class TestTool(private val testConfig: TestConfig = TestConfig()) {
 
     class RunResult(val logs: String?, val exception: Throwable?)
 
@@ -41,7 +39,7 @@ class TestTool(private val testConfig: TestConfig = TestConfig()) {
             }
             app.stop()
         }
-        app.unsafeConfig().registerComponent(UseTestLogs) { result.logs }
+        app.unsafeConfig().registerComponent(TestLogs(result.logs ?: ""))
         if (result.exception != null) {
             JavalinLogger.error("JavalinTest#test failed - full log output below:\n" + result.logs)
             throw result.exception

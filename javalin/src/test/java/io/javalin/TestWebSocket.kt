@@ -7,7 +7,7 @@
 package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.ws
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Component
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
@@ -49,13 +49,11 @@ import java.util.concurrent.atomic.AtomicInteger
 @Timeout(value = 2, unit = TimeUnit.SECONDS)
 class TestWebSocket {
 
-    private data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>())
-    private val useTestLogger = ComponentAccessor<TestLogger>("test-logger")
+    private data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>()) : Component
 
     private fun Javalin.logger(): TestLogger {
-        val logger = TestLogger()
-        this.unsafeConfig().pvt.componentManager.registerIfAbsent(useTestLogger) { logger }
-        return component(useTestLogger)
+        componentManager().registerIfAbsent(TestLogger())
+        return componentManager().get()
     }
 
     private fun contextPathJavalin(cfg: ((JavalinConfig) -> Unit)? = null): Javalin =
@@ -73,6 +71,7 @@ class TestWebSocket {
                     this.logger().log.add("upgrade request valid!")
                     return@wsBeforeUpgrade
                 }
+
                 else -> {
                     this.logger().log.add("upgrade request invalid!")
                     ctx.skipRemainingHandlers()
@@ -733,7 +732,7 @@ class TestWebSocket {
         var onPing: ((Framedata?) -> Unit)? = null,
         var onPong: ((Framedata?) -> Unit)? = null,
         val logger: TestLogger = app.logger()
-        ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
+    ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
 
         override fun onOpen(serverHandshake: ServerHandshake) = onOpen(this)
         override fun onClose(status: Int, message: String, byRemote: Boolean) {}

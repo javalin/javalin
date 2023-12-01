@@ -7,8 +7,8 @@
 package io.javalin
 
 import com.google.gson.GsonBuilder
-import io.javalin.component.ComponentAccessor
-import io.javalin.component.ParametrizedComponentAccessor
+import io.javalin.component.Component
+import io.javalin.http.use
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -16,46 +16,26 @@ import org.junit.jupiter.api.Test
 
 internal class TestComponents {
 
-    private class MyOtherThing(val test: String = "Test")
-    private val useMyOtherThing = ComponentAccessor<MyOtherThing>("my-other-thing")
+    private class MyOtherThing(val test: String = "Test") : Component
 
     @Test
     fun `components can be accessed through the app`() = TestUtil.test(Javalin.create {
-        it.registerComponent(useMyOtherThing) { MyOtherThing() }
+        it.registerComponent(MyOtherThing())
     }) { app, _ ->
-        assertThat(app.component(useMyOtherThing).test).isEqualTo("Test")
+        assertThat(app.componentManager().get<MyOtherThing>().test).isEqualTo("Test")
     }
 
-    private class MyJson {
+    private class MyJson : Component {
         fun render(obj: Any): String = GsonBuilder().create().toJson(obj)
     }
-    private val useMyJson = ComponentAccessor<MyJson>("my-json")
 
     @Test
     fun `components can be accessed through the Context`() = TestUtil.test(Javalin.create {
-        it.registerComponent(useMyJson) { MyJson() }
+        it.registerComponent(MyJson())
     }) { app, http ->
         val gson = GsonBuilder().create()
-        app.get("/") { it.result(it.use(useMyJson).render(SerializableObject())) }
+        app.get("/") { it.result(it.use<MyJson>().render(SerializableObject())) }
         assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
-    }
-
-    private class Database(val readOnly: Boolean)
-    private class DatabaseParameters(var readOnlyTransaction: Boolean)
-    @Suppress("DEPRECATION")
-    private val useDatabase = ParametrizedComponentAccessor<Database, DatabaseParameters>("use-database") { DatabaseParameters(readOnlyTransaction = false) }
-
-    @Suppress("DEPRECATION")
-    @Test
-    fun `parametrized component returns requested component`() = TestUtil.test(Javalin.create {
-        it.pvt.componentManager.register(useDatabase) { cfg, _ -> Database(cfg.readOnlyTransaction) }
-    }) { app, http ->
-        app.get("/") { ctx ->
-            ctx.result(
-                app.unsafeConfig().pvt.componentManager.resolve(useDatabase, { it.readOnlyTransaction = true }, ctx).readOnly.toString()
-            )
-        }
-        assertThat(http.getBody("/")).isEqualTo("true")
     }
 
 }

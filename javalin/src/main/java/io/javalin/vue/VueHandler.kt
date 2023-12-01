@@ -5,7 +5,6 @@ import io.javalin.http.Handler
 import io.javalin.http.Header
 import io.javalin.http.InternalServerErrorResponse
 import io.javalin.util.javalinLazy
-import io.javalin.vue.JavalinVueConfig.Companion.UseVueConfig
 import io.javalin.vue.VueFileInliner.inlineFiles
 import java.nio.file.Files
 import java.nio.file.Path
@@ -18,7 +17,7 @@ abstract class VueHandler(private val componentId: String) : Handler {
     open fun postRender(layout: String, ctx: Context): String = layout
 
     override fun handle(ctx: Context) {
-        val c = ctx.use(UseVueConfig)
+        val c = ctx.use(JavalinVueConfig::class.java)
         c.isDev = c.isDev ?: c.isDevFunction(ctx)
         c.rootDirectory = c.rootDirectory ?: c.pathMaster.defaultLocation(c.isDev!!)
         val routeComponent = if (componentId.startsWith("<")) componentId else "<$componentId></$componentId>"

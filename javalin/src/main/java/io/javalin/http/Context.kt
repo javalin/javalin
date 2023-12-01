@@ -6,8 +6,7 @@
 
 package io.javalin.http
 
-import io.javalin.component.ComponentAccessor
-import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
+import io.javalin.config.ContextResolverConfig
 import io.javalin.http.ContentType.APPLICATION_JSON
 import io.javalin.http.servlet.MaxRequestSize
 import io.javalin.http.servlet.attributeOrCompute
@@ -18,18 +17,18 @@ import io.javalin.http.servlet.getCachedRequestAttributeOrSessionAttribute
 import io.javalin.http.servlet.getRequestCharset
 import io.javalin.http.servlet.readAndResetStreamIfPossible
 import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
-import io.javalin.http.util.AsyncExecutor.Companion.UseAsyncExecutor
+import io.javalin.http.util.AsyncExecutor
 import io.javalin.http.util.AsyncTaskConfig
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.json.JsonMapper
-import io.javalin.rendering.FileRenderer.Companion.UseFileRenderer
+import io.javalin.rendering.FileRenderer
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.function.ThrowingRunnable
 import io.javalin.validation.BodyValidator
-import io.javalin.validation.Validation.Companion.UseValidation
+import io.javalin.validation.Validation
 import io.javalin.validation.Validator
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
@@ -72,8 +71,8 @@ interface Context {
     // Config-ish methods
     ///////////////////////////////////////////////////////////////
 
-    /** Gets a component */
-    fun <COMPONENT> use(accessor: ComponentAccessor<COMPONENT>): COMPONENT
+    /** Get a component from application config by class implementing component */
+    fun <T> use(clazz: Class<T>): T
 
     /** Get configured [JsonMapper] */
     fun jsonMapper(): JsonMapper
@@ -110,19 +109,19 @@ interface Context {
     fun characterEncoding(): String? = getRequestCharset(this)
 
     /** Gets the request url. */
-    fun url(): String = use(UseContextResolver).url.invoke(this)
+    fun url(): String = use<ContextResolverConfig>().url.invoke(this)
 
     /** Gets the full request url, including query string (if present) */
-    fun fullUrl(): String = use(UseContextResolver).fullUrl.invoke(this)
+    fun fullUrl(): String = use<ContextResolverConfig>().fullUrl.invoke(this)
 
     /** Gets the request scheme. */
-    fun scheme(): String = use(UseContextResolver).scheme.invoke(this)
+    fun scheme(): String = use<ContextResolverConfig>().scheme.invoke(this)
 
     /** Gets the request host, or null. */
-    fun host(): String? = use(UseContextResolver).host.invoke(this)
+    fun host(): String? = use<ContextResolverConfig>().host.invoke(this)
 
     /** Gets the request ip. */
-    fun ip(): String = use(UseContextResolver).ip.invoke(this)
+    fun ip(): String = use<ContextResolverConfig>().ip.invoke(this)
 
     /** Gets the request body as a [String]. */
     fun body(): String = bodyAsBytes().toString(Charset.forName(characterEncoding() ?: "UTF-8"))
@@ -134,7 +133,7 @@ interface Context {
      * with status 413 CONTENT_TOO_LARGE.
      */
     fun bodyAsBytes(): ByteArray {
-        MaxRequestSize.throwContentTooLargeIfContentTooLarge(this)
+        use<MaxRequestSize>().throwContentTooLargeIfContentTooLarge(this)
         return req().inputStream.readBytes()
     }
 
@@ -157,7 +156,7 @@ interface Context {
     fun formParam(key: String): String? = formParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the formParam() value */
-    fun <T> formParamAsClass(key: String, clazz: Class<T>) = use(UseValidation).validator(key, clazz, formParam(key))
+    fun <T> formParamAsClass(key: String, clazz: Class<T>) = use<Validation>().validator(key, clazz, formParam(key))
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
@@ -178,7 +177,7 @@ interface Context {
     fun pathParam(key: String): String
 
     /** Creates a typed [Validator] for the pathParam() value */
-    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = use(UseValidation).validator(key, clazz, pathParam(key))
+    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = use<Validation>().validator(key, clazz, pathParam(key))
 
     /** Gets a map of all the [pathParamAsClass] keys and values. */
     fun pathParamMap(): Map<String, String>
@@ -187,7 +186,7 @@ interface Context {
     fun queryParam(key: String): String? = queryParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the queryParam() value */
-    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = use(UseValidation).validator(key, clazz, queryParam(key))
+    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = use<Validation>().validator(key, clazz, queryParam(key))
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
@@ -246,7 +245,7 @@ interface Context {
     fun header(header: String): String? = req().getHeader(header)
 
     /** Creates a typed [Validator] for the header() value */
-    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = use(UseValidation).validator(header, clazz, header(header))
+    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = use<Validation>().validator(header, clazz, header(header))
 
     /** Gets a map with all the header keys and values on the request(). */
     fun headerMap(): Map<String, String> = req().headerNames.asSequence().associateWith { header(it)!! }
@@ -367,7 +366,7 @@ interface Context {
      * so it's just not thread-safe.
      */
     fun async(config: Consumer<AsyncTaskConfig>, task: ThrowingRunnable<Exception>) =
-        use(UseAsyncExecutor).submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
+        use<AsyncExecutor>().submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
 
     /* @see [async] */
     fun async(task: ThrowingRunnable<Exception>) = async(config = {}, task = task)
@@ -463,7 +462,7 @@ interface Context {
      * Also sets content-type to text/html.
      * Determines the correct rendering-function based on the file extension.
      */
-    fun render(filePath: String, model: Map<String, Any?>): Context = html(use(UseFileRenderer).render(filePath, model, this))
+    fun render(filePath: String, model: Map<String, Any?>): Context = html(use<FileRenderer>().render(filePath, model, this))
 
     /** @see render() */
     fun render(filePath: String): Context = render(filePath, mutableMapOf())
@@ -477,6 +476,9 @@ interface Context {
     fun routeRoles(): Set<RouteRole>
 
 }
+
+/** Reified version of [Context.use] (Kotlin only) */
+inline fun <reified T : Any> Context.use() = use(T::class.java)
 
 /** Reified version of [Context.json] (Kotlin only) */
 @OptIn(ExperimentalStdlibApi::class)

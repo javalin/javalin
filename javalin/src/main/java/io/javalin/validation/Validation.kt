@@ -6,7 +6,7 @@
 
 package io.javalin.validation
 
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Component
 import io.javalin.config.JavalinConfig
 import io.javalin.config.ValidationConfig
 import io.javalin.http.HttpStatus
@@ -14,7 +14,7 @@ import io.javalin.util.JavalinLogger
 
 class MissingConverterException(val className: String) : RuntimeException()
 
-class Validation(private val validationConfig: ValidationConfig = ValidationConfig()) {
+class Validation(private val validationConfig: ValidationConfig = ValidationConfig()) : Component {
 
     private fun <T> convertValue(clazz: Class<T>, value: String?): T {
         val converter = validationConfig.converters[clazz] ?: throw MissingConverterException(clazz.name)
@@ -36,9 +36,6 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
          Validator(Params(fieldName, null, null, typedValue) { null })
 
     companion object {
-        @JvmField
-        val UseValidation = ComponentAccessor<Validation>("javalin-validation")
-
         @JvmStatic
         fun collectErrors(vararg validators: BaseValidator<*>) = collectErrors(validators.toList())
 

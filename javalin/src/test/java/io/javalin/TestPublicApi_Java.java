@@ -1,6 +1,6 @@
 package io.javalin;
 
-import io.javalin.component.ComponentAccessor;
+import io.javalin.component.Component;
 import io.javalin.http.ContentType;
 import io.javalin.http.Cookie;
 import io.javalin.http.HttpStatus;
@@ -25,13 +25,18 @@ import static io.javalin.apibuilder.ApiBuilder.ws;
 // @formatter:off
 public class TestPublicApi_Java {
 
+    static class TestComponent implements Component {
+        public String componentValue() {
+            return "name";
+        }
+    }
+
     public static void main(String[] args) {
         Javalin.create(/*config*/)
             .get("/", ctx -> ctx.result("Hello World"))
             .start(7070);
-        var useTestComponent = new ComponentAccessor<String>("test-component");
         var app = Javalin.create(config -> {
-            config.registerComponent(useTestComponent, ctx -> "name");
+            config.registerComponent(new TestComponent());
             config.validation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
             config.registerPlugin(new CorsPlugin(cors -> {
                 cors.addRule(rule -> {
@@ -211,7 +216,7 @@ public class TestPublicApi_Java {
             ctx.res();
             ctx.async(() -> {});
             ctx.handlerType();
-            ctx.use(useTestComponent);
+            ctx.use(TestComponent.class).componentValue();
             ctx.matchedPath();
             ctx.endpointHandlerPath();
             ctx.cookieStore();

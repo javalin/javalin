@@ -6,22 +6,16 @@
 package io.javalin.config
 
 import io.javalin.Javalin
-import io.javalin.component.ComponentAccessor
-import io.javalin.component.ComponentResolver
-import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
-import io.javalin.http.servlet.MaxRequestSize.UseMaxRequestSize
-import io.javalin.http.util.AsyncExecutor.Companion.UseAsyncExecutor
+import io.javalin.component.Component
+import io.javalin.http.servlet.MaxRequestSize
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
 import io.javalin.rendering.FileRenderer
-import io.javalin.rendering.FileRenderer.Companion.UseFileRenderer
 import io.javalin.rendering.NotImplementedRenderer
 import io.javalin.validation.Validation
-import io.javalin.validation.Validation.Companion.UseValidation
 import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
 import io.javalin.vue.JavalinVueConfig
-import io.javalin.vue.JavalinVueConfig.Companion.UseVueConfig
 import java.util.function.Consumer
 
 // this class should be abbreviated `cfg` in the source code.
@@ -83,25 +77,23 @@ class JavalinConfig {
      * Sets the [FileRenderer] to be used in this Javalin Configuration.
      * @param fileRenderer the [FileRenderer]
      */
-    fun fileRenderer(fileRenderer: FileRenderer) =
-        registerComponent(UseFileRenderer) { fileRenderer }
+    fun fileRenderer(fileRenderer: FileRenderer) = registerComponent(fileRenderer, FileRenderer::class.java)
 
     /**
      * Register a plugin to this Javalin Configuration.
      * @param CFG the type of the configuration class for the plugin
      * @param plugin the [Plugin] to register
      */
-    fun <CFG> registerPlugin(plugin: Plugin<CFG>): Plugin<CFG> =
-        plugin.also { pvt.pluginManager.register(plugin) }
+    fun <CFG> registerPlugin(plugin: Plugin<CFG>): Plugin<CFG> = plugin.also { pvt.pluginManager.register(plugin) }
 
     /**
      * Register a new component resolver.
-     * @param COMPONENT the type of the component
-     * @param key unique [ComponentAccessor] for the component
-     * @param resolver the [ComponentResolver] for the component. This will be called each time the component is requested.
+     * @param key unique [Class] for the component
+     * @param component the [Component] to register
      */
-    fun <COMPONENT : Any?> registerComponent(key: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) =
-        pvt.componentManager.register(key, resolver)
+    @JvmOverloads
+    fun registerComponent(component: Component, key: Class<*> = component::class.java) =
+        pvt.componentManager.register(component, key)
 
     companion object {
         @JvmStatic
@@ -115,12 +107,12 @@ class JavalinConfig {
             }
 
             val validation = Validation(cfg.validation)
-            cfg.pvt.componentManager.registerIfAbsent(UseValidation) { validation }
-            cfg.pvt.componentManager.registerIfAbsent(UseAsyncExecutor) { cfg.pvt.asyncExecutor.value }
-            cfg.pvt.componentManager.registerIfAbsent(UseFileRenderer) { NotImplementedRenderer() }
-            cfg.pvt.componentManager.registerIfAbsent(UseContextResolver) { cfg.contextResolver }
-            cfg.pvt.componentManager.registerIfAbsent(UseMaxRequestSize) { cfg.http.maxRequestSize }
-            cfg.pvt.componentManager.registerIfAbsent(UseVueConfig) { cfg.vue }
+            cfg.pvt.componentManager.registerIfAbsent(validation)
+            cfg.pvt.componentManager.registerIfAbsent(cfg.pvt.asyncExecutor.value)
+            cfg.pvt.componentManager.registerIfAbsent(NotImplementedRenderer(), FileRenderer::class.java)
+            cfg.pvt.componentManager.registerIfAbsent(cfg.contextResolver)
+            cfg.pvt.componentManager.registerIfAbsent(MaxRequestSize(cfg.http.maxRequestSize))
+            cfg.pvt.componentManager.registerIfAbsent(cfg.vue)
         }
     }
     //@formatter:on

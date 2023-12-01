@@ -1,52 +1,32 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package io.javalin.component
 
-import io.javalin.http.Context
 import java.util.IdentityHashMap
-import java.util.function.Consumer
-import org.jetbrains.annotations.ApiStatus.Experimental
+
+class ComponentNotFoundException(clazz: Class<*>) : IllegalStateException("Component ${clazz.simpleName} not found")
+class ComponentAlreadyRegisteredException(component: Component) : IllegalStateException("Component ${component.javaClass.simpleName} already registered")
+
+interface Component // marker interface
 
 class ComponentManager {
 
-    private val componentResolvers = IdentityHashMap<ComponentAccessor<*>, ComponentResolver<*>>()
-    @Suppress("DEPRECATION")
-    private val parametrizedComponentResolvers = IdentityHashMap<ParametrizedComponentAccessor<*, *>, ParametrizedComponentResolver<*, *>>()
+    private val componentResolvers = IdentityHashMap<Class<*>, Component>()
 
-    fun <COMPONENT> register(accessor: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) {
-        componentResolvers[accessor] = resolver
+    fun register(component: Component, key: Class<*> = component::class.java) {
+        if (componentResolvers.containsKey(component::class.java)) {
+            throw ComponentAlreadyRegisteredException(component)
+        }
+        componentResolvers[key] = component
     }
 
-    fun <COMPONENT> registerIfAbsent(accessor: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) {
-        componentResolvers.putIfAbsent(accessor, resolver)
+    fun registerIfAbsent(component: Component, key: Class<*> = component::class.java) {
+        componentResolvers.putIfAbsent(key, component)
     }
 
-    @Experimental
-    @Deprecated("Experimental")
-    @Suppress("DEPRECATION")
-    fun <COMPONENT, CFG> register(accessor: ParametrizedComponentAccessor<COMPONENT, CFG>, resolver: ParametrizedComponentResolver<COMPONENT, CFG>) {
-        parametrizedComponentResolvers[accessor] = resolver
-    }
+    fun <T> get(clazz: Class<T>): T =
+        componentResolvers[clazz] as T? ?: throw ComponentNotFoundException(clazz)
 
-    @Suppress("UNCHECKED_CAST")
-    fun <COMPONENT> resolve(accessor: ComponentAccessor<COMPONENT>, ctx: Context?): COMPONENT =
-        componentResolvers[accessor]
-            ?.resolve(ctx) as COMPONENT
-            ?: throw ComponentNotFoundException(accessor)
-
-    @Experimental
-    @Deprecated("Experimental")
-    @Suppress("UNCHECKED_CAST", "DEPRECATION")
-    fun <COMPONENT, PARAMETERS> resolve(
-        accessor: ParametrizedComponentAccessor<COMPONENT, PARAMETERS>,
-        userArguments: Consumer<PARAMETERS>,
-        ctx: Context?
-    ): COMPONENT =
-        parametrizedComponentResolvers[accessor]
-            ?.let { it as ParametrizedComponentResolver<COMPONENT, PARAMETERS> }
-            ?.let {
-                val arguments = accessor.defaultValues.get()
-                userArguments.accept(arguments)
-                it.resolve(arguments, ctx)
-            }
-            ?: throw ComponentNotFoundException(accessor)
+    inline fun <reified T> get(): T = get(T::class.java)
 
 }

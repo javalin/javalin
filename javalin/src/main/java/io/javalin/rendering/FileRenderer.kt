@@ -5,15 +5,11 @@
  */
 package io.javalin.rendering
 
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Component
 import io.javalin.http.Context
 
 /** Interface for creating renderers to be used with [Context.render].  */
-fun interface FileRenderer {
-    companion object {
-        @JvmField val UseFileRenderer = ComponentAccessor<FileRenderer>("javalin-file-renderer")
-    }
-
+fun interface FileRenderer : Component {
     /** Renders the given file  */
     fun render(filePath: String, model: Map<String, Any?>, context: Context): String
 }
