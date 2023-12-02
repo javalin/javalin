@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import io.javalin.component.ComponentAccessor;
+import io.javalin.component.Hook;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.router.Endpoint;
@@ -167,11 +167,11 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
 
     /**
      * Retrieve an attribute stored on the instance.
-     * Available on the {@link Context} through {@link Context#use(io.javalin.component.ComponentAccessor)}.
+     * Available on the {@link Context} through {@link Context#use(io.javalin.component.Hook)}.
      * Ex: app.component(MyExt).myMethod()
      * Ex: ctx.use(MyExt).myMethod()
      */
-    public <COMPONENT> COMPONENT component(ComponentAccessor<COMPONENT> accessor) {
+    public <COMPONENT> COMPONENT component(Hook<COMPONENT> accessor) {
         return cfg.pvt.componentManager.resolve(accessor, null);
     }
 

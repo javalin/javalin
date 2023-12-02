@@ -1,6 +1,6 @@
 package io.javalin.config
 
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Hook
 import io.javalin.http.Context
 import io.javalin.http.Header
 
@@ -11,7 +11,7 @@ import io.javalin.http.Header
  */
 class ContextResolverConfig {
     companion object {
-        internal val UseContextResolver = ComponentAccessor<ContextResolverConfig>("javalin-context-resolver")
+        internal val UseContextResolver = Hook<ContextResolverConfig>("javalin-context-resolver")
     }
     // @formatter:off
     /** The IP address resolver (default: reads the `remoteAddr` part of the request) */

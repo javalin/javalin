@@ -6,7 +6,7 @@
 
 package io.javalin.http
 
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Hook
 import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
 import io.javalin.http.ContentType.APPLICATION_JSON
 import io.javalin.http.servlet.MaxRequestSize
@@ -73,7 +73,7 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     /** Gets a component */
-    fun <COMPONENT> use(accessor: ComponentAccessor<COMPONENT>): COMPONENT
+    fun <COMPONENT> use(accessor: Hook<COMPONENT>): COMPONENT
 
     /** Get configured [JsonMapper] */
     fun jsonMapper(): JsonMapper

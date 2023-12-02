@@ -7,7 +7,7 @@
 package io.javalin.testing;
 
 import io.javalin.Javalin;
-import io.javalin.component.ComponentAccessor;
+import io.javalin.component.Hook;
 import io.javalin.http.Handler;
 import io.javalin.util.JavalinLogger;
 import java.io.ByteArrayOutputStream;
@@ -24,7 +24,7 @@ public class TestUtil {
         test(Javalin.create(), test);
     }
 
-    public static ComponentAccessor<String> UseTestLogs = new ComponentAccessor<>("testlogs");
+    public static Hook<String> UseTestLogs = new Hook<>("testlogs");
 
     public static void test(Javalin app, ThrowingBiConsumer<Javalin, HttpUtil> userCode) {
         RunResult result = runAndCaptureLogs(() -> {

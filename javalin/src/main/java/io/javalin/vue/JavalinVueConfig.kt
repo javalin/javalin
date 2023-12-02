@@ -1,6 +1,6 @@
 package io.javalin.vue
 
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Hook
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.servlet.isLocalhost
@@ -15,7 +15,7 @@ import java.nio.file.Paths
  */
 class JavalinVueConfig {
     companion object {
-        internal val UseVueConfig = ComponentAccessor<JavalinVueConfig>("javalin-javalinvue-config")
+        internal val UseVueConfig = Hook<JavalinVueConfig>("javalin-javalinvue-config")
     }
 
     //@formatter:off

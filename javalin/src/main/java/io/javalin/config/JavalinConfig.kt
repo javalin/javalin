@@ -6,8 +6,8 @@
 package io.javalin.config
 
 import io.javalin.Javalin
-import io.javalin.component.ComponentAccessor
-import io.javalin.component.ComponentResolver
+import io.javalin.component.Hook
+import io.javalin.component.Resolver
 import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
 import io.javalin.http.servlet.MaxRequestSize.UseMaxRequestSize
 import io.javalin.http.util.AsyncExecutor.Companion.UseAsyncExecutor
@@ -97,10 +97,10 @@ class JavalinConfig {
     /**
      * Register a new component resolver.
      * @param COMPONENT the type of the component
-     * @param key unique [ComponentAccessor] for the component
-     * @param resolver the [ComponentResolver] for the component. This will be called each time the component is requested.
+     * @param key unique [Hook] for the component
+     * @param resolver the [Resolver] for the component. This will be called each time the component is requested.
      */
-    fun <COMPONENT : Any?> registerComponent(key: ComponentAccessor<COMPONENT>, component: COMPONENT) =
+    fun <COMPONENT : Any?> registerComponent(key: Hook<COMPONENT>, component: COMPONENT) =
         pvt.componentManager.register(key) { component }
 
     companion object {

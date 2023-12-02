@@ -1,6 +1,6 @@
 package io.javalin;
 
-import io.javalin.component.ComponentAccessor;
+import io.javalin.component.Hook;
 import io.javalin.http.ContentType;
 import io.javalin.http.Cookie;
 import io.javalin.http.HttpStatus;
@@ -29,7 +29,7 @@ public class TestPublicApi_Java {
         Javalin.create(/*config*/)
             .get("/", ctx -> ctx.result("Hello World"))
             .start(7070);
-        var useTestComponent = new ComponentAccessor<String>("test-component");
+        var useTestComponent = new Hook<String>("test-component");
         var app = Javalin.create(config -> {
             config.registerComponent(useTestComponent, "name");
             config.validation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));

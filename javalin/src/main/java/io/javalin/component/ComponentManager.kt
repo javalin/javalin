@@ -1,56 +1,64 @@
+@file:Suppress("DEPRECATION")
+
 package io.javalin.component
 
 import io.javalin.http.Context
-import java.util.IdentityHashMap
 import java.util.function.Consumer
-import org.jetbrains.annotations.ApiStatus.Experimental
 
 class ComponentManager {
 
-    private val componentResolvers = IdentityHashMap<ComponentAccessor<*>, ComponentResolver<*>>()
-    @Suppress("DEPRECATION")
-    private val parametrizedComponentResolvers = IdentityHashMap<ParametrizedComponentAccessor<*, *>, ParametrizedComponentResolver<*, *>>()
+    private val resolvers: MutableMap<IdentifiableHook, ParametrizedResolver<*, *>> = mutableMapOf()
 
-    fun <COMPONENT> register(accessor: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) {
-        componentResolvers[accessor] = resolver
+    fun <COMPONENT> register(hook: Hook<COMPONENT>, resolver: Resolver<COMPONENT>) {
+        if (resolvers.containsKey(hook)) {
+            throw ComponentAlreadyExistsException(hook)
+        }
+
+        resolvers[hook] = ParametrizedResolver<COMPONENT, Unit> { _, ctx ->
+            resolver.resolve(ctx)
+        }
     }
 
-    fun <COMPONENT> registerIfAbsent(accessor: ComponentAccessor<COMPONENT>, component: COMPONENT) {
-        registerResolverIfAbsent(accessor) { component }
-    }
-
-    fun <COMPONENT> registerResolverIfAbsent(accessor: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) {
-        componentResolvers.putIfAbsent(accessor, resolver)
-    }
-
-    @Experimental
     @Deprecated("Experimental")
-    @Suppress("DEPRECATION")
-    fun <COMPONENT, CFG> register(accessor: ParametrizedComponentAccessor<COMPONENT, CFG>, resolver: ParametrizedComponentResolver<COMPONENT, CFG>) {
-        parametrizedComponentResolvers[accessor] = resolver
+    fun <COMPONENT, CFG> register(hook: ParametrizedHook<COMPONENT, CFG>, resolver: ParametrizedResolver<COMPONENT, CFG>) {
+        if (resolvers.containsKey(hook)) {
+            throw ComponentAlreadyExistsException(hook)
+        }
+
+        resolvers[hook] = resolver
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun <COMPONENT> resolve(accessor: ComponentAccessor<COMPONENT>, ctx: Context?): COMPONENT =
-        componentResolvers[accessor]
-            ?.resolve(ctx) as COMPONENT
-            ?: throw ComponentNotFoundException(accessor)
+    fun <COMPONENT> registerIfAbsent(hook: Hook<COMPONENT>, component: COMPONENT) {
+        registerResolverIfAbsent(hook) { component }
+    }
 
-    @Experimental
-    @Deprecated("Experimental")
-    @Suppress("UNCHECKED_CAST", "DEPRECATION")
-    fun <COMPONENT, PARAMETERS> resolve(
-        accessor: ParametrizedComponentAccessor<COMPONENT, PARAMETERS>,
-        userArguments: Consumer<PARAMETERS>,
-        ctx: Context?
-    ): COMPONENT =
-        parametrizedComponentResolvers[accessor]
-            ?.let { it as ParametrizedComponentResolver<COMPONENT, PARAMETERS> }
+    fun <COMPONENT> registerResolverIfAbsent(hook: Hook<COMPONENT>, resolver: Resolver<COMPONENT>) {
+        resolvers.putIfAbsent(hook, ParametrizedResolver<COMPONENT, Unit> { _, ctx ->
+            resolver.resolve(ctx)
+        })
+    }
+
+    fun <COMPONENT> resolve(hook: Hook<COMPONENT>, ctx: Context?): COMPONENT =
+        resolvers[hook]
             ?.let {
-                val arguments = accessor.defaultValues.get()
+                @Suppress("UNCHECKED_CAST")
+                it as ParametrizedResolver<COMPONENT, Unit>
+            }
+            ?.resolve(Unit, ctx)
+            ?: throw ComponentNotFoundException(hook)
+
+    @Deprecated("Experimental")
+    fun <COMPONENT, PARAMETERS> resolve(hook: ParametrizedHook<COMPONENT, PARAMETERS>, userArguments: Consumer<PARAMETERS>, ctx: Context?): COMPONENT =
+        resolvers[hook]
+            ?.let {
+                @Suppress("UNCHECKED_CAST")
+                it as ParametrizedResolver<COMPONENT, PARAMETERS>
+            }
+            ?.let {
+                val arguments = hook.defaultArguments.get()
                 userArguments.accept(arguments)
                 it.resolve(arguments, ctx)
             }
-            ?: throw ComponentNotFoundException(accessor)
+            ?: throw ComponentNotFoundException(hook)
 
 }

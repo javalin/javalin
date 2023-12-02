@@ -6,7 +6,7 @@
 
 package io.javalin.http.servlet
 
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Hook
 import io.javalin.component.ComponentManager
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
@@ -100,7 +100,7 @@ class JavalinServletContext(
     override fun req(): HttpServletRequest = req
     override fun res(): HttpServletResponse = res
 
-    override fun <COMPONENT> use(accessor: ComponentAccessor<COMPONENT>): COMPONENT = cfg.componentManager.resolve(accessor, this)
+    override fun <COMPONENT> use(accessor: Hook<COMPONENT>): COMPONENT = cfg.componentManager.resolve(accessor, this)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 
@@ -217,7 +217,7 @@ fun Context.isLocalhost() = try {
 }
 
 internal object MaxRequestSize {
-    val UseMaxRequestSize = ComponentAccessor<Long>("javalin-max-request-size")
+    val UseMaxRequestSize = Hook<Long>("javalin-max-request-size")
 
     fun throwContentTooLargeIfContentTooLarge(ctx: Context) {
         val maxRequestSize = ctx.use(UseMaxRequestSize)

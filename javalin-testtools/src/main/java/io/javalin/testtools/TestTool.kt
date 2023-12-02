@@ -1,7 +1,7 @@
 package io.javalin.testtools
 
 import io.javalin.Javalin
-import io.javalin.component.ComponentAccessor
+import io.javalin.component.Hook
 import io.javalin.util.JavalinLogger
 import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
@@ -23,7 +23,7 @@ data class TestConfig @JvmOverloads constructor(
 class TestTool(private val testConfig: TestConfig = TestConfig()) {
 
     companion object {
-        @JvmField val UseTestLogs: ComponentAccessor<String?> = ComponentAccessor("testlogs")
+        @JvmField val UseTestLogs: Hook<String?> = Hook("testlogs")
     }
 
     class RunResult(val logs: String?, val exception: Throwable?)
