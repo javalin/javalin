@@ -199,7 +199,7 @@ class TestCustomJetty {
             assertThat(responseBody).contains("JettyServerThreadPool-Virtual")
         }
         assertThat(LoomUtil.isLoomThreadPool(defaultApp.jettyServer().server().threadPool)).isTrue
-        assertThat(defaultApp.component(UseTestLogs)).contains("JDK supports Loom")
+        assertThat(defaultApp.unsafeConfig().pvt.componentManager.resolve(UseTestLogs)).contains("JDK supports Loom")
     }
 
     @Test

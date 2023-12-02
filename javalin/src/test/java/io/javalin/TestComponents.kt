@@ -38,7 +38,7 @@ internal class TestComponents {
     fun `components can be accessed through the app`() = TestUtil.test(Javalin.create {
         it.registerComponent(useMyOtherThing, MyOtherThing())
     }) { app, _ ->
-        assertThat(app.component(useMyOtherThing).test).isEqualTo("Test")
+        assertThat(app.unsafeConfig().pvt.componentManager.resolve(useMyOtherThing).test).isEqualTo("Test")
     }
 
     private class MyJson {
@@ -59,6 +59,14 @@ internal class TestComponents {
     fun `use throws if component does not exist`() = TestUtil.test(Javalin.create()) { app, http ->
         app.get("/") { it.result(it.use(useMyJson).render(SerializableObject())) }
         assertThat(http.get("/").status).isEqualTo(INTERNAL_SERVER_ERROR.code)
+    }
+
+    @Test
+    fun `class can be used as component key`() = TestUtil.test(Javalin.create {
+        it.registerComponent(MyOtherThing::class.java, MyOtherThing())
+    }) { app, http ->
+        app.get("/") { it.result(it.use(MyOtherThing::class.java).test) }
+        assertThat(http.getBody("/")).isEqualTo("Test")
     }
 
     private class Database(val readOnly: Boolean)

@@ -334,7 +334,11 @@ class TestStaticFiles {
     @Test
     fun `logs handlers added on startup`() {
         TestUtil.test(multiLocationStaticResourceApp) { _, _ -> }
-        assertThat(multiLocationStaticResourceApp.component(UseTestLogs).split("Static file handler added").size - 1).isEqualTo(4)
+        assertThat(
+            multiLocationStaticResourceApp.unsafeConfig().pvt.componentManager.resolve(UseTestLogs)
+                .split("Static file handler added")
+                .size - 1
+        ).isEqualTo(4)
     }
 
     @Test

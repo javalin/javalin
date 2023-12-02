@@ -165,16 +165,6 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
         return jettyServer.getValue().port();
     }
 
-    /**
-     * Retrieve an attribute stored on the instance.
-     * Available on the {@link Context} through {@link Context#use(io.javalin.component.Hook)}.
-     * Ex: app.component(MyExt).myMethod()
-     * Ex: ctx.use(MyExt).myMethod()
-     */
-    public <COMPONENT> COMPONENT component(Hook<COMPONENT> hook) {
-        return cfg.pvt.componentManager.resolve(hook, null);
-    }
-
     @NotNull
     @Override
     public <E extends Exception> Javalin exception(@NotNull Class<E> exceptionClass, @NotNull ExceptionHandler<? super E> exceptionHandler) {

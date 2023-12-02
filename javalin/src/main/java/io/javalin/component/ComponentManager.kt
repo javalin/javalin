@@ -38,7 +38,7 @@ class ComponentManager {
         })
     }
 
-    fun <COMPONENT> resolve(hook: Hook<COMPONENT>, ctx: Context?): COMPONENT =
+    fun <COMPONENT> resolve(hook: Hook<COMPONENT>, ctx: Context? = null): COMPONENT =
         resolvers[hook]
             ?.let {
                 @Suppress("UNCHECKED_CAST")
@@ -48,7 +48,7 @@ class ComponentManager {
             ?: throw ComponentNotFoundException(hook)
 
     @Deprecated("Experimental")
-    fun <COMPONENT, PARAMETERS> resolve(hook: ParametrizedHook<COMPONENT, PARAMETERS>, userArguments: Consumer<PARAMETERS>, ctx: Context?): COMPONENT =
+    fun <COMPONENT, PARAMETERS> resolve(hook: ParametrizedHook<COMPONENT, PARAMETERS>, userArguments: Consumer<PARAMETERS>, ctx: Context? = null): COMPONENT =
         resolvers[hook]
             ?.let {
                 @Suppress("UNCHECKED_CAST")

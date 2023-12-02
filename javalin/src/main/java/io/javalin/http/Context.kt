@@ -75,6 +75,9 @@ interface Context {
     /** Gets a component */
     fun <COMPONENT> use(hook: Hook<COMPONENT>): COMPONENT
 
+    /** Gets a component */
+    fun <COMPONENT> use(type: Class<COMPONENT>): COMPONENT = use(Hook(type.name))
+
     /** Get configured [JsonMapper] */
     fun jsonMapper(): JsonMapper
 

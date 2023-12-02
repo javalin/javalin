@@ -103,6 +103,15 @@ class JavalinConfig {
     fun <COMPONENT : Any?> registerComponent(key: Hook<COMPONENT>, component: COMPONENT) =
         pvt.componentManager.register(key) { component }
 
+    /**
+     * Register a new component resolver.
+     * @param COMPONENT the type of the component
+     * @param key unique [Hook] for the component
+     * @param resolver the [Resolver] for the component. This will be called each time the component is requested.
+     */
+    fun <COMPONENT : Any?> registerComponent(key: Class<COMPONENT>, component: COMPONENT) =
+        registerComponent(Hook(key.name), component)
+
     companion object {
         @JvmStatic
         fun applyUserConfig(cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
