@@ -6,7 +6,7 @@
 
 package io.javalin.validation
 
-import io.javalin.component.Hook
+import io.javalin.hook.Hook
 import io.javalin.config.JavalinConfig
 import io.javalin.config.ValidationConfig
 import io.javalin.http.HttpStatus

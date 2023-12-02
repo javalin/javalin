@@ -6,7 +6,7 @@
 
 package io.javalin.http
 
-import io.javalin.component.Hook
+import io.javalin.hook.Hook
 import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
 import io.javalin.http.ContentType.APPLICATION_JSON
 import io.javalin.http.servlet.MaxRequestSize

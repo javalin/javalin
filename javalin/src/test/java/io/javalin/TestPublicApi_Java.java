@@ -1,6 +1,6 @@
 package io.javalin;
 
-import io.javalin.component.Hook;
+import io.javalin.hook.Hook;
 import io.javalin.http.ContentType;
 import io.javalin.http.Cookie;
 import io.javalin.http.HttpStatus;
@@ -31,7 +31,7 @@ public class TestPublicApi_Java {
             .start(7070);
         var useTestComponent = new Hook<String>("test-component");
         var app = Javalin.create(config -> {
-            config.registerComponent(useTestComponent, "name");
+            config.registerHook(useTestComponent, "name");
             config.validation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
             config.registerPlugin(new CorsPlugin(cors -> {
                 cors.addRule(rule -> {

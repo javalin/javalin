@@ -5,7 +5,7 @@
  */
 package io.javalin.rendering
 
-import io.javalin.component.Hook
+import io.javalin.hook.Hook
 import io.javalin.http.Context
 
 /** Interface for creating renderers to be used with [Context.render].  */

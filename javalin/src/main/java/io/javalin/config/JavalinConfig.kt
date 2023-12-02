@@ -6,8 +6,7 @@
 package io.javalin.config
 
 import io.javalin.Javalin
-import io.javalin.component.Hook
-import io.javalin.component.Resolver
+import io.javalin.hook.Hook
 import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
 import io.javalin.http.servlet.MaxRequestSize.UseMaxRequestSize
 import io.javalin.http.util.AsyncExecutor.Companion.UseAsyncExecutor
@@ -17,6 +16,7 @@ import io.javalin.plugin.Plugin
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.FileRenderer.Companion.UseFileRenderer
 import io.javalin.rendering.NotImplementedRenderer
+import io.javalin.util.javalinLazy
 import io.javalin.validation.Validation
 import io.javalin.validation.Validation.Companion.UseValidation
 import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
@@ -77,14 +77,14 @@ class JavalinConfig {
      * Sets the [JsonMapper] to be used in this Javalin Configuration.
      * @param jsonMapper the [JsonMapper]
      */
-    fun jsonMapper(jsonMapper: JsonMapper) { pvt.jsonMapper = jsonMapper }
+    fun jsonMapper(jsonMapper: JsonMapper) { pvt.jsonMapper = javalinLazy { jsonMapper } }
 
     /**
      * Sets the [FileRenderer] to be used in this Javalin Configuration.
      * @param fileRenderer the [FileRenderer]
      */
     fun fileRenderer(fileRenderer: FileRenderer) =
-        registerComponent(UseFileRenderer, fileRenderer)
+        registerHook(UseFileRenderer, fileRenderer)
 
     /**
      * Register a plugin to this Javalin Configuration.
@@ -96,21 +96,19 @@ class JavalinConfig {
 
     /**
      * Register a new component resolver.
-     * @param COMPONENT the type of the component
-     * @param key unique [Hook] for the component
-     * @param resolver the [Resolver] for the component. This will be called each time the component is requested.
+     * @param VALUE the type of the component
+     * @param hook unique [Hook] for the component
      */
-    fun <COMPONENT : Any?> registerComponent(key: Hook<COMPONENT>, component: COMPONENT) =
-        pvt.componentManager.register(key) { component }
+    fun <VALUE : Any?> registerHook(hook: Hook<VALUE>, value: VALUE) =
+        pvt.hookManager.register(hook) { value }
 
     /**
      * Register a new component resolver.
-     * @param COMPONENT the type of the component
+     * @param VALUE the type of the component
      * @param key unique [Hook] for the component
-     * @param resolver the [Resolver] for the component. This will be called each time the component is requested.
      */
-    fun <COMPONENT : Any?> registerComponent(key: Class<COMPONENT>, component: COMPONENT) =
-        registerComponent(Hook(key.name), component)
+    fun <VALUE : Any?> registerHook(key: Class<VALUE>, value: VALUE) =
+        registerHook(Hook(key.name), value)
 
     companion object {
         @JvmStatic
@@ -118,17 +116,12 @@ class JavalinConfig {
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
             cfg.pvt.pluginManager.startPlugins()
-
-            if (cfg.pvt.jsonMapper == null) {
-                cfg.pvt.jsonMapper = JavalinJackson(null, cfg.useVirtualThreads)
-            }
-
-            cfg.pvt.componentManager.registerIfAbsent(UseContextResolver, cfg.contextResolver)
-            cfg.pvt.componentManager.registerIfAbsent(UseAsyncExecutor, cfg.pvt.asyncExecutor.value)
-            cfg.pvt.componentManager.registerIfAbsent(UseValidation, Validation(cfg.validation))
-            cfg.pvt.componentManager.registerIfAbsent(UseFileRenderer, NotImplementedRenderer())
-            cfg.pvt.componentManager.registerIfAbsent(UseMaxRequestSize, cfg.http.maxRequestSize)
-            cfg.pvt.componentManager.registerIfAbsent(UseVueConfig, cfg.vue)
+            cfg.pvt.hookManager.registerIfAbsent(UseContextResolver, cfg.contextResolver)
+            cfg.pvt.hookManager.registerIfAbsent(UseAsyncExecutor, cfg.pvt.asyncExecutor.value)
+            cfg.pvt.hookManager.registerIfAbsent(UseValidation, Validation(cfg.validation))
+            cfg.pvt.hookManager.registerIfAbsent(UseFileRenderer, NotImplementedRenderer())
+            cfg.pvt.hookManager.registerIfAbsent(UseMaxRequestSize, cfg.http.maxRequestSize)
+            cfg.pvt.hookManager.registerIfAbsent(UseVueConfig, cfg.vue)
         }
     }
     //@formatter:on

@@ -1,6 +1,6 @@
 package io.javalin.vue
 
-import io.javalin.component.Hook
+import io.javalin.hook.Hook
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.servlet.isLocalhost

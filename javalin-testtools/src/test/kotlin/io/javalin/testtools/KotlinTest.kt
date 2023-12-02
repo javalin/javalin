@@ -170,7 +170,7 @@ class KotlinTest {
             // Ignore
         }
 
-        assertThat(app.component(UseTestLogs)).contains("Error in handler code")
+        assertThat(app.unsafeConfig().pvt.hookManager.resolve(UseTestLogs)).contains("Error in handler code")
     }
 
     private fun throwingTest(app: Javalin) {

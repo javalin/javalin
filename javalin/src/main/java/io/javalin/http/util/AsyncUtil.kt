@@ -1,6 +1,6 @@
 package io.javalin.http.util
 
-import io.javalin.component.Hook
+import io.javalin.hook.Hook
 import io.javalin.config.HttpConfig
 import io.javalin.http.Context
 import io.javalin.util.function.ThrowingRunnable

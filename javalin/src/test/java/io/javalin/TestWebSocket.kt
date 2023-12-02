@@ -7,7 +7,7 @@
 package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.ws
-import io.javalin.component.Hook
+import io.javalin.hook.Hook
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
@@ -54,7 +54,7 @@ class TestWebSocket {
 
     private fun Javalin.logger(): TestLogger {
         val logger = TestLogger()
-        val componentManager = this.unsafeConfig().pvt.componentManager
+        val componentManager = this.unsafeConfig().pvt.hookManager
         componentManager.registerResolverIfAbsent(useTestLogger) { logger }
         return componentManager.resolve(useTestLogger)
     }

@@ -1,7 +1,7 @@
 package io.javalin.testtools
 
 import io.javalin.Javalin
-import io.javalin.component.Hook
+import io.javalin.hook.Hook
 import io.javalin.util.JavalinLogger
 import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
@@ -41,7 +41,7 @@ class TestTool(private val testConfig: TestConfig = TestConfig()) {
             }
             app.stop()
         }
-        app.unsafeConfig().registerComponent(UseTestLogs, result.logs)
+        app.unsafeConfig().registerHook(UseTestLogs, result.logs)
         if (result.exception != null) {
             JavalinLogger.error("JavalinTest#test failed - full log output below:\n" + result.logs)
             throw result.exception

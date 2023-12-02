@@ -6,8 +6,8 @@
 
 package io.javalin.http.servlet
 
-import io.javalin.component.Hook
-import io.javalin.component.ComponentManager
+import io.javalin.hook.Hook
+import io.javalin.hook.HookManager
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
 import io.javalin.config.JavalinConfig
@@ -40,7 +40,7 @@ import kotlin.LazyThreadSafetyMode.*
 import java.util.stream.Stream
 
 data class JavalinServletContextConfig(
-    val componentManager: ComponentManager,
+    val hookManager: HookManager,
     val compressionStrategy: CompressionStrategy,
     val requestLoggerEnabled: Boolean,
     val defaultContentType: String,
@@ -49,11 +49,11 @@ data class JavalinServletContextConfig(
     companion object {
         fun of(cfg: JavalinConfig): JavalinServletContextConfig =
             JavalinServletContextConfig(
-                componentManager = cfg.pvt.componentManager,
+                hookManager = cfg.pvt.hookManager,
                 compressionStrategy = cfg.pvt.compressionStrategy,
                 requestLoggerEnabled = cfg.pvt.requestLogger != null,
                 defaultContentType = cfg.http.defaultContentType,
-                jsonMapper = cfg.pvt.jsonMapper!!,
+                jsonMapper = cfg.pvt.jsonMapper.value,
             )
         }
 }
@@ -100,7 +100,7 @@ class JavalinServletContext(
     override fun req(): HttpServletRequest = req
     override fun res(): HttpServletResponse = res
 
-    override fun <COMPONENT> use(hook: Hook<COMPONENT>): COMPONENT = cfg.componentManager.resolve(hook, this)
+    override fun <COMPONENT> use(hook: Hook<COMPONENT>): COMPONENT = cfg.hookManager.resolve(hook, this)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 

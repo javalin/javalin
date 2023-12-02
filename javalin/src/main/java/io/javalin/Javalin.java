@@ -7,14 +7,12 @@
 
 package io.javalin;
 
-import io.javalin.component.Hook;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.router.Endpoint;
 import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
-import io.javalin.http.Context;
 import io.javalin.jetty.JettyServer;
 import io.javalin.security.RouteRole;
 import java.util.function.Consumer;
