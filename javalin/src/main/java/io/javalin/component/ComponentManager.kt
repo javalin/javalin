@@ -4,61 +4,74 @@ package io.javalin.component
 
 import io.javalin.http.Context
 import java.util.function.Consumer
+import kotlin.reflect.KClass
 
 class ComponentManager {
 
-    private val resolvers: MutableMap<IdentifiableHook, ParametrizedResolver<*, *>> = mutableMapOf()
+    private val resolvers: MutableMap<ComponentHandle<*>, ComponentResolver<*>> = mutableMapOf()
+    private val classHandles: MutableMap<KClass<*>, ComponentHandle<*>> = mutableMapOf()
 
-    fun <COMPONENT> register(hook: Hook<COMPONENT>, resolver: Resolver<COMPONENT>) {
-        if (resolvers.containsKey(hook)) {
-            throw ComponentAlreadyExistsException(hook)
+    // For java
+    fun <COMPONENT: Any> register(klass: Class<COMPONENT>, component: COMPONENT, skipIfExists: Boolean = false) {
+        registerResolver(klass, { component }, skipIfExists)
+    }
+
+    fun <COMPONENT: Any> registerResolver(klass: Class<COMPONENT>, resolver: ComponentResolver<COMPONENT>, skipIfExists: Boolean = false) {
+        registerResolver(klass.kotlin, resolver, skipIfExists)
+    }
+
+    // For kotlin
+    fun <COMPONENT: Any> register(klass: KClass<COMPONENT>, component: COMPONENT, skipIfExists: Boolean = false) {
+        registerResolver(klass, { component }, skipIfExists)
+    }
+
+    fun <COMPONENT: Any> registerResolver(klass: KClass<COMPONENT>, resolver: ComponentResolver<COMPONENT>, skipIfExists: Boolean = false) {
+        if (classHandles.containsKey(klass)) {
+            if(skipIfExists) {
+                return
+            }
+            throw ComponentAlreadyExistsException(ComponentHandle<COMPONENT>())
         }
 
-        resolvers[hook] = ParametrizedResolver<COMPONENT, Unit> { _, ctx ->
-            resolver.resolve(ctx)
+        val handle = ComponentHandle<COMPONENT>()
+        classHandles[klass] = handle
+        registerResolver(handle, resolver)
+    }
+
+    fun <COMPONENT> register(handle: ComponentHandle<COMPONENT>, component: COMPONENT, skipIfExists: Boolean = false) {
+        registerResolver(handle, { component }, skipIfExists)
+    }
+
+    fun <COMPONENT> registerResolver(handle: ComponentHandle<COMPONENT>, resolver: ComponentResolver<COMPONENT>, skipIfExists: Boolean = false) {
+        if (resolvers.containsKey(handle)) {
+            if(skipIfExists) {
+                return
+            }
+            throw ComponentAlreadyExistsException(handle)
         }
+
+        resolvers[handle] = resolver
     }
 
-    @Deprecated("Experimental")
-    fun <COMPONENT, CFG> register(hook: ParametrizedHook<COMPONENT, CFG>, resolver: ParametrizedResolver<COMPONENT, CFG>) {
-        if (resolvers.containsKey(hook)) {
-            throw ComponentAlreadyExistsException(hook)
-        }
+    fun <COMPONENT : Any> resolve(klass: Class<COMPONENT>, ctx: Context?): COMPONENT =
+        resolve(klass.kotlin, ctx)
 
-        resolvers[hook] = resolver
-    }
-
-    fun <COMPONENT> registerIfAbsent(hook: Hook<COMPONENT>, component: COMPONENT) {
-        registerResolverIfAbsent(hook) { component }
-    }
-
-    fun <COMPONENT> registerResolverIfAbsent(hook: Hook<COMPONENT>, resolver: Resolver<COMPONENT>) {
-        resolvers.putIfAbsent(hook, ParametrizedResolver<COMPONENT, Unit> { _, ctx ->
-            resolver.resolve(ctx)
-        })
-    }
-
-    fun <COMPONENT> resolve(hook: Hook<COMPONENT>, ctx: Context?): COMPONENT =
-        resolvers[hook]
+    fun <COMPONENT : Any> resolve(klass: KClass<COMPONENT>, ctx: Context?): COMPONENT =
+        classHandles[klass]
             ?.let {
                 @Suppress("UNCHECKED_CAST")
-                it as ParametrizedResolver<COMPONENT, Unit>
+                it as ComponentHandle<COMPONENT>
             }
-            ?.resolve(Unit, ctx)
-            ?: throw ComponentNotFoundException(hook)
+            ?.let { resolve(it, ctx) }
+            ?: throw ComponentNotFoundException(ComponentHandle<COMPONENT>())
 
-    @Deprecated("Experimental")
-    fun <COMPONENT, PARAMETERS> resolve(hook: ParametrizedHook<COMPONENT, PARAMETERS>, userArguments: Consumer<PARAMETERS>, ctx: Context?): COMPONENT =
-        resolvers[hook]
+    fun <COMPONENT> resolve(handle: ComponentHandle<COMPONENT>, ctx: Context?): COMPONENT =
+        resolvers[handle]
             ?.let {
                 @Suppress("UNCHECKED_CAST")
-                it as ParametrizedResolver<COMPONENT, PARAMETERS>
+                it as ComponentResolver<COMPONENT>
             }
-            ?.let {
-                val arguments = hook.defaultArguments.get()
-                userArguments.accept(arguments)
-                it.resolve(arguments, ctx)
-            }
-            ?: throw ComponentNotFoundException(hook)
+            ?.resolve(ctx)
+            ?: throw ComponentNotFoundException(handle)
 
 }

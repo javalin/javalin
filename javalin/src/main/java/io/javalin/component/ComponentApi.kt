@@ -1,13 +1,17 @@
 package io.javalin.component
 
-interface IdentifiableHook {
-    val id: String
+import io.javalin.http.Context
+
+class ComponentHandle<T>
+
+fun interface ComponentResolver<T> {
+    fun resolve(ctx: Context?): T
 }
 
 class ComponentNotFoundException(
-    hook: IdentifiableHook
-) : IllegalStateException("No component resolver registered for ${hook.id}")
+    handle: ComponentHandle<*>
+) : IllegalStateException("No component resolver registered for ${handle}")
 
 class ComponentAlreadyExistsException(
-    hook: IdentifiableHook
-) : IllegalStateException("Component resolver already registered for ${hook.id}")
+    handle: ComponentHandle<*>
+) : IllegalStateException("Component resolver already registered for ${handle}")

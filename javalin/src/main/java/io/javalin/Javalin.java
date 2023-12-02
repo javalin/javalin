@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import io.javalin.component.Hook;
+import io.javalin.component.ComponentHandle;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.router.Endpoint;
@@ -23,6 +23,7 @@ import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
 import jakarta.servlet.Servlet;
 import kotlin.Lazy;
+import kotlin.reflect.KClass;
 import org.jetbrains.annotations.NotNull;
 
 import static io.javalin.util.Util.createLazy;
@@ -167,12 +168,18 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
 
     /**
      * Retrieve an attribute stored on the instance.
-     * Available on the {@link Context} through {@link Context#use(io.javalin.component.Hook)}.
+     * Available on the {@link Context} through {@link Context#use(io.javalin.component.ComponentHandle)}.
      * Ex: app.component(MyExt).myMethod()
      * Ex: ctx.use(MyExt).myMethod()
      */
-    public <COMPONENT> COMPONENT component(Hook<COMPONENT> hook) {
-        return cfg.pvt.componentManager.resolve(hook, null);
+    public <COMPONENT> COMPONENT component(ComponentHandle<COMPONENT> handle) {
+        return cfg.pvt.componentManager.resolve(handle, null);
+    }
+    public <COMPONENT> COMPONENT component(KClass<COMPONENT> klass) {
+        return cfg.pvt.componentManager.resolve(klass, null);
+    }
+    public <COMPONENT> COMPONENT component(Class<COMPONENT> klass) {
+        return cfg.pvt.componentManager.resolve(klass, null);
     }
 
     @NotNull

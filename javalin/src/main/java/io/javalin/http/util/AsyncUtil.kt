@@ -1,6 +1,5 @@
 package io.javalin.http.util
 
-import io.javalin.component.Hook
 import io.javalin.config.HttpConfig
 import io.javalin.http.Context
 import io.javalin.util.function.ThrowingRunnable
@@ -37,11 +36,6 @@ class AsyncTaskConfig {
 }
 
 class AsyncExecutor(private val defaultExecutor: ExecutorService) {
-
-    companion object {
-        @JvmStatic val UseAsyncExecutor = Hook<AsyncExecutor>("javalin-default-async-executor")
-    }
-
     /**
      * Utility method that executes [task] asynchronously using [executor] ([defaultExecutor] by default).
      * It also provides custom timeout handling via [onTimeout] callback registered directly on underlying [CompletableFuture],

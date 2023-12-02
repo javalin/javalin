@@ -6,7 +6,7 @@
 
 package io.javalin.http.servlet
 
-import io.javalin.component.Hook
+import io.javalin.component.ComponentHandle
 import io.javalin.component.ComponentManager
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
 import kotlin.LazyThreadSafetyMode.*
 import java.util.stream.Stream
+import kotlin.reflect.KClass
 
 data class JavalinServletContextConfig(
     val componentManager: ComponentManager,
@@ -100,7 +101,9 @@ class JavalinServletContext(
     override fun req(): HttpServletRequest = req
     override fun res(): HttpServletResponse = res
 
-    override fun <COMPONENT> use(hook: Hook<COMPONENT>): COMPONENT = cfg.componentManager.resolve(hook, this)
+    override fun <COMPONENT> use(handle: ComponentHandle<COMPONENT>): COMPONENT = cfg.componentManager.resolve(handle, this)
+    override fun <COMPONENT : Any> use(klass: Class<COMPONENT>): COMPONENT = cfg.componentManager.resolve(klass, this)
+    override fun <COMPONENT : Any> use(klass: KClass<COMPONENT>): COMPONENT = cfg.componentManager.resolve(klass, this)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 
@@ -217,10 +220,10 @@ fun Context.isLocalhost() = try {
 }
 
 internal object MaxRequestSize {
-    val UseMaxRequestSize = Hook<Long>("javalin-max-request-size")
+    val maxRequestSizeHandle = ComponentHandle<Long>()
 
     fun throwContentTooLargeIfContentTooLarge(ctx: Context) {
-        val maxRequestSize = ctx.use(UseMaxRequestSize)
+        val maxRequestSize = ctx.use(maxRequestSizeHandle)
 
         if (ctx.req().contentLength > maxRequestSize) {
             JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")

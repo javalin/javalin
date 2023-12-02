@@ -7,7 +7,7 @@
 package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.ws
-import io.javalin.component.Hook
+import io.javalin.component.ComponentHandle
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
@@ -50,11 +50,11 @@ import java.util.concurrent.atomic.AtomicInteger
 class TestWebSocket {
 
     private data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>())
-    private val useTestLogger = Hook<TestLogger>("test-logger")
+    private val useTestLogger = ComponentHandle<TestLogger>()
 
     private fun Javalin.logger(): TestLogger {
         val logger = TestLogger()
-        this.unsafeConfig().pvt.componentManager.registerResolverIfAbsent(useTestLogger) { logger }
+        this.unsafeConfig().pvt.componentManager.register(useTestLogger, logger, true)
         return component(useTestLogger)
     }
 

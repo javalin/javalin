@@ -10,7 +10,7 @@ package io.javalin
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
-import io.javalin.testing.TestUtil.UseTestLogs
+import io.javalin.testing.TestUtil.testLogsHandle
 import io.javalin.testing.httpCode
 import io.javalin.util.LoomUtil
 import jakarta.servlet.DispatcherType
@@ -199,7 +199,7 @@ class TestCustomJetty {
             assertThat(responseBody).contains("JettyServerThreadPool-Virtual")
         }
         assertThat(LoomUtil.isLoomThreadPool(defaultApp.jettyServer().server().threadPool)).isTrue
-        assertThat(defaultApp.component(UseTestLogs)).contains("JDK supports Loom")
+        assertThat(defaultApp.component(testLogsHandle)).contains("JDK supports Loom")
     }
 
     @Test

@@ -6,7 +6,7 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
-import io.javalin.testtools.TestTool.Companion.UseTestLogs
+import io.javalin.testtools.TestTool.Companion.testLogsHandle
 import okhttp3.FormBody
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -170,7 +170,7 @@ class KotlinTest {
             // Ignore
         }
 
-        assertThat(app.component(UseTestLogs)).contains("Error in handler code")
+        assertThat(app.component(testLogsHandle)).contains("Error in handler code")
     }
 
     private fun throwingTest(app: Javalin) {

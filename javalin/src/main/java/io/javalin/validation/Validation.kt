@@ -6,7 +6,6 @@
 
 package io.javalin.validation
 
-import io.javalin.component.Hook
 import io.javalin.config.JavalinConfig
 import io.javalin.config.ValidationConfig
 import io.javalin.http.HttpStatus
@@ -36,9 +35,6 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
          Validator(Params(fieldName, null, null, typedValue) { null })
 
     companion object {
-        @JvmField
-        val UseValidation = Hook<Validation>("javalin-validation")
-
         @JvmStatic
         fun collectErrors(vararg validators: BaseValidator<*>) = collectErrors(validators.toList())
 

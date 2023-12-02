@@ -6,23 +6,20 @@
 package io.javalin.config
 
 import io.javalin.Javalin
-import io.javalin.component.Hook
-import io.javalin.component.Resolver
-import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
-import io.javalin.http.servlet.MaxRequestSize.UseMaxRequestSize
-import io.javalin.http.util.AsyncExecutor.Companion.UseAsyncExecutor
+import io.javalin.component.ComponentHandle
+import io.javalin.component.ComponentResolver
+import io.javalin.http.servlet.MaxRequestSize.maxRequestSizeHandle
+import io.javalin.http.util.AsyncExecutor
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
 import io.javalin.rendering.FileRenderer
-import io.javalin.rendering.FileRenderer.Companion.UseFileRenderer
 import io.javalin.rendering.NotImplementedRenderer
 import io.javalin.validation.Validation
-import io.javalin.validation.Validation.Companion.UseValidation
 import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
 import io.javalin.vue.JavalinVueConfig
-import io.javalin.vue.JavalinVueConfig.Companion.UseVueConfig
 import java.util.function.Consumer
+import kotlin.reflect.KClass
 
 // this class should be abbreviated `cfg` in the source code.
 // `cfg.pvt` should be accessible, but usage should be discouraged (hence the naming)
@@ -84,7 +81,7 @@ class JavalinConfig {
      * @param fileRenderer the [FileRenderer]
      */
     fun fileRenderer(fileRenderer: FileRenderer) =
-        registerComponent(UseFileRenderer, fileRenderer)
+        registerComponent(FileRenderer::class, fileRenderer)
 
     /**
      * Register a plugin to this Javalin Configuration.
@@ -100,8 +97,18 @@ class JavalinConfig {
      * @param key unique [Hook] for the component
      * @param resolver the [Resolver] for the component. This will be called each time the component is requested.
      */
-    fun <COMPONENT : Any?> registerComponent(key: Hook<COMPONENT>, component: COMPONENT) =
-        pvt.componentManager.register(key) { component }
+    fun <COMPONENT : Any?> registerComponent(key: ComponentHandle<COMPONENT>, component: COMPONENT) =
+        pvt.componentManager.register(key, component)
+    fun <COMPONENT : Any> registerComponent(key: KClass<COMPONENT>, component: COMPONENT) =
+        pvt.componentManager.register(key, component)
+    fun <COMPONENT : Any> registerComponent(key: Class<COMPONENT>, component: COMPONENT) =
+        pvt.componentManager.register(key, component)
+    fun <COMPONENT : Any?> registerComponentResolver(key: ComponentHandle<COMPONENT>, resolver: ComponentResolver<COMPONENT>) =
+        pvt.componentManager.registerResolver(key, resolver)
+    fun <COMPONENT : Any> registerComponentResolver(key: KClass<COMPONENT>, resolver: ComponentResolver<COMPONENT>) =
+        pvt.componentManager.registerResolver(key, resolver)
+    fun <COMPONENT : Any> registerComponentResolver(key: Class<COMPONENT>, resolver: ComponentResolver<COMPONENT>) =
+        pvt.componentManager.registerResolver(key, resolver)
 
     companion object {
         @JvmStatic
@@ -114,12 +121,12 @@ class JavalinConfig {
                 cfg.pvt.jsonMapper = JavalinJackson(null, cfg.useVirtualThreads)
             }
 
-            cfg.pvt.componentManager.registerIfAbsent(UseContextResolver, cfg.contextResolver)
-            cfg.pvt.componentManager.registerIfAbsent(UseAsyncExecutor, cfg.pvt.asyncExecutor.value)
-            cfg.pvt.componentManager.registerIfAbsent(UseValidation, Validation(cfg.validation))
-            cfg.pvt.componentManager.registerIfAbsent(UseFileRenderer, NotImplementedRenderer())
-            cfg.pvt.componentManager.registerIfAbsent(UseMaxRequestSize, cfg.http.maxRequestSize)
-            cfg.pvt.componentManager.registerIfAbsent(UseVueConfig, cfg.vue)
+            cfg.pvt.componentManager.register(ContextResolverConfig::class, cfg.contextResolver, true)
+            cfg.pvt.componentManager.register(AsyncExecutor::class, cfg.pvt.asyncExecutor.value, true)
+            cfg.pvt.componentManager.register(Validation::class, Validation(cfg.validation), true)
+            cfg.pvt.componentManager.register(FileRenderer::class, NotImplementedRenderer(), true)
+            cfg.pvt.componentManager.register(maxRequestSizeHandle, cfg.http.maxRequestSize)
+            cfg.pvt.componentManager.register(JavalinVueConfig::class, cfg.vue, true)
         }
     }
     //@formatter:on

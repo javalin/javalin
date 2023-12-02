@@ -1,6 +1,5 @@
 package io.javalin.vue
 
-import io.javalin.component.Hook
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.servlet.isLocalhost
@@ -14,10 +13,6 @@ import java.nio.file.Paths
  * @see [Online Doc](https://javalin.io/plugins/javalinvue)
  */
 class JavalinVueConfig {
-    companion object {
-        internal val UseVueConfig = Hook<JavalinVueConfig>("javalin-javalinvue-config")
-    }
-
     //@formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var pathMaster = VuePathMaster(this)
     @get:JvmSynthetic @set:JvmSynthetic internal var rootDirectory: Path? = null // is set on first request (if not configured)

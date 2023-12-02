@@ -1,6 +1,6 @@
 package io.javalin;
 
-import io.javalin.component.Hook;
+import io.javalin.component.ComponentHandle;
 import io.javalin.http.ContentType;
 import io.javalin.http.Cookie;
 import io.javalin.http.HttpStatus;
@@ -29,9 +29,13 @@ public class TestPublicApi_Java {
         Javalin.create(/*config*/)
             .get("/", ctx -> ctx.result("Hello World"))
             .start(7070);
-        var useTestComponent = new Hook<String>("test-component");
+        var testComponentHandle = new ComponentHandle<String>();
+        var testComponentProducerHandle = new ComponentHandle<String>();
         var app = Javalin.create(config -> {
-            config.registerComponent(useTestComponent, "name");
+            config.registerComponent(testComponentHandle, "name");
+            config.registerComponentResolver(testComponentProducerHandle, (ctx) -> ctx == null ? "" : ctx.path());
+            config.registerComponent(String.class, "name2");
+            config.registerComponentResolver(Integer.class, (ctx) -> ctx == null ? 0 : ctx.statusCode());
             config.validation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
             config.registerPlugin(new CorsPlugin(cors -> {
                 cors.addRule(rule -> {
@@ -211,7 +215,10 @@ public class TestPublicApi_Java {
             ctx.res();
             ctx.async(() -> {});
             ctx.handlerType();
-            ctx.use(useTestComponent);
+            ctx.use(testComponentHandle);
+            ctx.use(String.class);
+            ctx.use(testComponentProducerHandle);
+            ctx.use(Integer.class);
             ctx.matchedPath();
             ctx.endpointHandlerPath();
             ctx.cookieStore();
