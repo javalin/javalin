@@ -41,7 +41,7 @@ class TestTool(private val testConfig: TestConfig = TestConfig()) {
             }
             app.stop()
         }
-        app.unsafeConfig().registerComponent(UseTestLogs) { result.logs }
+        app.unsafeConfig().registerComponent(UseTestLogs, result.logs)
         if (result.exception != null) {
             JavalinLogger.error("JavalinTest#test failed - full log output below:\n" + result.logs)
             throw result.exception

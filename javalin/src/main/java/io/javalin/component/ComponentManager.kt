@@ -15,7 +15,11 @@ class ComponentManager {
         componentResolvers[accessor] = resolver
     }
 
-    fun <COMPONENT> registerIfAbsent(accessor: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) {
+    fun <COMPONENT> registerIfAbsent(accessor: ComponentAccessor<COMPONENT>, component: COMPONENT) {
+        registerResolverIfAbsent(accessor) { component }
+    }
+
+    fun <COMPONENT> registerResolverIfAbsent(accessor: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) {
         componentResolvers.putIfAbsent(accessor, resolver)
     }
 

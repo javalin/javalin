@@ -84,7 +84,7 @@ class JavalinConfig {
      * @param fileRenderer the [FileRenderer]
      */
     fun fileRenderer(fileRenderer: FileRenderer) =
-        registerComponent(UseFileRenderer) { fileRenderer }
+        registerComponent(UseFileRenderer, fileRenderer)
 
     /**
      * Register a plugin to this Javalin Configuration.
@@ -100,8 +100,8 @@ class JavalinConfig {
      * @param key unique [ComponentAccessor] for the component
      * @param resolver the [ComponentResolver] for the component. This will be called each time the component is requested.
      */
-    fun <COMPONENT : Any?> registerComponent(key: ComponentAccessor<COMPONENT>, resolver: ComponentResolver<COMPONENT>) =
-        pvt.componentManager.register(key, resolver)
+    fun <COMPONENT : Any?> registerComponent(key: ComponentAccessor<COMPONENT>, component: COMPONENT) =
+        pvt.componentManager.register(key) { component }
 
     companion object {
         @JvmStatic
@@ -114,13 +114,12 @@ class JavalinConfig {
                 cfg.pvt.jsonMapper = JavalinJackson(null, cfg.useVirtualThreads)
             }
 
-            val validation = Validation(cfg.validation)
-            cfg.pvt.componentManager.registerIfAbsent(UseValidation) { validation }
-            cfg.pvt.componentManager.registerIfAbsent(UseAsyncExecutor) { cfg.pvt.asyncExecutor.value }
-            cfg.pvt.componentManager.registerIfAbsent(UseFileRenderer) { NotImplementedRenderer() }
-            cfg.pvt.componentManager.registerIfAbsent(UseContextResolver) { cfg.contextResolver }
-            cfg.pvt.componentManager.registerIfAbsent(UseMaxRequestSize) { cfg.http.maxRequestSize }
-            cfg.pvt.componentManager.registerIfAbsent(UseVueConfig) { cfg.vue }
+            cfg.pvt.componentManager.registerIfAbsent(UseContextResolver, cfg.contextResolver)
+            cfg.pvt.componentManager.registerIfAbsent(UseAsyncExecutor, cfg.pvt.asyncExecutor.value)
+            cfg.pvt.componentManager.registerIfAbsent(UseValidation, Validation(cfg.validation))
+            cfg.pvt.componentManager.registerIfAbsent(UseFileRenderer, NotImplementedRenderer())
+            cfg.pvt.componentManager.registerIfAbsent(UseMaxRequestSize, cfg.http.maxRequestSize)
+            cfg.pvt.componentManager.registerIfAbsent(UseVueConfig, cfg.vue)
         }
     }
     //@formatter:on

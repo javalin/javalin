@@ -35,7 +35,7 @@ public class TestUtil {
             http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
             app.stop();
         });
-        app.unsafeConfig().registerComponent(UseTestLogs, (ctx) -> result.logs);
+        app.unsafeConfig().registerComponent(UseTestLogs, result.logs);
         if (result.exception != null) {
             JavalinLogger.error("TestUtil#test failed - full log output below:\n" + result.logs);
             throw new RuntimeException(result.exception);

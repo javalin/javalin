@@ -21,7 +21,7 @@ internal class TestComponents {
 
     @Test
     fun `components can be accessed through the app`() = TestUtil.test(Javalin.create {
-        it.registerComponent(useMyOtherThing) { MyOtherThing() }
+        it.registerComponent(useMyOtherThing, MyOtherThing())
     }) { app, _ ->
         assertThat(app.component(useMyOtherThing).test).isEqualTo("Test")
     }
@@ -33,7 +33,7 @@ internal class TestComponents {
 
     @Test
     fun `components can be accessed through the Context`() = TestUtil.test(Javalin.create {
-        it.registerComponent(useMyJson) { MyJson() }
+        it.registerComponent(useMyJson, MyJson())
     }) { app, http ->
         val gson = GsonBuilder().create()
         app.get("/") { it.result(it.use(useMyJson).render(SerializableObject())) }

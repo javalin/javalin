@@ -54,7 +54,7 @@ class TestWebSocket {
 
     private fun Javalin.logger(): TestLogger {
         val logger = TestLogger()
-        this.unsafeConfig().pvt.componentManager.registerIfAbsent(useTestLogger) { logger }
+        this.unsafeConfig().pvt.componentManager.registerResolverIfAbsent(useTestLogger) { logger }
         return component(useTestLogger)
     }
 

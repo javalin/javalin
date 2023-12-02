@@ -31,7 +31,7 @@ public class TestPublicApi_Java {
             .start(7070);
         var useTestComponent = new ComponentAccessor<String>("test-component");
         var app = Javalin.create(config -> {
-            config.registerComponent(useTestComponent, ctx -> "name");
+            config.registerComponent(useTestComponent, "name");
             config.validation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
             config.registerPlugin(new CorsPlugin(cors -> {
                 cors.addRule(rule -> {
