@@ -73,7 +73,7 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     /** Gets a component */
-    fun <COMPONENT> use(accessor: Hook<COMPONENT>): COMPONENT
+    fun <COMPONENT> use(hook: Hook<COMPONENT>): COMPONENT
 
     /** Get configured [JsonMapper] */
     fun jsonMapper(): JsonMapper

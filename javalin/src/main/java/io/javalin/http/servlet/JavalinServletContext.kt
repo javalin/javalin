@@ -100,7 +100,7 @@ class JavalinServletContext(
     override fun req(): HttpServletRequest = req
     override fun res(): HttpServletResponse = res
 
-    override fun <COMPONENT> use(accessor: Hook<COMPONENT>): COMPONENT = cfg.componentManager.resolve(accessor, this)
+    override fun <COMPONENT> use(hook: Hook<COMPONENT>): COMPONENT = cfg.componentManager.resolve(hook, this)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 

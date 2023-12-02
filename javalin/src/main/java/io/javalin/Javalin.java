@@ -171,8 +171,8 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      * Ex: app.component(MyExt).myMethod()
      * Ex: ctx.use(MyExt).myMethod()
      */
-    public <COMPONENT> COMPONENT component(Hook<COMPONENT> accessor) {
-        return cfg.pvt.componentManager.resolve(accessor, null);
+    public <COMPONENT> COMPONENT component(Hook<COMPONENT> hook) {
+        return cfg.pvt.componentManager.resolve(hook, null);
     }
 
     @NotNull
