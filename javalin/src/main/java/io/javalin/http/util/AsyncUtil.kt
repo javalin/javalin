@@ -1,7 +1,7 @@
 package io.javalin.http.util
 
-import io.javalin.hook.Hook
 import io.javalin.config.HttpConfig
+import io.javalin.config.Key
 import io.javalin.http.Context
 import io.javalin.util.function.ThrowingRunnable
 import jakarta.servlet.AsyncEvent
@@ -39,7 +39,7 @@ class AsyncTaskConfig {
 class AsyncExecutor(private val defaultExecutor: ExecutorService) {
 
     companion object {
-        @JvmStatic val UseAsyncExecutor = Hook<AsyncExecutor>("javalin-default-async-executor")
+        @JvmStatic val AsyncExecutorKey = Key<AsyncExecutor>("javalin-default-async-executor")
     }
 
     /**

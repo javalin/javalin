@@ -6,11 +6,11 @@
 
 package io.javalin.http.servlet
 
-import io.javalin.hook.Hook
-import io.javalin.hook.HookManager
+import io.javalin.config.AppDataManager
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
 import io.javalin.config.JavalinConfig
+import io.javalin.config.Key
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
@@ -40,7 +40,7 @@ import kotlin.LazyThreadSafetyMode.*
 import java.util.stream.Stream
 
 data class JavalinServletContextConfig(
-    val hookManager: HookManager,
+    val appDataManager: AppDataManager,
     val compressionStrategy: CompressionStrategy,
     val requestLoggerEnabled: Boolean,
     val defaultContentType: String,
@@ -49,7 +49,7 @@ data class JavalinServletContextConfig(
     companion object {
         fun of(cfg: JavalinConfig): JavalinServletContextConfig =
             JavalinServletContextConfig(
-                hookManager = cfg.pvt.hookManager,
+                appDataManager = cfg.pvt.appDataManager,
                 compressionStrategy = cfg.pvt.compressionStrategy,
                 requestLoggerEnabled = cfg.pvt.requestLogger != null,
                 defaultContentType = cfg.http.defaultContentType,
@@ -100,7 +100,7 @@ class JavalinServletContext(
     override fun req(): HttpServletRequest = req
     override fun res(): HttpServletResponse = res
 
-    override fun <COMPONENT> use(hook: Hook<COMPONENT>): COMPONENT = cfg.hookManager.resolve(hook, this)
+    override fun <T> appData(key: Key<T>): T = cfg.appDataManager.get(key)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 
@@ -217,10 +217,10 @@ fun Context.isLocalhost() = try {
 }
 
 internal object MaxRequestSize {
-    val UseMaxRequestSize = Hook<Long>("javalin-max-request-size")
+    val MaxRequestSizeKey = Key<Long>("javalin-max-request-size")
 
     fun throwContentTooLargeIfContentTooLarge(ctx: Context) {
-        val maxRequestSize = ctx.use(UseMaxRequestSize)
+        val maxRequestSize = ctx.appData(MaxRequestSizeKey)
 
         if (ctx.req().contentLength > maxRequestSize) {
             JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")

@@ -3,7 +3,6 @@ package io.javalin.testtools
 import io.javalin.Javalin
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
 import io.javalin.testtools.TestTool.Companion.UseTestLogs
@@ -170,7 +169,7 @@ class KotlinTest {
             // Ignore
         }
 
-        assertThat(app.unsafeConfig().pvt.hookManager.resolve(UseTestLogs)).contains("Error in handler code")
+        assertThat(app.unsafeConfig().pvt.appDataManager.get(UseTestLogs)).contains("Error in handler code")
     }
 
     private fun throwingTest(app: Javalin) {

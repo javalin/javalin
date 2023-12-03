@@ -6,22 +6,20 @@
 package io.javalin.config
 
 import io.javalin.Javalin
-import io.javalin.hook.Hook
-import io.javalin.config.ContextResolverConfig.Companion.UseContextResolver
-import io.javalin.http.servlet.MaxRequestSize.UseMaxRequestSize
-import io.javalin.http.util.AsyncExecutor.Companion.UseAsyncExecutor
-import io.javalin.json.JavalinJackson
+import io.javalin.config.ContextResolverConfig.Companion.ContextResolverKey
+import io.javalin.http.servlet.MaxRequestSize.MaxRequestSizeKey
+import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
 import io.javalin.rendering.FileRenderer
-import io.javalin.rendering.FileRenderer.Companion.UseFileRenderer
+import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
 import io.javalin.rendering.NotImplementedRenderer
 import io.javalin.util.javalinLazy
 import io.javalin.validation.Validation
-import io.javalin.validation.Validation.Companion.UseValidation
+import io.javalin.validation.Validation.Companion.ValidationKey
 import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
 import io.javalin.vue.JavalinVueConfig
-import io.javalin.vue.JavalinVueConfig.Companion.UseVueConfig
+import io.javalin.vue.JavalinVueConfig.Companion.VueConfigKey
 import java.util.function.Consumer
 
 // this class should be abbreviated `cfg` in the source code.
@@ -84,7 +82,7 @@ class JavalinConfig {
      * @param fileRenderer the [FileRenderer]
      */
     fun fileRenderer(fileRenderer: FileRenderer) =
-        registerHook(UseFileRenderer, fileRenderer)
+        appData(FileRendererKey, fileRenderer)
 
     /**
      * Register a plugin to this Javalin Configuration.
@@ -96,19 +94,11 @@ class JavalinConfig {
 
     /**
      * Register a new component resolver.
-     * @param VALUE the type of the component
-     * @param hook unique [Hook] for the component
+     * @param T the type of the value
+     * @param key the [Key] to register
      */
-    fun <VALUE : Any?> registerHook(hook: Hook<VALUE>, value: VALUE) =
-        pvt.hookManager.register(hook) { value }
+    fun <T : Any?> appData(key: Key<T>, value: T) = pvt.appDataManager.register(key, value)
 
-    /**
-     * Register a new component resolver.
-     * @param VALUE the type of the component
-     * @param key unique [Hook] for the component
-     */
-    fun <VALUE : Any?> registerHook(key: Class<VALUE>, value: VALUE) =
-        registerHook(Hook(key.name), value)
 
     companion object {
         @JvmStatic
@@ -116,12 +106,12 @@ class JavalinConfig {
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
             cfg.pvt.pluginManager.startPlugins()
-            cfg.pvt.hookManager.registerIfAbsent(UseContextResolver, cfg.contextResolver)
-            cfg.pvt.hookManager.registerIfAbsent(UseAsyncExecutor, cfg.pvt.asyncExecutor.value)
-            cfg.pvt.hookManager.registerIfAbsent(UseValidation, Validation(cfg.validation))
-            cfg.pvt.hookManager.registerIfAbsent(UseFileRenderer, NotImplementedRenderer())
-            cfg.pvt.hookManager.registerIfAbsent(UseMaxRequestSize, cfg.http.maxRequestSize)
-            cfg.pvt.hookManager.registerIfAbsent(UseVueConfig, cfg.vue)
+            cfg.pvt.appDataManager.registerIfAbsent(ContextResolverKey, cfg.contextResolver)
+            cfg.pvt.appDataManager.registerIfAbsent(AsyncExecutorKey, cfg.pvt.asyncExecutor.value)
+            cfg.pvt.appDataManager.registerIfAbsent(ValidationKey, Validation(cfg.validation))
+            cfg.pvt.appDataManager.registerIfAbsent(FileRendererKey, NotImplementedRenderer())
+            cfg.pvt.appDataManager.registerIfAbsent(MaxRequestSizeKey, cfg.http.maxRequestSize)
+            cfg.pvt.appDataManager.registerIfAbsent(VueConfigKey, cfg.vue)
         }
     }
     //@formatter:on

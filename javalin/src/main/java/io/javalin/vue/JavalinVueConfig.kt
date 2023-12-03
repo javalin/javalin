@@ -1,7 +1,7 @@
 package io.javalin.vue
 
-import io.javalin.hook.Hook
 import io.javalin.config.JavalinConfig
+import io.javalin.config.Key
 import io.javalin.http.Context
 import io.javalin.http.servlet.isLocalhost
 import io.javalin.http.staticfiles.Location
@@ -15,7 +15,7 @@ import java.nio.file.Paths
  */
 class JavalinVueConfig {
     companion object {
-        internal val UseVueConfig = Hook<JavalinVueConfig>("javalin-javalinvue-config")
+        internal val VueConfigKey = Key<JavalinVueConfig>("javalin-javalinvue-config")
     }
 
     //@formatter:off

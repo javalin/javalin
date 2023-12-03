@@ -7,8 +7,8 @@
 package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.ws
-import io.javalin.hook.Hook
 import io.javalin.config.JavalinConfig
+import io.javalin.config.Key
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.http.UnauthorizedResponse
@@ -50,13 +50,13 @@ import java.util.concurrent.atomic.AtomicInteger
 class TestWebSocket {
 
     private data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>())
-    private val useTestLogger = Hook<TestLogger>("test-logger")
+    private val testLoggerKey = Key<TestLogger>("test-logger")
 
     private fun Javalin.logger(): TestLogger {
         val logger = TestLogger()
-        val componentManager = this.unsafeConfig().pvt.hookManager
-        componentManager.registerResolverIfAbsent(useTestLogger) { logger }
-        return componentManager.resolve(useTestLogger)
+        val componentManager = this.unsafeConfig().pvt.appDataManager
+        componentManager.registerResolverIfAbsent(testLoggerKey, logger)
+        return componentManager.get(testLoggerKey)
     }
 
     private fun contextPathJavalin(cfg: ((JavalinConfig) -> Unit)? = null): Javalin =

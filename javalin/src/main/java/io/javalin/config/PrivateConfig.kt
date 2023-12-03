@@ -1,6 +1,5 @@
 package io.javalin.config
 
-import io.javalin.hook.HookManager
 import io.javalin.compression.CompressionStrategy
 import io.javalin.event.EventManager
 import io.javalin.http.RequestLogger
@@ -27,7 +26,7 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField val eventManager = EventManager()
     @JvmField val wsRouter = WsRouter(cfg.router)
     @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, cfg.router)
-    @JvmField var hookManager = HookManager()
+    @JvmField var appDataManager = AppDataManager()
     @JvmField var pluginManager = PluginManager(cfg)
     @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy { JavalinJackson(null, cfg.useVirtualThreads) }
     @JvmField var requestLogger: RequestLogger? = null
