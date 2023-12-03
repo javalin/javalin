@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import static io.javalin.http.HttpStatus.OK;
 import static io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static io.javalin.testtools.TestTool.UseTestLogs;
+import static io.javalin.testtools.TestTool.TestLogsKey;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -193,6 +193,6 @@ public class JavaTest {
             // Ignore
         }
 
-        assertThat(app.unsafeConfig().pvt.appDataManager.get(UseTestLogs)).contains("Error in handler code");
+        assertThat(app.unsafeConfig().pvt.appDataManager.get(TestLogsKey)).contains("Error in handler code");
     }
 }
