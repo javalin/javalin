@@ -497,4 +497,13 @@ class TestValidation {
         }
         assertThat(http.get("/converter?date=20").body).contains("io.javalin.validation.MissingConverterException:java.util.Date")
     }
+
+    @Test
+    fun `can access underlying exception through ValidationError in exception handler`() = TestUtil.test { app, http ->
+        app.get("/exception") { it.queryParamAsClass<Int>("number").get() }
+        app.exception(ValidationException::class.java) { e, ctx ->
+            ctx.result(e.errors["number"]!!.first().exception()!!.javaClass.name)
+        }
+        assertThat(http.get("/exception?number=abc").body).isEqualTo("java.lang.NumberFormatException")
+    }
 }
