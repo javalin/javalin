@@ -20,7 +20,7 @@ import org.jetbrains.annotations.ApiStatus.Experimental
  * A [ContextMock] is an in-memory [Context] instance builder.
  *
  * Although this implementation can be used in different ways, the most common use case is to build a [Context] instance within the test scope.
- * We're strongly recommending to use [ContextMock] over any other reflection based mocking library, as it's way closer to the real implementation.
+ * We strongly recommend using [ContextMock] over any reflection based mocking library, as it's way closer to the real implementation.
  *
  * By default, the request state represents an incoming connection from localhost to the root path.
  * Javalin configuration, request and response states can be modified by using the [ContextMockConfigurer] interface.
