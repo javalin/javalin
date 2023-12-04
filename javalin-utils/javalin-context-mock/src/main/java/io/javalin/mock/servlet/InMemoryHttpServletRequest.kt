@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.function.Consumer
 
+// @formatter:off
 @Suppress("MemberVisibilityCanBePrivate")
 data class HttpServletRequestMock(
     val state: RequestState,
@@ -223,3 +224,5 @@ class StubServletInputStream(private val inputStream: InputStream) : ServletInpu
     override fun isReady(): Boolean = inputStream.available() > 0
     override fun setReadListener(listener: ReadListener?) = throw UnsupportedOperationException("Not implemented")
 }
+
+// @formatter:on

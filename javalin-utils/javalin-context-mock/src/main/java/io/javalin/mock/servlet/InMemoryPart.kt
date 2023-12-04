@@ -5,15 +5,16 @@ import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 
+// @formatter:off
 class InMemoryPart(private val state: PartState) : Part {
 
     class PartState @JvmOverloads constructor(
-        val name: String,
-        val fileName: String,
-        val content: ByteArray,
-        val size: Long = content.size.toLong(),
-        val contentType: String = "application/octet-stream",
-        val headers: Map<String, List<String>> = emptyMap()
+        @JvmField val name: String,
+        @JvmField val fileName: String,
+        @JvmField val content: ByteArray,
+        @JvmField val size: Long = content.size.toLong(),
+        @JvmField val contentType: String = "application/octet-stream",
+        @JvmField val headers: Map<String, List<String>> = emptyMap()
     )
 
     override fun getInputStream(): InputStream = state.content.inputStream()
@@ -28,3 +29,4 @@ class InMemoryPart(private val state: PartState) : Part {
     override fun getHeaderNames(): Collection<String> = state.headers.keys
 
 }
+// @formatter:on

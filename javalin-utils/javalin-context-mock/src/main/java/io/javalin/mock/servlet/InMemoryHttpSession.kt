@@ -8,17 +8,18 @@ import java.util.Collections
 import java.util.Enumeration
 import java.util.UUID
 
+// @formatter:off
 @Suppress("DeprecatedCallableAddReplaceWith", "MemberVisibilityCanBePrivate")
 class InMemoryHttpSession(val state: HttpSessionState = HttpSessionState()) : HttpSession {
 
     data class HttpSessionState(
-        var creationTime: Long = System.currentTimeMillis(),
-        var id: String = "mock-session-${UUID.randomUUID()}",
-        var lastAccessedTime: Long = System.currentTimeMillis(),
-        var maxInactiveInterval: Int = 0,
-        var attributes: MutableMap<String, Any?> = mutableMapOf(),
-        var invalidated: Boolean = false,
-        var new: Boolean = false
+        @JvmField var creationTime: Long = System.currentTimeMillis(),
+        @JvmField var id: String = "mock-session-${UUID.randomUUID()}",
+        @JvmField var lastAccessedTime: Long = System.currentTimeMillis(),
+        @JvmField var maxInactiveInterval: Int = 0,
+        @JvmField var attributes: MutableMap<String, Any?> = mutableMapOf(),
+        @JvmField var invalidated: Boolean = false,
+        @JvmField var new: Boolean = false
     )
 
     override fun getCreationTime(): Long = state.creationTime
@@ -58,3 +59,4 @@ class InMemoryHttpSession(val state: HttpSessionState = HttpSessionState()) : Ht
     }
 
 }
+// @formatter:on

@@ -10,6 +10,7 @@ import java.io.PrintWriter
 import java.net.URLEncoder
 import java.util.Locale
 
+// @formatter:off
 @Suppress("MemberVisibilityCanBePrivate")
 data class HttpServletResponseMock(val state: ResponseState = ResponseState()) : HttpServletResponse {
 
@@ -88,3 +89,4 @@ class ServletOutputStreamImpl(private val outputStream: OutputStream) : ServletO
     }
     override fun write(data: Int) { outputStream.write(data) }
 }
+// @formatter:on
