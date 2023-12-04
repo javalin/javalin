@@ -32,6 +32,16 @@ internal class TestAppData {
     }
 
     @Test
+    fun `register throws if id of key already exists`() {
+        assertThrows<KeyAlreadyExistsException> {
+            Javalin.create {
+                it.appData(Key<Short>("A"), 1)
+                it.appData(Key<Long>("A"), 1)
+            }
+        }
+    }
+
+    @Test
     fun `data can be accessed through the app`() = TestUtil.test(Javalin.create {
         it.appData(myOtherKey, MyOtherThing())
     }) { app, _ ->
