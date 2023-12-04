@@ -47,7 +47,7 @@ class HttpClient(val app: Javalin, val okHttp: OkHttpClient) {
         return if (this == null) {
             ByteArray(0).toRequestBody(null, 0, 0)
         } else {
-            app.unsafeConfig().pvt.jsonMapper!!.toJsonString(this).toRequestBody(JSON_TYPE)
+            app.unsafeConfig().pvt.jsonMapper.value.toJsonString(this).toRequestBody(JSON_TYPE)
         }
     }
 

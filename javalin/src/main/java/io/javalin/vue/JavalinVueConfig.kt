@@ -1,13 +1,12 @@
 package io.javalin.vue
 
 import io.javalin.config.JavalinConfig
+import io.javalin.config.Key
 import io.javalin.http.Context
 import io.javalin.http.servlet.isLocalhost
 import io.javalin.http.staticfiles.Location
 import java.nio.file.Path
 import java.nio.file.Paths
-
-const val JAVALINVUE_CONFIG_KEY = "javalin-javalinvue-config"
 
 /**
  * Configuration for the Vue plugin.
@@ -15,6 +14,10 @@ const val JAVALINVUE_CONFIG_KEY = "javalin-javalinvue-config"
  * @see [Online Doc](https://javalin.io/plugins/javalinvue)
  */
 class JavalinVueConfig {
+    companion object {
+        internal val VueConfigKey = Key<JavalinVueConfig>("javalin-javalinvue-config")
+    }
+
     //@formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var pathMaster = VuePathMaster(this)
     @get:JvmSynthetic @set:JvmSynthetic internal var rootDirectory: Path? = null // is set on first request (if not configured)

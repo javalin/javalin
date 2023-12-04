@@ -6,9 +6,11 @@
 
 package io.javalin.http.servlet
 
+import io.javalin.config.AppDataManager
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
 import io.javalin.config.JavalinConfig
+import io.javalin.config.Key
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
@@ -16,6 +18,7 @@ import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
+import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
 import io.javalin.router.ParsedEndpoint
 import io.javalin.json.JsonMapper
 import io.javalin.security.BasicAuthCredentials
@@ -37,7 +40,7 @@ import kotlin.LazyThreadSafetyMode.*
 import java.util.stream.Stream
 
 data class JavalinServletContextConfig(
-    val appAttributes: Map<String, Any>,
+    val appDataManager: AppDataManager,
     val compressionStrategy: CompressionStrategy,
     val requestLoggerEnabled: Boolean,
     val defaultContentType: String,
@@ -46,11 +49,11 @@ data class JavalinServletContextConfig(
     companion object {
         fun of(cfg: JavalinConfig): JavalinServletContextConfig =
             JavalinServletContextConfig(
-                appAttributes = cfg.pvt.appAttributes,
+                appDataManager = cfg.pvt.appDataManager,
                 compressionStrategy = cfg.pvt.compressionStrategy,
                 requestLoggerEnabled = cfg.pvt.requestLogger != null,
                 defaultContentType = cfg.http.defaultContentType,
-                jsonMapper = cfg.pvt.jsonMapper!!,
+                jsonMapper = cfg.pvt.jsonMapper.value,
             )
         }
 }
@@ -97,8 +100,8 @@ class JavalinServletContext(
     override fun req(): HttpServletRequest = req
     override fun res(): HttpServletResponse = res
 
-    @Suppress("UNCHECKED_CAST")
-    override fun <T> appAttribute(key: String): T = cfg.appAttributes[key] as T
+    override fun <T> appData(key: Key<T>): T = cfg.appDataManager.get(key)
+
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 
     override fun endpointHandlerPath() = when {
@@ -213,13 +216,16 @@ fun Context.isLocalhost() = try {
     false
 }
 
-const val MAX_REQUEST_SIZE_KEY = "javalin-max-request-size"
+internal object MaxRequestSize {
+    val MaxRequestSizeKey = Key<Long>("javalin-max-request-size")
 
-fun Context.throwContentTooLargeIfContentTooLarge() {
-    val maxRequestSize = this.appAttribute<Long>(MAX_REQUEST_SIZE_KEY)
-    if (this.req().contentLength > maxRequestSize) {
-        JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
-        throw HttpResponseException(HttpStatus.CONTENT_TOO_LARGE, HttpStatus.CONTENT_TOO_LARGE.message)
+    fun throwContentTooLargeIfContentTooLarge(ctx: Context) {
+        val maxRequestSize = ctx.appData(MaxRequestSizeKey)
+
+        if (ctx.req().contentLength > maxRequestSize) {
+            JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
+            throw HttpResponseException(CONTENT_TOO_LARGE, CONTENT_TOO_LARGE.message)
+        }
     }
 }
 

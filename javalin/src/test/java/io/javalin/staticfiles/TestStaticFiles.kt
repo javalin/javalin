@@ -18,6 +18,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
+import io.javalin.testing.TestUtil.TestLogsKey
 import io.javalin.testing.httpCode
 import jakarta.servlet.DispatcherType
 import jakarta.servlet.Filter
@@ -333,7 +334,11 @@ class TestStaticFiles {
     @Test
     fun `logs handlers added on startup`() {
         TestUtil.test(multiLocationStaticResourceApp) { _, _ -> }
-        assertThat(multiLocationStaticResourceApp.attribute<String>("testlogs").split("Static file handler added").size - 1).isEqualTo(4)
+        assertThat(
+            multiLocationStaticResourceApp.unsafeConfig().pvt.appDataManager.get(TestLogsKey)
+                .split("Static file handler added")
+                .size - 1
+        ).isEqualTo(4)
     }
 
     @Test

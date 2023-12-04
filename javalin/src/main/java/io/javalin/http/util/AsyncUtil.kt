@@ -1,8 +1,8 @@
 package io.javalin.http.util
 
 import io.javalin.config.HttpConfig
+import io.javalin.config.Key
 import io.javalin.http.Context
-import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.function.ThrowingRunnable
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -36,9 +36,11 @@ class AsyncTaskConfig {
 
 }
 
-internal class AsyncExecutor(useVirtualThreads: Boolean) {
+class AsyncExecutor(private val defaultExecutor: ExecutorService) {
 
-    private val defaultExecutor = ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", useVirtualThreads)
+    companion object {
+        @JvmStatic val AsyncExecutorKey = Key<AsyncExecutor>("javalin-default-async-executor")
+    }
 
     /**
      * Utility method that executes [task] asynchronously using [executor] ([defaultExecutor] by default).
@@ -71,10 +73,6 @@ internal class AsyncExecutor(useVirtualThreads: Boolean) {
                 }
         }
 
-    companion object {
-        const val ASYNC_EXECUTOR_KEY = "javalin-async-executor"
-        fun Context.asyncExecutor(): AsyncExecutor = appAttribute(ASYNC_EXECUTOR_KEY)!!
-    }
 }
 
 object AsyncUtil {

@@ -6,24 +6,25 @@
 package io.javalin.config
 
 import io.javalin.Javalin
-import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
-import io.javalin.http.util.AsyncExecutor
-import io.javalin.http.util.AsyncExecutor.Companion.ASYNC_EXECUTOR_KEY
-import io.javalin.json.JavalinJackson
+import io.javalin.config.ContextResolverConfig.Companion.ContextResolverKey
+import io.javalin.http.servlet.MaxRequestSize.MaxRequestSizeKey
+import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
-import io.javalin.rendering.FILE_RENDERER_KEY
 import io.javalin.rendering.FileRenderer
+import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
 import io.javalin.rendering.NotImplementedRenderer
+import io.javalin.util.javalinLazy
 import io.javalin.validation.Validation
-import io.javalin.validation.Validation.Companion.VALIDATION_KEY
+import io.javalin.validation.Validation.Companion.ValidationKey
 import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
-import io.javalin.vue.JAVALINVUE_CONFIG_KEY
 import io.javalin.vue.JavalinVueConfig
+import io.javalin.vue.JavalinVueConfig.Companion.VueConfigKey
 import java.util.function.Consumer
 
 // this class should be abbreviated `cfg` in the source code.
 // `cfg.pvt` should be accessible, but usage should be discouraged (hence the naming)
+
 /**
  * Javalin configuration class.
  * @see [Javalin.create]
@@ -54,6 +55,7 @@ class JavalinConfig {
     @JvmField var useVirtualThreads = false
     /** Show the Javalin banner in the logs */
     @JvmField var showJavalinBanner = true
+    /** Default validator configuration */
     @JvmField var validation = ValidationConfig()
     /**
      * By default, Javalin will print a warning after 5s if you create a Javalin instance without starting it.
@@ -73,14 +75,30 @@ class JavalinConfig {
      * Sets the [JsonMapper] to be used in this Javalin Configuration.
      * @param jsonMapper the [JsonMapper]
      */
-    fun jsonMapper(jsonMapper: JsonMapper) { pvt.jsonMapper = jsonMapper }
+    fun jsonMapper(jsonMapper: JsonMapper) { pvt.jsonMapper = javalinLazy { jsonMapper } }
 
     /**
      * Sets the [FileRenderer] to be used in this Javalin Configuration.
      * @param fileRenderer the [FileRenderer]
      */
-    fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[FILE_RENDERER_KEY] = fileRenderer }
-    //@formatter:on
+    fun fileRenderer(fileRenderer: FileRenderer) =
+        appData(FileRendererKey, fileRenderer)
+
+    /**
+     * Register a plugin to this Javalin Configuration.
+     * @param CFG the type of the configuration class for the plugin
+     * @param plugin the [Plugin] to register
+     */
+    fun <CFG> registerPlugin(plugin: Plugin<CFG>): Plugin<CFG> =
+        plugin.also { pvt.pluginManager.register(plugin) }
+
+    /**
+     * Register a new component resolver.
+     * @param T the type of the value
+     * @param key the [Key] to register
+     */
+    fun <T : Any?> appData(key: Key<T>, value: T) = pvt.appDataManager.register(key, value)
+
 
     companion object {
         @JvmStatic
@@ -88,22 +106,14 @@ class JavalinConfig {
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
             cfg.pvt.pluginManager.startPlugins()
-            cfg.pvt.appAttributes[ASYNC_EXECUTOR_KEY] = AsyncExecutor(cfg.useVirtualThreads)
-            cfg.pvt.appAttributes[VALIDATION_KEY] = Validation(cfg.validation)
-            if (cfg.pvt.jsonMapper == null) { cfg.pvt.jsonMapper = JavalinJackson(null, cfg.useVirtualThreads) }
-            cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
-            cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }
-            cfg.pvt.appAttributes.computeIfAbsent(MAX_REQUEST_SIZE_KEY) { cfg.http.maxRequestSize }
-            cfg.pvt.appAttributes.computeIfAbsent(JAVALINVUE_CONFIG_KEY) { cfg.vue }
+            cfg.pvt.appDataManager.registerIfAbsent(ContextResolverKey, cfg.contextResolver)
+            cfg.pvt.appDataManager.registerIfAbsent(AsyncExecutorKey, cfg.pvt.asyncExecutor.value)
+            cfg.pvt.appDataManager.registerIfAbsent(ValidationKey, Validation(cfg.validation))
+            cfg.pvt.appDataManager.registerIfAbsent(FileRendererKey, NotImplementedRenderer())
+            cfg.pvt.appDataManager.registerIfAbsent(MaxRequestSizeKey, cfg.http.maxRequestSize)
+            cfg.pvt.appDataManager.registerIfAbsent(VueConfigKey, cfg.vue)
         }
     }
-
-    /**
-     * Register a plugin to this Javalin Configuration.
-     * @param T the type of the configuration class for the plugin
-     * @param plugin the [Plugin] to register
-     */
-    fun <T> registerPlugin(plugin: Plugin<T>): Plugin<T> =
-        plugin.also { pvt.pluginManager.register(plugin) }
+    //@formatter:on
 
 }
