@@ -6,7 +6,10 @@
 
 package io.javalin.http
 
-import io.javalin.config.contextResolver
+import io.javalin.config.ContextResolverConfig.Companion.ContextResolverKey
+import io.javalin.config.Key
+import io.javalin.http.ContentType.APPLICATION_JSON
+import io.javalin.http.servlet.MaxRequestSize
 import io.javalin.http.servlet.attributeOrCompute
 import io.javalin.http.servlet.cacheAndSetSessionAttribute
 import io.javalin.http.servlet.cachedSessionAttributeOrCompute
@@ -15,20 +18,19 @@ import io.javalin.http.servlet.getCachedRequestAttributeOrSessionAttribute
 import io.javalin.http.servlet.getRequestCharset
 import io.javalin.http.servlet.readAndResetStreamIfPossible
 import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
-import io.javalin.http.servlet.throwContentTooLargeIfContentTooLarge
-import io.javalin.http.util.AsyncExecutor.Companion.asyncExecutor
+import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
 import io.javalin.http.util.AsyncTaskConfig
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.json.JsonMapper
-import io.javalin.rendering.fileRenderer
+import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.function.ThrowingRunnable
 import io.javalin.validation.BodyValidator
+import io.javalin.validation.Validation.Companion.ValidationKey
 import io.javalin.validation.Validator
-import io.javalin.validation.validation
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -70,8 +72,8 @@ interface Context {
     // Config-ish methods
     ///////////////////////////////////////////////////////////////
 
-    /** Gets an attribute from the Javalin instance serving the request */
-    fun <T> appAttribute(key: String): T
+    /** Get app data by key */
+    fun <T> appData(key: Key<T>): T
 
     /** Get configured [JsonMapper] */
     fun jsonMapper(): JsonMapper
@@ -108,31 +110,31 @@ interface Context {
     fun characterEncoding(): String? = getRequestCharset(this)
 
     /** Gets the request url. */
-    fun url(): String = contextResolver().url.invoke(this)
+    fun url(): String = appData(ContextResolverKey).url.invoke(this)
 
     /** Gets the full request url, including query string (if present) */
-    fun fullUrl(): String = contextResolver().fullUrl.invoke(this)
+    fun fullUrl(): String = appData(ContextResolverKey).fullUrl.invoke(this)
 
     /** Gets the request scheme. */
-    fun scheme(): String = contextResolver().scheme.invoke(this)
+    fun scheme(): String = appData(ContextResolverKey).scheme.invoke(this)
 
     /** Gets the request host, or null. */
-    fun host(): String? = contextResolver().host.invoke(this)
+    fun host(): String? = appData(ContextResolverKey).host.invoke(this)
 
     /** Gets the request ip. */
-    fun ip(): String = contextResolver().ip.invoke(this)
+    fun ip(): String = appData(ContextResolverKey).ip.invoke(this)
 
     /** Gets the request body as a [String]. */
     fun body(): String = bodyAsBytes().toString(Charset.forName(characterEncoding() ?: "UTF-8"))
 
     /**
      * Gets the request body as a [ByteArray].
-     * Calling this method returns the body as a [ByteArray]. If [io.javalin.config.JavalinConfig.maxRequestSize]
+     * Calling this method returns the body as a [ByteArray]. If [io.javalin.config.HttpConfig.maxRequestSize]
      * is set and body is bigger than its value, a [io.javalin.http.HttpResponseException] is throw,
      * with status 413 CONTENT_TOO_LARGE.
      */
     fun bodyAsBytes(): ByteArray {
-        this.throwContentTooLargeIfContentTooLarge()
+        MaxRequestSize.throwContentTooLargeIfContentTooLarge(this)
         return req().inputStream.readBytes()
     }
 
@@ -149,13 +151,13 @@ interface Context {
     fun bodyInputStream(): InputStream = req().inputStream
 
     /** Creates a typed [BodyValidator] for the body() value */
-    fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz, { bodyAsClass(clazz) })
+    fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz) { bodyAsClass(clazz) }
 
     /** Gets a form param if it exists, else null */
     fun formParam(key: String): String? = formParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the formParam() value */
-    fun <T> formParamAsClass(key: String, clazz: Class<T>) = validation().validator(key, clazz, formParam(key))
+    fun <T> formParamAsClass(key: String, clazz: Class<T>) = appData(ValidationKey).validator(key, clazz, formParam(key))
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
@@ -176,7 +178,7 @@ interface Context {
     fun pathParam(key: String): String
 
     /** Creates a typed [Validator] for the pathParam() value */
-    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = validation().validator(key, clazz, pathParam(key))
+    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = appData(ValidationKey).validator(key, clazz, pathParam(key))
 
     /** Gets a map of all the [pathParamAsClass] keys and values. */
     fun pathParamMap(): Map<String, String>
@@ -185,7 +187,7 @@ interface Context {
     fun queryParam(key: String): String? = queryParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the queryParam() value */
-    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = validation().validator(key, clazz, queryParam(key))
+    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = appData(ValidationKey).validator(key, clazz, queryParam(key))
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
@@ -244,7 +246,7 @@ interface Context {
     fun header(header: String): String? = req().getHeader(header)
 
     /** Creates a typed [Validator] for the header() value */
-    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = validation().validator(header, clazz, header(header))
+    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = appData(ValidationKey).validator(header, clazz, header(header))
 
     /** Gets a map with all the header keys and values on the request(). */
     fun headerMap(): Map<String, String> = req().headerNames.asSequence().associateWith { header(it)!! }
@@ -365,7 +367,7 @@ interface Context {
      * so it's just not thread-safe.
      */
     fun async(config: Consumer<AsyncTaskConfig>, task: ThrowingRunnable<Exception>) =
-        asyncExecutor().submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
+        appData(AsyncExecutorKey).submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
 
     /* @see [async] */
     fun async(task: ThrowingRunnable<Exception>) = async(config = {}, task = task)
@@ -430,7 +432,7 @@ interface Context {
      * Serializes object to a JSON-string using the registered [io.javalin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun json(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonString(obj, type))
+    fun json(obj: Any, type: Type): Context = contentType(APPLICATION_JSON).result(jsonMapper().toJsonString(obj, type))
 
     /** @see [json] */
     fun json(obj: Any): Context = json(obj, obj::class.java)
@@ -439,7 +441,7 @@ interface Context {
      * Serializes object to a JSON-stream using the registered [io.javalin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun jsonStream(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonStream(obj, type))
+    fun jsonStream(obj: Any, type: Type): Context = contentType(APPLICATION_JSON).result(jsonMapper().toJsonStream(obj, type))
 
     /** @see [jsonStream] */
     fun jsonStream(obj: Any): Context = jsonStream(obj, obj::class.java)
@@ -461,7 +463,7 @@ interface Context {
      * Also sets content-type to text/html.
      * Determines the correct rendering-function based on the file extension.
      */
-    fun render(filePath: String, model: Map<String, Any?>): Context = html(fileRenderer().render(filePath, model, this))
+    fun render(filePath: String, model: Map<String, Any?>): Context = html(appData(FileRendererKey).render(filePath, model, this))
 
     /** @see render() */
     fun render(filePath: String): Context = render(filePath, mutableMapOf())

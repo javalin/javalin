@@ -8,6 +8,7 @@ package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.config.JavalinConfig
+import io.javalin.config.Key
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.http.UnauthorizedResponse
@@ -48,13 +49,14 @@ import java.util.concurrent.atomic.AtomicInteger
 @Timeout(value = 2, unit = TimeUnit.SECONDS)
 class TestWebSocket {
 
-    data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>())
+    private data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>())
+    private val testLoggerKey = Key<TestLogger>("test-logger")
 
     private fun Javalin.logger(): TestLogger {
-        if (this.attribute<TestLogger>(TestLogger::class.java.name) == null) {
-            this.attribute(TestLogger::class.java.name, TestLogger())
-        }
-        return this.attribute(TestLogger::class.java.name)
+        val logger = TestLogger()
+        val componentManager = this.unsafeConfig().pvt.appDataManager
+        componentManager.registerResolverIfAbsent(testLoggerKey, logger)
+        return componentManager.get(testLoggerKey)
     }
 
     private fun contextPathJavalin(cfg: ((JavalinConfig) -> Unit)? = null): Javalin =
@@ -723,7 +725,7 @@ class TestWebSocket {
     // Helpers
     // ********************************************************************************************
 
-    internal open inner class TestClient(
+    private open inner class TestClient(
         var app: Javalin,
         path: String,
         headers: Map<String, String> = emptyMap(),

@@ -2,11 +2,12 @@ package io.javalin.vue
 
 import io.javalin.http.Context
 import io.javalin.json.toJsonString
+import io.javalin.vue.JavalinVueConfig.Companion.VueConfigKey
 import org.eclipse.jetty.util.URIUtil
 
 internal object VueStateRenderer {
     fun getState(ctx: Context, state: Any?): String {
-        val cfg = ctx.appAttribute<JavalinVueConfig>(JAVALINVUE_CONFIG_KEY)
+        val cfg = ctx.appData(VueConfigKey)
         fun urlEncodedState(state: Any?): String = ctx.jsonMapper()
             .toJsonString(
                 mapOf(
