@@ -92,7 +92,7 @@ class ContextMock private constructor(
             req.contentLength = body?.getContentLength() ?: req.contentLength
         }
         // run final request configurer for this particular request
-        configurer?.let { invokeMockConfigurerWithAsSamWithReceiver(it, mockConfig) }
+        configurer?.let { invokeConfigWithConfigurerScope(it, mockConfig) }
         // synchronize request state with headers
         mockConfig.req.also { req ->
             req.headers.computeIfAbsent(Header.CONNECTION) { mutableListOf("keep-alive") }
@@ -120,7 +120,7 @@ class ContextMock private constructor(
     }
 
     private fun createMockReqAndRes(): Pair<HttpServletRequestMock, HttpServletResponseMock> {
-        userConfigs.forEach { invokeMockConfigurerWithAsSamWithReceiver(it, mockConfig) }
+        userConfigs.forEach { invokeConfigWithConfigurerScope(it, mockConfig) }
         val response = HttpServletResponseMock(mockConfig.res)
         val request = HttpServletRequestMock(mockConfig.req, response)
         return request to response

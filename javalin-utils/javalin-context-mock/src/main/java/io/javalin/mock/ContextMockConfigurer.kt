@@ -5,6 +5,6 @@ fun interface ContextMockConfigurer {
     fun ContextMockConfig.configure()
 }
 
-internal fun invokeMockConfigurerWithAsSamWithReceiver(fn: ContextMockConfigurer, receiver: ContextMockConfig) {
-    with(fn) { receiver.configure() }
+internal fun invokeConfigWithConfigurerScope(configurer: ContextMockConfigurer, config: ContextMockConfig) {
+    with(configurer) { config.configure() }
 }
