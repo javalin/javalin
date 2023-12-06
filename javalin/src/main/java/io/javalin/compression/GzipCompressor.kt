@@ -1,7 +1,5 @@
-package io.javalin.compression.impl
+package io.javalin.compression
 
-import io.javalin.compression.CompressionType
-import io.javalin.compression.Compressor
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
 

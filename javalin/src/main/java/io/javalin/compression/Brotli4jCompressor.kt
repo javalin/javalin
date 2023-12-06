@@ -1,10 +1,8 @@
-package io.javalin.compression.impl
+package io.javalin.compression
 
 
 import com.aayushatharva.brotli4j.encoder.BrotliOutputStream
 import com.aayushatharva.brotli4j.encoder.Encoder
-import io.javalin.compression.CompressionType
-import io.javalin.compression.Compressor
 import java.io.OutputStream
 
 /** @param level Compression level. Higher yields better (but slower) compression. Range 0..11, default = 4 */

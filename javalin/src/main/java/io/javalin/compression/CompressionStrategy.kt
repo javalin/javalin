@@ -1,8 +1,6 @@
 package io.javalin.compression
 
 import com.aayushatharva.brotli4j.Brotli4jLoader
-import io.javalin.compression.impl.Brotli4jCompressor
-import io.javalin.compression.impl.GzipCompressor
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
