@@ -1,11 +1,10 @@
 package io.javalin;
 
 import io.javalin.config.Key;
-import io.javalin.http.ContentType;
-import io.javalin.http.Cookie;
-import io.javalin.http.HttpStatus;
+import io.javalin.http.*;
+import io.javalin.plugin.ContextExtendingPlugin;
+import io.javalin.plugin.PluginKey;
 import io.javalin.plugin.bundled.CorsPlugin;
-import io.javalin.http.Context;
 import io.javalin.validation.ValidationError;
 import io.javalin.validation.Validator;
 import io.javalin.websocket.WsConfig;
@@ -24,6 +23,19 @@ import static io.javalin.apibuilder.ApiBuilder.ws;
 
 // @formatter:off
 public class TestPublicApi_Java {
+    static public class TestContextExtendingPlugin extends ContextExtendingPlugin<Void, HandlerType> {
+        public HandlerType withContextExtension(Context context) {
+            return context.method();
+        }
+    }
+
+    static public PluginKey<TestContextExtendingPlugin2> pluginKey = new PluginKey<>();
+
+    static public class TestContextExtendingPlugin2 extends ContextExtendingPlugin<Void, String> {
+        public String withContextExtension(Context context) {
+            return context.path();
+        }
+    }
 
     public static void main(String[] args) {
         Javalin.create(/*config*/)
@@ -39,6 +51,8 @@ public class TestPublicApi_Java {
                     rule.allowHost("https://images.local");
                 });
             }));
+            config.registerPlugin(new TestContextExtendingPlugin());
+            config.registerPlugin(pluginKey, new TestContextExtendingPlugin2());
             config.http.asyncTimeout = 10_000L;
             config.router.apiBuilder(() -> {
                 path("users", () -> {
@@ -215,6 +229,8 @@ public class TestPublicApi_Java {
             ctx.matchedPath();
             ctx.endpointHandlerPath();
             ctx.cookieStore();
+            ctx.with(TestContextExtendingPlugin.class);
+            ctx.with(pluginKey);
         });
     }
 

@@ -1,6 +1,7 @@
 package io.javalin.plugin
 
 import io.javalin.config.JavalinConfig
+import io.javalin.http.Context
 import java.util.function.Consumer
 
 enum class PluginPriority {
@@ -53,4 +54,17 @@ abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfi
         }
         defaultConfig.also { userConfig?.accept(it) }
     }
+}
+
+/**
+ * This class allows registering multiple copies of a repeatable context extending plugin. Instances of this class can
+ * then be used to fetch extensions from the correct instance of the plugin in handlers.
+ */
+class PluginKey<T : ContextExtendingPlugin<*, *>>
+
+abstract class ContextExtendingPlugin<CONFIG, CTX_EXT>(
+    userConfig: Consumer<CONFIG>? = null,
+    defaultConfig: CONFIG? = null
+) : Plugin<CONFIG>(userConfig, defaultConfig) {
+    abstract fun withContextExtension(context: Context): CTX_EXT
 }

@@ -21,6 +21,9 @@ import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
 import io.javalin.router.ParsedEndpoint
 import io.javalin.json.JsonMapper
+import io.javalin.plugin.ContextExtendingPlugin
+import io.javalin.plugin.PluginKey
+import io.javalin.plugin.PluginManager
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.JavalinLogger
@@ -41,6 +44,7 @@ import java.util.stream.Stream
 
 data class JavalinServletContextConfig(
     val appDataManager: AppDataManager,
+    val pluginManager: PluginManager,
     val compressionStrategy: CompressionStrategy,
     val requestLoggerEnabled: Boolean,
     val defaultContentType: String,
@@ -50,6 +54,7 @@ data class JavalinServletContextConfig(
         fun of(cfg: JavalinConfig): JavalinServletContextConfig =
             JavalinServletContextConfig(
                 appDataManager = cfg.pvt.appDataManager,
+                pluginManager = cfg.pvt.pluginManager,
                 compressionStrategy = cfg.pvt.compressionStrategy,
                 requestLoggerEnabled = cfg.pvt.requestLogger != null,
                 defaultContentType = cfg.http.defaultContentType,
@@ -101,6 +106,9 @@ class JavalinServletContext(
     override fun res(): HttpServletResponse = res
 
     override fun <T> appData(key: Key<T>): T = cfg.appDataManager.get(key)
+
+    override fun <T> with(key: PluginKey<out ContextExtendingPlugin<*, T>>) = cfg.pluginManager.fromKey(key as PluginKey<ContextExtendingPlugin<*, T>>).withContextExtension(this)
+    override fun <T> with(klass: Class<out ContextExtendingPlugin<*, T>>) = cfg.pluginManager.fromKey(klass).withContextExtension(this)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 
