@@ -44,7 +44,7 @@ class TestPlugins {
     }
 
     open inner class TestContextExtendingPlugin : ContextExtendingPlugin<Void, TestContextExtendingPluginExtension>() {
-        override fun repeatable(): Boolean  = true
+        override fun repeatable(): Boolean = true
 
         override fun withContextExtension(context: Context): TestContextExtendingPluginExtension {
             return TestContextExtendingPluginExtension(context)
@@ -124,7 +124,7 @@ class TestPlugins {
         Javalin.create {
             it.registerPlugin(TestContextExtendingPlugin())
 
-            assertThatThrownBy {  it.registerPlugin(contextPluginKey, TestContextExtendingPlugin()) }
+            assertThatThrownBy { it.registerPlugin(contextPluginKey, TestContextExtendingPlugin()) }
                 .isInstanceOf(PluginKeyAlreadyRegisteredException::class.java)
                 .hasMessageContaining("TestContextExtendingPlugin is already registered with the same key")
 
@@ -269,6 +269,7 @@ class TestPlugins {
         class MyPlugin(userConfig: Consumer<PluginConfig>) : Plugin<PluginConfig>(userConfig, PluginConfig()) {
             val value = pluginConfig.value
         }
+
         val myPlugin = JavalinConfig().registerPlugin(MyPlugin { it.value = "Hello" }) as MyPlugin
         assertThat(myPlugin.value).isEqualTo("Hello")
     }
@@ -276,7 +277,7 @@ class TestPlugins {
 
     @Test
     fun `pluginConfig throws if defaultConfig is null`() {
-        assertThatThrownBy { Javalin.create{ it.registerPlugin(ThrowingPlugin()) }.start() }
+        assertThatThrownBy { Javalin.create { it.registerPlugin(ThrowingPlugin()) }.start() }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Plugin io.javalin.ThrowingPlugin has no config.")
     }
@@ -290,14 +291,15 @@ class TestPlugins {
     }
 
     @Test
-    fun `Context-extending anonymous plugins can be accessed through the Context by class`() = TestUtil.test(Javalin.create {
-        it.registerPlugin(object : TestContextExtendingPlugin() {
-            fun myFunction() {}
-        })
-    }) { app, http ->
-        app.get("/abcd") { it.result(it.with(TestContextExtendingPlugin::class).fancyPath()) }
-        assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
-    }
+    fun `Context-extending anonymous plugins can be accessed through the Context by class`() =
+        TestUtil.test(Javalin.create {
+            it.registerPlugin(object : TestContextExtendingPlugin() {
+                fun myFunction() {}
+            })
+        }) { app, http ->
+            app.get("/abcd") { it.result(it.with(TestContextExtendingPlugin::class).fancyPath()) }
+            assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
+        }
 
     @Test
     fun `Context-extending plugins can be accessed through the Context by key`() = TestUtil.test(Javalin.create {

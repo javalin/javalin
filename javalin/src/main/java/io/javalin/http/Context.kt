@@ -87,8 +87,8 @@ interface Context {
 
     /** Fetch the context extension for a plugin */
     fun <T> with(key: PluginKey<out ContextExtendingPlugin<*, T>>): T
-    fun <T> with(klass: Class<out ContextExtendingPlugin<*, T>>): T
-    fun <T> with(klass: KClass<out ContextExtendingPlugin<*, T>>): T = with(klass.java)
+    fun <T> with(clazz: Class<out ContextExtendingPlugin<*, T>>): T
+    fun <T> with(clazz: KClass<out ContextExtendingPlugin<*, T>>): T = with(clazz.java)
 
     ///////////////////////////////////////////////////////////////
     // Request-ish methods

@@ -20,7 +20,7 @@ class PluginManager internal constructor(private val cfg: JavalinConfig) {
         if (!plugin.repeatable() && plugins.any { it.javaClass == plugin.javaClass }) {
             throw PluginAlreadyRegisteredException(plugin)
         }
-        if(plugin is ContextExtendingPlugin<*, *>) {
+        if (plugin is ContextExtendingPlugin<*, *>) {
             register(null, plugin)
         } else {
             plugins.add(plugin)
@@ -32,8 +32,8 @@ class PluginManager internal constructor(private val cfg: JavalinConfig) {
         var theKey = pluginKey
         // Ensure we map all superclasses that aren't ContextExtendingPlugin since we don't really know which one is "most correct"
         val theClasses: MutableList<Class<*>> = mutableListOf(plugin.javaClass)
-        theClasses.addAll(plugin::class.supertypes.filter {  it.isSubtypeOf(typeOf<ContextExtendingPlugin<*,*>>()) && it.classifier != ContextExtendingPlugin::class }.map { it.jvmErasure.java })
-        if(theClasses.any { contextPluginClasses.containsKey(it) }) {
+        theClasses.addAll(plugin::class.supertypes.filter {it.isSubtypeOf(typeOf<ContextExtendingPlugin<*, *>>()) && it.classifier != ContextExtendingPlugin::class }.map { it.jvmErasure.java })
+        if (theClasses.any { contextPluginClasses.containsKey(it) }) {
             throw PluginKeyAlreadyRegisteredException(plugin)
         }
         if (theKey == null) {
@@ -83,7 +83,7 @@ class PluginManager internal constructor(private val cfg: JavalinConfig) {
     }
 
     fun <T> fromKey(clazz: Class<out ContextExtendingPlugin<*, T>>): ContextExtendingPlugin<*, T> {
-        val pluginKey: PluginKey<ContextExtendingPlugin<*, T>> = (contextPluginClasses[clazz] ?: throw PluginNotRegisteredException()) as PluginKey<ContextExtendingPlugin<*, T>>
+        val pluginKey: PluginKey<ContextExtendingPlugin<*, T>> = (contextPluginClasses[clazz]?: throw PluginNotRegisteredException()) as PluginKey<ContextExtendingPlugin<*, T>>
         return fromKey(pluginKey)
     }
 }

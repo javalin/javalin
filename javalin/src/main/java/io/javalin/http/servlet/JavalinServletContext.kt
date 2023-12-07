@@ -60,7 +60,7 @@ data class JavalinServletContextConfig(
                 defaultContentType = cfg.http.defaultContentType,
                 jsonMapper = cfg.pvt.jsonMapper.value,
             )
-        }
+    }
 }
 
 class JavalinServletContext(
@@ -108,7 +108,8 @@ class JavalinServletContext(
     override fun <T> appData(key: Key<T>): T = cfg.appDataManager.get(key)
 
     override fun <T> with(key: PluginKey<out ContextExtendingPlugin<*, T>>) = cfg.pluginManager.fromKey(key as PluginKey<ContextExtendingPlugin<*, T>>).withContextExtension(this)
-    override fun <T> with(klass: Class<out ContextExtendingPlugin<*, T>>) = cfg.pluginManager.fromKey(klass).withContextExtension(this)
+
+    override fun <T> with(clazz: Class<out ContextExtendingPlugin<*, T>>) = cfg.pluginManager.fromKey(clazz).withContextExtension(this)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 
@@ -147,6 +148,7 @@ class JavalinServletContext(
     internal val outputStreamWrapper = javalinLazy(SYNCHRONIZED) {
         CompressedOutputStream(minSizeForCompression, cfg.compressionStrategy, this)
     }
+
     override fun outputStream(): ServletOutputStream = outputStreamWrapper.value
 
     override fun minSizeForCompression(minSizeForCompression: Int) = also {

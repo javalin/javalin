@@ -9,4 +9,4 @@ data class PluginAlreadyRegisteredException(val plugin: Plugin<*>) :
 data class PluginKeyAlreadyRegisteredException(val plugin: Plugin<*>) :
     PluginException(plugin::class.java, "${plugin.name()} is already registered with the same key")
 
-class PluginNotRegisteredException : RuntimeException("Requested plugin was not registered at startup")
+class PluginNotRegisteredException : IllegalStateException("Requested plugin was not registered at startup")
