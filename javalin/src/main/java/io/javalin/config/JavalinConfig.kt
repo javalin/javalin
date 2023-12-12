@@ -10,9 +10,7 @@ import io.javalin.config.ContextResolverConfig.Companion.ContextResolverKey
 import io.javalin.http.servlet.MaxRequestSize.MaxRequestSizeKey
 import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
 import io.javalin.json.JsonMapper
-import io.javalin.plugin.ContextExtendingPlugin
 import io.javalin.plugin.Plugin
-import io.javalin.plugin.PluginKey
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
 import io.javalin.rendering.NotImplementedRenderer
@@ -94,15 +92,6 @@ class JavalinConfig {
      */
     fun <CFG> registerPlugin(plugin: Plugin<CFG>): Plugin<CFG> =
         plugin.also { pvt.pluginManager.register(plugin) }
-
-    /**
-     * Register a context-extending plugin to this Javalin Configuration.
-     * @param T the type of the plugin
-     * @param key the [PluginKey] to use to reference this plugin
-     * @param plugin the [Plugin] to register
-     */
-    fun <T: ContextExtendingPlugin<*, *>> registerPlugin(pluginKey: PluginKey<T>, plugin: T): T =
-        plugin.also { pvt.pluginManager.register(pluginKey, plugin) }
 
     /**
      * Register a new component resolver.

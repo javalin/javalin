@@ -24,8 +24,7 @@ import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.json.JsonMapper
-import io.javalin.plugin.ContextExtendingPlugin
-import io.javalin.plugin.PluginKey
+import io.javalin.plugin.ContextPlugin
 import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
@@ -44,7 +43,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.stream.Stream
-import kotlin.reflect.KClass
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
 
@@ -86,9 +84,7 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     /** Fetch the context extension for a plugin */
-    fun <T> with(key: PluginKey<out ContextExtendingPlugin<*, T>>): T
-    fun <T> with(clazz: Class<out ContextExtendingPlugin<*, T>>): T
-    fun <T> with(clazz: KClass<out ContextExtendingPlugin<*, T>>): T = with(clazz.java)
+    fun <T : ContextPlugin<*>> with(clazz: Class<out T>): T
 
     ///////////////////////////////////////////////////////////////
     // Request-ish methods

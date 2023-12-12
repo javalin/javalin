@@ -1,21 +1,23 @@
 package io.javalin
 
 import io.javalin.config.JavalinConfig
-import io.javalin.http.Context
-import io.javalin.http.HttpStatus
-import io.javalin.plugin.ContextExtendingPlugin
+import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
-import io.javalin.plugin.PluginKey
-import io.javalin.plugin.PluginKeyAlreadyRegisteredException
+import io.javalin.plugin.PluginNotFoundException
 import io.javalin.plugin.PluginPriority.EARLY
 import io.javalin.plugin.PluginPriority.LATE
 import io.javalin.testing.TestUtil
+import kong.unirest.Unirest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import java.util.*
+import java.util.concurrent.CountDownLatch
 import java.util.function.Consumer
 
 class TestPlugins {
@@ -36,22 +38,6 @@ class TestPlugins {
             calls.add(Calls.START)
         }
     }
-
-    class TestContextExtendingPluginExtension(val context: Context) {
-        fun fancyPath(): String {
-            return context.path() + "_FANCY"
-        }
-    }
-
-    open inner class TestContextExtendingPlugin : ContextExtendingPlugin<Void, TestContextExtendingPluginExtension>() {
-        override fun repeatable(): Boolean = true
-
-        override fun withContextExtension(context: Context): TestContextExtendingPluginExtension {
-            return TestContextExtendingPluginExtension(context)
-        }
-    }
-
-    var contextPluginKey = PluginKey<TestContextExtendingPlugin>()
 
     @BeforeEach
     fun resetCalls() {
@@ -115,67 +101,6 @@ class TestPlugins {
             assertDoesNotThrow {
                 it.registerPlugin(MultiInstanceTestPlugin())
                 it.registerPlugin(MultiInstanceTestPlugin())
-            }
-        }
-    }
-
-    @Test
-    fun `registerPlugin allows registering context-extending plugins with only classes`() {
-        Javalin.create {
-            it.registerPlugin(TestContextExtendingPlugin())
-
-            assertThatThrownBy { it.registerPlugin(contextPluginKey, TestContextExtendingPlugin()) }
-                .isInstanceOf(PluginKeyAlreadyRegisteredException::class.java)
-                .hasMessageContaining("TestContextExtendingPlugin is already registered with the same key")
-
-            assertDoesNotThrow {
-                it.pvt.pluginManager.fromKey(TestContextExtendingPlugin::class.java)
-            }
-        }
-    }
-
-    @Test
-    fun `registerPlugin registers superclasses of plugins`() {
-        Javalin.create {
-            it.registerPlugin(object : TestContextExtendingPlugin() {
-                fun customFunction() {}
-            })
-
-            assertThatThrownBy { it.registerPlugin(contextPluginKey, TestContextExtendingPlugin()) }
-                .isInstanceOf(PluginKeyAlreadyRegisteredException::class.java)
-                .hasMessageContaining("TestContextExtendingPlugin is already registered with the same key")
-
-            assertDoesNotThrow {
-                it.pvt.pluginManager.fromKey(TestContextExtendingPlugin::class.java)
-            }
-        }
-    }
-
-    @Test
-    fun `registerPlugin allows registering context-extending plugins with only keys`() {
-        Javalin.create {
-            it.registerPlugin(contextPluginKey, TestContextExtendingPlugin())
-
-            assertThatThrownBy { it.registerPlugin(TestContextExtendingPlugin()) }
-                .isInstanceOf(PluginAlreadyRegisteredException::class.java)
-                .hasMessageContaining("TestContextExtendingPlugin is already registered")
-
-            assertDoesNotThrow {
-                it.pvt.pluginManager.fromKey(contextPluginKey)
-            }
-        }
-    }
-
-    @Test
-    fun `registerPlugin allows registering context-extending plugins with multiple keys`() {
-        Javalin.create {
-            it.registerPlugin(contextPluginKey, TestContextExtendingPlugin())
-            val anotherPluginKey = PluginKey<TestContextExtendingPlugin>()
-            it.registerPlugin(anotherPluginKey, TestContextExtendingPlugin())
-
-            assertDoesNotThrow {
-                it.pvt.pluginManager.fromKey(contextPluginKey)
-                it.pvt.pluginManager.fromKey(anotherPluginKey)
             }
         }
     }
@@ -282,38 +207,56 @@ class TestPlugins {
             .hasMessage("Plugin io.javalin.ThrowingPlugin has no config.")
     }
 
+    class TestContextPlugin : ContextPlugin<Void>() {
+        fun fancyPath(): String {
+            return context().path() + "_FANCY"
+        }
+    }
+
     @Test
     fun `Context-extending plugins can be accessed through the Context by class`() = TestUtil.test(Javalin.create {
-        it.registerPlugin(TestContextExtendingPlugin())
+        it.registerPlugin(TestContextPlugin())
     }) { app, http ->
-        app.get("/abcd") { it.result(it.with(TestContextExtendingPlugin::class).fancyPath()) }
+        app.get("/abcd") { it.result(it.with(TestContextPlugin::class.java).fancyPath()) }
         assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
     }
 
-    @Test
-    fun `Context-extending anonymous plugins can be accessed through the Context by class`() =
-        TestUtil.test(Javalin.create {
-            it.registerPlugin(object : TestContextExtendingPlugin() {
-                fun myFunction() {}
-            })
-        }) { app, http ->
-            app.get("/abcd") { it.result(it.with(TestContextExtendingPlugin::class).fancyPath()) }
-            assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
-        }
-
-    @Test
-    fun `Context-extending plugins can be accessed through the Context by key`() = TestUtil.test(Javalin.create {
-        it.registerPlugin(contextPluginKey, TestContextExtendingPlugin())
-    }) { app, http ->
-        app.get("/abcd") { it.result(it.with(contextPluginKey).fancyPath()) }
-        assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
-    }
+    class UnregisteredPlugin : ContextPlugin<Void>()
 
     @Test
     fun `Context-extending plugins throw if they are not registered`() = TestUtil.test(Javalin.create {}) { app, http ->
-        app.get("/abcd") { it.result(it.with(contextPluginKey).fancyPath()) }
-        assertThat(http.get("/abcd").status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
+        app.exception(PluginNotFoundException::class.java) { e, ctx -> ctx.result(e.message!!) }
+        app.get("/") { it.with(UnregisteredPlugin::class.java) }
+        assertThat(http.getBody("/")).isEqualTo("Plugin of type 'io.javalin.TestPlugins\$UnregisteredPlugin' not found")
     }
+
+    class ThreadLocalContextPlugin : ContextPlugin<Void>() {
+        fun value() = context().attribute<String>("value")!!
+    }
+
+    @Test
+    fun `Context-extending plugins have thread-local context`() = TestUtil.test(Javalin.create {
+        it.registerPlugin(ThreadLocalContextPlugin())
+    }) { app, http ->
+        val pluginLatch = CountDownLatch(1)
+        app.get("/") { ctx ->
+            val value = ctx.queryParam("value")
+            ctx.attribute("value", value) // set value for the plugin
+            when (value) {
+                "Request1" -> pluginLatch.await() // Request1 must wait for Request2
+                else -> pluginLatch.countDown() // let Request1 continue
+            }
+            val pluginValue = ctx.with(ThreadLocalContextPlugin::class.java).value()
+            ctx.result(pluginValue)
+        }
+        val requestLatch = CountDownLatch(2)
+        val request1 = http.getAsync("/?value=Request1").also { it.thenAccept { requestLatch.countDown() } }
+        val request2 = http.getAsync("/?value=Request2").also { it.thenAccept { requestLatch.countDown() } }
+        requestLatch.await()
+        assertThat(request1.get().body).isEqualTo("Request1") // without thread-local context, this would be "Request2"
+        assertThat(request2.get().body).isEqualTo("Request2")
+    }
+
 }
 
 class ThrowingPlugin : Plugin<Void>() {

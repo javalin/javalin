@@ -4,6 +4,8 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import java.util.function.Consumer
 
+class PluginNotFoundException(clazz: Class<*>) : RuntimeException("Plugin of type '${clazz.name}' not found")
+
 enum class PluginPriority {
     /**
      * Plugins with priority EARLY will be started before other type of plugins.
@@ -57,14 +59,16 @@ abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfi
 }
 
 /**
- * This class allows registering multiple copies of a repeatable context extending plugin. Instances of this class can
- * then be used to fetch extensions from the correct instance of the plugin in handlers.
+ * Extend this class to create a plugin with a config and access to the Context.
+ * The context is thread-local and can be accessed with the [context] function.
+ * The context it is set before each call to [Context.with] (when the plugin is accessed).
  */
-class PluginKey<T : ContextExtendingPlugin<*, *>>
-
-abstract class ContextExtendingPlugin<CONFIG, CTX_EXT>(
+abstract class ContextPlugin<CONFIG>(
     userConfig: Consumer<CONFIG>? = null,
     defaultConfig: CONFIG? = null
 ) : Plugin<CONFIG>(userConfig, defaultConfig) {
-    abstract fun withContextExtension(context: Context): CTX_EXT
+    @JvmSynthetic // "@JvmSynthetic" hides this from Java users
+    internal val threadLocalContext = ThreadLocal<Context>() // "internal" hides this from Kotlin users
+
+    protected fun context(): Context = threadLocalContext.get()
 }

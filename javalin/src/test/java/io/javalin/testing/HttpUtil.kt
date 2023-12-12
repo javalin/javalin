@@ -27,6 +27,7 @@ class HttpUtil(port: Int) {
     fun getStatus(path: String) = HttpStatus.forStatus(get(path).status)
     fun getBody(path: String) = Unirest.get(origin + path).asString().body
     fun getBody(path: String, headers: Map<String, String>) = Unirest.get(origin + path).headers(headers).asString().body
+    fun getAsync(path: String) = Unirest.get(origin + path).asStringAsync()
     fun post(path: String) = Unirest.post(origin + path)
     fun call(method: HttpMethod, pathname: String) = Unirest.request(method.name(), origin + pathname).asString()
     fun htmlGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.HTML).asString()
