@@ -86,7 +86,6 @@ class JavalinConfig {
 
     /**
      * Register a plugin to this Javalin Configuration.
-     * If registering a ContextExtendingPlugin, this will use register the plugin's ancestor classes as well.
      * @param CFG the type of the configuration class for the plugin
      * @param plugin the [Plugin] to register
      */

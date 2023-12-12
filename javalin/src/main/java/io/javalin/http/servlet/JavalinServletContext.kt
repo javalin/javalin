@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
 import kotlin.LazyThreadSafetyMode.*
 import java.util.stream.Stream
+import kotlin.reflect.KClass
 
 data class JavalinServletContextConfig(
     val appDataManager: AppDataManager,
@@ -108,7 +109,7 @@ class JavalinServletContext(
 
     override fun <T : ContextPlugin<*>> with(clazz: Class<out T>) =
         cfg.pluginManager.getContextPlugin(clazz).also { it.threadLocalContext.set(this) }
-
+    override fun <T : ContextPlugin<*>> with(clazz: KClass<out T>) = with(clazz.java)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 

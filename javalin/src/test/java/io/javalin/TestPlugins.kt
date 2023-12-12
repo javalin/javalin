@@ -8,15 +8,11 @@ import io.javalin.plugin.PluginNotFoundException
 import io.javalin.plugin.PluginPriority.EARLY
 import io.javalin.plugin.PluginPriority.LATE
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.function.Consumer
 
@@ -199,68 +195,87 @@ class TestPlugins {
         assertThat(myPlugin.value).isEqualTo("Hello")
     }
 
-
     @Test
     fun `pluginConfig throws if defaultConfig is null`() {
+        class ThrowingPlugin : Plugin<Void>() {
+            override fun onStart(config: JavalinConfig) {
+                pluginConfig // should throw
+            }
+        }
         assertThatThrownBy { Javalin.create { it.registerPlugin(ThrowingPlugin()) }.start() }
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Plugin io.javalin.ThrowingPlugin has no config.")
-    }
-
-    class TestContextPlugin : ContextPlugin<Void>() {
-        fun fancyPath(): String {
-            return context().path() + "_FANCY"
-        }
+            .hasMessageContaining("ThrowingPlugin has no config.")
     }
 
     @Test
-    fun `Context-extending plugins can be accessed through the Context by class`() = TestUtil.test(Javalin.create {
-        it.registerPlugin(TestContextPlugin())
-    }) { app, http ->
-        app.get("/abcd") { it.result(it.with(TestContextPlugin::class.java).fancyPath()) }
-        assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
-    }
-
-    class UnregisteredPlugin : ContextPlugin<Void>()
-
-    @Test
-    fun `Context-extending plugins throw if they are not registered`() = TestUtil.test(Javalin.create {}) { app, http ->
-        app.exception(PluginNotFoundException::class.java) { e, ctx -> ctx.result(e.message!!) }
-        app.get("/") { it.with(UnregisteredPlugin::class.java) }
-        assertThat(http.getBody("/")).isEqualTo("Plugin of type 'io.javalin.TestPlugins\$UnregisteredPlugin' not found")
-    }
-
-    class ThreadLocalContextPlugin : ContextPlugin<Void>() {
-        fun value() = context().attribute<String>("value")!!
-    }
-
-    @Test
-    fun `Context-extending plugins have thread-local context`() = TestUtil.test(Javalin.create {
-        it.registerPlugin(ThreadLocalContextPlugin())
-    }) { app, http ->
-        val pluginLatch = CountDownLatch(1)
-        app.get("/") { ctx ->
-            val value = ctx.queryParam("value")
-            ctx.attribute("value", value) // set value for the plugin
-            when (value) {
-                "Request1" -> pluginLatch.await() // Request1 must wait for Request2
-                else -> pluginLatch.countDown() // let Request1 continue
+    fun `Context-extending plugins can be accessed through the Context by class`() {
+        class TestContextPlugin : ContextPlugin<Void>() {
+            fun fancyPath(): String {
+                return context().path() + "_FANCY"
             }
-            val pluginValue = ctx.with(ThreadLocalContextPlugin::class.java).value()
-            ctx.result(pluginValue)
         }
-        val requestLatch = CountDownLatch(2)
-        val request1 = http.getAsync("/?value=Request1").also { it.thenAccept { requestLatch.countDown() } }
-        val request2 = http.getAsync("/?value=Request2").also { it.thenAccept { requestLatch.countDown() } }
-        requestLatch.await()
-        assertThat(request1.get().body).isEqualTo("Request1") // without thread-local context, this would be "Request2"
-        assertThat(request2.get().body).isEqualTo("Request2")
+        TestUtil.test(Javalin.create {
+            it.registerPlugin(TestContextPlugin())
+        }) { app, http ->
+            app.get("/abcd") { it.result(it.with(TestContextPlugin::class.java).fancyPath()) }
+            assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
+        }
     }
 
-}
-
-class ThrowingPlugin : Plugin<Void>() {
-    override fun onStart(config: JavalinConfig) {
-        pluginConfig // should throw
+    @Test
+    fun `Context-extending plugins throw if they are not registered`() {
+        class UnregisteredPlugin : ContextPlugin<Void>()
+        TestUtil.test(Javalin.create {}) { app, http ->
+            app.exception(PluginNotFoundException::class.java) { e, ctx -> ctx.result(e.message!!) }
+            app.get("/") { it.with(UnregisteredPlugin::class.java) }
+            assertThat(http.getBody("/")).contains("UnregisteredPlugin' not found")
+        }
     }
+
+    @Test
+    fun `Context-extending plugins have thread-local context`() {
+        class ThreadLocalContextPlugin : ContextPlugin<Void>() {
+            fun value() = context().attribute<String>("value")!!
+        }
+        TestUtil.test(Javalin.create {
+            it.registerPlugin(ThreadLocalContextPlugin())
+        }) { app, http ->
+            val pluginLatch = CountDownLatch(1)
+            app.get("/") { ctx ->
+                val value = ctx.queryParam("value")
+                ctx.attribute("value", value) // set value for the plugin
+                when (value) {
+                    "Request1" -> pluginLatch.await() // Request1 must wait for Request2
+                    else -> pluginLatch.countDown() // let Request1 continue
+                }
+                val pluginValue = ctx.with(ThreadLocalContextPlugin::class.java).value()
+                ctx.result(pluginValue)
+            }
+            val requestLatch = CountDownLatch(2)
+            val request1 = http.getAsync("/?value=Request1").also { it.thenAccept { requestLatch.countDown() } }
+            val request2 = http.getAsync("/?value=Request2").also { it.thenAccept { requestLatch.countDown() } }
+            requestLatch.await()
+            assertThat(request1.get().body).isEqualTo("Request1") // without thread-local context, this would be "Request2"
+            assertThat(request2.get().body).isEqualTo("Request2")
+        }
+    }
+
+    @Test
+    fun `Context-extending plugins can be used to create a custom renderer`() {
+        class TplConfig(var directory: String = "...")
+        class Tpl(userConfig : Consumer<TplConfig>) : ContextPlugin<TplConfig>(userConfig, TplConfig()) {
+            fun render(path: String) {
+                context().html(pluginConfig.directory + path)
+            }
+        }
+        TestUtil.test(Javalin.create {
+            it.registerPlugin(Tpl {
+                it.directory = "src/test/resources"
+            })
+        }) { app, http ->
+            app.get("/") { it.with(Tpl::class).render("/template.tpl") }
+            assertThat(http.getBody("/")).isEqualTo("src/test/resources/template.tpl")
+        }
+    }
+
 }

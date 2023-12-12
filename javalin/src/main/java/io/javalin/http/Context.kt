@@ -43,6 +43,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.stream.Stream
+import kotlin.reflect.KClass
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
 
@@ -85,6 +86,7 @@ interface Context {
 
     /** Fetch the context extension for a plugin */
     fun <T : ContextPlugin<*>> with(clazz: Class<out T>): T
+    fun <T : ContextPlugin<*>> with(clazz: KClass<out T>): T
 
     ///////////////////////////////////////////////////////////////
     // Request-ish methods
