@@ -238,26 +238,24 @@ class TestPlugins {
     @Test
     fun `Context-extending plugins can be used to create a custom renderer`() {
         TestUtil.test(Javalin.create {
-            it.registerPlugin(T.Plugin {
+            it.registerPlugin(Tpl {
                 it.directory = "src/test/resources"
             })
         }) { app, http ->
-            app.get("/") { it.with(T.Plugin::class).render("/template.tpl") }
+            app.get("/") { it.with(Tpl::class).render("/template.tpl") }
             assertThat(http.getBody("/")).isEqualTo("src/test/resources/template.tpl")
         }
     }
 
-    class T {
+    class Tpl(userConfig : Consumer<Config>) : ContextPlugin<Tpl.Config, Tpl.Extension>(userConfig, Config()) {
         class Config(var directory: String = "...")
-        class Extension(val context: Context, private val plugin: Plugin) {
+        class Extension(val context: Context, private val plugin: Tpl) {
             fun render(path: String) {
                 context.html(plugin.directory() + path)
             }
         }
-        class Plugin(userConfig : Consumer<Config>) : ContextPlugin<Config, Extension>(userConfig, Config()) {
-            fun directory() = pluginConfig.directory
-            override fun createExtension(context: Context): Extension = Extension(context, this)
-        }
+        fun directory() = pluginConfig.directory
+        override fun createExtension(context: Context): Extension = Extension(context, this)
     }
 
 }
