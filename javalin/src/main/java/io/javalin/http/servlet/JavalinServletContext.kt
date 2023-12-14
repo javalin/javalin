@@ -107,9 +107,9 @@ class JavalinServletContext(
 
     override fun <T> appData(key: Key<T>): T = cfg.appDataManager.get(key)
 
-    override fun <T : ContextPlugin<*>> with(clazz: Class<out T>) =
-        cfg.pluginManager.getContextPlugin(clazz).also { it.threadLocalContext.set(this) }
-    override fun <T : ContextPlugin<*>> with(clazz: KClass<out T>) = with(clazz.java)
+    override fun <T : Any> with(clazz: Class<out ContextPlugin<*, T>>) =
+        cfg.pluginManager.getContextPlugin(clazz).createExtension(this)
+    override fun <T : Any> with(klazz: KClass<out ContextPlugin<*, T>>) = with(klazz.java)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 

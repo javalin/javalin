@@ -7,6 +7,7 @@ import io.javalin.plugin.bundled.CorsPlugin;
 import io.javalin.validation.ValidationError;
 import io.javalin.validation.Validator;
 import io.javalin.websocket.WsConfig;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,11 +23,10 @@ import static io.javalin.apibuilder.ApiBuilder.ws;
 
 // @formatter:off
 public class TestPublicApi_Java {
-    static public class TestContextPlugin extends ContextPlugin<Void> {
-        public String testMethod() {
-            return context().path();
-        }
-    }
+    static public class TestContextPlugin extends ContextPlugin<Void, Void> {
+    @Override public Void createExtension(@NotNull Context context) {
+        return null;
+    }}
 
     public static void main(String[] args) {
         Javalin.create(/*config*/)

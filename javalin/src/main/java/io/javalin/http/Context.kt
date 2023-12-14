@@ -85,8 +85,8 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     /** Fetch the context extension for a plugin */
-    fun <T : ContextPlugin<*>> with(clazz: Class<out T>): T
-    fun <T : ContextPlugin<*>> with(clazz: KClass<out T>): T
+    fun <T : Any> with(clazz: Class<out ContextPlugin<*, T>>): T
+    fun <T : Any> with(clazz: KClass<out ContextPlugin<*, T>>): T
 
     ///////////////////////////////////////////////////////////////
     // Request-ish methods
@@ -485,7 +485,6 @@ interface Context {
     fun skipRemainingHandlers(): Context
 
     fun routeRoles(): Set<RouteRole>
-
 }
 
 /** Reified version of [Context.json] (Kotlin only) */

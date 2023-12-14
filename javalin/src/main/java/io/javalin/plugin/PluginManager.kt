@@ -41,6 +41,7 @@ class PluginManager internal constructor(private val cfg: JavalinConfig) {
             }
     }
 
-    fun <T : ContextPlugin<*>> getContextPlugin(clazz: Class<out T>): T =
-        (enabledPlugins.find { it.javaClass == clazz } ?: throw PluginNotFoundException(clazz)) as T
+    fun <T : ContextPlugin<*, *>> getContextPlugin(clazz: Class<T>): T {
+        return (enabledPlugins.find { it.javaClass == clazz } ?: throw PluginNotFoundException(clazz)) as T
+    }
 }

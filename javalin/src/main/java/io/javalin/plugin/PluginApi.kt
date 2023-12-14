@@ -63,12 +63,9 @@ abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfi
  * The context is thread-local and can be accessed with the [context] function.
  * The context it is set before each call to [Context.with] (when the plugin is accessed).
  */
-abstract class ContextPlugin<CONFIG>(
+abstract class ContextPlugin<CONFIG, EXTENSION>(
     userConfig: Consumer<CONFIG>? = null,
     defaultConfig: CONFIG? = null
 ) : Plugin<CONFIG>(userConfig, defaultConfig) {
-    @JvmSynthetic // "@JvmSynthetic" hides this from Java users
-    internal val threadLocalContext = ThreadLocal<Context>() // "internal" hides this from Kotlin users
-
-    protected fun context(): Context = threadLocalContext.get()
+    abstract fun createExtension(context: Context): EXTENSION
 }

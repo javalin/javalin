@@ -1,6 +1,7 @@
 package io.javalin
 
 import io.javalin.config.JavalinConfig
+import io.javalin.http.Context
 import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
@@ -13,7 +14,6 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import java.util.concurrent.CountDownLatch
 import java.util.function.Consumer
 
 class TestPlugins {
@@ -208,23 +208,10 @@ class TestPlugins {
     }
 
     @Test
-    fun `Context-extending plugins can be accessed through the Context by class`() {
-        class TestContextPlugin : ContextPlugin<Void>() {
-            fun fancyPath(): String {
-                return context().path() + "_FANCY"
-            }
-        }
-        TestUtil.test(Javalin.create {
-            it.registerPlugin(TestContextPlugin())
-        }) { app, http ->
-            app.get("/abcd") { it.result(it.with(TestContextPlugin::class.java).fancyPath()) }
-            assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
-        }
-    }
-
-    @Test
     fun `Context-extending plugins throw if they are not registered`() {
-        class UnregisteredPlugin : ContextPlugin<Void>()
+        class UnregisteredPlugin : ContextPlugin<Void, Unit>() {
+            override fun createExtension(context: Context) {}
+        }
         TestUtil.test(Javalin.create {}) { app, http ->
             app.exception(PluginNotFoundException::class.java) { e, ctx -> ctx.result(e.message!!) }
             app.get("/") { it.with(UnregisteredPlugin::class.java) }
@@ -233,48 +220,43 @@ class TestPlugins {
     }
 
     @Test
-    fun `Context-extending plugins have thread-local context`() {
-        class ThreadLocalContextPlugin : ContextPlugin<Void>() {
-            fun value() = context().attribute<String>("value")!!
+    fun `Context-extending plugins can be accessed through the Context by class`() {
+        class Extension(val context: Context) {
+            fun fancyPath() = context.path() + "_FANCY"
+        }
+        class Plugin : ContextPlugin<Void, Extension>() {
+            override fun createExtension(context: Context) = Extension(context)
         }
         TestUtil.test(Javalin.create {
-            it.registerPlugin(ThreadLocalContextPlugin())
+            it.registerPlugin(Plugin())
         }) { app, http ->
-            val pluginLatch = CountDownLatch(1)
-            app.get("/") { ctx ->
-                val value = ctx.queryParam("value")
-                ctx.attribute("value", value) // set value for the plugin
-                when (value) {
-                    "Request1" -> pluginLatch.await() // Request1 must wait for Request2
-                    else -> pluginLatch.countDown() // let Request1 continue
-                }
-                val pluginValue = ctx.with(ThreadLocalContextPlugin::class.java).value()
-                ctx.result(pluginValue)
-            }
-            val requestLatch = CountDownLatch(2)
-            val request1 = http.getAsync("/?value=Request1").also { it.thenAccept { requestLatch.countDown() } }
-            val request2 = http.getAsync("/?value=Request2").also { it.thenAccept { requestLatch.countDown() } }
-            requestLatch.await()
-            assertThat(request1.get().body).isEqualTo("Request1") // without thread-local context, this would be "Request2"
-            assertThat(request2.get().body).isEqualTo("Request2")
+            app.get("/abcd") { it.result(it.with(Plugin::class).fancyPath()) }
+            assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
         }
     }
 
     @Test
     fun `Context-extending plugins can be used to create a custom renderer`() {
-        class TplConfig(var directory: String = "...")
-        class Tpl(userConfig : Consumer<TplConfig>) : ContextPlugin<TplConfig>(userConfig, TplConfig()) {
-            fun render(path: String) {
-                context().html(pluginConfig.directory + path)
-            }
-        }
         TestUtil.test(Javalin.create {
-            it.registerPlugin(Tpl {
+            it.registerPlugin(T.Plugin {
                 it.directory = "src/test/resources"
             })
         }) { app, http ->
-            app.get("/") { it.with(Tpl::class).render("/template.tpl") }
+            app.get("/") { it.with(T.Plugin::class).render("/template.tpl") }
             assertThat(http.getBody("/")).isEqualTo("src/test/resources/template.tpl")
+        }
+    }
+
+    class T {
+        class Config(var directory: String = "...")
+        class Extension(val context: Context, private val plugin: Plugin) {
+            fun render(path: String) {
+                context.html(plugin.directory() + path)
+            }
+        }
+        class Plugin(userConfig : Consumer<Config>) : ContextPlugin<Config, Extension>(userConfig, Config()) {
+            fun directory() = pluginConfig.directory
+            override fun createExtension(context: Context): Extension = Extension(context, this)
         }
     }
 
