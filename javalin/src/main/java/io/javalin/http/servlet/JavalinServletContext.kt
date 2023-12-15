@@ -22,7 +22,6 @@ import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
 import io.javalin.router.ParsedEndpoint
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextExtendingPlugin
-import io.javalin.plugin.PluginKey
 import io.javalin.plugin.PluginManager
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
@@ -107,9 +106,7 @@ class JavalinServletContext(
 
     override fun <T> appData(key: Key<T>): T = cfg.appDataManager.get(key)
 
-    override fun <T> with(key: PluginKey<out ContextExtendingPlugin<*, T>>) = cfg.pluginManager.fromKey(key as PluginKey<ContextExtendingPlugin<*, T>>).withContextExtension(this)
-
-    override fun <T> with(clazz: Class<out ContextExtendingPlugin<*, T>>) = cfg.pluginManager.fromKey(clazz).withContextExtension(this)
+    override fun <T> with(clazz: Class<out ContextExtendingPlugin<*, T>>) = cfg.pluginManager.getContextPlugin(clazz).withContextExtension(this)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 

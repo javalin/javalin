@@ -56,15 +56,12 @@ abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfi
     }
 }
 
-/**
- * This class allows registering multiple copies of a repeatable context extending plugin. Instances of this class can
- * then be used to fetch extensions from the correct instance of the plugin in handlers.
- */
-class PluginKey<T : ContextExtendingPlugin<*, *>>
-
 abstract class ContextExtendingPlugin<CONFIG, CTX_EXT>(
     userConfig: Consumer<CONFIG>? = null,
     defaultConfig: CONFIG? = null
 ) : Plugin<CONFIG>(userConfig, defaultConfig) {
+    /** Context extending plugins cannot be repeatable, as they are keyed by class */
+    final override fun repeatable(): Boolean = false
+
     abstract fun withContextExtension(context: Context): CTX_EXT
 }

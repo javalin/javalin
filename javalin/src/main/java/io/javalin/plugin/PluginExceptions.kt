@@ -6,7 +6,5 @@ abstract class PluginException(pluginClass: Class<out Plugin<*>>, override val m
 data class PluginAlreadyRegisteredException(val plugin: Plugin<*>) :
     PluginException(plugin::class.java, "${plugin.name()} is already registered")
 
-data class PluginKeyAlreadyRegisteredException(val plugin: Plugin<*>) :
-    PluginException(plugin::class.java, "${plugin.name()} is already registered with the same key")
-
-class PluginNotRegisteredException : IllegalStateException("Requested plugin was not registered at startup")
+class PluginNotRegisteredException(pluginClass: Class<out Plugin<*>>) :
+    PluginException(pluginClass, "${pluginClass.canonicalName} was not registered as a plugin at startup")

@@ -6,8 +6,6 @@ import io.javalin.http.HttpStatus
 import io.javalin.plugin.ContextExtendingPlugin
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
-import io.javalin.plugin.PluginKey
-import io.javalin.plugin.PluginKeyAlreadyRegisteredException
 import io.javalin.plugin.PluginPriority.EARLY
 import io.javalin.plugin.PluginPriority.LATE
 import io.javalin.testing.TestUtil
@@ -44,14 +42,10 @@ class TestPlugins {
     }
 
     open inner class TestContextExtendingPlugin : ContextExtendingPlugin<Void, TestContextExtendingPluginExtension>() {
-        override fun repeatable(): Boolean = true
-
         override fun withContextExtension(context: Context): TestContextExtendingPluginExtension {
             return TestContextExtendingPluginExtension(context)
         }
     }
-
-    var contextPluginKey = PluginKey<TestContextExtendingPlugin>()
 
     @BeforeEach
     fun resetCalls() {
@@ -115,67 +109,6 @@ class TestPlugins {
             assertDoesNotThrow {
                 it.registerPlugin(MultiInstanceTestPlugin())
                 it.registerPlugin(MultiInstanceTestPlugin())
-            }
-        }
-    }
-
-    @Test
-    fun `registerPlugin allows registering context-extending plugins with only classes`() {
-        Javalin.create {
-            it.registerPlugin(TestContextExtendingPlugin())
-
-            assertThatThrownBy { it.registerPlugin(contextPluginKey, TestContextExtendingPlugin()) }
-                .isInstanceOf(PluginKeyAlreadyRegisteredException::class.java)
-                .hasMessageContaining("TestContextExtendingPlugin is already registered with the same key")
-
-            assertDoesNotThrow {
-                it.pvt.pluginManager.fromKey(TestContextExtendingPlugin::class.java)
-            }
-        }
-    }
-
-    @Test
-    fun `registerPlugin registers superclasses of plugins`() {
-        Javalin.create {
-            it.registerPlugin(object : TestContextExtendingPlugin() {
-                fun customFunction() {}
-            })
-
-            assertThatThrownBy { it.registerPlugin(contextPluginKey, TestContextExtendingPlugin()) }
-                .isInstanceOf(PluginKeyAlreadyRegisteredException::class.java)
-                .hasMessageContaining("TestContextExtendingPlugin is already registered with the same key")
-
-            assertDoesNotThrow {
-                it.pvt.pluginManager.fromKey(TestContextExtendingPlugin::class.java)
-            }
-        }
-    }
-
-    @Test
-    fun `registerPlugin allows registering context-extending plugins with only keys`() {
-        Javalin.create {
-            it.registerPlugin(contextPluginKey, TestContextExtendingPlugin())
-
-            assertThatThrownBy { it.registerPlugin(TestContextExtendingPlugin()) }
-                .isInstanceOf(PluginAlreadyRegisteredException::class.java)
-                .hasMessageContaining("TestContextExtendingPlugin is already registered")
-
-            assertDoesNotThrow {
-                it.pvt.pluginManager.fromKey(contextPluginKey)
-            }
-        }
-    }
-
-    @Test
-    fun `registerPlugin allows registering context-extending plugins with multiple keys`() {
-        Javalin.create {
-            it.registerPlugin(contextPluginKey, TestContextExtendingPlugin())
-            val anotherPluginKey = PluginKey<TestContextExtendingPlugin>()
-            it.registerPlugin(anotherPluginKey, TestContextExtendingPlugin())
-
-            assertDoesNotThrow {
-                it.pvt.pluginManager.fromKey(contextPluginKey)
-                it.pvt.pluginManager.fromKey(anotherPluginKey)
             }
         }
     }
@@ -291,28 +224,31 @@ class TestPlugins {
     }
 
     @Test
-    fun `Context-extending anonymous plugins can be accessed through the Context by class`() =
-        TestUtil.test(Javalin.create {
-            it.registerPlugin(object : TestContextExtendingPlugin() {
-                fun myFunction() {}
-            })
-        }) { app, http ->
-            app.get("/abcd") { it.result(it.with(TestContextExtendingPlugin::class).fancyPath()) }
-            assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
-        }
-
-    @Test
-    fun `Context-extending plugins can be accessed through the Context by key`() = TestUtil.test(Javalin.create {
-        it.registerPlugin(contextPluginKey, TestContextExtendingPlugin())
-    }) { app, http ->
-        app.get("/abcd") { it.result(it.with(contextPluginKey).fancyPath()) }
-        assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
+    fun `Context-extending plugins throw if they are not registered`() = TestUtil.test(Javalin.create {}) { app, http ->
+        app.get("/abcd") { it.result(it.with(TestContextExtendingPlugin::class).fancyPath()) }
+        assertThat(http.get("/abcd").status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
     }
 
     @Test
-    fun `Context-extending plugins throw if they are not registered`() = TestUtil.test(Javalin.create {}) { app, http ->
-        app.get("/abcd") { it.result(it.with(contextPluginKey).fancyPath()) }
-        assertThat(http.get("/abcd").status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
+    fun `Context-extending plugins can be used to create a custom renderer`() {
+        class TplConfig(var directory: String = "...")
+        class Tpl(userConfig : Consumer<TplConfig>) : ContextExtendingPlugin<TplConfig, Tpl.Extension>(userConfig, TplConfig()) {
+            override fun withContextExtension(context: Context) = Extension(context)
+
+            inner class Extension(var context: Context) {
+                fun render(path: String) {
+                    context.html(pluginConfig.directory + path)
+                }
+            }
+        }
+        TestUtil.test(Javalin.create {
+            it.registerPlugin(Tpl {
+                it.directory = "src/test/resources"
+            })
+        }) { app, http ->
+            app.get("/") { it.with(Tpl::class).render("/template.tpl") }
+            assertThat(http.getBody("/")).isEqualTo("src/test/resources/template.tpl")
+        }
     }
 }
 

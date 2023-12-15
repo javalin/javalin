@@ -25,7 +25,6 @@ import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextExtendingPlugin
-import io.javalin.plugin.PluginKey
 import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
@@ -86,7 +85,6 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     /** Fetch the context extension for a plugin */
-    fun <T> with(key: PluginKey<out ContextExtendingPlugin<*, T>>): T
     fun <T> with(clazz: Class<out ContextExtendingPlugin<*, T>>): T
     fun <T> with(clazz: KClass<out ContextExtendingPlugin<*, T>>): T = with(clazz.java)
 
