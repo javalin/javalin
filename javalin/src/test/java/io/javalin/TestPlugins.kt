@@ -3,7 +3,7 @@ package io.javalin
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus
-import io.javalin.plugin.ContextExtendingPlugin
+import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.PluginPriority.EARLY
@@ -14,6 +14,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import java.lang.NullPointerException
 import java.util.function.Consumer
 
 class TestPlugins {
@@ -35,8 +36,8 @@ class TestPlugins {
         }
     }
 
-    open inner class TestContextExtendingPlugin : ContextExtendingPlugin<Void, TestContextExtendingPlugin.Extension>() {
-        override fun withContextExtension(context: Context) = Extension(context)
+    open inner class TestContextPlugin : ContextPlugin<Void, TestContextPlugin.Extension>() {
+        override fun createExtension(context: Context) = Extension(context)
 
         inner class Extension(val context: Context) {
             fun fancyPath(): String {
@@ -208,50 +209,47 @@ class TestPlugins {
 
     @Test
     fun `pluginConfig throws if defaultConfig is null`() {
+        class ThrowingPlugin : Plugin<List<String>>() {
+            override fun onStart(config: JavalinConfig) {
+                pluginConfig[2] // should throw
+            }
+        }
         assertThatThrownBy { Javalin.create { it.registerPlugin(ThrowingPlugin()) }.start() }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Plugin io.javalin.ThrowingPlugin has no config.")
+            .isInstanceOf(NullPointerException::class.java)
     }
 
     @Test
     fun `Context-extending plugins can be accessed through the Context by class`() = TestUtil.test(Javalin.create {
-        it.registerPlugin(TestContextExtendingPlugin())
+        it.registerPlugin(TestContextPlugin())
     }) { app, http ->
-        app.get("/abcd") { it.result(it.with(TestContextExtendingPlugin::class).fancyPath()) }
+        app.get("/abcd") { it.result(it.with(TestContextPlugin::class).fancyPath()) }
         assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
     }
 
     @Test
     fun `Context-extending plugins throw if they are not registered`() = TestUtil.test(Javalin.create {}) { app, http ->
-        app.get("/abcd") { it.result(it.with(TestContextExtendingPlugin::class).fancyPath()) }
+        app.get("/abcd") { it.result(it.with(TestContextPlugin::class).fancyPath()) }
         assertThat(http.get("/abcd").status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
     }
 
     @Test
     fun `Context-extending plugins can be used to create a custom renderer`() {
-        class TplConfig(var directory: String = "...")
-        class Tpl(userConfig : Consumer<TplConfig>) : ContextExtendingPlugin<TplConfig, Tpl.Extension>(userConfig, TplConfig()) {
-            override fun withContextExtension(context: Context) = Extension(context)
-
-            inner class Extension(var context: Context) {
-                fun render(path: String) {
-                    context.html(pluginConfig.directory + path)
-                }
-            }
-        }
         TestUtil.test(Javalin.create {
-            it.registerPlugin(Tpl {
-                it.directory = "src/test/resources"
-            })
+            it.registerPlugin(Rendy { it.directory = "src/test/resources" })
         }) { app, http ->
-            app.get("/") { it.with(Tpl::class).render("/template.tpl") }
+            app.get("/") { it.with(Rendy::class).render("/template.tpl") }
             assertThat(http.getBody("/")).isEqualTo("src/test/resources/template.tpl")
         }
     }
-}
 
-class ThrowingPlugin : Plugin<Void>() {
-    override fun onStart(config: JavalinConfig) {
-        pluginConfig // should throw
+    class Rendy(userConfig: Consumer<Config>) : ContextPlugin<Rendy.Config, Rendy.Extension>(userConfig, Config()) {
+        override fun createExtension(context: Context) = Extension(context)
+        class Config(var directory: String = "...")
+        inner class Extension(var context: Context) {
+            fun render(path: String) {
+                context.html(pluginConfig.directory + path)
+            }
+        }
     }
+
 }

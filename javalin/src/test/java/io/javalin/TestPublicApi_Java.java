@@ -2,7 +2,7 @@ package io.javalin;
 
 import io.javalin.config.Key;
 import io.javalin.http.*;
-import io.javalin.plugin.ContextExtendingPlugin;
+import io.javalin.plugin.ContextPlugin;
 import io.javalin.plugin.bundled.CorsPlugin;
 import io.javalin.validation.ValidationError;
 import io.javalin.validation.Validator;
@@ -22,8 +22,8 @@ import static io.javalin.apibuilder.ApiBuilder.ws;
 
 // @formatter:off
 public class TestPublicApi_Java {
-    static public class TestContextExtendingPlugin extends ContextExtendingPlugin<Void, HandlerType> {
-        public HandlerType withContextExtension(Context context) {
+    static public class TestContextPlugin extends ContextPlugin<Void, HandlerType> {
+        public HandlerType createExtension(Context context) {
             return context.method();
         }
     }
@@ -42,7 +42,7 @@ public class TestPublicApi_Java {
                     rule.allowHost("https://images.local");
                 });
             }));
-            config.registerPlugin(new TestContextExtendingPlugin());
+            config.registerPlugin(new TestContextPlugin());
             config.http.asyncTimeout = 10_000L;
             config.router.apiBuilder(() -> {
                 path("users", () -> {
@@ -219,7 +219,7 @@ public class TestPublicApi_Java {
             ctx.matchedPath();
             ctx.endpointHandlerPath();
             ctx.cookieStore();
-            ctx.with(TestContextExtendingPlugin.class);
+            ctx.with(TestContextPlugin.class);
         });
     }
 

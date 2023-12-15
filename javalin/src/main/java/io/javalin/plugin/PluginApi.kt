@@ -48,20 +48,16 @@ abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfi
     open fun name(): String = this.javaClass.simpleName
 
     /** The combined config of the plugin. */
-    protected val pluginConfig by lazy {
-        if (defaultConfig == null) {
-            throw IllegalArgumentException("Plugin ${this.javaClass.name} has no config.")
-        }
-        defaultConfig.also { userConfig?.accept(it) }
-    }
+    @JvmField
+    protected var pluginConfig: CONFIG = defaultConfig?.also { userConfig?.accept(it) } as CONFIG
+
 }
 
-abstract class ContextExtendingPlugin<CONFIG, CTX_EXT>(
+abstract class ContextPlugin<CONFIG, EXTENSION>(
     userConfig: Consumer<CONFIG>? = null,
     defaultConfig: CONFIG? = null
 ) : Plugin<CONFIG>(userConfig, defaultConfig) {
     /** Context extending plugins cannot be repeatable, as they are keyed by class */
     final override fun repeatable(): Boolean = false
-
-    abstract fun withContextExtension(context: Context): CTX_EXT
+    abstract fun createExtension(context: Context): EXTENSION
 }

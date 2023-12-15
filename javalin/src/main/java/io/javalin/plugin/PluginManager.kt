@@ -1,12 +1,6 @@
 package io.javalin.plugin
 
 import io.javalin.config.JavalinConfig
-import io.javalin.util.parentClass
-import kotlin.reflect.KClass
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.isSupertypeOf
-import kotlin.reflect.jvm.jvmErasure
-import kotlin.reflect.typeOf
 
 class PluginManager internal constructor(private val cfg: JavalinConfig) {
 
@@ -47,7 +41,7 @@ class PluginManager internal constructor(private val cfg: JavalinConfig) {
             }
     }
 
-    fun <T> getContextPlugin(clazz: Class<out ContextExtendingPlugin<*, T>>): ContextExtendingPlugin<*, T> {
-        return (plugins.find { it.javaClass == clazz } ?: throw PluginNotRegisteredException(clazz)) as ContextExtendingPlugin<*, T>
+    fun <T> getContextPlugin(clazz: Class<out ContextPlugin<*, T>>): ContextPlugin<*, T> {
+        return (plugins.find { it.javaClass == clazz } ?: throw PluginNotRegisteredException(clazz)) as ContextPlugin<*, T>
     }
 }
