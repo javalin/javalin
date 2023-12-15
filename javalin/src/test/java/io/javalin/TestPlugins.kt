@@ -35,15 +35,13 @@ class TestPlugins {
         }
     }
 
-    class TestContextExtendingPluginExtension(val context: Context) {
-        fun fancyPath(): String {
-            return context.path() + "_FANCY"
-        }
-    }
+    open inner class TestContextExtendingPlugin : ContextExtendingPlugin<Void, TestContextExtendingPlugin.Extension>() {
+        override fun withContextExtension(context: Context) = Extension(context)
 
-    open inner class TestContextExtendingPlugin : ContextExtendingPlugin<Void, TestContextExtendingPluginExtension>() {
-        override fun withContextExtension(context: Context): TestContextExtendingPluginExtension {
-            return TestContextExtendingPluginExtension(context)
+        inner class Extension(val context: Context) {
+            fun fancyPath(): String {
+                return context.path() + "_FANCY"
+            }
         }
     }
 

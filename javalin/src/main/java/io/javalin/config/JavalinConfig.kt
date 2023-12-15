@@ -10,7 +10,6 @@ import io.javalin.config.ContextResolverConfig.Companion.ContextResolverKey
 import io.javalin.http.servlet.MaxRequestSize.MaxRequestSizeKey
 import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
 import io.javalin.json.JsonMapper
-import io.javalin.plugin.ContextExtendingPlugin
 import io.javalin.plugin.Plugin
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
@@ -87,7 +86,6 @@ class JavalinConfig {
 
     /**
      * Register a plugin to this Javalin Configuration.
-     * If registering a ContextExtendingPlugin, this will use register the plugin's ancestor classes as well.
      * @param CFG the type of the configuration class for the plugin
      * @param plugin the [Plugin] to register
      */
