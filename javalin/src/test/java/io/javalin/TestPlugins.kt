@@ -1,10 +1,14 @@
 package io.javalin
 
 import io.javalin.config.JavalinConfig
+import io.javalin.http.Context
+import io.javalin.http.HttpStatus
+import io.javalin.plugin.ContextExtendingPlugin
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.PluginPriority.EARLY
 import io.javalin.plugin.PluginPriority.LATE
+import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -28,6 +32,16 @@ class TestPlugins {
 
         override fun onStart(config: JavalinConfig) {
             calls.add(Calls.START)
+        }
+    }
+
+    open inner class TestContextExtendingPlugin : ContextExtendingPlugin<Void, TestContextExtendingPlugin.Extension>() {
+        override fun withContextExtension(context: Context) = Extension(context)
+
+        inner class Extension(val context: Context) {
+            fun fancyPath(): String {
+                return context.path() + "_FANCY"
+            }
         }
     }
 
@@ -186,6 +200,7 @@ class TestPlugins {
         class MyPlugin(userConfig: Consumer<PluginConfig>) : Plugin<PluginConfig>(userConfig, PluginConfig()) {
             val value = pluginConfig.value
         }
+
         val myPlugin = JavalinConfig().registerPlugin(MyPlugin { it.value = "Hello" }) as MyPlugin
         assertThat(myPlugin.value).isEqualTo("Hello")
     }
@@ -193,9 +208,45 @@ class TestPlugins {
 
     @Test
     fun `pluginConfig throws if defaultConfig is null`() {
-        assertThatThrownBy { Javalin.create{ it.registerPlugin(ThrowingPlugin()) }.start() }
+        assertThatThrownBy { Javalin.create { it.registerPlugin(ThrowingPlugin()) }.start() }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Plugin io.javalin.ThrowingPlugin has no config.")
+    }
+
+    @Test
+    fun `Context-extending plugins can be accessed through the Context by class`() = TestUtil.test(Javalin.create {
+        it.registerPlugin(TestContextExtendingPlugin())
+    }) { app, http ->
+        app.get("/abcd") { it.result(it.with(TestContextExtendingPlugin::class).fancyPath()) }
+        assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
+    }
+
+    @Test
+    fun `Context-extending plugins throw if they are not registered`() = TestUtil.test(Javalin.create {}) { app, http ->
+        app.get("/abcd") { it.result(it.with(TestContextExtendingPlugin::class).fancyPath()) }
+        assertThat(http.get("/abcd").status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
+    }
+
+    @Test
+    fun `Context-extending plugins can be used to create a custom renderer`() {
+        class TplConfig(var directory: String = "...")
+        class Tpl(userConfig : Consumer<TplConfig>) : ContextExtendingPlugin<TplConfig, Tpl.Extension>(userConfig, TplConfig()) {
+            override fun withContextExtension(context: Context) = Extension(context)
+
+            inner class Extension(var context: Context) {
+                fun render(path: String) {
+                    context.html(pluginConfig.directory + path)
+                }
+            }
+        }
+        TestUtil.test(Javalin.create {
+            it.registerPlugin(Tpl {
+                it.directory = "src/test/resources"
+            })
+        }) { app, http ->
+            app.get("/") { it.with(Tpl::class).render("/template.tpl") }
+            assertThat(http.getBody("/")).isEqualTo("src/test/resources/template.tpl")
+        }
     }
 }
 

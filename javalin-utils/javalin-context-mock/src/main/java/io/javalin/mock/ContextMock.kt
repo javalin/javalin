@@ -129,6 +129,7 @@ class ContextMock private constructor(
     private fun createServletContextConfig(): JavalinServletContextConfig =
         JavalinServletContextConfig(
             appDataManager = mockConfig.javalinConfig.pvt.appDataManager,
+            pluginManager = mockConfig.javalinConfig.pvt.pluginManager,
             compressionStrategy = mockConfig.javalinConfig.pvt.compressionStrategy,
             defaultContentType = mockConfig.javalinConfig.http.defaultContentType,
             jsonMapper = mockConfig.javalinConfig.pvt.jsonMapper.value,

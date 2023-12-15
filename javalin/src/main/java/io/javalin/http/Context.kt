@@ -24,6 +24,7 @@ import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.json.JsonMapper
+import io.javalin.plugin.ContextExtendingPlugin
 import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
@@ -42,6 +43,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.stream.Stream
+import kotlin.reflect.KClass
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
 
@@ -77,6 +79,14 @@ interface Context {
 
     /** Get configured [JsonMapper] */
     fun jsonMapper(): JsonMapper
+
+    ///////////////////////////////////////////////////////////////
+    // Plugin-related methods
+    ///////////////////////////////////////////////////////////////
+
+    /** Fetch the context extension for a plugin */
+    fun <T> with(clazz: Class<out ContextExtendingPlugin<*, T>>): T
+    fun <T> with(clazz: KClass<out ContextExtendingPlugin<*, T>>): T = with(clazz.java)
 
     ///////////////////////////////////////////////////////////////
     // Request-ish methods
