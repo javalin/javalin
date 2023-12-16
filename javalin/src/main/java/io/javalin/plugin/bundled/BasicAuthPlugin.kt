@@ -12,16 +12,16 @@ import io.javalin.http.UnauthorizedResponse
 import io.javalin.plugin.Plugin
 import java.util.function.Consumer
 
-class BasicAuthPluginConfig {
-    @JvmField var username: String? = null
-    @JvmField var password: String? = null
-}
-
 /**
  * Adds a filter that runs before every http request.
  * Note: It does not apply to websocket upgrade requests
  */
-class BasicAuthPlugin(userConfig: Consumer<BasicAuthPluginConfig>) : Plugin<BasicAuthPluginConfig>(userConfig, BasicAuthPluginConfig()) {
+class BasicAuthPlugin(userConfig: Consumer<Config>) : Plugin<BasicAuthPlugin.Config>(userConfig, Config()) {
+
+    class Config {
+        @JvmField var username: String? = null
+        @JvmField var password: String? = null
+    }
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount {

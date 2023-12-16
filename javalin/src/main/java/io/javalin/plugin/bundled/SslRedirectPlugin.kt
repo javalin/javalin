@@ -8,15 +8,15 @@ import io.javalin.plugin.Plugin
 import org.eclipse.jetty.server.ServerConnector
 import java.util.function.Consumer
 
-class SslRedirectPluginConfig {
-    @JvmField var redirectOnLocalhost = false
-    @JvmField var sslPort: Int? = null
-}
-
 /**
  * [SslRedirectPlugin] has to be the first registered plugin to properly handle all requests in 'before' handler.
  */
-class SslRedirectPlugin(userConfig: Consumer<SslRedirectPluginConfig>? = null) : Plugin<SslRedirectPluginConfig>(userConfig, SslRedirectPluginConfig()) {
+class SslRedirectPlugin(userConfig: Consumer<Config>? = null) : Plugin<SslRedirectPlugin.Config>(userConfig, Config()) {
+
+    class Config {
+        @JvmField var redirectOnLocalhost = false
+        @JvmField var sslPort: Int? = null
+    }
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount {

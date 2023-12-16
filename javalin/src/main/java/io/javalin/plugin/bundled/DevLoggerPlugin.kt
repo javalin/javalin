@@ -13,17 +13,17 @@ import java.util.*
 import java.util.function.Consumer
 import java.util.stream.Stream
 
-class DevLoggerPluginConfig {
-    @JvmField
-    var skipStaticFiles = false
-}
-
 /**
  * The development debugging logger catches most of the interesting stuff about requests and responses,
  * and logs it in an easy-to-read manner. It works both for HTTP and WebSocket requests. Only intended
  * for use during development and/or debugging.
  */
-class DevLoggingPlugin(userConfig: Consumer<DevLoggerPluginConfig>? = null) : Plugin<DevLoggerPluginConfig>(userConfig, DevLoggerPluginConfig()) {
+class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLoggingPlugin.Config>(userConfig, Config()) {
+
+    class Config {
+        @JvmField
+        var skipStaticFiles = false
+    }
 
     override fun onInitialize(config: JavalinConfig) {
         config.requestLogger.http { ctx, ms -> httpDevLogger(config.pvt.internalRouter, ctx, ms) }

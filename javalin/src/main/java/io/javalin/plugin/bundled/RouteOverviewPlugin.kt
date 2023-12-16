@@ -11,13 +11,13 @@ import io.javalin.security.RouteRole
 import java.util.*
 import java.util.function.Consumer
 
-class RouteOverviewPluginConfig {
-    @JvmField var path: String = "/routes"
-    @JvmField var roles: Array<out RouteRole> = emptyArray()
-}
-
 /** The route overview plugin provides you with a HTML and/or JSON overview of all the routes registered on your Javalin application. */
-class RouteOverviewPlugin(userConfig: Consumer<RouteOverviewPluginConfig>? = null) : Plugin<RouteOverviewPluginConfig>(userConfig, RouteOverviewPluginConfig()) {
+class RouteOverviewPlugin(userConfig: Consumer<Config>? = null) : Plugin<RouteOverviewPlugin.Config>(userConfig, Config()) {
+
+    class Config {
+        @JvmField var path: String = "/routes"
+        @JvmField var roles: Array<out RouteRole> = emptyArray()
+    }
 
     override fun onStart(config: JavalinConfig) {
         config.router.mount {
