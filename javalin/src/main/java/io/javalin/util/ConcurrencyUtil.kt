@@ -19,8 +19,8 @@ import kotlin.concurrent.withLock
 object ConcurrencyUtil {
 
     @Suppress("MemberVisibilityCanBePrivate")
-    // Determines if Javalin should use Loom. By default true, set it to false to disable Loom integration.
-    var useLoom = true
+    // Determines if Javalin should use Loom. By default false, set it to true to enable Loom integration.
+    @JvmField var useLoom = false
 
     @JvmStatic
     fun executorService(name: String): ExecutorService = when (useLoom && isLoomAvailable()) {
