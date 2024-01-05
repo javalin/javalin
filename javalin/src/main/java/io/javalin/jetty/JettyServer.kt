@@ -50,7 +50,7 @@ class JettyServer(private val cfg: JavalinConfig) {
         }
     }
 
-    fun server() = cfg.pvt.jetty.server ?: defaultServer(cfg.jetty.threadPool).also { cfg.pvt.jetty.server = it } // make sure config has access to the update server instance
+    fun server() = cfg.pvt.jetty.server ?: defaultServer(cfg.jetty.threadPool!!).also { cfg.pvt.jetty.server = it } // make sure config has access to the update server instance
     fun port() = (server().connectors[0] as ServerConnector).localPort
 
     private var started = false
