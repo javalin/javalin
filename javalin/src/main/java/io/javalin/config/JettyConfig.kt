@@ -22,7 +22,7 @@ class JettyConfig(private val cfg: JavalinConfig) {
     @JvmField var defaultHost: String? = null
     @JvmField var defaultPort = 8080
     @JvmField var multipartConfig = MultipartConfig()
-    @JvmField var threadPool: ThreadPool = JettyServer.defaultThreadPool(cfg.useVirtualThreads)
+    @JvmField var threadPool: ThreadPool? = null
     //@formatter:on
 
     /** Configure the jetty [Server]. This is useful if you want to configure Jetty features that are not exposed by Javalin.
