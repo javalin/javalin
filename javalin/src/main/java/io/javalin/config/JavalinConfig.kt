@@ -9,7 +9,6 @@ import io.javalin.Javalin
 import io.javalin.config.ContextResolverConfig.Companion.ContextResolverKey
 import io.javalin.http.servlet.MaxRequestSize.MaxRequestSizeKey
 import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
-import io.javalin.jetty.JettyServer
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
 import io.javalin.rendering.FileRenderer
@@ -106,7 +105,6 @@ class JavalinConfig {
         fun applyUserConfig(cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
-            cfg.jetty.threadPool = cfg.jetty.threadPool ?: JettyServer.defaultThreadPool(cfg.useVirtualThreads)
             cfg.pvt.pluginManager.startPlugins()
             cfg.pvt.appDataManager.registerIfAbsent(ContextResolverKey, cfg.contextResolver)
             cfg.pvt.appDataManager.registerIfAbsent(AsyncExecutorKey, cfg.pvt.asyncExecutor.value)
