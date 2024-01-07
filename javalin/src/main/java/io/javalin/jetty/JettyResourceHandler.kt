@@ -24,8 +24,10 @@ import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.util.URIUtil
 import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
-import java.io.File
 import java.nio.file.AccessDeniedException
+import java.nio.file.Files
+import kotlin.io.path.Path
+import kotlin.io.path.absolute
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
 class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
@@ -120,13 +122,16 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     }
 
     private fun getResourceBase(config: StaticFileConfig): String {
-        val noSuchDirMessage = "Static resource directory with path: '${config.directory}' does not exist."
+        val noSuchDirMessageBuilder: (String) -> String = { "Static resource directory with path: '$it' does not exist." }
         val classpathHint = "Depending on your setup, empty folders might not get copied to classpath."
         if (config.location == Location.CLASSPATH) {
-            return Resource.newClassPathResource(config.directory)?.toString() ?: throw JavalinException("$noSuchDirMessage $classpathHint")
+            return Resource.newClassPathResource(config.directory)?.toString() ?: throw JavalinException("${noSuchDirMessageBuilder(config.directory)} $classpathHint")
         }
-        if (!File(config.directory).exists()) {
-            throw JavalinException(noSuchDirMessage)
+
+        // Use the absolute path as this aids in debugging. Issues frequently come from incorrect root directories, not incorrect relative paths.
+        val absoluteDirectoryPath = Path(config.directory).absolute().normalize()
+        if (!Files.exists(absoluteDirectoryPath)) {
+            throw JavalinException(noSuchDirMessageBuilder(absoluteDirectoryPath.toString()))
         }
         return config.directory
     }
