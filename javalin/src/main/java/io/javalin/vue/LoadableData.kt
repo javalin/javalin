@@ -3,7 +3,7 @@ package io.javalin.vue
 const val loadableDataScript = """
 
 <script nonce="@internalAddNonce">
-    class BackendData {
+    class LoadableData {
     /**
      * Initializes the data from the backend.
      * @param url - The url to fetch the data from.
