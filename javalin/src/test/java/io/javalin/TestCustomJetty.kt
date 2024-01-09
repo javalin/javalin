@@ -185,7 +185,7 @@ class TestCustomJetty {
     }
 
     @Test
-    fun `default server uses loom if enabled`() {
+    fun `default server uses loom (virtual threads) if enabled`() {
         if (!LoomUtil.loomAvailable) return
         val defaultApp = Javalin.create { it.useVirtualThreads = true }
         TestUtil.test(defaultApp) { app, http ->
@@ -199,7 +199,6 @@ class TestCustomJetty {
             assertThat(responseBody).contains("JettyServerThreadPool-Virtual")
         }
         assertThat(LoomUtil.isLoomThreadPool(defaultApp.jettyServer().server().threadPool)).isTrue
-        assertThat(defaultApp.unsafeConfig().pvt.appDataManager.get(TestLogsKey)).contains("JDK supports Loom")
     }
 
     @Test

@@ -78,7 +78,8 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
             ".mp4", ".webm", ".ogv",
             ".ico",
             ".xml", ".json",
-            ".zip", ".gz"
+            ".zip", ".gz",
+            ".map",
         )
         val hasPopularExtension = popularExtensions.any { ctx.path().endsWith(it, ignoreCase = true) }
         val hasExtension = ctx.path().contains(".")
