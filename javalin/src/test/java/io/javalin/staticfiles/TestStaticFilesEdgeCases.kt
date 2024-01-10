@@ -30,9 +30,10 @@ class TestStaticFilesEdgeCases {
 
     @Test
     fun `server doesn't start for non-existent external folder`() = TestUtil.runLogLess {
+        val workingDirectory = System.getProperty("user.dir")
         assertThatExceptionOfType(RuntimeException::class.java)
             .isThrownBy { Javalin.create { it.staticFiles.add("external-fake-folder", Location.EXTERNAL) }.start(0) }
-            .withMessageContaining("Static resource directory with path: 'external-fake-folder' does not exist.")
+            .withMessageContaining("Static resource directory with path: '$workingDirectory/external-fake-folder' does not exist.")
     }
 
     @Test
