@@ -15,6 +15,7 @@ import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import kotlin.io.path.Path
 
 class TestStaticFilesEdgeCases {
 
@@ -30,9 +31,11 @@ class TestStaticFilesEdgeCases {
 
     @Test
     fun `server doesn't start for non-existent external folder`() = TestUtil.runLogLess {
+        val workingDirectory = Path(System.getProperty("user.dir"))
+        val fullExternalFakeFolderPath = workingDirectory.resolve("external-fake-folder")
         assertThatExceptionOfType(RuntimeException::class.java)
             .isThrownBy { Javalin.create { it.staticFiles.add("external-fake-folder", Location.EXTERNAL) }.start(0) }
-            .withMessageContaining("Static resource directory with path: 'external-fake-folder' does not exist.")
+            .withMessageContaining("Static resource directory with path: '$fullExternalFakeFolderPath' does not exist.")
     }
 
     @Test
