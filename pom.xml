@@ -84,28 +84,28 @@
         <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
 
         <!-- DEPENDENCIES -->
-        <annotations.version>24.0.1</annotations.version>
-        <jetty.version>11.0.16</jetty.version>
+        <annotations.version>24.1.0</annotations.version>
+        <jetty.version>11.0.19</jetty.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
-        <jackson.version>2.15.2</jackson.version>
-        <jackson.databind.version>2.15.2</jackson.databind.version>
-        <brotli4j.version>1.12.0</brotli4j.version>
-        <logback.version>1.4.12</logback.version>
-        <slf4j.version>2.0.7</slf4j.version>
+        <jackson.version>2.16.1</jackson.version>
+        <jackson.databind.version>2.16.1</jackson.databind.version>
+        <brotli4j.version>1.15.0</brotli4j.version>
+        <logback.version>1.4.14</logback.version>
+        <slf4j.version>2.0.10</slf4j.version>
         <gson.version>2.10.1</gson.version>
         <okhttp.version>4.12.0</okhttp.version>
 
         <!-- TEST DEPENDENCIES -->
-        <assertj.version>3.24.2</assertj.version>
+        <assertj.version>3.25.0</assertj.version>
         <moshi.version>1.15.0</moshi.version>
-        <java.websocket.version>1.5.4</java.websocket.version>
+        <java.websocket.version>1.5.5</java.websocket.version>
         <junit.version>5.9.3</junit.version>
         <jmh.version>1.37</jmh.version>
-        <mockito.version>5.5.0</mockito.version>
-        <mockk.version>1.13.7</mockk.version>
+        <mockito.version>5.8.0</mockito.version>
+        <mockk.version>1.13.8</mockk.version>
         <unirest.version>3.14.5</unirest.version>
-        <selenium.chrome.driver.version>4.14.1</selenium.chrome.driver.version>
-        <webdrivermanager.version>5.5.3</webdrivermanager.version>
+        <selenium.chrome.driver.version>4.16.1</selenium.chrome.driver.version>
+        <webdrivermanager.version>5.6.3</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
 
