@@ -78,4 +78,6 @@ class MimeTypesConfig {
             extensionToMimeType[ext] = mimeType
         }
     }
+
+    override fun toString(): String = extensionToMimeType.toString()
 }
