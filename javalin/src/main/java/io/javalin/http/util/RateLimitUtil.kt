@@ -13,20 +13,22 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 object RateLimitUtil {
     val limiters = ConcurrentHashMap<TimeUnit, RateLimiter>()
     var keyFunction: (Context) -> String = { ip(it) + it.method() + it.matchedPath() }
     val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
+
     private fun ip(ctx: Context) = ctx.header("X-Forwarded-For")?.split(",")?.get(0) ?: ctx.ip()
 }
 
 class RateLimiter(val timeUnit: TimeUnit) {
-
+    private var future: ScheduledFuture<*>?
     private val timeUnitString = timeUnit.toString().lowercase(Locale.ROOT).removeSuffix("s")
     private val keyToRequestCount = ConcurrentHashMap<String, Int>().also {
-        RateLimitUtil.executor.scheduleAtFixedRate({ it.clear() }, /*delay=*/0,  /*period=*/1, timeUnit)
+        future = RateLimitUtil.executor.scheduleAtFixedRate({ it.clear() }, /*delay=*/0,  /*period=*/1, timeUnit)
     }
 
     fun incrementCounter(ctx: Context, requestLimit: Int) {
@@ -37,6 +39,14 @@ class RateLimiter(val timeUnit: TimeUnit) {
                 else -> throw HttpResponseException(HttpStatus.TOO_MANY_REQUESTS, "Rate limit exceeded - Server allows $requestLimit requests per $timeUnitString.")
             }
         }
+    }
+
+    fun getCounter(ctx: Context) : Int? {
+       return keyToRequestCount.get(RateLimitUtil.keyFunction(ctx))
+    }
+
+    fun getRemainder(timeUnit: TimeUnit) : Long? {
+        return future?.getDelay(timeUnit)
     }
 }
 
