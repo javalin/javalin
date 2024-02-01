@@ -32,7 +32,6 @@ fun main() {
 private fun sslContextFactory(): SslContextFactory.Server {
     val sslContextFactory = SslContextFactory.Server()
     sslContextFactory.keyStorePath = HelloWorldSecure::class.java.getResource("/keystore.jks")!!.toExternalForm()
-    sslContextFactory.keyStorePassword = "password"
+    sslContextFactory.keyStorePassword = "localhost"
     return sslContextFactory
 }
-
