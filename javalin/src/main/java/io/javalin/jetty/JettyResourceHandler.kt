@@ -17,7 +17,6 @@ import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletResponseWrapper
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.io.EofException
-import org.eclipse.jetty.server.HttpConnection
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
@@ -42,7 +41,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (pvt.jetty.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.jetty.server!!)) else lateInitConfigs.add(config)
 
-    override fun canHandle(ctx: Context) = nonSkippedHandlers().any { handler ->
+    override fun canHandle(ctx: Context) = nonSkippedHandlers(ctx.jettyReq()).any { handler ->
         return try {
             fileOrWelcomeFile(handler, ctx.target) != null
         } catch (e: Exception) {
@@ -52,7 +51,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     }
 
     override fun handle(ctx: Context): Boolean {
-        nonSkippedHandlers().forEach { handler ->
+        nonSkippedHandlers(ctx.jettyReq()).forEach { handler ->
             try {
                 val target = ctx.target
                 val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
@@ -63,7 +62,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                         false -> {
                             ctx.res().contentType = null // Jetty will only set the content-type if it's null
                             runCatching { // we wrap the response to compress it with javalin's compression strategy
-                                handler.handle(target, jettyRequest(), ctx.req(), CompressingResponseWrapper(ctx))
+                                handler.handle(target, ctx.jettyReq(), ctx.req(), CompressingResponseWrapper(ctx))
                             }.isSuccess
                         }
                     }
@@ -81,10 +80,8 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     private fun fileOrWelcomeFile(handler: ResourceHandler, target: String): Resource? =
         handler.getResource(target)?.fileOrNull() ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.fileOrNull()
 
-    private fun jettyRequest() = HttpConnection.getCurrentConnection().httpChannel.request as Request
-
-    private fun nonSkippedHandlers() =
-        handlers.asSequence().filter { !it.config.skipFileFunction(jettyRequest()) }
+    private fun nonSkippedHandlers(jettyRequest: Request) =
+        handlers.asSequence().filter { !it.config.skipFileFunction(jettyRequest) }
 
     private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
 
@@ -137,6 +134,8 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     }
 
 }
+
+private fun Context.jettyReq() = Request.getBaseRequest(this.req())
 
 private class CompressingResponseWrapper(private val ctx: Context) : HttpServletResponseWrapper(ctx.res()) {
     override fun getOutputStream(): ServletOutputStream = ctx.outputStream()
