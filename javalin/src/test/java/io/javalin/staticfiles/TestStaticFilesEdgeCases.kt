@@ -11,7 +11,6 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
 import io.javalin.util.FileUtil
-import kong.unirest.Unirest
 import okhttp3.OkHttpClient
 import okhttp3.Protocol.H2_PRIOR_KNOWLEDGE
 import okhttp3.Request
@@ -29,9 +28,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.net.ServerSocket
-import java.net.http.HttpClient
-import java.security.KeyManagementException
-import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
@@ -88,7 +84,7 @@ class TestStaticFilesEdgeCases {
         }
         // then test http2:
         val port = ServerSocket(0).use { it.localPort }
-        val http2App = Javalin.create {
+        Javalin.create {
             it.staticFiles.add("/public")
             it.jetty.addConnector { server, httpConfiguration ->
                 val http11 = HttpConnectionFactory(httpConfiguration)
@@ -97,14 +93,13 @@ class TestStaticFilesEdgeCases {
                     this.port = port
                 }
             }
-        }
-        TestUtil.test(http2App) { app, http ->
+        }.start().also {
             val http2client = listOf(H2_PRIOR_KNOWLEDGE).let { OkHttpClient.Builder().protocols(it).build() }
-            val path = "http://127.0.0.1:$port/styles.css"
+            val path = "http://localhost:$port/styles.css"
             val response = http2client.newCall(Request.Builder().url(path).build()).execute()
             assertThat(response.body?.string()).contains("CSS works")
             assertThat(response.protocol).isEqualTo(H2_PRIOR_KNOWLEDGE)
-        }
+        }.stop()
     }
 
     @Test
@@ -126,10 +121,8 @@ class TestStaticFilesEdgeCases {
                 ServerConnector(server, tlsHttp2, alpn, http2, http11).apply { this.port = port }
             }
         }.start().also {
-            val emptyResponse = untrustedHttpsCall(port, "/idontexist.css")
-            assertThat(emptyResponse.code).isEqualTo(404)
-            val response = untrustedHttpsCall(port, "/styles.css")
-            assertThat(response.body?.string()).contains("CSS works")
+            assertThat(untrustedHttpsCall(port, "/idontexist.css").code).isEqualTo(404)
+            assertThat(untrustedHttpsCall(port, "/styles.css").body?.string()).contains("CSS works")
         }.stop()
     }
 
@@ -149,23 +142,23 @@ class TestStaticFilesEdgeCases {
                 ServerConnector(server).apply { this.port = 0 }
             }
         }.start().also {
-            val response = untrustedHttpsCall(port, "/styles.css")
-            assertThat(response.body?.string()).contains("CSS works")
+            assertThat(untrustedHttpsCall(port, "/styles.css").body?.string()).contains("CSS works")
         }.stop()
     }
 
-    fun untrustedHttpsCall(port: Int, path: String) = untrustedClient().newCall(
+    private fun untrustedHttpsCall(port: Int, path: String) = untrustedClient().newCall(
         Request.Builder().url("https://localhost:$port$path").build()
     ).execute()
 
     /** Needed to accept self-signed certificates in okhttp... */
-    fun untrustedClient(): OkHttpClient {
+    private fun untrustedClient(): OkHttpClient {
         val trustAllCerts = arrayOf<X509TrustManager>(object : X509TrustManager {
             override fun checkClientTrusted(a: Array<X509Certificate>, b: String) {}
             override fun checkServerTrusted(a: Array<X509Certificate>, b: String) {}
             override fun getAcceptedIssuers() = arrayOf<X509Certificate>()
         })
-        val sslContext = SSLContext.getInstance("SSL").also { it.init(null, trustAllCerts, SecureRandom()) }
+        val sslContext = SSLContext.getInstance("SSL")
+            .also { it.init(null, trustAllCerts, SecureRandom()) }
         return OkHttpClient.Builder().apply {
             sslSocketFactory(sslContext.socketFactory, trustAllCerts[0])
             hostnameVerifier { _: String?, _: SSLSession? -> true }
