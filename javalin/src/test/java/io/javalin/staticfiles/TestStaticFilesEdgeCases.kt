@@ -110,7 +110,7 @@ class TestStaticFilesEdgeCases {
     @Test
     fun `static files works on http2 with ssl and ALPN`() {
         val port = ServerSocket(0).use { it.localPort }
-        val http2App = Javalin.create {
+        Javalin.create {
             it.staticFiles.add("/public")
             it.jetty.addConnector { server, httpConfiguration ->
                 httpConfiguration.addCustomizer(SecureRequestCustomizer(false))
@@ -125,16 +125,12 @@ class TestStaticFilesEdgeCases {
                 val tlsHttp2 = SslConnectionFactory(sslContextFactory, alpn.protocol)
                 ServerConnector(server, tlsHttp2, alpn, http2, http11).apply { this.port = port }
             }
-        }
-        TestUtil.test(http2App) { app, http ->
-            val client = untrustedClient()
-            val emptyPath = "https://127.0.0.1:$port/idontexist.css"
-            val emptyResponse = client.newCall(Request.Builder().url(emptyPath).build()).execute()
+        }.start().also {
+            val emptyResponse = untrustedHttpsCall(port, "/idontexist.css")
             assertThat(emptyResponse.code).isEqualTo(404)
-            val path = "https://127.0.0.1:$port/styles.css"
-            val response = client.newCall(Request.Builder().url(path).build()).execute()
-            assertThat(response.body.toString()).contains("CSS works")
-        }
+            val response = untrustedHttpsCall(port, "/styles.css")
+            assertThat(response.body?.string()).contains("CSS works")
+        }.stop()
     }
 
     @Test
@@ -153,36 +149,27 @@ class TestStaticFilesEdgeCases {
                 ServerConnector(server).apply { this.port = 0 }
             }
         }.start().also {
-            Unirest.config().verifySsl(false)
-            val response = Unirest.get("https://localhost:$port/styles.css").asString()
-            assertThat(response.body).contains("CSS works")
+            val response = untrustedHttpsCall(port, "/styles.css")
+            assertThat(response.body?.string()).contains("CSS works")
         }.stop()
     }
 
-    /** Needed to accept self-signed certificates in okhttp...
-     */
-     fun untrustedClient(): OkHttpClient {
-         val trustAllCerts = arrayOf<X509TrustManager>(object : X509TrustManager {
-             override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
-             override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
-             override fun getAcceptedIssuers(): Array<X509Certificate> {
-                 return arrayOf()
-             }
-         })
-        val sslContext: SSLContext = try {
-            SSLContext.getInstance("SSL")
-        } catch (e: NoSuchAlgorithmException) {
-            throw RuntimeException(e)
-        }
-        try {
-            sslContext.init(null, trustAllCerts, SecureRandom())
-        } catch (e: KeyManagementException) {
-            throw RuntimeException(e)
-        }
-        val newBuilder = OkHttpClient.Builder()
-        newBuilder.sslSocketFactory(sslContext.socketFactory, trustAllCerts[0])
-        newBuilder.hostnameVerifier { _: String?, _: SSLSession? -> true }
-        return newBuilder.build()
+    fun untrustedHttpsCall(port: Int, path: String) = untrustedClient().newCall(
+        Request.Builder().url("https://localhost:$port$path").build()
+    ).execute()
+
+    /** Needed to accept self-signed certificates in okhttp... */
+    fun untrustedClient(): OkHttpClient {
+        val trustAllCerts = arrayOf<X509TrustManager>(object : X509TrustManager {
+            override fun checkClientTrusted(a: Array<X509Certificate>, b: String) {}
+            override fun checkServerTrusted(a: Array<X509Certificate>, b: String) {}
+            override fun getAcceptedIssuers() = arrayOf<X509Certificate>()
+        })
+        val sslContext = SSLContext.getInstance("SSL").also { it.init(null, trustAllCerts, SecureRandom()) }
+        return OkHttpClient.Builder().apply {
+            sslSocketFactory(sslContext.socketFactory, trustAllCerts[0])
+            hostnameVerifier { _: String?, _: SSLSession? -> true }
+        }.build()
     }
 
 }
