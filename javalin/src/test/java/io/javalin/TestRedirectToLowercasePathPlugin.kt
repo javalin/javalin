@@ -12,7 +12,7 @@ import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import kong.unirest.HttpResponse
+import kong.unirest.core.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.Test

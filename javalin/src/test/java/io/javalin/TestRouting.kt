@@ -24,7 +24,7 @@ import io.javalin.router.matcher.WildcardBracketAdjacentException
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import io.javalin.websocket.WsHandlerType
-import kong.unirest.HttpMethod
+import kong.unirest.core.HttpMethod
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
@@ -38,6 +38,10 @@ class TestRouting {
 
     private val okHttp = OkHttpClient().newBuilder().build()
     fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
+
+    val httpMethods = listOf(
+        HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH, HttpMethod.HEAD, HttpMethod.OPTIONS, HttpMethod.TRACE
+    )
 
     @Test
     fun `basic hello world works`() = TestUtil.test { app, http ->
@@ -95,15 +99,14 @@ class TestRouting {
         app.head("/mapped", TestUtil.okHandler)
         app.options("/mapped", TestUtil.okHandler)
         app.addHttpHandler(TRACE, "/mapped", TestUtil.okHandler)
-
-        for (httpMethod in HttpMethod.all()) {
+        for (httpMethod in httpMethods) {
             assertThat(http.call(httpMethod, "/mapped").httpCode()).isEqualTo(OK)
         }
     }
 
     @Test
     fun `all unmapped verbs return 404`() = TestUtil.test { _, http ->
-        for (httpMethod in HttpMethod.all()) {
+        for (httpMethod in httpMethods) {
             val response = http.call(httpMethod, "/unmapped")
             assertThat(response.httpCode()).isEqualTo(NOT_FOUND)
 

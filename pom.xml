@@ -103,7 +103,7 @@
         <jmh.version>1.37</jmh.version>
         <mockito.version>5.8.0</mockito.version>
         <mockk.version>1.13.8</mockk.version>
-        <unirest.version>3.14.5</unirest.version>
+        <unirest.version>4.2.7</unirest.version>
         <selenium.chrome.driver.version>4.16.1</selenium.chrome.driver.version>
         <webdrivermanager.version>5.6.3</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
@@ -488,6 +488,9 @@
                             <exclude />
                         </excludes>
           	            <useModulePath>false</useModulePath>
+                        <systemPropertyVariables>
+                            <jdk.httpclient.allowRestrictedHeaders>Connection,Upgrade,Host</jdk.httpclient.allowRestrictedHeaders>
+                        </systemPropertyVariables>
                     </configuration>
                 </plugin>
                 <plugin>
