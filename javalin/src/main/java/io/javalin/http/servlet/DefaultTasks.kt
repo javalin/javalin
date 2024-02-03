@@ -4,7 +4,6 @@ import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.MethodNotAllowedResponse
-import io.javalin.http.NotFoundResponse
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.router.EndpointNotFound
@@ -25,9 +24,19 @@ object DefaultTasks {
             ctx.setRouteRoles(servlet.matchedRoles(ctx, requestUri)) // set roles for the matched handler
             servlet.willMatch(ctx, requestUri)
         }
+        val httpHandlerOrNull by javalinLazy {
+            servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()
+        }
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
-                submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+                submitTask(LAST, Task(skipIfExceptionOccurred = true) {
+                    val httpHandler = httpHandlerOrNull
+                    if (httpHandler != null && entry.endpoint.path == "*") {
+                        entry.endpoint.handle(ctx.update(httpHandler, requestUri))
+                    } else {
+                        entry.handle(ctx, requestUri)
+                    }
+                })
             }
         }
     }
