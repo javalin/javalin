@@ -1,6 +1,5 @@
 package io.javalin
 
-import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.http.ContentType
 import io.javalin.http.HttpStatus
 import io.javalin.http.servlet.DefaultTasks.AFTER
@@ -321,34 +320,11 @@ class TestBeforeAfterMatched {
     @Test
     fun `gh-2085 pathParamMap works with beforeMatched`() =
         TestUtil.test(Javalin.create { config ->
-            config.router.apiBuilder {
-                get("/{path}") { ctx ->
-                    ctx.result(ctx.result() + "/" + ctx.pathParamMap())
-                }
+            config.router.mount {
+                it.beforeMatched { ctx -> ctx.result(ctx.pathParamMap().toString()) }
+                it.get("/{path}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
             }
-        }) { app, http ->
-            app.beforeMatched { ctx ->
-                ctx.result(ctx.pathParamMap().toString())
-            }
-
-            val res = http.getBody("/a-value")
-            assertThat(res).isEqualTo("{path=a-value}/{path=a-value}")
-        }
-
-    @Test
-    fun `gh-2085 pathParam works with beforeMatched`() =
-        TestUtil.test(Javalin.create { config ->
-            config.router.apiBuilder {
-                get("/{path}") { ctx ->
-                    ctx.result(ctx.result() ?: "")
-                }
-            }
-        }) { app, http ->
-            app.beforeMatched { ctx ->
-                ctx.result(ctx.pathParam("path"))
-            }
-
-            val res = http.getBody("/a-value")
-            assertThat(res).isEqualTo("a-value")
+        }) { _, http ->
+            assertThat(http.getBody("/a-value")).isEqualTo("{path=a-value}/{path=a-value}")
         }
 }
