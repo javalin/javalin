@@ -5,7 +5,6 @@ import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.http.NotFoundResponse
 import io.javalin.security.RouteRole
-import org.eclipse.jetty.http.HttpMethod
 
 /**
  * Represents an HTTP endpoint in the application.
@@ -19,7 +18,7 @@ open class Endpoint @JvmOverloads constructor(
     val method: HandlerType,
     val path: String,
     vararg roles: RouteRole = emptyArray(),
-    internal val handler: Handler
+    val handler: Handler
 ) {
 
     val roles = roles.toSet()
