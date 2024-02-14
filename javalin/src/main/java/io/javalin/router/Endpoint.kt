@@ -46,8 +46,8 @@ open class Endpoint @JvmOverloads constructor(
 
             private val metadata = mutableSetOf<EndpointMetadata>()
 
-            fun addMetadata(vararg metadata: EndpointMetadata): EndpointBuilder =
-                apply { this.metadata.addAll(metadata) }
+            fun addMetadata(metadata: EndpointMetadata): EndpointBuilder =
+                apply { this.metadata.add(metadata) }
 
             fun handler(handler: Handler): Endpoint =
                 Endpoint(method, path, metadata, handler)
