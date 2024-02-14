@@ -44,7 +44,7 @@ open class InternalRouter(
                 httpMethod = endpoint.method,
                 path = Util.prefixContextPath(routerConfig.contextPath, endpoint.path),
                 handler = endpoint.handler,
-                roles = endpoint.roles
+                roles = endpoint.getMetadata() ?: emptySet()
             )
         )
         return this

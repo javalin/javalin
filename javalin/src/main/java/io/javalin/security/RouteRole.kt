@@ -6,11 +6,17 @@
 
 package io.javalin.security;
 
-import io.javalin.http.Context;
+import io.javalin.router.EndpointMetadata
 
 /**
  * Marker interface for roles used in route declarations.
  * See {@link Context#routeRoles()}.
  */
-public interface RouteRole {
+interface RouteRole
+
+/**
+ * List of roles used in route declaration
+ */
+data class Roles(val roles: Set<RouteRole>) : RouteRole, EndpointMetadata {
+    constructor(vararg roles: RouteRole) : this(roles.toSet())
 }

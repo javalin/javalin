@@ -17,6 +17,8 @@ import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin
+import io.javalin.router.Endpoint
+import io.javalin.router.EndpointMetadata
 import io.javalin.router.EndpointNotFound
 import io.javalin.router.matcher.MissingBracketsException
 import io.javalin.router.matcher.ParameterNamesNotUniqueException
@@ -63,6 +65,24 @@ class TestRouting {
         app.before("/2") { }
         val handler2 = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/2" }!!
         assertThat(handler2.method).isEqualTo(HandlerType.BEFORE)
+    }
+
+    private object TestMetadata : EndpointMetadata
+
+    @Test
+    fun `custom metadata is available on endpoint`() {
+        val app = Javalin.create { cfg ->
+            cfg.router.mount { it ->
+                it.addEndpoint(
+                    Endpoint.create(HandlerType.GET, "/hello")
+                        .metadata(TestMetadata)
+                        .handler { ctx -> ctx.result("Hello World") }
+                )
+            }
+        }
+
+        val endpoint = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().first { it.endpoint.path == "/hello" }.endpoint
+        assertThat(endpoint.getMetadata<TestMetadata>()).isEqualTo(TestMetadata)
     }
 
     @Test
