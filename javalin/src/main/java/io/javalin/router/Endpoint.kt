@@ -27,6 +27,7 @@ open class Endpoint @JvmOverloads constructor(
 
     private val metadata = metadata.associateBy { it::class.java }
 
+    @Deprecated("Use Endpoint builder instead", ReplaceWith("Endpoint.create(method, path)"))
     constructor(
         method: HandlerType,
         path: String,
