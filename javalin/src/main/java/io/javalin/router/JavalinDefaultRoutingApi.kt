@@ -110,7 +110,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API =
         addEndpoint(
             Endpoint.create(handlerType, path)
-                .metadata(Roles(roles.toSet()))
+                .addMetadata(Roles(roles.toSet()))
                 .handler(handler)
         )
 

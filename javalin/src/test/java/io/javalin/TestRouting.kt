@@ -75,14 +75,14 @@ class TestRouting {
             cfg.router.mount { it ->
                 it.addEndpoint(
                     Endpoint.create(HandlerType.GET, "/hello")
-                        .metadata(TestMetadata)
+                        .addMetadata(TestMetadata)
                         .handler { ctx -> ctx.result("Hello World") }
                 )
             }
         }
 
         val endpoint = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().first { it.endpoint.path == "/hello" }.endpoint
-        assertThat(endpoint.getMetadata<TestMetadata>()).isEqualTo(TestMetadata)
+        assertThat(endpoint.metadata<TestMetadata>()).isEqualTo(TestMetadata)
     }
 
     @Test

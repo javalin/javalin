@@ -90,6 +90,6 @@ object DefaultTasks {
     }
 
     private fun JavalinServlet.matchedRoles(ctx: JavalinServletContext, requestUri: String): Set<RouteRole> =
-        this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()?.endpoint?.getMetadata<Roles>()?.roles ?: emptySet()
+        this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()?.endpoint?.metadata<Roles>()?.roles ?: emptySet()
 
 }
