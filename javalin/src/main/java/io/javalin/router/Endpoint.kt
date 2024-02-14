@@ -25,8 +25,6 @@ open class Endpoint @JvmOverloads constructor(
     val handler: Handler
 ) {
 
-    private val metadata = metadata.associateBy { it::class.java }
-
     @Deprecated("Use Endpoint builder instead", ReplaceWith("Endpoint.create(method, path)"))
     constructor(
         method: HandlerType,
@@ -39,6 +37,27 @@ open class Endpoint @JvmOverloads constructor(
         metadata = setOf(Roles(*roles)),
         handler = handler
     )
+
+    @Deprecated("Use metadata instead", ReplaceWith("metadata(class)"))
+    val roles: Set<RouteRole>
+        get() = metadata() ?: emptySet()
+
+    private val metadata = metadata.associateBy { it::class.java }
+
+    /** Execute the endpoint handler with the given context */
+    fun handle(ctx: Context): Context =
+        ctx.also { handler.handle(ctx) }
+
+    /** Execute the endpoint handler with the given executor */
+    fun handle(executor: EndpointExecutor): Context =
+        executor.execute(this)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <M : EndpointMetadata> metadata(key: Class<M>): M? =
+        metadata[key] as M?
+
+    inline fun <reified M : EndpointMetadata> metadata(): M? =
+        metadata(M::class.java)
 
     companion object {
 
@@ -57,26 +76,6 @@ open class Endpoint @JvmOverloads constructor(
         @JvmStatic
         fun create(method: HandlerType, path: String): EndpointBuilder = EndpointBuilder(method, path)
     }
-
-
-    @Deprecated("Use getMetadata instead", ReplaceWith("getMetadata(key)"))
-    val roles: Set<RouteRole>
-        get() = metadata() ?: emptySet()
-
-    /** Execute the endpoint handler with the given context */
-    fun handle(ctx: Context): Context =
-        ctx.also { handler.handle(ctx) }
-
-    /** Execute the endpoint handler with the given executor */
-    fun handle(executor: EndpointExecutor): Context =
-        executor.execute(this)
-
-    @Suppress("UNCHECKED_CAST")
-    fun <M : EndpointMetadata> metadata(key: Class<M>): M? =
-        metadata[key] as M?
-
-    inline fun <reified M : EndpointMetadata> metadata(): M? =
-        metadata(M::class.java)
 
 }
 
