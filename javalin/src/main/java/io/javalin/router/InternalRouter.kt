@@ -11,6 +11,7 @@ import io.javalin.http.HandlerType
 import io.javalin.router.error.ErrorMapper
 import io.javalin.router.exception.ExceptionMapper
 import io.javalin.router.matcher.PathMatcher
+import io.javalin.security.Roles
 import io.javalin.security.RouteRole
 import io.javalin.util.Util
 import io.javalin.websocket.WsConfig
@@ -44,7 +45,7 @@ open class InternalRouter(
                 httpMethod = endpoint.method,
                 path = Util.prefixContextPath(routerConfig.contextPath, endpoint.path),
                 handler = endpoint.handler,
-                roles = endpoint.roles
+                roles = endpoint.metadata(Roles::class.java)?.roles ?: emptySet()
             )
         )
         return this

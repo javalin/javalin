@@ -7,6 +7,7 @@
 package io.javalin.plugin.bundled
 
 import io.javalin.router.ParsedEndpoint
+import io.javalin.security.Roles
 import io.javalin.util.implementingClassName
 import io.javalin.util.isClass
 import io.javalin.util.isJavaAnonymousLambda
@@ -126,7 +127,7 @@ object RouteOverviewUtil {
                                 <td>${it.method}</span></td>
                                 <td>${it.path}</td>
                                 <td><b>${it.handler.metaInfo}</b></td>
-                                <td>${it.roles}</td>
+                                <td>${it.metadata(Roles::class.java)?.roles ?: emptySet()}</td>
                             </tr>
                             """
                         }

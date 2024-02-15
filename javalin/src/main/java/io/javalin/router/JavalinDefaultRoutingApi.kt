@@ -20,6 +20,7 @@ import io.javalin.http.HandlerType.WEBSOCKET_BEFORE_UPGRADE
 import io.javalin.http.HttpStatus
 import io.javalin.http.sse.SseClient
 import io.javalin.http.sse.SseHandler
+import io.javalin.security.Roles
 import io.javalin.security.RouteRole
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsExceptionHandler
@@ -108,12 +109,9 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      */
     fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API =
         addEndpoint(
-            Endpoint(
-                method = handlerType,
-                path = path,
-                roles = roles,
-                handler = handler
-            )
+            Endpoint.create(handlerType, path)
+                .addMetadata(Roles(roles.toSet()))
+                .handler(handler)
         )
 
     /**

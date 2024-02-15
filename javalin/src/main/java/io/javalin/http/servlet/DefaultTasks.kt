@@ -4,10 +4,10 @@ import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.MethodNotAllowedResponse
-import io.javalin.http.NotFoundResponse
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.router.EndpointNotFound
+import io.javalin.security.Roles
 import io.javalin.security.RouteRole
 import io.javalin.util.Util.firstOrNull
 import io.javalin.util.javalinLazy
@@ -90,6 +90,6 @@ object DefaultTasks {
     }
 
     private fun JavalinServlet.matchedRoles(ctx: JavalinServletContext, requestUri: String): Set<RouteRole> =
-        this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()?.endpoint?.roles ?: emptySet()
+        this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()?.endpoint?.metadata(Roles::class.java)?.roles ?: emptySet()
 
 }
