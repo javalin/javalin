@@ -127,7 +127,7 @@ object RouteOverviewUtil {
                                 <td>${it.method}</span></td>
                                 <td>${it.path}</td>
                                 <td><b>${it.handler.metaInfo}</b></td>
-                                <td>${it.metadata<Roles>()?.roles ?: emptySet()}</td>
+                                <td>${it.metadata(Roles::class.java)?.roles ?: emptySet()}</td>
                             </tr>
                             """
                         }

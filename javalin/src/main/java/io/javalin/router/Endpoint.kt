@@ -7,7 +7,10 @@ import io.javalin.http.NotFoundResponse
 import io.javalin.security.Roles
 import io.javalin.security.RouteRole
 
-/** Represents metadata object for an endpoint */
+/**
+ * Marker interface for endpoint metadata.
+ * Requiring this interfaces prevents the user from passing existing classes (such as String) as metadata.
+ */
 interface EndpointMetadata
 
 /**
@@ -34,13 +37,13 @@ open class Endpoint @JvmOverloads constructor(
     ) : this(
         method = method,
         path = path,
-        metadata = setOf(Roles(*roles)),
+        metadata = setOf(Roles(roles.toSet())),
         handler = handler
     )
 
-    @Deprecated("Use metadata instead", ReplaceWith("metadata(class)"))
+    @Deprecated("Use metadata instead", ReplaceWith("getMetadata(Roles.class)"))
     val roles: Set<RouteRole>
-        get() = metadata() ?: emptySet()
+        get() = metadata(Roles::class.java)?.roles ?: emptySet()
 
     private val metadata = metadata.associateBy { it::class.java }
 
@@ -53,11 +56,8 @@ open class Endpoint @JvmOverloads constructor(
         executor.execute(this)
 
     @Suppress("UNCHECKED_CAST")
-    fun <M : EndpointMetadata> metadata(key: Class<M>): M? =
-        metadata[key] as M?
-
-    inline fun <reified M : EndpointMetadata> metadata(): M? =
-        metadata(M::class.java)
+    fun <METADATA : EndpointMetadata> metadata(key: Class<METADATA>): METADATA? =
+        metadata[key] as METADATA?
 
     companion object {
 
@@ -73,6 +73,7 @@ open class Endpoint @JvmOverloads constructor(
 
         }
 
+        @Deprecated("Experimental feature")
         @JvmStatic
         fun create(method: HandlerType, path: String): EndpointBuilder = EndpointBuilder(method, path)
     }

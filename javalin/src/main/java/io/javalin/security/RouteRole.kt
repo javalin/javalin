@@ -17,6 +17,4 @@ interface RouteRole
 /**
  * List of roles used in route declaration
  */
-data class Roles(val roles: Set<RouteRole>) : RouteRole, EndpointMetadata {
-    constructor(vararg roles: RouteRole) : this(roles.toSet())
-}
+data class Roles(val roles: Set<RouteRole>) : EndpointMetadata
