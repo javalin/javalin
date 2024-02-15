@@ -10,48 +10,63 @@ import io.javalin.http.UploadedFile
 import jakarta.servlet.MultipartConfigElement
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.Part
-import java.nio.charset.Charset
+import kotlin.text.Charsets.UTF_8
 
 object MultipartUtil {
+
     const val MULTIPART_CONFIG_ATTRIBUTE = "org.eclipse.jetty.multipartConfig"
+
     private val defaultConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, 1)
 
-    var preUploadFunction: (HttpServletRequest) -> Unit = { req ->
-        if (req.getAttribute(MULTIPART_CONFIG_ATTRIBUTE) == null) {
-            req.setAttribute(MULTIPART_CONFIG_ATTRIBUTE, defaultConfig)
+    var preUploadFunction: (HttpServletRequest) -> Unit = {
+        if (it.getAttribute(MULTIPART_CONFIG_ATTRIBUTE) == null) {
+            it.setAttribute(MULTIPART_CONFIG_ATTRIBUTE, defaultConfig)
         }
     }
 
-    fun getUploadedFiles(req: HttpServletRequest, partName: String): List<UploadedFile> {
-        preUploadFunction(req)
-        return req.parts.filter { isFile(it) && it.name == partName }.map { UploadedFile(it) }
+    private inline fun <R> HttpServletRequest.processParts(body: (Sequence<Part>, Int) -> R): R {
+        preUploadFunction(this)
+        val parts = this.parts
+        return body(parts.asSequence(), parts.size)
     }
 
-    fun getUploadedFiles(req: HttpServletRequest): List<UploadedFile> {
-        preUploadFunction(req)
-        return req.parts.filter(this::isFile).map { UploadedFile(it) }
-    }
+    fun getUploadedFiles(req: HttpServletRequest, partName: String): List<UploadedFile> =
+        req.processParts { parts, size ->
+            parts
+                .filter { isFile(it) && it.name == partName }
+                .mapTo(ArrayList(size)) { UploadedFile(it) }
+        }
 
-    fun getUploadedFileMap(req: HttpServletRequest): Map<String, List<UploadedFile>> {
-        preUploadFunction(req)
-        return req
-            .parts
-            .filter(this::isFile)
-            .groupBy { it.name }
-            .mapValues { entry -> entry.value.map { UploadedFile(it) } }
-    }
+    fun getUploadedFiles(req: HttpServletRequest): List<UploadedFile> =
+        req.processParts { parts, size ->
+            parts
+                .filter(::isFile)
+                .mapTo(ArrayList(size)) { UploadedFile(it) }
+        }
 
-    fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> {
-        preUploadFunction(req)
-        return req.parts.associate { part -> part.name to getPartValue(req, part.name) }
-    }
+    fun getUploadedFileMap(req: HttpServletRequest): Map<String, List<UploadedFile>> =
+        req.processParts { parts, size ->
+            parts
+                .filter(::isFile)
+                .groupByTo(HashMap(size), { it.name }, { UploadedFile(it) })
+        }
 
-    private fun getPartValue(req: HttpServletRequest, partName: String): List<String> {
-        return req.parts.filter { isField(it) && it.name == partName }.map { part ->
-            part.inputStream.use { it.readBytes().toString(Charset.forName("UTF-8")) }
-        }.toList()
-    }
+    fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> =
+        req.processParts { parts, size ->
+            parts.associateTo(HashMap(size)) { it.name to getPartValue(req, it.name) }
+        }
 
-    private fun isField(filePart: Part) = filePart.submittedFileName == null // this is what Apache FileUpload does ...
-    private fun isFile(filePart: Part) = !isField(filePart)
+    private fun getPartValue(req: HttpServletRequest, partName: String): List<String> =
+        req.processParts { parts, size ->
+            parts
+                .filter { isField(it) && it.name == partName }
+                .mapTo(ArrayList(size)) { part -> part.inputStream.use { it.readBytes().toString(UTF_8) } }
+        }
+
+    private fun isField(filePart: Part): Boolean =
+        filePart.submittedFileName == null // this is what Apache FileUpload does
+
+    private fun isFile(filePart: Part): Boolean =
+        !isField(filePart)
+
 }
