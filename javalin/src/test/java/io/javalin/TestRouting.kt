@@ -82,7 +82,7 @@ class TestRouting {
         }
 
         val endpoint = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().first { it.endpoint.path == "/hello" }.endpoint
-        assertThat(endpoint.metadata<TestMetadata>()).isEqualTo(TestMetadata)
+        assertThat(endpoint.metadata(TestMetadata::class.java)).isEqualTo(TestMetadata)
     }
 
     @Test
