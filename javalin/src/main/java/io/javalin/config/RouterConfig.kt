@@ -45,6 +45,7 @@ class RouterConfig(internal val cfg: JavalinConfig) {
         initializer.initialize(cfg, cfg.pvt.internalRouter) { setup.accept(this) }
     }
 
+    @LowPriorityInOverloadResolution
     fun mount(setup: Consumer<JavalinDefaultRouting>): RouterConfig =
         mount(Default, setup)
 
