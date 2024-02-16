@@ -6,7 +6,9 @@
 
 package io.javalin.http.util
 
+import io.javalin.http.Context
 import io.javalin.http.UploadedFile
+import io.javalin.http.servlet.JavalinServletContext
 import jakarta.servlet.MultipartConfigElement
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.Part
@@ -24,40 +26,43 @@ object MultipartUtil {
         }
     }
 
-    private inline fun <R> HttpServletRequest.processParts(body: (Sequence<Part>, Int) -> R): R {
-        preUploadFunction(this)
-        val parts = this.parts
+    private inline fun <R> Context.processParts(body: (Sequence<Part>, Int) -> R): R {
+        if ((this as JavalinServletContext).bodyInitialized) {
+            throw IllegalStateException("Request body has already been consumed")
+        }
+        preUploadFunction(this.req())
+        val parts = this.req().parts
         return body(parts.asSequence(), parts.size)
     }
 
-    fun getUploadedFiles(req: HttpServletRequest, partName: String): List<UploadedFile> =
-        req.processParts { parts, size ->
+    fun getUploadedFiles(ctx: Context, partName: String): List<UploadedFile> =
+        ctx.processParts { parts, size ->
             parts
                 .filter { isFile(it) && it.name == partName }
                 .mapTo(ArrayList(size)) { UploadedFile(it) }
         }
 
-    fun getUploadedFiles(req: HttpServletRequest): List<UploadedFile> =
-        req.processParts { parts, size ->
+    fun getUploadedFiles(ctx: Context): List<UploadedFile> =
+        ctx.processParts { parts, size ->
             parts
                 .filter(::isFile)
                 .mapTo(ArrayList(size)) { UploadedFile(it) }
         }
 
-    fun getUploadedFileMap(req: HttpServletRequest): Map<String, List<UploadedFile>> =
-        req.processParts { parts, size ->
+    fun getUploadedFileMap(ctx: Context): Map<String, List<UploadedFile>> =
+        ctx.processParts { parts, size ->
             parts
                 .filter(::isFile)
                 .groupByTo(HashMap(size), { it.name }, { UploadedFile(it) })
         }
 
-    fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> =
-        req.processParts { parts, size ->
-            parts.associateTo(HashMap(size)) { it.name to getPartValue(req, it.name) }
+    fun getFieldMap(ctx: Context): Map<String, List<String>> =
+        ctx.processParts { parts, size ->
+            parts.associateTo(HashMap(size)) { it.name to getPartValue(ctx, it.name) }
         }
 
-    private fun getPartValue(req: HttpServletRequest, partName: String): List<String> =
-        req.processParts { parts, size ->
+    private fun getPartValue(ctx: Context, partName: String): List<String> =
+        ctx.processParts { parts, size ->
             parts
                 .filter { isField(it) && it.name == partName }
                 .mapTo(ArrayList(size)) { part -> part.inputStream.use { it.readBytes().toString(UTF_8) } }

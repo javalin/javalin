@@ -91,6 +91,15 @@ class TestBodyReading {
         assertThat(http.post("/").body("body").asString().body).isEqualTo("bodybody")
     }
 
+    @Test
+    fun `reading too large request body does not work`() {
+        val result = TestUtil.testWithResult(Javalin.create { it.http.maxRequestSize = 1000 }) { app, http ->
+            app.post("/") { it.result(it.body() + it.body()) }
+            http.post("/").body("x".repeat(1001)).asString()
+        }
+        assertThat(result.logs).contains("Body greater than max size (1000 bytes)")
+    }
+
     private fun urlEncode(text: String) = URLEncoder.encode(text, StandardCharsets.UTF_8.name())
 
 }

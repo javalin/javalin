@@ -106,6 +106,21 @@ class TestMultipartForms {
     }
 
     @Test
+    fun `uploadedFileMap throws if body has already been consumed`() {
+        val result = TestUtil.testWithResult { app, http ->
+            app.post("/") { ctx ->
+                ctx.body() // consume body
+                ctx.uploadedFileMap() // try to consume body again
+            }
+            val response = http.post("/")
+                .field("upload", File("src/test/resources/upload-test/image.png"))
+                .asString()
+            assertThat(response.body).isEqualTo("Server Error");
+        }
+        assertThat(result.logs).contains("Request body has already been consumed")
+    }
+
+    @Test
     fun `getting all files is handled correctly`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx ->
             ctx.result(ctx.uploadedFiles().joinToString(", ") { it.filename() })

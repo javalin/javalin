@@ -20,13 +20,21 @@ public class TestUtil {
 
     public static Handler okHandler = ctx -> ctx.result("OK");
 
+    public static Key<String> TestLogsKey = new Key<>("testlogs");
+
     public static void test(ThrowingBiConsumer<Javalin, HttpUtil> test) {
         test(Javalin.create(), test);
     }
 
-    public static Key<String> TestLogsKey = new Key<>("testlogs");
-
     public static void test(Javalin app, ThrowingBiConsumer<Javalin, HttpUtil> userCode) {
+        testWithResult(app, userCode);
+    }
+
+    public static RunResult testWithResult(ThrowingBiConsumer<Javalin, HttpUtil> test) {
+        return testWithResult(Javalin.create(), test);
+    }
+
+    public static RunResult testWithResult(Javalin app, ThrowingBiConsumer<Javalin, HttpUtil> userCode) {
         RunResult result = runAndCaptureLogs(() -> {
             app.start(0);
             HttpUtil http = new HttpUtil(app.port());
@@ -40,6 +48,7 @@ public class TestUtil {
             JavalinLogger.error("TestUtil#test failed - full log output below:\n" + result.logs);
             throw new RuntimeException(result.exception);
         }
+        return result;
     }
 
     public static RunResult runAndCaptureLogs(Runnable testCode) {
