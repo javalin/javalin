@@ -7,6 +7,8 @@
 package io.javalin.http.util
 
 import io.javalin.http.UploadedFile
+import io.javalin.http.servlet.JavalinServletRequest
+import io.javalin.util.BodyAlreadyReadException
 import jakarta.servlet.MultipartConfigElement
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.Part
@@ -18,6 +20,8 @@ object MultipartUtil {
 
     private val defaultConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, 1)
 
+    // TODO: This should be fetched from config instead
+    @Deprecated("Use `config.jetty.multipartConfig = new MultipartConfig()` instead")
     var preUploadFunction: (HttpServletRequest) -> Unit = {
         if (it.getAttribute(MULTIPART_CONFIG_ATTRIBUTE) == null) {
             it.setAttribute(MULTIPART_CONFIG_ATTRIBUTE, defaultConfig)
@@ -25,6 +29,9 @@ object MultipartUtil {
     }
 
     private inline fun <R> HttpServletRequest.processParts(body: (Sequence<Part>, Int) -> R): R {
+        if ((this as JavalinServletRequest).inputStreamRead) {
+            throw BodyAlreadyReadException("Request body has already been consumed. You cannot get multipart parts after reading the request body.")
+        }
         preUploadFunction(this)
         val parts = this.parts
         return body(parts.asSequence(), parts.size)

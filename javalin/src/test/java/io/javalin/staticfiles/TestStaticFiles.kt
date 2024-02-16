@@ -194,7 +194,7 @@ class TestStaticFiles {
             }
         }
 
-        return TestUtil.test(staticWithCustomHostedPath) { _, http ->
+        TestUtil.test(staticWithCustomHostedPath) { _, http ->
             assertThat(http.get("/subdir/").httpCode()).isEqualTo(OK)
             assertThat(http.getBody("/subdir/")).isEqualTo("<h1>Welcome file</h1>")
             assertThat(http.get("/subdir").httpCode()).isEqualTo(OK)

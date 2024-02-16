@@ -12,7 +12,7 @@ import io.javalin.util.javalinLazy
 typealias Check<T> = (T) -> Boolean
 
 data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: ValidationError<T>)
-class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : RuntimeException()
+class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : RuntimeException() //TODO: Extend JavalinException
 data class ValidationError<T> @JvmOverloads constructor(
     val message: String,
     val args: Map<String, Any?> = mapOf(),
