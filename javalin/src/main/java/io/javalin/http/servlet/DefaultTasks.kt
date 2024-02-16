@@ -6,6 +6,7 @@ import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.MethodNotAllowedResponse
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
+import io.javalin.router.Endpoint
 import io.javalin.router.EndpointNotFound
 import io.javalin.security.Roles
 import io.javalin.security.RouteRole
@@ -32,7 +33,7 @@ object DefaultTasks {
             if (willMatch) {
                 submitTask(LAST, Task(skipIfExceptionOccurred = true) {
                     val httpHandler = httpHandlerOrNull
-                    if (httpHandler != null && entry.endpoint.path == "*") {
+                    if (httpHandler != null && !entry.endpoint.hasPathParams()) {
                         entry.endpoint.handle(ctx.update(httpHandler, requestUri))
                     } else {
                         entry.handle(ctx, requestUri)
@@ -103,3 +104,5 @@ object DefaultTasks {
         this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()?.endpoint?.metadata(Roles::class.java)?.roles ?: emptySet()
 
 }
+
+private fun Endpoint.hasPathParams() = this.path.contains("{") || this.path.contains("<")

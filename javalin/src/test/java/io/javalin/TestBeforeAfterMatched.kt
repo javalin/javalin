@@ -318,13 +318,24 @@ class TestBeforeAfterMatched {
         }
 
     @Test
-    fun `gh-2085 pathParamMap works with beforeMatched`() =
+    fun `pathParams are extracted from endpoint if beforeMatched has no path-params`() =
         TestUtil.test(Javalin.create { config ->
             config.router.mount {
                 it.beforeMatched { ctx -> ctx.result(ctx.pathParamMap().toString()) }
-                it.get("/{path}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
+                it.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
             }
         }) { _, http ->
-            assertThat(http.getBody("/a-value")).isEqualTo("{path=a-value}/{path=a-value}")
+            assertThat(http.getBody("/p")).isEqualTo("{endpoint=p}/{endpoint=p}")
+        }
+
+    @Test
+    fun `pathParams are extracted from beforeMatched if beforeMatched has path-params`() =
+        TestUtil.test(Javalin.create { config ->
+            config.router.mount {
+                it.beforeMatched("/{before}") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
+                it.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
+            }
+        }) { _, http ->
+            assertThat(http.getBody("/p")).isEqualTo("{before=p}/{endpoint=p}")
         }
 }
