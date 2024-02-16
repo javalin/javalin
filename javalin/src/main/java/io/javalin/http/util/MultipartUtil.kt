@@ -6,9 +6,7 @@
 
 package io.javalin.http.util
 
-import io.javalin.http.Context
 import io.javalin.http.UploadedFile
-import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.JavalinServletRequest
 import jakarta.servlet.MultipartConfigElement
 import jakarta.servlet.http.HttpServletRequest

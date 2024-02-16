@@ -174,7 +174,7 @@ interface Context {
 
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> = when {
-        isMultipartFormData() -> MultipartUtil.getFieldMap(this.req())
+        isMultipartFormData() -> MultipartUtil.getFieldMap(req())
         else -> splitKeyValueStringAndGroupByKey(body(), characterEncoding() ?: "UTF-8")
     }
 
@@ -281,13 +281,13 @@ interface Context {
 
     /** Gets a list of [UploadedFile]s for the specified name, or empty list. */
     fun uploadedFiles(fileName: String): List<UploadedFile> = when {
-        isMultipartFormData() -> MultipartUtil.getUploadedFiles(this.req(), fileName)
+        isMultipartFormData() -> MultipartUtil.getUploadedFiles(req(), fileName)
         else -> listOf()
     }
 
     /** Gets a list of [UploadedFile]s, or empty list. */
     fun uploadedFiles(): List<UploadedFile> = when {
-        isMultipartFormData() -> MultipartUtil.getUploadedFiles(this.req())
+        isMultipartFormData() -> MultipartUtil.getUploadedFiles(req())
         else -> listOf()
     }
 
@@ -298,7 +298,7 @@ interface Context {
      * If called on a non-multipart request this returns an empty map
      */
     fun uploadedFileMap(): Map<String, List<UploadedFile>> = when {
-        isMultipartFormData() -> MultipartUtil.getUploadedFileMap(this.req())
+        isMultipartFormData() -> MultipartUtil.getUploadedFileMap(req())
         else -> emptyMap()
     }
 
