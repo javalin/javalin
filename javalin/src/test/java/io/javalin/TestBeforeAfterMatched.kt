@@ -316,4 +316,15 @@ class TestBeforeAfterMatched {
             assertThat(slash.status).isEqualTo(HttpStatus.OK.code)
             assertThat(slash.headers.getFirst("X-After")).isEqualTo("true")
         }
+
+    @Test
+    fun `gh-2085 pathParamMap works with beforeMatched`() =
+        TestUtil.test(Javalin.create { config ->
+            config.router.mount {
+                it.beforeMatched { ctx -> ctx.result(ctx.pathParamMap().toString()) }
+                it.get("/{path}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
+            }
+        }) { _, http ->
+            assertThat(http.getBody("/a-value")).isEqualTo("{path=a-value}/{path=a-value}")
+        }
 }

@@ -25,9 +25,19 @@ object DefaultTasks {
             ctx.setRouteRoles(servlet.matchedRoles(ctx, requestUri)) // set roles for the matched handler
             servlet.willMatch(ctx, requestUri)
         }
+        val httpHandlerOrNull by javalinLazy {
+            servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()
+        }
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
-                submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+                submitTask(LAST, Task(skipIfExceptionOccurred = true) {
+                    val httpHandler = httpHandlerOrNull
+                    if (httpHandler != null && entry.endpoint.path == "*") {
+                        entry.endpoint.handle(ctx.update(httpHandler, requestUri))
+                    } else {
+                        entry.handle(ctx, requestUri)
+                    }
+                })
             }
         }
     }
