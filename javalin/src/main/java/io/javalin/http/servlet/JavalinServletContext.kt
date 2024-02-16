@@ -128,8 +128,7 @@ class JavalinServletContext(
     override fun matchedPath(): String = matchedPath
 
     /** has to be cached, because we can read input stream only once */
-    internal val body by javalinLazy(SYNCHRONIZED) { super.bodyAsBytes().also { bodyInitialized = true } }
-    internal var bodyInitialized = false
+    internal val body by javalinLazy(SYNCHRONIZED) { super.bodyAsBytes() }
     override fun bodyAsBytes(): ByteArray = body
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */

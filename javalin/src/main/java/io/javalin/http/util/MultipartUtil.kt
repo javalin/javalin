@@ -9,6 +9,7 @@ package io.javalin.http.util
 import io.javalin.http.Context
 import io.javalin.http.UploadedFile
 import io.javalin.http.servlet.JavalinServletContext
+import io.javalin.http.servlet.JavalinServletRequest
 import jakarta.servlet.MultipartConfigElement
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.Part
@@ -20,49 +21,51 @@ object MultipartUtil {
 
     private val defaultConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, 1)
 
+    // TODO: This should be fetched from config instead
+    @Deprecated("Use `config.jetty.multipartConfig = new MultipartConfig()` instead")
     var preUploadFunction: (HttpServletRequest) -> Unit = {
         if (it.getAttribute(MULTIPART_CONFIG_ATTRIBUTE) == null) {
             it.setAttribute(MULTIPART_CONFIG_ATTRIBUTE, defaultConfig)
         }
     }
 
-    private inline fun <R> Context.processParts(body: (Sequence<Part>, Int) -> R): R {
-        if ((this as JavalinServletContext).bodyInitialized) {
-            throw IllegalStateException("Request body has already been consumed")
+    private inline fun <R> HttpServletRequest.processParts(body: (Sequence<Part>, Int) -> R): R {
+        if ((this as JavalinServletRequest).isInputStreamRead()) {
+            throw IllegalStateException("Request body has already been consumed. You can't get multipart parts after reading the request body.")
         }
-        preUploadFunction(this.req())
-        val parts = this.req().parts
+        preUploadFunction(this)
+        val parts = this.parts
         return body(parts.asSequence(), parts.size)
     }
 
-    fun getUploadedFiles(ctx: Context, partName: String): List<UploadedFile> =
-        ctx.processParts { parts, size ->
+    fun getUploadedFiles(req: HttpServletRequest, partName: String): List<UploadedFile> =
+        req.processParts { parts, size ->
             parts
                 .filter { isFile(it) && it.name == partName }
                 .mapTo(ArrayList(size)) { UploadedFile(it) }
         }
 
-    fun getUploadedFiles(ctx: Context): List<UploadedFile> =
-        ctx.processParts { parts, size ->
+    fun getUploadedFiles(req: HttpServletRequest): List<UploadedFile> =
+        req.processParts { parts, size ->
             parts
                 .filter(::isFile)
                 .mapTo(ArrayList(size)) { UploadedFile(it) }
         }
 
-    fun getUploadedFileMap(ctx: Context): Map<String, List<UploadedFile>> =
-        ctx.processParts { parts, size ->
+    fun getUploadedFileMap(req: HttpServletRequest): Map<String, List<UploadedFile>> =
+        req.processParts { parts, size ->
             parts
                 .filter(::isFile)
                 .groupByTo(HashMap(size), { it.name }, { UploadedFile(it) })
         }
 
-    fun getFieldMap(ctx: Context): Map<String, List<String>> =
-        ctx.processParts { parts, size ->
-            parts.associateTo(HashMap(size)) { it.name to getPartValue(ctx, it.name) }
+    fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> =
+        req.processParts { parts, size ->
+            parts.associateTo(HashMap(size)) { it.name to getPartValue(req, it.name) }
         }
 
-    private fun getPartValue(ctx: Context, partName: String): List<String> =
-        ctx.processParts { parts, size ->
+    private fun getPartValue(req: HttpServletRequest, partName: String): List<String> =
+        req.processParts { parts, size ->
             parts
                 .filter { isField(it) && it.name == partName }
                 .mapTo(ArrayList(size)) { part -> part.inputStream.use { it.readBytes().toString(UTF_8) } }

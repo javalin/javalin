@@ -27,7 +27,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     private val servletContextConfig by javalinLazy { JavalinServletContextConfig.of(cfg) }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
-        handle(request, response)
+        handle(JavalinServletRequest(request), response)
     }
 
     fun handle(request: HttpServletRequest, response: HttpServletResponse): Context? {
