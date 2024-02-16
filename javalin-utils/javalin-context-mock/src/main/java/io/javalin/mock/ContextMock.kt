@@ -5,6 +5,7 @@ import io.javalin.http.Header
 import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.JavalinServletContextConfig
+import io.javalin.http.servlet.JavalinServletRequest
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.servlet.Task
 import io.javalin.http.servlet.TaskInitializer
@@ -66,7 +67,7 @@ class ContextMock private constructor(
     /** Execute a non-endpoint related code that requires [Context] instance **/
     fun execute(body: Consumer<Context>): Context {
         val (req, res) = createMockReqAndRes()
-        val ctx = JavalinServletContext(createServletContextConfig(), req = req, res = res)
+        val ctx = JavalinServletContext(createServletContextConfig(), req = JavalinServletRequest(req), res = res)
         body.accept(ctx)
         return ctx
     }
@@ -113,7 +114,7 @@ class ContextMock private constructor(
             }
         )
         javalinServlet.router.addHttpEndpoint(endpoint)
-        val ctx = javalinServlet.handle(request, response)!!
+        val ctx = javalinServlet.handle(JavalinServletRequest(request), response)!!
         await.await()
 
         return ctx

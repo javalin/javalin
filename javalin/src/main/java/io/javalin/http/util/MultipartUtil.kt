@@ -8,6 +8,7 @@ package io.javalin.http.util
 
 import io.javalin.http.UploadedFile
 import io.javalin.http.servlet.JavalinServletRequest
+import io.javalin.util.BodyAlreadyReadException
 import jakarta.servlet.MultipartConfigElement
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.Part
@@ -28,8 +29,8 @@ object MultipartUtil {
     }
 
     private inline fun <R> HttpServletRequest.processParts(body: (Sequence<Part>, Int) -> R): R {
-        if ((this as JavalinServletRequest).isInputStreamRead()) {
-            throw IllegalStateException("Request body has already been consumed. You can't get multipart parts after reading the request body.")
+        if ((this as JavalinServletRequest).inputStreamRead) {
+            throw BodyAlreadyReadException("Request body has already been consumed. You cannot get multipart parts after reading the request body.")
         }
         preUploadFunction(this)
         val parts = this.parts
