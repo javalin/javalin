@@ -1,0 +1,8 @@
+io.javalin.rendering.markdown.JavalinCommonmark$Loader
+io.javalin.rendering.template.JavalinFreemarker$Loader
+io.javalin.rendering.template.JavalinJte$Loader
+io.javalin.rendering.template.JavalinMustache$Loader
+io.javalin.rendering.template.JavalinPebble$Loader
+io.javalin.rendering.template.JavalinStringTemplate4$Loader
+io.javalin.rendering.template.JavalinThymeleaf$Loader
+io.javalin.rendering.template.JavalinVelocity$Loader
