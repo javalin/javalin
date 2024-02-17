@@ -7,6 +7,7 @@
         <module>javalin-testtools</module>
         <module>javalin-micrometer</module>
         <module>javalin-utils</module>
+        <module>javalin-rendering</module>
     </modules>
 
     <groupId>io.javalin</groupId>
