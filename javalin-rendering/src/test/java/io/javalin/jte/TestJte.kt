@@ -2,25 +2,24 @@ package io.javalin.jte
 
 import gg.jte.ContentType
 import gg.jte.TemplateEngine
+import gg.jte.resolve.ResourceCodeResolver
 import io.javalin.Javalin
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.template.JavalinJte
 import io.javalin.testtools.JavalinTest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import java.io.File
 
-@Disabled
 class TestJte {
 
     private fun app(fileRenderer: FileRenderer) = Javalin.create { it.fileRenderer(fileRenderer) }
 
     private fun javalinJte() = JavalinJte(
-        TemplateEngine.createPrecompiled(
-            null,
+        TemplateEngine.create(
+            ResourceCodeResolver("templates/jte"),
+            File("target/jte").toPath(),
             ContentType.Html,
-            null,
-            "io.javalin.jte.precompiled"
         )
     )
 

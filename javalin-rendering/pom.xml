@@ -103,43 +103,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>gg.jte</groupId>
-                <artifactId>jte-maven-plugin</artifactId>
-                <version>${jte.version}</version>
-                <configuration>
-                    <sourceDirectory>${basedir}/src/test/resources/templates/jte</sourceDirectory>
-                    <targetDirectory>${project.build.directory}/generated-test-sources/jte</targetDirectory>
-                    <contentType>Html</contentType>
-                    <packageName>io.javalin.jte.precompiled</packageName>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>add-test-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${project.build.directory}/generated-test-sources/jte</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.moditect</groupId>
                 <artifactId>moditect-maven-plugin</artifactId>
                 <version>1.0.0.Final</version>
