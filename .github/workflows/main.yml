@@ -10,18 +10,18 @@ jobs:
       fail-fast: false
       matrix:
         java_version: [17, 21]
-        os: [windows-latest, macOS-latest, ubuntu-latest]
+        os: [windows-latest, macos-14, macos-13, ubuntu-latest] # Macos 13 is x86-64 and 14 is aarch64
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up JDK ${{ matrix.java_version }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: ${{ matrix.java_version }}
       - name: Cache local Maven repository
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
