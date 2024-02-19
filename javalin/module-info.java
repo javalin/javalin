@@ -39,9 +39,4 @@ module io.javalin {
     requires static com.fasterxml.jackson.databind;
     requires static com.fasterxml.jackson.kotlin;
     requires static com.google.gson;
-
-    //ServiceLoader stuff
-
-    uses io.javalin.rendering.JavalinRenderer.FileRendererLoader;
-    uses org.slf4j.spi.SLF4JServiceProvider;
 }
