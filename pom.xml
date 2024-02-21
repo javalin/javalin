@@ -84,7 +84,6 @@
         <source.plugin.version>3.2.1</source.plugin.version>
         <moditect.plugin.version>1.1.0</moditect.plugin.version>
         <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
-        <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
 
         <!-- DEPENDENCIES -->
         <annotations.version>24.1.0</annotations.version>
@@ -443,18 +442,6 @@
                         <id>attach-sources</id>
                         <goals>
                             <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
                         </goals>
                     </execution>
                 </executions>
