@@ -8,6 +8,7 @@
         <module>javalin-micrometer</module>
         <module>javalin-utils</module>
         <module>javalin-rendering</module>
+        <module>javalin-ssl</module>
     </modules>
 
     <groupId>io.javalin</groupId>
@@ -81,8 +82,9 @@
         <install.plugin.version>3.0.0-M1</install.plugin.version>
         <resources.plugin.version>3.2.0</resources.plugin.version>
         <source.plugin.version>3.2.1</source.plugin.version>
-        <moditect.plugin.version>1.0.0.Final</moditect.plugin.version>
+        <moditect.plugin.version>1.1.0</moditect.plugin.version>
         <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
+        <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
 
         <!-- DEPENDENCIES -->
         <annotations.version>24.1.0</annotations.version>
@@ -94,7 +96,10 @@
         <logback.version>1.4.14</logback.version>
         <slf4j.version>2.0.10</slf4j.version>
         <gson.version>2.10.1</gson.version>
-        <okhttp.version>4.12.0</okhttp.version>
+        <okhttp.version>4.12.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
+
+        <!-- SSL DEPENDENCIES -->
+        <sslcontext-kickstart.version>8.3.1</sslcontext-kickstart.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.25.0</assertj.version>
@@ -105,8 +110,8 @@
         <mockito.version>5.8.0</mockito.version>
         <mockk.version>1.13.8</mockk.version>
         <unirest.version>3.14.5</unirest.version>
-        <selenium.chrome.driver.version>4.16.1</selenium.chrome.driver.version>
-        <webdrivermanager.version>5.6.3</webdrivermanager.version>
+        <selenium.chrome.driver.version>4.18.1</selenium.chrome.driver.version>
+        <webdrivermanager.version>5.6.4</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
 
@@ -207,6 +212,23 @@
                 <version>${jetty.version}</version>
             </dependency>
 
+            <!-- SSL Plugin -->
+            <dependency>
+                <groupId>io.github.hakky54</groupId>
+                <artifactId>sslcontext-kickstart</artifactId>
+                <version>${sslcontext-kickstart.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.hakky54</groupId>
+                <artifactId>sslcontext-kickstart-for-jetty</artifactId>
+                <version>${sslcontext-kickstart.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.hakky54</groupId>
+                <artifactId>sslcontext-kickstart-for-pem</artifactId>
+                <version>${sslcontext-kickstart.version}</version>
+            </dependency>
+
             <!-- BEGIN Optional dependencies -->
             <dependency>
                 <groupId>com.aayushatharva.brotli4j</groupId>
@@ -241,6 +263,11 @@
             <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp-tls</artifactId>
                 <version>${okhttp.version}</version>
             </dependency>
             <!-- END Optional dependencies -->
@@ -420,6 +447,18 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
 
         <pluginManagement>
@@ -448,6 +487,7 @@
                         <jdkVersion>${dokka.jdkVersion}</jdkVersion>
                         <sourceDirectories>
                             <dir>${project.basedir}/src/main/java</dir>
+                            <dir>${project.basedir}/src/main/kotlin</dir>
                         </sourceDirectories>
                     </configuration>
                     <executions>
@@ -538,6 +578,11 @@
                 <plugin>
                     <artifactId>maven-gpg-plugin</artifactId>
                     <version>${gpg.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.moditect</groupId>
+                    <artifactId>moditect-maven-plugin</artifactId>
+                    <version>${moditect.plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
