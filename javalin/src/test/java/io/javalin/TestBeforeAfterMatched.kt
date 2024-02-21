@@ -9,7 +9,7 @@ import io.javalin.http.servlet.DefaultTasks.ERROR
 import io.javalin.http.servlet.DefaultTasks.HTTP
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
-import kong.unirest.HttpResponse
+import kong.unirest.core.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.junit.jupiter.api.Test
@@ -200,7 +200,7 @@ class TestBeforeAfterMatched {
         app.get("/hello") { it.result("hello") }
         app.afterMatched { it.result(it.result() + "!") }
 
-        assertThat(http.call(kong.unirest.HttpMethod.HEAD, "/hello").status).isEqualTo(418)
+        assertThat(http.call(kong.unirest.core.HttpMethod.HEAD, "/hello").status).isEqualTo(418)
         assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.IM_A_TEAPOT)
         assertThat(http.getBody("/hello")).isEqualTo("hello!")
         assertThat(http.getStatus("/other")).isEqualTo(HttpStatus.NOT_FOUND)

@@ -15,7 +15,7 @@ import io.javalin.http.servlet.SESSION_CACHE_KEY_PREFIX
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -379,7 +379,7 @@ class TestRequest {
     @Test
     fun `userAgent works`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.userAgent()!!) }
-        assertThat(http.getBody("/")).isEqualTo("unirest-java/3.1.00")
+        assertThat(http.getBody("/")).contains("Java-http-client")
     }
 
     @Test
