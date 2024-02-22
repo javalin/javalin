@@ -170,45 +170,10 @@
             <!-- Jetty -->
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-server</artifactId>
+                <artifactId>jetty-bom</artifactId>
                 <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-servlet</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty.http2</groupId>
-                <artifactId>http2-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty.http3</groupId>
-                <artifactId>http3-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-alpn-conscrypt-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-alpn-java-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-unixdomain-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-
-            <!-- Jetty WebSocket -->
-            <dependency>
-                <groupId>org.eclipse.jetty.websocket</groupId>
-                <artifactId>websocket-jetty-server</artifactId>
-                <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!-- SSL Plugin -->
