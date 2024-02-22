@@ -74,7 +74,7 @@
         <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
         <gpg.plugin.version>3.0.1</gpg.plugin.version>
         <jar.plugin.version>3.2.2</jar.plugin.version>
-        <surefire.plugin.version>3.0.0</surefire.plugin.version>
+        <surefire.plugin.version>3.2.5</surefire.plugin.version>
         <shade.plugin.version>3.5.2</shade.plugin.version>
         <build-helper.plugin.version>3.3.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.1.0</enforcer.plugin.version>
