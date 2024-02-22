@@ -3,6 +3,7 @@ package io.javalin.http
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.Cookie as ServletCookie
+import kotlin.collections.removeFirst as removeFirstKt
 
 const val SAME_SITE = "SameSite"
 
@@ -86,7 +87,7 @@ fun HttpServletResponse.setJavalinCookie(javalinCookie: Cookie) {
     this.addCookie(cookie) // we rely on this method for formatting the cookie header
     (this.getHeaders(Header.SET_COOKIE) ?: listOf()).toMutableList().let { cookies -> // mutable list of all cookies
         cookies.removeIf { it.startsWith("${cookie.name}=") && !it.contains(cookie.value) } // remove old cookie if duplicate name
-        cookies.removeFirst()?.let { first -> this.setHeader(Header.SET_COOKIE, first.addSameSite(javalinCookie)) } // remove first cookie and use it to clear the header
+        cookies.removeFirstKt()?.let { first -> this.setHeader(Header.SET_COOKIE, first.addSameSite(javalinCookie)) } // remove first cookie and use it to clear the header
         cookies.forEach { remaining -> this.addHeader(Header.SET_COOKIE, remaining.addSameSite(javalinCookie)) } // add all remaining cookies
     }
 
