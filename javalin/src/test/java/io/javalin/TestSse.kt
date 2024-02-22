@@ -1,7 +1,10 @@
 package io.javalin
 
+import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.apibuilder.ApiBuilder.sse
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.sse.SseClient
+import io.javalin.security.RouteRole
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
@@ -9,6 +12,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 
 class TestSse {
 
@@ -164,6 +168,27 @@ class TestSse {
         }
 
         assertThat(http.sse("/sse").get().body.trim()).isEqualTo(": Emitted and closed!")
+    }
+
+    private enum class MyRole : RouteRole { ROLE_ONE }
+
+    @Test
+    fun `sse works from ApiBuilder`() {
+        val app = Javalin.create {
+            it.router.apiBuilder {
+                path("/sse") {
+                    sse({ it.doAndClose { it.sendEvent(event, data) } }, MyRole.ROLE_ONE)
+                }
+                path("/sse2") {
+                    sse { it.doAndClose { it.sendEvent(event, data) } }
+                }
+            }
+        }
+        TestUtil.test(app) { app, http ->
+            val body = http.sse("/sse").get().body
+            assertThat(body).contains("event: $event")
+            assertThat(body).contains("data: $data")
+        }
     }
 
 }

@@ -11,6 +11,7 @@ import io.javalin.TestAccessManager.MyRole.ROLE_ONE
 import io.javalin.TestAccessManager.MyRole.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.http.UnauthorizedResponse
@@ -62,7 +63,9 @@ class TestAccessManager {
     @Test
     fun `AccessManager can restrict access for ApiBuilder crud`() = TestUtil.test(managedApp { cfg ->
         cfg.router.apiBuilder {
-            crud("/users/{userId}", TestApiBuilder.UserController(), ROLE_ONE, ROLE_TWO)
+            path("/users/{userId}") {
+                crud(TestApiBuilder.UserController(), ROLE_ONE, ROLE_TWO)
+            }
         }
     }) { app, http ->
         assertThat(callWithRole(http.origin, "/users/1", "ROLE_ONE")).isEqualTo("My single user: 1")
