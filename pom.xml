@@ -103,7 +103,7 @@
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.25.0</assertj.version>
         <moshi.version>1.15.0</moshi.version>
-        <java.websocket.version>1.5.5</java.websocket.version>
+        <java.websocket.version>1.5.6</java.websocket.version>
         <junit.version>5.9.3</junit.version>
         <jmh.version>1.37</jmh.version>
         <mockito.version>5.8.0</mockito.version>
