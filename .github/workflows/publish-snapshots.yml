@@ -9,8 +9,6 @@ jobs:
     if: |
       github.repository == 'javalin/javalin' &&
       !contains(github.event.head_commit.message, '[maven-release-plugin] prepare release')
-      
-
     name: Publish snapshot
     runs-on: ubuntu-latest
     steps:
@@ -19,7 +17,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: 21
+          java-version: 11
       - name: Grant execute permission for mvnw
         run: chmod +x ./mvnw
       - uses: s4u/maven-settings-action@v3.0.0
