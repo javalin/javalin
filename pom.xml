@@ -69,13 +69,13 @@
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
 
         <!-- PLUGINS -->
-        <compiler.plugin.version>3.10.1</compiler.plugin.version>
-        <dokka.plugin.version>1.7.0</dokka.plugin.version>
+        <compiler.plugin.version>3.12.1</compiler.plugin.version>
+        <dokka.plugin.version>1.9.10</dokka.plugin.version>
         <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
         <gpg.plugin.version>3.0.1</gpg.plugin.version>
         <jar.plugin.version>3.2.2</jar.plugin.version>
-        <surefire.plugin.version>3.0.0</surefire.plugin.version>
-        <shade.plugin.version>3.3.0</shade.plugin.version>
+        <surefire.plugin.version>3.2.5</surefire.plugin.version>
+        <shade.plugin.version>3.5.2</shade.plugin.version>
         <build-helper.plugin.version>3.3.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.1.0</enforcer.plugin.version>
         <clean.plugin.version>3.2.0</clean.plugin.version>
@@ -104,7 +104,7 @@
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.25.0</assertj.version>
         <moshi.version>1.15.0</moshi.version>
-        <java.websocket.version>1.5.5</java.websocket.version>
+        <java.websocket.version>1.5.6</java.websocket.version>
         <junit.version>5.9.3</junit.version>
         <jmh.version>1.37</jmh.version>
         <mockito.version>5.8.0</mockito.version>
@@ -171,45 +171,10 @@
             <!-- Jetty -->
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-server</artifactId>
+                <artifactId>jetty-bom</artifactId>
                 <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-servlet</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty.http2</groupId>
-                <artifactId>http2-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty.http3</groupId>
-                <artifactId>http3-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-alpn-conscrypt-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-alpn-java-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-unixdomain-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-
-            <!-- Jetty WebSocket -->
-            <dependency>
-                <groupId>org.eclipse.jetty.websocket</groupId>
-                <artifactId>websocket-jetty-server</artifactId>
-                <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!-- SSL Plugin -->
