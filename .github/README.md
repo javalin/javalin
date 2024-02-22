@@ -35,7 +35,11 @@
   <a href="https://discord.gg/sgak4e5NKv">
     <img alt="Discord" src="https://img.shields.io/discord/804862058528505896">
   </a>
-  
+    <!--Codecov badge-->
+    <a href="https://codecov.io/gh/javalin/javalin" >
+ <img src="https://codecov.io/gh/javalin/javalin/graph/badge.svg?token=3L3CvpyMPI"/>
+ </a>
+
 </div>
 
 # 
