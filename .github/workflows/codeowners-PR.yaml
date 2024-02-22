@@ -11,6 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Codeowners merge check
-        uses: javalin/codeowner-selfmerge-action@master
+        uses: javalin/codeowner-selfmerge-action@ebb1c8800a0e95d6211a4c40331784f7c5c7823d # Latest commit on master branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
