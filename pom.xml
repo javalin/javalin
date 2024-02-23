@@ -80,7 +80,7 @@
         <enforcer.plugin.version>3.1.0</enforcer.plugin.version>
         <clean.plugin.version>3.2.0</clean.plugin.version>
         <install.plugin.version>3.0.0-M1</install.plugin.version>
-        <resources.plugin.version>3.2.0</resources.plugin.version>
+        <resources.plugin.version>3.3.1</resources.plugin.version>
         <source.plugin.version>3.2.1</source.plugin.version>
         <moditect.plugin.version>1.1.0</moditect.plugin.version>
         <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
