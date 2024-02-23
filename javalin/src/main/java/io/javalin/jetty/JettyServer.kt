@@ -91,7 +91,6 @@ class JettyServer(private val cfg: JavalinConfig) {
         try {
             JavalinLogger.startup("Starting Javalin ...")
             server().start() // this will log a lot of stuff
-            eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STARTED)
         } catch (e: Exception) {
             JavalinLogger.error("Failed to start Javalin")
             eventManager.fireEvent(JavalinLifecycleEvent.SERVER_START_FAILED)
@@ -125,6 +124,7 @@ class JettyServer(private val cfg: JavalinConfig) {
             JavalinLogger.startup("Binding to: $it")
         }
         Util.logJavalinVersion()
+        eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STARTED)
     }
 
     fun stop() {
