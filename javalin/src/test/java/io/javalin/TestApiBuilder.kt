@@ -7,6 +7,7 @@
 
 package io.javalin
 
+import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.before
 import io.javalin.apibuilder.ApiBuilder.crud
@@ -183,7 +184,7 @@ class TestApiBuilder {
     @Test
     fun `ApiBuilder throws if used outside of routes{} call`() = TestUtil.test { _, _ ->
         assertThatExceptionOfType(IllegalStateException::class.java)
-            .isThrownBy { io.javalin.apibuilder.ApiBuilder.get("/") { it.result("") } }
+            .isThrownBy { get("/") { it.result("") } }
             .withMessageStartingWith("The static API can only be used within a routes() call.")
     }
 
@@ -289,40 +290,29 @@ class TestApiBuilder {
     @Test
     fun `CrudHandler rejects resource in the middle`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy {
-                Javalin.create {
-                    it.router.apiBuilder {
-                        crud("/foo/bar/{user-id}/users", UserController())
-                    }
-                }
-            }
-            .withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
+            .isThrownBy { Javalin.create { it.router.apiBuilder { crud("/foo/bar/{user-id}/users", UserController()) } } }
+            .withMessage("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
     fun `CrudHandler rejects missing resource`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy {
-                Javalin.create {
-                    it.router.apiBuilder {
-                        crud("/foo/bar/users", UserController())
-                    }
-                }
-            }
-            .withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
+            .isThrownBy { Javalin.create { it.router.apiBuilder { crud("/foo/bar/users", UserController()) } } }
+            .withMessage("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
     fun `CrudHandler rejects missing resource base`() = TestUtil.test { app, _ ->
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy {
-                Javalin.create {
-                    it.router.apiBuilder {
-                        crud("/{user-id}", UserController())
-                    }
-                }
-            }
-            .withMessageStartingWith("CrudHandler requires a path like '/resource/{resource-id}'")
+            .isThrownBy { Javalin.create { it.router.apiBuilder { crud("/{user-id}", UserController()) } } }
+            .withMessage("CrudHandler requires a path like '/resource/{resource-id}'")
+    }
+
+    @Test
+    fun `CrudHandler rejects path-param as resource base`() {
+        assertThatExceptionOfType(IllegalArgumentException::class.java)
+            .isThrownBy { Javalin.create { it.router.apiBuilder { crud("/{u}/{uid}", UserController()) } } }
+            .withMessage("CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
