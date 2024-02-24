@@ -427,6 +427,23 @@ class TestCors {
                 .isEqualTo(HttpStatus.METHOD_NOT_ALLOWED)
             assertThat(getResponse.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://example.com")
         }
+
+        @Test
+        fun `GH-2104 client sends dotless origin - wildcard configured`() = TestUtil.test(Javalin.create { cfg ->
+            cfg.bundledPlugins.enableCors { cors ->
+                cors.addRule {
+                    it.allowHost("*.example.com")
+                }
+            }
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+
+            val response = http.get("/", mapOf(ORIGIN to "https://single"))
+            assertThat(response.status)
+                .describedAs("get status code")
+                .isEqualTo(HttpStatus.BAD_REQUEST)
+            assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
+        }
     }
 
     @Nested
