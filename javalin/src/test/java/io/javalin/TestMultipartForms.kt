@@ -322,15 +322,21 @@ class TestMultipartForms {
 
     @Test
     fun `fileutil works`() {
-        val content = if (File.separatorChar == '\\') TEXT_FILE_CONTENT_CRLF else TEXT_FILE_CONTENT_LF
+        val assertContent = { actual: String ->
+            if (CRLF in actual) {
+                assertThat(actual).isEqualTo(TEXT_FILE_CONTENT_CRLF)
+            } else {
+                assertThat(actual).isEqualTo(TEXT_FILE_CONTENT_LF)
+            }
+        }
         val prefix = "src/test/resources/upload-test";
-        FileUtil.readFile("$prefix/text.txt").let { assertThat(it).isEqualTo(content) }
-        FileUtil.readResource("/upload-test/text.txt").let { assertThat(it).isEqualTo(content) }
+        FileUtil.readFile("$prefix/text.txt").let { assertContent(it) }
+        FileUtil.readResource("/upload-test/text.txt").let { assertContent(it) }
         File("$prefix/text.txt").inputStream().use { inputStream ->
             FileUtil.streamToFile(inputStream, "$prefix/text-copy.txt")
         }
         val file = File("$prefix/text-copy.txt")
-        assertThat(file.readText()).isEqualTo(content)
         file.deleteOnExit()
+        assertContent(file.readText())
     }
 }
