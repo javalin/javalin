@@ -41,5 +41,5 @@ module io.javalin {
     requires static com.google.gson;
     
     //Required to use the Service Loader on this type
-    uses org.slf4j.spi.SLF4JServiceProvider
+    uses org.slf4j.spi.SLF4JServiceProvider;
 }
