@@ -10,12 +10,13 @@
   <!--Title-->
   <h3 align="center">A simple web framework for Java and Kotlin</h3>
 
-  <a href="https://javalin.io/documentation" style="margin: 1em"><strong>View the documentation →</strong></a>
+  <h2>
+    <a href="https://javalin.io/documentation"><strong>View the documentation →</strong></a>
+    <br>
+    <br>
+  </h2>
+  <br>
 
-  <!--Badge for CI-->
-  <a href="https://github.com/javalin/javalin/actions/workflows/main.yml">
-    <img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/javalin/javalin/main.yml">
-  </a>
   <!--License badge-->
   <a href="https://github.com/javalin/javalin/blob/master/LICENSE">
     <img alt="Static Badge" src="https://img.shields.io/badge/License-Apache_2.0-blue">
@@ -30,16 +31,12 @@
   </a>  
   <!--Discord badge-->
   <a href="https://discord.gg/sgak4e5NKv">
-    <img alt="Discord Link" src="https://img.shields.io/badge/discord-javalin-blue?logo=discord&logoColor=white">
+    <img alt="Discord Link" src="https://img.shields.io/discord/804862058528505896?label=discord%20chat&logo=discord&logoColor=white">
   </a>
-  <a href="https://discord.gg/sgak4e5NKv">
-    <img alt="Discord" src="https://img.shields.io/discord/804862058528505896">
+  <!--Codecov badge-->
+  <a href="https://codecov.io/gh/javalin/javalin" >
+    <img src="https://codecov.io/gh/javalin/javalin/graph/badge.svg?token=3L3CvpyMPI"/>
   </a>
-    <!--Codecov badge-->
-    <a href="https://codecov.io/gh/javalin/javalin" >
- <img src="https://codecov.io/gh/javalin/javalin/graph/badge.svg?token=3L3CvpyMPI"/>
- </a>
-
 </div>
 
 # 
