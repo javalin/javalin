@@ -8,7 +8,7 @@
   </a>
 
   <!--Title-->
-  <h3 align="center">A simple web framework for Java and Kotlin</h3>
+<h3 align="center">A simple web framework for Java and Kotlin</h3>
 
   <h2>
     <a href="https://javalin.io/documentation"><strong>View the documentation →</strong></a>
@@ -39,27 +39,32 @@
   </a>
 </div>
 
-# 
+#  
 
-Javalin is a very lightweight web framework for Kotlin and Java which supports WebSockets, HTTP2 and async requests. Javalin’s main goals are simplicity, a great developer experience, and first class interoperability between Kotlin and Java.
+Javalin is a very lightweight web framework for Kotlin and Java which supports WebSockets, HTTP2 and async requests. 
+Javalin’s main goals are simplicity, a great developer experience, and first class interoperability between Kotlin and Java.
 
 Javalin is more of a library than a framework. Some key points:
+
 * You don't need to extend anything
 * There are no @Annotations
 * There is no reflection
 * There is no other magic; just code.
 
 #### General information
+
 * The project webpage is [javalin.io](https://javalin.io) (the source is at [javalin/javalin.github.io](https://github.com/javalin/javalin.github.io)).
 * Read the documentation on: [javalin.io/documentation](https://javalin.io/documentation)
 * A summary of the license can be found at [TLDR Legal](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0))
 * [Interesting issues](https://github.com/javalin/javalin/issues?q=is%3Aissue+label%3AINFO)
 
 #### Community
-We have a very active [Discord](https://discord.gg/sgak4e5NKv) server where you can get help quickly. We also have a (much less active) [Slack](https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w) if you prefer that.
+
+We have a very active [Discord](https://discord.gg/sgak4e5NKv) server where you can get help quickly. We also have a (much less
+active) [Slack](https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w) if you prefer that.
 
 Contributions are very welcome, you can read more about contributing in our guide:
- [CONTRIBUTING](https://github.com/javalin/javalin/contribute)
+[CONTRIBUTING](https://github.com/javalin/javalin/contribute)
 
 Please consider [:heart: Sponsoring](https://github.com/sponsors/tipsy) or starring Javalin if you want to support the project.
 
@@ -70,6 +75,7 @@ Please consider [:heart: Sponsoring](https://github.com/sponsors/tipsy) or starr
 #### Maven
 
 ```xml
+
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
@@ -90,58 +96,68 @@ import io.javalin.Javalin;
 
 public class HelloWorld {
     public static void main(String[] args) {
-        Javalin app = Javalin.create().start(7000);
-        app.get("/", ctx -> ctx.result("Hello World"));
+        var app = Javalin.create(/*config*/)
+            .get("/", ctx -> ctx.result("Hello World"))
+            .start(7070);
     }
 }
 ```
 
 ### Start programming (Kotlin)
+
 ```kotlin
 import io.javalin.Javalin
 
 fun main() {
-    val app = Javalin.create().start(7000)
-    app.get("/") { ctx -> ctx.result("Hello World") }
+    val app = Javalin.create(/*config*/)
+        .get("/") { it.result("Hello World") }
+        .start(7070)
 }
 ```
 
 ## Examples
+
 This section contains a few examples, mostly just extracted from the [docs](https://javalin.io/documentation).
 All examples are in Kotlin, but you can find them in Java in the documentation (it's just syntax changes).
 
 You can find more examples in the [javalin-samples](https://github.com/javalin/javalin-samples) repository.
 
 ### Api structure and server config
+
 ```kotlin
-val app = Javalin.create { config ->
-    config.http.defaultContentType = "application/json"
-    config.http.generateEtags = true
-    config.staticFiles.add("/public")
-    config.asyncRequestTimeout = 10_000L
-    config.compression.brotliAndGzip()
-    config.routing.caseInsensitiveRoutes = true
-}.routes {
-    path("users") {
-        get(UserController::getAll)
-        post(UserController::create)
-        path("{user-id}") {
-            get(UserController::getOne)
-            patch(UserController::update)
-            delete(UserController::delete)
+import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder.*
+
+fun main() {
+    val app = Javalin.create { config ->
+        config.useVirtualThreads = true
+        config.http.asyncTimeout = 10_000L
+        config.staticFiles.add("/public")
+        config.staticFiles.enableWebjars()
+        config.router.apiBuilder {
+            path("/users") {
+                get(UserController::getAll)
+                post(UserController::create)
+                path("/{userId}") {
+                    get(UserController::getOne)
+                    patch(UserController::update)
+                    delete(UserController::delete)
+                }
+                ws("/events", userController::webSocketEvents)
+            }
         }
-        ws("events", userController::webSocketEvents)
-    }
-}.start(port)
+    }.start(7070)
+}
 ```
 
 ### WebSockets
+
 ```kotlin
 app.ws("/websocket/{path}") { ws ->
     ws.onConnect { ctx -> println("Connected") }
     ws.onMessage { ctx ->
-        val user = ctx.message<User>(); // convert from json string to object
-        ctx.send(user); //  convert to json string and send back
+        val user = ctx.message<User>() // convert from json string to object
+        ctx.send(user) //  convert to json string and send back
     }
     ws.onClose { ctx -> println("Closed") }
     ws.onError { ctx -> println("Errored") }
@@ -149,20 +165,22 @@ app.ws("/websocket/{path}") { ws ->
 ```
 
 ### Filters and Mappers
+
 ```kotlin
-app.before("/some-path/*") { ctx ->  ... } // runs before requests to /some-path/*
+app.before("/some-path/*") { ctx -> ... } // runs before requests to /some-path/*
 app.before { ctx -> ... } // runs before all requests
 app.after { ctx -> ... } // runs after all requests
 app.exception(Exception.class) { e, ctx -> ... } // runs if uncaught Exception
 app.error(404) { ctx -> ... } // runs if status is 404 (after all other handlers)
 
-app.wsBefore("/some-path/*") { ws ->  ... } // runs before ws events on /some-path/*
+app.wsBefore("/some-path/*") { ws -> ... } // runs before ws events on /some-path/*
 app.wsBefore { ws -> ... } // runs before all ws events
 app.wsAfter { ws -> ... } // runs after all ws events
 app.wsException(Exception.class) { e, ctx -> ... } // runs if uncaught Exception in ws handler
 ```
 
 ### JSON-mapping
+
 ```kotlin
 var todos = arrayOf(...)
 app.get("/todos") { ctx -> // map array of Todos to json-string
@@ -175,6 +193,7 @@ app.put("/todos") { ctx -> // map request-body (json) to array of Todos
 ```
 
 ### File uploads
+
 ```kotlin
 app.post("/upload") { ctx ->
     ctx.uploadedFiles("files").forEach { uploadedFile ->
@@ -184,17 +203,20 @@ app.post("/upload") { ctx ->
 ```
 
 ## Plugins
-Javalin has a plugin system that allows you to add functionality to the core library. You can find a list of plugins [here](https://javalin.io/plugins).
+
+Javalin has a plugin system that allows you to add functionality to the core library.
+You can find a list of plugins [here](https://javalin.io/plugins).
 
 Installing a plugin is as easy as adding a dependency to your project and registering it with Javalin:
 
 ```kotlin
 Javalin.create { config ->
-    config.plugins.register(MyPlugin())
+    config.registerPlugin(MyPlugin())
 }
 ```
 
 Some of the most popular plugins are:
+
 ### OpenAPI Plugin
 
 The [Javalin OpenAPI](https://github.com/javalin/javalin-openapi) plugin allows you to generate an OpenAPI 3.0 specification for your API at compile time.
@@ -202,37 +224,22 @@ The [Javalin OpenAPI](https://github.com/javalin/javalin-openapi) plugin allows 
 Annotate your routes with `@OpenApi` to generate the specification:
 
 ```kotlin
-
 @OpenApi(
-        summary = "Get all users",
-        operationId = "getAllUsers",
-        tags = ["User"],
-        responses = [OpenApiResponse("200", [OpenApiContent(Array<User>::class)])],
-        path = "/users",
-        methods = [HttpMethod.GET]
-    )
-    fun getAll(ctx: Context) {
-        ctx.json(UserService.getAll())
-    }
+    summary = "Get all users",
+    operationId = "getAllUsers",
+    tags = ["User"],
+    responses = [OpenApiResponse("200", [OpenApiContent(Array<User>::class)])],
+    path = "/users",
+    methods = [HttpMethod.GET]
+)
+fun getAll(ctx: Context) {
+    ctx.json(UserService.getAll())
+}
 ```
 
- Swagger UI and ReDoc UI implementations for viewing the generated specification in your browser are also available.
+Swagger UI and ReDoc UI implementations for viewing the generated specification in your browser are also available.
 
- For more information, see the [Javalin OpenAPI Wiki](https://github.com/javalin/javalin-openapi/wiki).
-
-
-### Rendering Plugin
-
-The [Javalin Rendering](https://javalin.io/plugins/rendering) plugin allows you to use any template engine with Javalin. 
-
-It includes implementations for JTE, Mustache, Velocity, Pebble, Handlebars, and Thymeleaf, but you also have to add the dependency for the template engine you want to use.
-
-```kotlin
-ctx.render("/templateFile.ext", mapOf("firstName" to "John", "lastName" to "Doe"))
-```
-
-Once you have included the `javalin-rendering` artifact and one of the supported template engine dependencies in your project, `Context#render` should automatically render your templates. By default, the plugin will look in `src/main/resources/templates` for template files.
-
+For more information, see the [Javalin OpenAPI Wiki](https://github.com/javalin/javalin-openapi/wiki).
 
 ### SSL Plugin
 
@@ -241,17 +248,21 @@ The [Javalin SSL](https://javalin.io/plugins/ssl-helpers) plugin allows you to e
 Enabling SSL on the 443 port is as easy as:
 
 ```kotlin
-Javalin.create { config ->
-    config.plugins.register(SSLPlugin {
-        it.pemFromPath("/path/to/cert.pem", "/path/to/key.pem")
-    })
+val plugin = SSLPlugin { conf ->
+    conf.pemFromPath("/path/to/cert.pem", "/path/to/key.pem")
 }
+
+Javalin.create { javalinConfig ->
+    javalinConfig.plugins.register(plugin)
+}.start()
 ```
 
 ## Sponsors
+
 * [@barbarysoftware](https://github.com/sponsors/barbarysoftware) (50 USD/m)
 
 ## Special thanks
+
 * Blake Mizerany, for creating [Sinatra](http://www.sinatrarb.com/)
 * Per Wendel, for creating [Spark](http://sparkjava.com/)
 * [Christian Rasmussen](https://github.com/chrrasmussen), for being a great guy
