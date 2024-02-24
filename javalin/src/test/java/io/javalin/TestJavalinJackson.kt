@@ -11,7 +11,7 @@ import io.javalin.json.JavalinJackson
 import io.javalin.json.fromJsonString
 import io.javalin.json.toJsonString
 import io.javalin.testing.TestUtil
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import kotlin.streams.asStream
 
@@ -27,22 +27,21 @@ internal class TestJavalinJackson {
         TestJsonMapper.convertLargeStreamToJson(JavalinJackson())
     }
 
-
     data class SerializableDataClass(val value1: String = "Default1", val value2: String)
 
     @Test
     fun `can use JavalinJackson with a custom object-mapper on a kotlin data class`() {
         val mapped = JavalinJackson().toJsonString(SerializableDataClass("First value", "Second value"))
         val mappedBack = JavalinJackson().fromJsonString<SerializableDataClass>(mapped)
-        Assertions.assertThat("First value").isEqualTo(mappedBack.value1)
-        Assertions.assertThat("Second value").isEqualTo(mappedBack.value2)
+        assertThat("First value").isEqualTo(mappedBack.value1)
+        assertThat("Second value").isEqualTo(mappedBack.value2)
     }
 
     @Test
     fun `default JavalinJackson includes nulls`() = TestUtil.test { app, http ->
         data class TestClass(val one: String? = null, val two: String? = null)
         app.get("/") { it.json(TestClass()) }
-        Assertions.assertThat(http.getBody("/")).isEqualTo("""{"one":null,"two":null}""")
+        assertThat(http.getBody("/")).isEqualTo("""{"one":null,"two":null}""")
     }
 
     @Test
@@ -53,7 +52,7 @@ internal class TestJavalinJackson {
     }) { app, http ->
         data class TestClass(val one: String? = null, val two: String? = null)
         app.get("/") { it.json(TestClass()) }
-        Assertions.assertThat(http.getBody("/")).isEqualTo("{}")
+        assertThat(http.getBody("/")).isEqualTo("{}")
     }
 
     @Test
@@ -66,7 +65,13 @@ internal class TestJavalinJackson {
             val seq = generateSequence { Hello("hi", value++) }
             app.get("/json-stream") { it.writeJsonStream(seq.take(take).asStream()) }
             val expectedResponse = List(take) { """{"greet":"hi","value":${it}}""" }.joinToString(",", "[", "]")
-            Assertions.assertThat(http.jsonGet("/json-stream").body).isEqualTo(expectedResponse)
+            assertThat(http.jsonGet("/json-stream").body).isEqualTo(expectedResponse)
         }
+
+    @Test
+    fun `toJsonStream treats Strings as already being json`() = TestUtil.test { app, http ->
+        app.get("/") { it.jsonStream("{a:b}") }
+        assertThat(http.getBody("/")).isEqualTo("{a:b}")
+    }
 
 }

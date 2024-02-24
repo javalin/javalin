@@ -35,7 +35,7 @@ object HttpResponseExceptionMapper {
         else -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN)
     }
 
-    private fun jsonResult(e: HttpResponseException) =
+    internal fun jsonResult(e: HttpResponseException) =
         """|{
            |    "title": "${e.message?.jsonEscape()}",
            |    "status": ${e.status},
