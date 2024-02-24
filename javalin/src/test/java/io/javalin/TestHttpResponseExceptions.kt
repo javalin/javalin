@@ -6,16 +6,76 @@
 
 package io.javalin
 
+import io.javalin.http.AcceptedResponse
+import io.javalin.http.AlreadyReportedResponse
+import io.javalin.http.BadGatewayResponse
 import io.javalin.http.BadRequestResponse
+import io.javalin.http.ConflictResponse
+import io.javalin.http.ContentTooLargeResponse
 import io.javalin.http.ContentType
+import io.javalin.http.ContinueResponse
+import io.javalin.http.CreatedResponse
+import io.javalin.http.EarlyHintsResponse
+import io.javalin.http.EnhanceYourCalmResponse
+import io.javalin.http.ExpectationFailedResponse
+import io.javalin.http.FailedDependencyResponse
 import io.javalin.http.ForbiddenResponse
+import io.javalin.http.FoundResponse
+import io.javalin.http.GatewayTimeoutResponse
+import io.javalin.http.GoneResponse
 import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.UNAUTHORIZED
+import io.javalin.http.HttpVersionNotSupportedResponse
+import io.javalin.http.ImATeapotResponse
+import io.javalin.http.ImUsedResponse
+import io.javalin.http.InsufficientStorageResponse
+import io.javalin.http.InternalServerErrorResponse
+import io.javalin.http.LengthRequiredResponse
+import io.javalin.http.LockedResponse
+import io.javalin.http.LoopDetectedResponse
+import io.javalin.http.MethodNotAllowedResponse
+import io.javalin.http.MisdirectedRequestResponse
+import io.javalin.http.MovedPermanentlyResponse
+import io.javalin.http.MultiStatusResponse
+import io.javalin.http.MultipleChoicesResponse
+import io.javalin.http.NetworkAuthenticationRequiredResponse
+import io.javalin.http.NoContentResponse
+import io.javalin.http.NonAuthoritativeInformationResponse
+import io.javalin.http.NotAcceptableResponse
+import io.javalin.http.NotFoundResponse
+import io.javalin.http.NotImplementedResponse
+import io.javalin.http.NotModifiedResponse
+import io.javalin.http.OkResponse
+import io.javalin.http.PartialContentResponse
+import io.javalin.http.PaymentRequiredResponse
+import io.javalin.http.PermanentRedirectResponse
+import io.javalin.http.PreconditionFailedResponse
+import io.javalin.http.PreconditionRequiredResponse
+import io.javalin.http.ProcessingResponse
+import io.javalin.http.ProxyAuthenticationRequiredResponse
+import io.javalin.http.RangeNotSatisfiableResponse
+import io.javalin.http.RedirectResponse
+import io.javalin.http.RequestHeaderFieldsTooLargeResponse
+import io.javalin.http.RequestTimeoutResponse
+import io.javalin.http.ResetContentResponse
+import io.javalin.http.SeeOtherResponse
+import io.javalin.http.ServiceUnavailableResponse
+import io.javalin.http.SwitchingProtocolsResponse
+import io.javalin.http.TemporaryRedirectResponse
+import io.javalin.http.TooEarlyResponse
+import io.javalin.http.TooManyRequestsResponse
 import io.javalin.http.UnauthorizedResponse
+import io.javalin.http.UnavailableForLegalReasonsResponse
+import io.javalin.http.UnprocessableContentResponse
+import io.javalin.http.UnsupportedMediaTypeResponse
+import io.javalin.http.UpgradeRequiredResponse
+import io.javalin.http.UriTooLongResponse
+import io.javalin.http.UseProxyResponse
+import io.javalin.router.exception.ExceptionMapper
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
@@ -23,6 +83,8 @@ import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.isSubclassOf
 
 class TestHttpResponseExceptions {
 
@@ -214,5 +276,77 @@ class TestHttpResponseExceptions {
             |}""".trimMargin()
         )
     }
+
+    @Test
+    fun `test all subclasses of HttpResponseException`() = TestUtil.test { app, http ->
+        for (clazz in allExceptions()) {
+            assertThat(clazz.isSubclassOf(HttpResponseException::class)).isTrue()
+        }
+    }
+
+    private fun allExceptions() = setOf(
+        ContinueResponse::class,
+        SwitchingProtocolsResponse::class,
+        ProcessingResponse::class,
+        EarlyHintsResponse::class,
+        OkResponse::class,
+        CreatedResponse::class,
+        AcceptedResponse::class,
+        NonAuthoritativeInformationResponse::class,
+        NoContentResponse::class,
+        ResetContentResponse::class,
+        PartialContentResponse::class,
+        MultiStatusResponse::class,
+        AlreadyReportedResponse::class,
+        ImUsedResponse::class,
+        RedirectResponse::class,
+        MultipleChoicesResponse::class,
+        MovedPermanentlyResponse::class,
+        FoundResponse::class,
+        SeeOtherResponse::class,
+        NotModifiedResponse::class,
+        UseProxyResponse::class,
+        TemporaryRedirectResponse::class,
+        PermanentRedirectResponse::class,
+        BadRequestResponse::class,
+        UnauthorizedResponse::class,
+        PaymentRequiredResponse::class,
+        ForbiddenResponse::class,
+        NotFoundResponse::class,
+        MethodNotAllowedResponse::class,
+        NotAcceptableResponse::class,
+        ProxyAuthenticationRequiredResponse::class,
+        RequestTimeoutResponse::class,
+        ConflictResponse::class,
+        GoneResponse::class,
+        LengthRequiredResponse::class,
+        PreconditionFailedResponse::class,
+        ContentTooLargeResponse::class,
+        UriTooLongResponse::class,
+        UnsupportedMediaTypeResponse::class,
+        RangeNotSatisfiableResponse::class,
+        ExpectationFailedResponse::class,
+        ImATeapotResponse::class,
+        EnhanceYourCalmResponse::class,
+        MisdirectedRequestResponse::class,
+        UnprocessableContentResponse::class,
+        LockedResponse::class,
+        FailedDependencyResponse::class,
+        TooEarlyResponse::class,
+        UpgradeRequiredResponse::class,
+        PreconditionRequiredResponse::class,
+        TooManyRequestsResponse::class,
+        RequestHeaderFieldsTooLargeResponse::class,
+        UnavailableForLegalReasonsResponse::class,
+        InternalServerErrorResponse::class,
+        NotImplementedResponse::class,
+        BadGatewayResponse::class,
+        ServiceUnavailableResponse::class,
+        GatewayTimeoutResponse::class,
+        HttpVersionNotSupportedResponse::class,
+        InsufficientStorageResponse::class,
+        LoopDetectedResponse::class,
+        NetworkAuthenticationRequiredResponse::class
+    )
 
 }
