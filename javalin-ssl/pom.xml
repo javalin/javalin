@@ -30,13 +30,6 @@
         </developer>
     </developers>
 
-    <distributionManagement>
-        <repository>
-            <id>sonatype-nexus-staging-zug</id> <!-- we use this for separate credentials -->
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-
     <properties>
         <copy-build-resources.skip>false</copy-build-resources.skip>
     </properties>
