@@ -112,7 +112,7 @@
         <unirest.version>3.14.5</unirest.version>
         <selenium.chrome.driver.version>4.18.1</selenium.chrome.driver.version>
         <webdrivermanager.version>5.7.0</webdrivermanager.version>
-        <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
+        <swagger.ui.version>5.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
 
     <dependencies>
