@@ -60,7 +60,7 @@ jobs:
         env:
           MAVEN_OPTS: -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4.0.1
+        uses: codecov/codecov-action@v4.0.2
         with:
           files: "${{ github.workspace }}/javalin-utils/coverage/target/site/jacoco-aggregate/jacoco.xml"
           verbose: true
