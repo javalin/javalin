@@ -15,9 +15,11 @@ import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import io.javalin.util.Util.getPort
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler.SESSIONS
-import org.eclipse.jetty.ee10.servlet.ServletHolder
+import org.eclipse.jetty.ee9.nested.HandlerCollection
+import org.eclipse.jetty.ee9.nested.HandlerWrapper
+import org.eclipse.jetty.ee9.servlet.ServletContextHandler
+import org.eclipse.jetty.ee9.servlet.ServletContextHandler.SESSIONS
+import org.eclipse.jetty.ee9.servlet.ServletHolder
 import org.eclipse.jetty.http.HttpCookie
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.http.UriCompliance

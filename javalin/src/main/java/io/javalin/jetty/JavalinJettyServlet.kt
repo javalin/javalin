@@ -17,11 +17,11 @@ import io.javalin.util.javalinLazy
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketCreator
-import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServlet
-import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServletFactory
+import org.eclipse.jetty.ee9.websocket.api.util.WebSocketConstants
+import org.eclipse.jetty.ee9.websocket.server.JettyWebSocketCreator
+import org.eclipse.jetty.ee9.websocket.server.JettyWebSocketServlet
+import org.eclipse.jetty.ee9.websocket.server.JettyWebSocketServletFactory
 import org.eclipse.jetty.server.Session
-import org.eclipse.jetty.websocket.api.util.WebSocketConstants
 
 internal const val upgradeContextKey = "javalin-ws-upgrade-context"
 internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"
