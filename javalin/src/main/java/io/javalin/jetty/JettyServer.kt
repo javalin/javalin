@@ -15,6 +15,9 @@ import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import io.javalin.util.Util.getPort
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler.SESSIONS
+import org.eclipse.jetty.ee10.servlet.ServletHolder
 import org.eclipse.jetty.http.HttpCookie
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.http.UriCompliance
@@ -24,13 +27,7 @@ import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.server.handler.HandlerCollection
-import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.handler.StatisticsHandler
-import org.eclipse.jetty.server.session.SessionHandler
-import org.eclipse.jetty.servlet.ServletContextHandler
-import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
-import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.ThreadPool
 
 class JettyServer(private val cfg: JavalinConfig) {

@@ -88,7 +88,7 @@
 
         <!-- DEPENDENCIES -->
         <annotations.version>24.1.0</annotations.version>
-        <jetty.version>11.0.19</jetty.version>
+        <jetty.version>12.0.6</jetty.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
         <jackson.version>2.16.1</jackson.version>
         <jackson.databind.version>2.16.1</jackson.databind.version>
