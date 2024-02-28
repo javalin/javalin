@@ -21,7 +21,6 @@ import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.util.URIUtil
-import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
 import java.nio.file.AccessDeniedException
 import java.nio.file.Files
