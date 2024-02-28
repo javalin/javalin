@@ -8,22 +8,18 @@ package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
 import io.javalin.event.JavalinLifecycleEvent
-import io.javalin.http.ContentType
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinBindException
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import io.javalin.util.Util.getPort
-import org.eclipse.jetty.ee9.nested.HandlerCollection
-import org.eclipse.jetty.ee9.nested.HandlerWrapper
-import org.eclipse.jetty.ee9.servlet.ServletContextHandler
-import org.eclipse.jetty.ee9.servlet.ServletContextHandler.SESSIONS
-import org.eclipse.jetty.ee9.servlet.ServletHolder
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler.SESSIONS
+import org.eclipse.jetty.ee10.servlet.ServletHolder
+import org.eclipse.jetty.ee10.servlet.SessionHandler
 import org.eclipse.jetty.http.HttpCookie
-import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.http.UriCompliance
-import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.LowResourceMonitor
@@ -34,9 +30,9 @@ import org.eclipse.jetty.util.thread.ThreadPool
 
 class JettyServer(private val cfg: JavalinConfig) {
 
-    init {
-        MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
+    // MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
 
+    init {
         if (cfg.startupWatcherEnabled) {
             Thread {
                 Thread.sleep(5000)
@@ -68,7 +64,7 @@ class JettyServer(private val cfg: JavalinConfig) {
         val startupTimer = System.currentTimeMillis()
         server().apply {
             cfg.pvt.jetty.serverConsumers.forEach { it.accept(this) } // apply user config
-            handler = handler.attachHandler(ServletContextHandler(SESSIONS).apply {
+            setHandler(ServletContextHandler(SESSIONS).apply {
                 val (initializer, servlet) = cfg.pvt.servlet.value
                 if (initializer != null) this.addServletContainerInitializer(initializer)
                 contextPath = Util.normalizeContextPath(cfg.router.contextPath)
@@ -140,24 +136,6 @@ class JettyServer(private val cfg: JavalinConfig) {
         eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STOPPED)
     }
 
-    private fun Handler?.attachHandler(servletContextHandler: ServletContextHandler) = when {
-        this == null -> servletContextHandler // server has no handler, just use Javalin handler
-        this is HandlerCollection -> this.apply { addHandler(servletContextHandler) } // user is using a HandlerCollection, add Javalin handler to it
-        this is HandlerWrapper -> this.apply {
-            (this.unwrap() as? HandlerCollection)?.addHandler(servletContextHandler) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handler
-            (this.unwrap() as? HandlerWrapper)?.handler = servletContextHandler // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
-        }
-
-        else -> throw IllegalStateException("Server has unsupported Handler attached to it (must be HandlerCollection or HandlerWrapper)")
-    }
-
-    private fun HandlerWrapper.unwrap(): Handler = when (this.handler) {
-        null -> this // current HandlerWrapper is last element, return the HandlerWrapper itself
-        is HandlerCollection -> this.handler // HandlerWrapper wraps HandlerCollection, return HandlerCollection
-        is HandlerWrapper -> (this.handler as HandlerWrapper).unwrap() // HandlerWrapper wraps another HandlerWrapper, recursive call required
-        else -> throw IllegalStateException("HandlerWrapper has unsupported Handler type (must be HandlerCollection or HandlerWrapper")
-    }
-
     companion object {
         fun defaultThreadPool(useVirtualThreads: Boolean) = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool", 8, 250, useVirtualThreads)
 
@@ -173,8 +151,8 @@ class JettyServer(private val cfg: JavalinConfig) {
             sendServerVersion = false
         }
 
-        fun defaultSessionHandler() = SessionHandler().apply {
-            httpOnly = true
+        fun defaultSessionHandler(): SessionHandler = SessionHandler().apply {
+            isHttpOnly = true
             sameSite = HttpCookie.SameSite.LAX
         }
     }

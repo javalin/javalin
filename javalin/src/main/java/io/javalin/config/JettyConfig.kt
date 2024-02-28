@@ -1,7 +1,7 @@
 package io.javalin.config
 
-import org.eclipse.jetty.ee9.servlet.ServletContextHandler
-import org.eclipse.jetty.ee9.websocket.server.JettyWebSocketServletFactory
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler
+import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServletFactory
 import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
