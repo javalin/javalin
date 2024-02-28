@@ -1,13 +1,11 @@
 package io.javalin.config
 
-import io.javalin.jetty.JettyServer
+import org.eclipse.jetty.ee9.servlet.ServletContextHandler
+import org.eclipse.jetty.ee9.websocket.server.JettyWebSocketServletFactory
 import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.session.SessionHandler
-import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.util.thread.ThreadPool
-import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
 import java.util.function.BiFunction
 import java.util.function.Consumer
 

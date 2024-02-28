@@ -4,7 +4,7 @@ import io.javalin.config.StaticFilesConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import jakarta.servlet.http.HttpServletRequest
-import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
+import org.eclipse.jetty.server.AliasCheck
 
 /** The static files location. */
 enum class Location {
