@@ -105,4 +105,4 @@ object DefaultTasks {
 
 }
 
-private fun Endpoint.hasPathParams() = this.path.contains("{") || this.path.contains("<")
+internal fun Endpoint.hasPathParams() = this.path.contains("{") || this.path.contains("<")
