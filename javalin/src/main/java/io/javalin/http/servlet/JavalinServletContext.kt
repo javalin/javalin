@@ -94,7 +94,9 @@ class JavalinServletContext(
         handlerType = parsedEndpoint.endpoint.method
         if (matchedPath != parsedEndpoint.endpoint.path) { // if the path has changed, we have to extract path params
             matchedPath = parsedEndpoint.endpoint.path
-            pathParamMap = parsedEndpoint.extractPathParams(requestUri)
+            if (parsedEndpoint.endpoint.hasPathParams()) {
+                pathParamMap = parsedEndpoint.extractPathParams(requestUri)
+            }
         }
         if (handlerType != AFTER) {
             endpointHandlerPath = parsedEndpoint.endpoint.path

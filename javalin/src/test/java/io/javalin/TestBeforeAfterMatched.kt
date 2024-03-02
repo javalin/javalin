@@ -8,6 +8,7 @@ import io.javalin.http.servlet.DefaultTasks.BEFORE
 import io.javalin.http.servlet.DefaultTasks.ERROR
 import io.javalin.http.servlet.DefaultTasks.HTTP
 import io.javalin.http.staticfiles.Location
+import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
@@ -338,4 +339,21 @@ class TestBeforeAfterMatched {
         }) { _, http ->
             assertThat(http.getBody("/p")).isEqualTo("{before=p}/{endpoint=p}")
         }
+
+    private enum class Role : RouteRole { A }
+
+    @Test
+    fun `routeRoles are available in beforeMatched`() = TestUtil.test { app, http ->
+        app.beforeMatched { it.result(it.routeRoles().toString()) }
+        app.get("/test", {}, Role.A)
+        assertThat(http.getBody("/test")).isEqualTo("[A]")
+    }
+
+    @Test
+    fun `routeRoles are available in afterMatched`() = TestUtil.test { app, http ->
+        app.get("/test", {}, Role.A)
+        app.afterMatched { it.result(it.routeRoles().toString()) }
+        assertThat(http.getBody("/test")).isEqualTo("[A]")
+    }
+
 }
