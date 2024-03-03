@@ -9,6 +9,7 @@ package io.javalin.jetty
 import io.javalin.config.JavalinConfig
 import io.javalin.event.JavalinLifecycleEvent
 import io.javalin.http.ContentType
+import io.javalin.http.staticfiles.ResourceHandlerImpl
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinBindException
 import io.javalin.util.JavalinException
@@ -116,7 +117,8 @@ class JettyServer(private val cfg: JavalinConfig) {
                |""".trimMargin()
         )
         JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/")
-        (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // log resource handler info
+        //(cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // log resource handler info
+        (cfg.pvt.resourceHandler as? ResourceHandlerImpl)?.init() // log resource handler info
         server().connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.baseUrl}")
         }

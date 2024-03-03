@@ -10,6 +10,7 @@ package io.javalin.staticfiles
 import io.javalin.Javalin
 import io.javalin.http.ContentType
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.IOException
+import java.net.Socket
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -351,6 +353,7 @@ class TestStaticFiles {
     }
 
     @Test
+    @Suppress("Javalin 7 will have an immutable instance")
     fun `static files can be added after app start with previous static files`() = TestUtil.test(
         Javalin.create().also { it.unsafeConfig().staticFiles.add("/public", Location.CLASSPATH) }
     ) { app, http ->
@@ -370,6 +373,7 @@ class TestStaticFiles {
     }
 
     @Test
+    @Suppress("Javalin 7 will have an immutable instance")
     fun `static files can be added after app start without previous static files`() = TestUtil.test(
         Javalin.create()
     ) { app, http ->
@@ -391,4 +395,26 @@ class TestStaticFiles {
         assertThat(http.get("/file.javalin").headers.getFirst(Header.CONTENT_TYPE)).contains("application/x-javalin")
         assertThat(http.getBody("/file.javalin")).contains("TESTFILE.javalin")
     }
+
+   @Test
+   fun `cannot transverse paths`() = TestUtil.test(Javalin.create { config ->
+       config.staticFiles.add {
+           it.directory = "/public/subdir"
+           it.location = Location.CLASSPATH
+       }
+   }) { _, http ->
+       assertThat(http.get("/index.html").httpCode()).isEqualTo(OK)
+       assertThat(http.get("/../file").httpCode()).isEqualTo(HttpStatus.BAD_REQUEST)
+       assertThat(http.get("/../file").body).isEqualTo("<h1>Bad Message 400</h1><pre>reason: Bad Request</pre>")
+       // Test Poison Null Bytes Attack
+       assertThat(http.get("/../file%00").httpCode()).isEqualTo(HttpStatus.BAD_REQUEST)
+       assertThat(http.get("/%00/../file").httpCode()).isEqualTo(HttpStatus.BAD_REQUEST)
+       assertThat(http.get("/%2e%2e/file").httpCode()).isEqualTo(HttpStatus.BAD_REQUEST)
+       // Test Poison Null Bytes Attack with socket (unirest fails to send this request)
+       val body = "GET ../file%00 HTTP/1.1\r\nHost: localhost\r\n\r\n"
+       val socket = Socket("localhost", http.origin.split(":").last().toInt())
+       socket.getOutputStream().write(body.toByteArray())
+       val response = socket.getInputStream().bufferedReader().readText()
+       assertThat(response).contains("HTTP/1.1 400 Bad Request")
+   }
 }

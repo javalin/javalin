@@ -113,11 +113,11 @@ enum class ContentType(
 
         @JvmStatic
         fun getContentType(mimeType: String): ContentType? =
-            values().find { it.mimeType.equals(mimeType, ignoreCase = true) }
+            entries.find { it.mimeType.equals(mimeType, ignoreCase = true) }
 
         @JvmStatic
         fun getContentTypeByExtension(extension: String): ContentType? =
-            values().firstOrNull { type ->
+            entries.firstOrNull { type ->
                 type.extensions.any {
                     extension.equals(it, ignoreCase = true)
                 }

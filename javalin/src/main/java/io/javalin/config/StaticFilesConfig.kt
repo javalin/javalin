@@ -2,6 +2,7 @@ package io.javalin.config
 
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
+import io.javalin.http.staticfiles.ResourceHandlerImpl
 import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.jetty.JettyResourceHandler
 import java.util.function.Consumer
@@ -40,7 +41,8 @@ class StaticFilesConfig(private val cfg: JavalinConfig) {
      */
     fun add(userConfig: Consumer<StaticFileConfig>) {
         if (cfg.pvt.resourceHandler == null) {
-            cfg.pvt.resourceHandler = JettyResourceHandler(cfg.pvt)
+            //cfg.pvt.resourceHandler = JettyResourceHandler(cfg.pvt)
+            cfg.pvt.resourceHandler = ResourceHandlerImpl(cfg.pvt)
         }
         val finalConfig = StaticFileConfig()
         userConfig.accept(finalConfig)
