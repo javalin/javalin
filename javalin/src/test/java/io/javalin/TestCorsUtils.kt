@@ -52,9 +52,22 @@ class TestCorsUtils {
 
         @ParameterizedTest
         @EmptySource
-        @CsvSource(value = ["https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}"])
+        @CsvSource(value = ["https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment"])
         fun `rejects invalid origins`(it: String) {
             assertThat(CorsUtils.isValidOrigin(it)).describedAs(it).isFalse
+        }
+
+        @ParameterizedTest
+        @CsvSource(value = ["null", "https://example.com", "https://example.com:8443"])
+        fun `accepts valid origins JDK`(origin: String) {
+            assertThat(CorsUtils.isValidOriginJdk(origin)).describedAs(origin).isTrue
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        @CsvSource(value = ["https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment"])
+        fun `rejects invalid origins JDK`(it: String) {
+            assertThat(CorsUtils.isValidOriginJdk(it)).describedAs(it).isFalse
         }
     }
 
