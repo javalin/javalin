@@ -4,6 +4,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+      time: "04:30" # this is in UTC time
     open-pull-requests-limit: 5
     commit-message:
       prefix: "[deps]"
@@ -22,4 +23,3 @@ updates:
     labels:
       - "dependencies"
     target-branch: "master"
-
