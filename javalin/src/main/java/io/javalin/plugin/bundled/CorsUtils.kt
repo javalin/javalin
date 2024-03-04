@@ -1,5 +1,6 @@
 package io.javalin.plugin.bundled
 
+import java.net.URI
 import java.util.*
 
 internal object CorsUtils {
@@ -24,6 +25,8 @@ internal object CorsUtils {
             origin == "null" -> true
             // query strings are not a valid part of an origin
             "?" in origin -> false
+            // fragments are not a valid part of an origin
+            "#" in origin -> false
             // schemes are a required part of an origin
             schemeAndHostDelimiter <= 0 -> false
             !isSchemeValid(origin.subSequence(0, schemeAndHostDelimiter)) -> false
@@ -32,6 +35,30 @@ internal object CorsUtils {
             // if a port is specified is must consist of only digits
             portResult is PortResult.ErrorState -> false
             else -> true
+        }
+    }
+
+    internal fun isValidOriginJdk(origin: String): Boolean {
+        if (origin.isEmpty()) {
+            return false
+        }
+        if (origin == "null") {
+            return true
+        }
+        try {
+            val uri = URI(origin).parseServerAuthority()
+            if (uri.path.isNullOrEmpty().not()) {
+                return false
+            }
+            if (uri.query.isNullOrEmpty().not()) {
+                return false
+            }
+            if (uri.fragment.isNullOrEmpty().not()) {
+                return false
+            }
+            return true
+        } catch (e: Exception) {
+            return false
         }
     }
 
