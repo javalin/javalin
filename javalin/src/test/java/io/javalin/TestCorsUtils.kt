@@ -52,7 +52,7 @@ class TestCorsUtils {
 
         @ParameterizedTest
         @EmptySource
-        @CsvSource(value = ["https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment"])
+        @CsvSource(value = ["://no-scheme", "o_O://illegal-underscore", "https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment"])
         fun `rejects invalid origins`(it: String) {
             assertThat(CorsUtils.isValidOrigin(it)).describedAs(it).isFalse
         }
@@ -65,7 +65,7 @@ class TestCorsUtils {
 
         @ParameterizedTest
         @EmptySource
-        @CsvSource(value = ["https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment"])
+        @CsvSource(value = ["://no-scheme", "o_O://illegal-underscore", "https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment"])
         fun `rejects invalid origins JDK`(it: String) {
             assertThat(CorsUtils.isValidOriginJdk(it)).describedAs(it).isFalse
         }
@@ -209,6 +209,20 @@ class TestCorsUtils {
             val client = OriginParts("https", "sub.example.com", 443)
             val server = OriginParts("https", "*.example.com", 443)
             assertThat(CorsUtils.originsMatch(client, server)).isTrue
+        }
+
+        @Test
+        fun `same port and scheme but different host does not match`() {
+            val client = OriginParts("https", "foo.example.com", 443)
+            val server = OriginParts("https", "bar.example.com", 443)
+            assertThat(CorsUtils.originsMatch(client, server)).isFalse
+        }
+
+        @Test
+        fun `dotless client host part does not crash`() {
+            val client = OriginParts("https", "dotless", 443)
+            val server = OriginParts("https", "*.example.com", 443)
+            assertThat(CorsUtils.originsMatch(client, server)).isFalse
         }
     }
 
