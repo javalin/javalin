@@ -93,7 +93,7 @@
         <jackson.version>2.16.1</jackson.version>
         <jackson.databind.version>2.16.1</jackson.databind.version>
         <brotli4j.version>1.16.0</brotli4j.version>
-        <logback.version>1.5.1</logback.version>
+        <logback.version>1.5.2</logback.version>
         <slf4j.version>2.0.12</slf4j.version>
         <gson.version>2.10.1</gson.version>
         <okhttp.version>4.12.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
