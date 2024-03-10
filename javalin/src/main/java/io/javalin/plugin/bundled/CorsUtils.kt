@@ -123,7 +123,9 @@ internal object CorsUtils {
         return origin
     }
 
-    internal fun parseAsOriginParts(origin: String): OriginParts {
+    internal fun parseAsOriginParts(rawOrigin: String): OriginParts {
+        val origin = normalizeOrigin(rawOrigin)
+
         val schemeAndHostDelimiter =
             origin.indexOf("://").also { require(it > 0) { "scheme delimiter :// must exist" } }
         val scheme: String = origin.subSequence(0, schemeAndHostDelimiter).toString()
