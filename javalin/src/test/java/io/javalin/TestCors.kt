@@ -96,6 +96,15 @@ class TestCors {
                 }
             }
                 .withMessageStartingWith("The given value 'example.com?query=true' could not be transformed into a valid origin")
+
+            assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
+                Javalin.create { config ->
+                    config.registerPlugin(CorsPlugin { cors ->
+                        cors.addRule { it.allowHost("example.com#fragment") }
+                    })
+                }
+            }
+                .withMessageStartingWith("The given value 'example.com#fragment' could not be transformed into a valid origin")
         }
 
         @Test
@@ -255,6 +264,10 @@ class TestCors {
             ).isEmpty()
             assertThat(
                 http.get("/", mapOf(ORIGIN to "https://origin-1.com.au")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
+            ).isEmpty()
+            // different schema => different origin
+            assertThat(
+                http.get("/", mapOf(ORIGIN to "http://origin-1.com")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
             ).isEmpty()
         }
 
