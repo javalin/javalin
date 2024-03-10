@@ -158,18 +158,19 @@ class TestCorsUtils {
         }
 
         @Test
-        fun `explicit port is required`() {
-            assertThatIllegalArgumentException().isThrownBy {
-                CorsUtils.parseAsOriginParts("https://example.com")
-            }.withMessage("explicit port is required")
-        }
-
-        @Test
         fun `works for valid inputs`() {
             val (scheme, host, port) = CorsUtils.parseAsOriginParts("https://example.com:8443")
             assertThat(scheme).isEqualTo("https")
             assertThat(host).isEqualTo("example.com")
             assertThat(port).isEqualTo(8443)
+        }
+
+        @Test
+        fun `works with default ports`() {
+            val (scheme, host, port) = CorsUtils.parseAsOriginParts("https://example.com")
+            assertThat(scheme).isEqualTo("https")
+            assertThat(host).isEqualTo("example.com")
+            assertThat(port).isEqualTo(443)
         }
 
         @Test
