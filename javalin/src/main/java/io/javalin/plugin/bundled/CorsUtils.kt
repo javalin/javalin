@@ -62,6 +62,30 @@ internal object CorsUtils {
         }
     }
 
+    internal fun parseAsOriginPartsJdk(origin: String): OriginParts {
+        val wildcardSnippet = "://*."
+        val hasWildcard = wildcardSnippet in origin
+        val originWithoutWildcard = origin.replace(wildcardSnippet, "://")
+
+        val uri: URI = URI(originWithoutWildcard).parseServerAuthority()
+
+        require(uri.scheme != null) { "Scheme is required!" }
+
+        val host: String = if (hasWildcard) {
+            "*." + uri.host
+        } else {
+            uri.host
+        }
+
+        val port = when (uri.scheme to uri.port) {
+            "https" to -1 -> 443
+            "http" to -1 -> 80
+            else -> uri.port
+        }
+
+        return OriginParts(uri.scheme, host, port)
+    }
+
     /**
      * Tries to extract a port from a given origin.
      * If the origin does not contain a scheme [PortResult.ErrorState.InvalidOrigin] is returned.

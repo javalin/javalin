@@ -5,13 +5,16 @@ import io.javalin.plugin.bundled.OriginParts
 import io.javalin.plugin.bundled.PortResult
 import io.javalin.plugin.bundled.WildcardResult
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
+import org.assertj.core.api.Assertions.assertThatNullPointerException
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EmptySource
 import org.junit.jupiter.params.provider.MethodSource
+import java.net.URISyntaxException
 import java.util.stream.Stream
 
 private const val SHAN_ZERO: String = "\u1090" // ႐ MYANMAR SHAN DIGIT ZERO
@@ -176,6 +179,47 @@ class TestCorsUtils {
         @Test
         fun `does not resolve wildcard hosts`() {
             val (scheme, host, port) = CorsUtils.parseAsOriginParts("https://*.example.com:8443")
+            assertThat(scheme).isEqualTo("https")
+            assertThat(host).isEqualTo("*.example.com")
+            assertThat(port).isEqualTo(8443)
+        }
+    }
+
+    @Nested
+    inner class TestOriginPartsJdk {
+        @Test
+        fun `scheme is required`() {
+            assertThatIllegalArgumentException().isThrownBy {
+                CorsUtils.parseAsOriginPartsJdk("example.com")
+            }.withMessage("Scheme is required!")
+        }
+
+        @Test
+        fun `specified scheme must follow rfc rules`() {
+            assertThatExceptionOfType(URISyntaxException::class.java).isThrownBy {
+                CorsUtils.parseAsOriginPartsJdk("c-${SHAN_ZERO}://example.com")
+            }
+        }
+
+        @Test
+        fun `works for valid inputs`() {
+            val (scheme, host, port) = CorsUtils.parseAsOriginPartsJdk("https://example.com:8443")
+            assertThat(scheme).isEqualTo("https")
+            assertThat(host).isEqualTo("example.com")
+            assertThat(port).isEqualTo(8443)
+        }
+
+        @Test
+        fun `works with default ports`() {
+            val (scheme, host, port) = CorsUtils.parseAsOriginPartsJdk("https://example.com")
+            assertThat(scheme).isEqualTo("https")
+            assertThat(host).isEqualTo("example.com")
+            assertThat(port).isEqualTo(443)
+        }
+
+        @Test
+        fun `does not resolve wildcard hosts`() {
+            val (scheme, host, port) = CorsUtils.parseAsOriginPartsJdk("https://*.example.com:8443")
             assertThat(scheme).isEqualTo("https")
             assertThat(host).isEqualTo("*.example.com")
             assertThat(port).isEqualTo(8443)
