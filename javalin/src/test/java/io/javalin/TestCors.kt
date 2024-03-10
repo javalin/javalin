@@ -105,6 +105,15 @@ class TestCors {
                 }
             }
                 .withMessageStartingWith("The given value 'example.com#fragment' could not be transformed into a valid origin")
+
+            assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
+                Javalin.create { config ->
+                    config.registerPlugin(CorsPlugin { cors ->
+                        cors.addRule { it.allowHost("example.com:2B") }
+                    })
+                }
+            }
+                .withMessageStartingWith("The given value 'example.com:2B' could not be transformed into a valid origin")
         }
 
         @Test
@@ -286,6 +295,21 @@ class TestCors {
                     .asString()
                 assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
             }
+
+        @Test
+        fun `invalid port from client does not crash`() = TestUtil.test(Javalin.create { cfg ->
+            cfg.registerPlugin(CorsPlugin { cors ->
+                cors.addRule {
+                    it.allowHost("https://example.com:8443")
+                }
+            })
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+            val response = Unirest.get(http.origin)
+                .header(ORIGIN, "https://example.com:2B")
+                .asString()
+            assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
+        }
     }
 
     @Nested
