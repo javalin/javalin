@@ -1,5 +1,6 @@
 package io.javalin.plugin.bundled
 
+import java.net.URI
 import java.util.*
 
 internal object CorsUtils {
@@ -24,6 +25,8 @@ internal object CorsUtils {
             origin == "null" -> true
             // query strings are not a valid part of an origin
             "?" in origin -> false
+            // fragments are not a valid part of an origin
+            "#" in origin -> false
             // schemes are a required part of an origin
             schemeAndHostDelimiter <= 0 -> false
             !isSchemeValid(origin.subSequence(0, schemeAndHostDelimiter)) -> false
@@ -33,6 +36,54 @@ internal object CorsUtils {
             portResult is PortResult.ErrorState -> false
             else -> true
         }
+    }
+
+    internal fun isValidOriginJdk(origin: String): Boolean {
+        if (origin.isEmpty()) {
+            return false
+        }
+        if (origin == "null") {
+            return true
+        }
+        try {
+            val uri = URI(origin).parseServerAuthority()
+            if (uri.path.isNullOrEmpty().not()) {
+                return false
+            }
+            if (uri.query.isNullOrEmpty().not()) {
+                return false
+            }
+            if (uri.fragment.isNullOrEmpty().not()) {
+                return false
+            }
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    internal fun parseAsOriginPartsJdk(origin: String): OriginParts {
+        val wildcardSnippet = "://*."
+        val hasWildcard = wildcardSnippet in origin
+        val originWithoutWildcard = origin.replace(wildcardSnippet, "://")
+
+        val uri: URI = URI(originWithoutWildcard).parseServerAuthority()
+
+        require(uri.scheme != null) { "Scheme is required!" }
+
+        val host: String = if (hasWildcard) {
+            "*." + uri.host
+        } else {
+            uri.host
+        }
+
+        val port = when (uri.scheme to uri.port) {
+            "https" to -1 -> 443
+            "http" to -1 -> 80
+            else -> uri.port
+        }
+
+        return OriginParts(uri.scheme, host, port)
     }
 
     /**
@@ -96,7 +147,9 @@ internal object CorsUtils {
         return origin
     }
 
-    internal fun parseAsOriginParts(origin: String): OriginParts {
+    internal fun parseAsOriginParts(rawOrigin: String): OriginParts {
+        val origin = normalizeOrigin(rawOrigin)
+
         val schemeAndHostDelimiter =
             origin.indexOf("://").also { require(it > 0) { "scheme delimiter :// must exist" } }
         val scheme: String = origin.subSequence(0, schemeAndHostDelimiter).toString()
