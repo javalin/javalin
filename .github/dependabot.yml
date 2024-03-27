@@ -11,13 +11,21 @@ updates:
     labels:
       - "dependencies"
     target-branch: "master"
-
+    groups:
+      dev-deps:
+        dependency-type: "development"
+      prod-deps:
+        dependency-type: "production"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    groups:
+      actions-deps:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 2
     commit-message:
       prefix: "[workflow]"
     labels:
