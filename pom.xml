@@ -70,7 +70,7 @@
 
         <!-- PLUGINS -->
         <compiler.plugin.version>3.13.0</compiler.plugin.version>
-        <dokka.plugin.version>1.9.10</dokka.plugin.version>
+        <dokka.plugin.version>1.9.20</dokka.plugin.version>
         <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
         <gpg.plugin.version>3.2.2</gpg.plugin.version>
         <jar.plugin.version>3.3.0</jar.plugin.version>
@@ -82,9 +82,9 @@
         <install.plugin.version>3.1.1</install.plugin.version>
         <resources.plugin.version>3.3.1</resources.plugin.version>
         <source.plugin.version>3.3.0</source.plugin.version>
-        <moditect.plugin.version>1.2.0.Final</moditect.plugin.version>
+        <moditect.plugin.version>1.2.1.Final</moditect.plugin.version>
         <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
-        <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
+        <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
 
         <!-- DEPENDENCIES -->
         <annotations.version>24.1.0</annotations.version>
@@ -105,7 +105,7 @@
         <assertj.version>3.25.3</assertj.version>
         <moshi.version>1.15.1</moshi.version>
         <java.websocket.version>1.5.6</java.websocket.version>
-        <junit.version>5.9.3</junit.version>
+        <junit.version>5.10.2</junit.version>
         <jmh.version>1.37</jmh.version>
         <mockito.version>5.11.0</mockito.version>
         <mockk.version>1.13.10</mockk.version>
