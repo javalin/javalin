@@ -84,7 +84,7 @@
         <source.plugin.version>3.3.0</source.plugin.version>
         <moditect.plugin.version>1.2.0.Final</moditect.plugin.version>
         <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
-        <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
+        <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
 
         <!-- DEPENDENCIES -->
         <annotations.version>24.1.0</annotations.version>
