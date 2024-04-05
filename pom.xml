@@ -111,7 +111,7 @@
         <mockk.version>1.13.10</mockk.version>
         <unirest.version>3.14.5</unirest.version>
         <selenium.chrome.driver.version>4.19.1</selenium.chrome.driver.version>
-        <webdrivermanager.version>5.7.0</webdrivermanager.version>
+        <webdrivermanager.version>5.8.0</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
 
