@@ -3,9 +3,9 @@ updates:
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
       time: "04:30" # this is in UTC time
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
     commit-message:
       prefix: "[deps]"
     labels:
