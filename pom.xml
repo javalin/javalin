@@ -75,7 +75,7 @@
         <gpg.plugin.version>3.2.2</gpg.plugin.version>
         <jar.plugin.version>3.3.0</jar.plugin.version>
         <surefire.plugin.version>3.2.5</surefire.plugin.version>
-        <shade.plugin.version>3.5.2</shade.plugin.version>
+        <shade.plugin.version>3.5.3</shade.plugin.version>
         <build-helper.plugin.version>3.5.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.4.1</enforcer.plugin.version>
         <clean.plugin.version>3.3.2</clean.plugin.version>
