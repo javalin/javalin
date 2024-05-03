@@ -72,7 +72,7 @@
         <compiler.plugin.version>3.13.0</compiler.plugin.version>
         <dokka.plugin.version>1.9.10</dokka.plugin.version>
         <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
-        <gpg.plugin.version>3.2.2</gpg.plugin.version>
+        <gpg.plugin.version>3.2.4</gpg.plugin.version>
         <jar.plugin.version>3.3.0</jar.plugin.version>
         <surefire.plugin.version>3.2.5</surefire.plugin.version>
         <shade.plugin.version>3.5.2</shade.plugin.version>
