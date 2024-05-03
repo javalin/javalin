@@ -9,6 +9,7 @@ import io.javalin.http.servlet.DefaultTasks.ERROR
 import io.javalin.http.servlet.DefaultTasks.HTTP
 import io.javalin.http.staticfiles.Location
 import io.javalin.security.RouteRole
+import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
@@ -220,6 +221,35 @@ class TestBeforeAfterMatched {
         assertThat(res.headers.getFirst("X-Matched-After")).describedAs("after-header").isEqualTo("true")
         assertThat(res.headers.getFirst("Content-Type")).describedAs("content-type").isEqualTo(ContentType.HTML)
         assertThat(res.body).describedAs("body").contains("<h1>HTML works</h1>")
+    }
+
+    @Test
+    fun `beforeMatched runs for webjars`() = TestUtil.test(Javalin.create { config ->
+        config.staticFiles.enableWebjars()
+    }) { app, http ->
+        app.beforeMatched { it.header("X-Matched-Before", "123") }
+        app.afterMatched { it.header("X-Matched-After", "456") }
+        val res = http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css")
+        assertThat(res.headers.getFirst("X-Matched-Before")).describedAs("before-header").isEqualTo("123")
+        assertThat(res.headers.getFirst("X-Matched-After")).describedAs("after-header").isEqualTo("456")
+    }
+
+    @Test
+    fun `beforeMatched runs for every ResourceHandler`() = TestUtil.test(Javalin.create { config ->
+        config.staticFiles.add("/public/subdir", Location.CLASSPATH)
+        config.staticFiles.add("/public/assets", Location.CLASSPATH)
+        config.staticFiles.add("src/test/external/", Location.EXTERNAL)
+    }) { app, http ->
+        app.beforeMatched { it.header("X-Matched-Before", "abc") }
+        app.afterMatched { it.header("X-Matched-After", "xyz") }
+        fun assertHeaders(path: String) {
+            val res = http.get(path)
+            assertThat(res.headers.getFirst("X-Matched-Before")).describedAs("before-header").isEqualTo("abc")
+            assertThat(res.headers.getFirst("X-Matched-After")).describedAs("after-header").isEqualTo("xyz")
+        }
+        assertHeaders("/index.html") // from /public/subdir
+        assertHeaders("/filtered-styles.css") // from /public/assets
+        assertHeaders("/txt.txt") // from external
     }
 
     @Test

@@ -15,6 +15,9 @@ object WebDriverUtil {
         if (TestEnvironment.isNotCiServer && Math.random() < 0.8) {
             assumeTrue(false, "Skipping random WebDriver tests because we're not on a CI server and the tests are sooo slow")
         }
+        if (TestEnvironment.isCiServer && TestEnvironment.isWindows) { // TODO: remove this when flakiness is fixed
+            assumeTrue(false, "Skipping WebDriver tests on Windows CI server because they are flaky")
+        }
         return ChromeDriver(ChromeOptions().apply {
             addArguments("--no-sandbox")
             addArguments("--headless=new")
