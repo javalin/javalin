@@ -13,7 +13,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>6.1.4</version>
+    <version>6.1.5-SNAPSHOT</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -30,7 +30,7 @@
         <connection>scm:git:git@github.com:javalin/javalin.git</connection>
         <developerConnection>scm:git:git@github.com:javalin/javalin.git</developerConnection>
         <url>https://github.com/javalin/javalin.git</url>
-        <tag>javalin-parent-6.1.4</tag>
+        <tag>HEAD</tag>
     </scm>
     <developers>
         <developer>
