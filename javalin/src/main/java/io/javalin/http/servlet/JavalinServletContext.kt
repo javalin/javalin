@@ -194,10 +194,15 @@ fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.
 }
 
 fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> {
-    return if (string.isEmpty()) mapOf() else string.split("&").map { it.split("=", limit = 2) }.groupBy(
-        { URLDecoder.decode(it[0], charset) },
-        { if (it.size > 1) URLDecoder.decode(it[1], charset) else "" }
-    ).mapValues { it.value.toList() }
+    return try {
+        if (string.isEmpty()) mapOf() else string.split("&").map { it.split("=", limit = 2) }.groupBy(
+            { URLDecoder.decode(it[0], charset) },
+            { if (it.size > 1) URLDecoder.decode(it[1], charset) else "" }
+        ).mapValues { it.value.toList() }
+    } catch(e: IllegalArgumentException) {
+        // Presumably the body had invalid URL encoding and isn't really a key-value string
+        mapOf()
+    }
 }
 
 fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
