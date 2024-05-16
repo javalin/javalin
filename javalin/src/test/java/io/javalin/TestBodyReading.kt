@@ -56,6 +56,13 @@ class TestBodyReading {
         assertThat(response.body).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
     }
 
+    @Test
+    fun `reading invalid form-params without contentType works`() = TestUtil.test { app, http ->
+        app.post("/") { it.result((it.formParam("fp") == null).toString()) }
+        val response = http.post("/").body("fp=%+").asString()
+        assertThat(response.body).isEqualTo("true")
+    }
+
     @Test // not sure why this does so much...
     fun `query-params and form-params behave the same`() = TestUtil.test { app, http ->
         app.post("/") { ctx ->
