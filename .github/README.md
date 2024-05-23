@@ -259,13 +259,15 @@ Javalin.create { javalinConfig ->
 
 ## Docker
 To further reduce the footprint of your service, you might want to consider using compact Docker image,
-based on the following template (totalling ~70 MB with Javalin added).
+based on the following template (totalling ~60 MB with Javalin added).
 Beware though, that by default it contains only [these packages](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/module-summary.html#packages.summary).  
 If use any other modules from JDK - alter `--add-modules` parameter
 
 ```dockerfile
 FROM eclipse-temurin:21-jdk-alpine
-RUN jlink --add-modules java.base --output /opt/java/jre
+RUN jlink --add-modules java.base \
+			--no-header-files --no-man-pages --strip-debug \
+			--output /opt/java/jre
 FROM alpine
 COPY --from=0 /opt/java/jre /usr/lib/jvm/jre
 ENV LD_LIBRARY_PATH=/usr/lib/jvm/jre/lib:$LD_LIBRARY_PATH
