@@ -30,6 +30,7 @@ class TestJavalinInstanceAndConfigApi {
             app.http.maxRequestSize = 10_000L
             app.http.generateEtags = true
             app.http.prefer405over404 = true
+            app.http.strictFormContentTypes = true
             app.http.customCompression(CompressionStrategy())
             app.http.brotliAndGzipCompression(3)
             app.http.brotliOnlyCompression(3)

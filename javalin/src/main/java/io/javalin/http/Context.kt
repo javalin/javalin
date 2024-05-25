@@ -175,8 +175,11 @@ interface Context {
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> = when {
         isMultipartFormData() -> MultipartUtil.getFieldMap(req())
-        else -> splitKeyValueStringAndGroupByKey(body(), characterEncoding() ?: "UTF-8")
+        isFormUrlencoded() || !strictFormContentTypes() -> splitKeyValueStringAndGroupByKey(body(), characterEncoding() ?: "UTF-8")
+        else -> mapOf()
     }
+
+    fun strictFormContentTypes(): Boolean
 
     /**
      * Gets a path param by name (ex: pathParam("param").
@@ -275,6 +278,9 @@ interface Context {
 
     /** Returns true if request is multipart/form-data. */
     fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/form-data") == true
+
+    /** Returns true if request is application/x-www-form-urlencoded. */
+    fun isFormUrlencoded(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("application/x-www-form-urlencoded") == true
 
     /** Gets first [UploadedFile] for the specified name, or null. */
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
