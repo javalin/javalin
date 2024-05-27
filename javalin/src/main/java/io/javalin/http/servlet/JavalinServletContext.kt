@@ -193,17 +193,14 @@ fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.
     value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
 }
 
-fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> {
-    return try {
-        if (string.isEmpty()) mapOf() else string.split("&").map { it.split("=", limit = 2) }.groupBy(
-            { URLDecoder.decode(it[0], charset) },
-            { if (it.size > 1) URLDecoder.decode(it[1], charset) else "" }
-        ).mapValues { it.value.toList() }
-    } catch(e: IllegalArgumentException) {
-        // Presumably the body had invalid URL encoding and isn't really a key-value string
-        mapOf()
-    }
-}
+fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> =
+    if (string.isEmpty()) mapOf() else string.split("&")
+        .map { it.split("=", limit = 2).let { it.get(0) to it.getOrElse(1) { "" } } } // map missing values to empty strings
+        .groupBy({ it.first.urlDecode(charset) }, { it.second.urlDecode(charset) })
+        .mapNotNull { (k, v) -> k?.let { it to v.filterNotNull() } }.toMap()
+
+private fun String.urlDecode(charset: String): String? =
+    runCatching { URLDecoder.decode(this, charset) }.getOrNull()
 
 fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
     pathParams[key.replaceFirst("{", "").replaceFirst("}", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")

@@ -16,10 +16,15 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class TestRequest {
+
+    private val okHttp = OkHttpClient().newBuilder().build()
+    private fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
 
     /*
      * Session/Attributes
@@ -214,6 +219,21 @@ class TestRequest {
     fun `queryParams returns list of supplied params`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.queryParams("qp1").toString()) }
         assertThat(http.getBody("/?qp1=1&qp1=2&qp1=3")).isEqualTo("[1, 2, 3]")
+    }
+
+    @Test
+    fun `query params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
+        app.get("/1") { it.result("${it.queryParam("qp")}") }
+        app.get("/2") { it.result("${it.queryParam("%+")}") }
+        assertThat(okHttp.getBody("${http.origin}/1?qp=%+")).isEqualTo("null")
+        assertThat(okHttp.getBody("${http.origin}/2?%+=qp")).isEqualTo("null")
+    }
+
+    @Test
+    fun `only query params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
+        app.get("/") { it.result(it.queryParam("qp") + "|" + it.queryParam("qp2")) }
+        val responseBody = okHttp.getBody("${http.origin}/?qp=%+&qp2=valid")
+        assertThat(responseBody).isEqualTo("null|valid")
     }
 
     /*
