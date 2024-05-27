@@ -57,10 +57,17 @@ class TestBodyReading {
     }
 
     @Test
-    fun `reading invalid form-params without contentType works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result((it.formParam("fp") == null).toString()) }
+    fun `form params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
+        app.post("/") { it.result("${it.formParam("fp")}") }
         val response = http.post("/").body("fp=%+").asString()
-        assertThat(response.body).isEqualTo("true")
+        assertThat(response.body).isEqualTo("null")
+    }
+
+    @Test
+    fun `only form params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
+        app.post("/") { it.result(it.formParam("fp") + "|" + it.formParam("fp2")) }
+        val response = http.post("/").body("fp=%+&fp2=valid").asString()
+        assertThat(response.body).isEqualTo("null|valid")
     }
 
     @Test // not sure why this does so much...
