@@ -426,4 +426,10 @@ class TestRouting {
         }
     }
 
+    @Test
+    fun `invalid path results in 400`() = TestUtil.test { app, http ->
+        app.get("/{path}") { it.result("Hello World") }
+        assertThat(okHttp.getBody(http.origin + "/%+")).contains("Bad Request")
+    }
+
 }
