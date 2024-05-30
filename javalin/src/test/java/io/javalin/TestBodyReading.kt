@@ -14,7 +14,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 class TestBodyReading {
-    private val strictContentTypeJavalin = Javalin.create { cfg -> cfg.http.strictFormContentTypes = true }
+    private val strictContentTypeJavalin = Javalin.create { cfg -> cfg.http.strictContentTypes = true }
 
     @Test
     fun `reading body as bytes works`() = TestUtil.test { app, http ->
@@ -65,14 +65,14 @@ class TestBodyReading {
     }
 
     @Test
-    fun `reading form-params with strictFormContentTypes and without contentType returns nothing`() = TestUtil.test(strictContentTypeJavalin) { app, http ->
+    fun `reading form-params with strictContentTypes and without contentType returns nothing`() = TestUtil.test(strictContentTypeJavalin) { app, http ->
         app.post("/") { it.result((it.formParam("fp") == null).toString()) }
         val response = http.post("/").body("fp=param").asString()
         assertThat(response.body).isEqualTo("true")
     }
 
     @Test
-    fun `reading form-params with strictFormContentTypes and without contentType works`() = TestUtil.test(strictContentTypeJavalin) { app, http ->
+    fun `reading form-params with strictContentTypes and without contentType works`() = TestUtil.test(strictContentTypeJavalin) { app, http ->
         app.post("/") { it.result((it.formParam("fp")).toString()) }
         val response = http.post("/").contentType("application/x-www-form-urlencoded").body("fp=param").asString()
         assertThat(response.body).isEqualTo("param")

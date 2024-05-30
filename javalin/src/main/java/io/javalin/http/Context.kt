@@ -149,13 +149,19 @@ interface Context {
     }
 
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.json.JsonMapper] */
-    fun <T> bodyAsClass(type: Type): T = jsonMapper().fromJsonString(body(), type)
+    fun <T> bodyAsClass(type: Type): T =  when {
+        isJson() || !strictContentTypes() -> jsonMapper().fromJsonString(body(), type)
+        else -> throw BadRequestResponse("Content-Type is not application/json")
+    }
 
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.json.JsonMapper] */
     fun <T> bodyAsClass(clazz: Class<T>): T = bodyAsClass(type = clazz as Type)
 
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.json.JsonMapper] */
-    fun <T> bodyStreamAsClass(type: Type): T = jsonMapper().fromJsonStream(req().inputStream, type)
+    fun <T> bodyStreamAsClass(type: Type): T = when {
+        isJson() || !strictContentTypes() -> jsonMapper().fromJsonStream(req().inputStream, type)
+        else -> throw BadRequestResponse("Content-Type is not application/json")
+    }
 
     /** Gets the underlying [InputStream] for the request body */
     fun bodyInputStream(): InputStream = req().inputStream
@@ -175,11 +181,11 @@ interface Context {
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> = when {
         isMultipartFormData() -> MultipartUtil.getFieldMap(req())
-        isFormUrlencoded() || !strictFormContentTypes() -> splitKeyValueStringAndGroupByKey(body(), characterEncoding() ?: "UTF-8")
+        isFormUrlencoded() || !strictContentTypes() -> splitKeyValueStringAndGroupByKey(body(), characterEncoding() ?: "UTF-8")
         else -> mapOf()
     }
 
-    fun strictFormContentTypes(): Boolean
+    fun strictContentTypes(): Boolean
 
     /**
      * Gets a path param by name (ex: pathParam("param").
@@ -281,6 +287,9 @@ interface Context {
 
     /** Returns true if request is application/x-www-form-urlencoded. */
     fun isFormUrlencoded(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("application/x-www-form-urlencoded") == true
+
+    /** Returns true if request is application/x-www-form-urlencoded. */
+    fun isJson(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("application/json") == true
 
     /** Gets first [UploadedFile] for the specified name, or null. */
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()

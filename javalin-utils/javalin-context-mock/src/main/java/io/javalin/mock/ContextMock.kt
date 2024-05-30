@@ -135,7 +135,7 @@ class ContextMock private constructor(
             defaultContentType = mockConfig.javalinConfig.http.defaultContentType,
             jsonMapper = mockConfig.javalinConfig.pvt.jsonMapper.value,
             requestLoggerEnabled = false,
-            strictFormContentTypes = false,
+            strictContentTypes = false,
         )
 
 }

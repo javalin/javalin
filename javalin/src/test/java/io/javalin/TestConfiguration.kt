@@ -42,7 +42,7 @@ class TestConfiguration {
             it.bundledPlugins.enableRouteOverview("/test")
             it.bundledPlugins.enableSslRedirects()
             it.http.prefer405over404 = false
-            it.http.strictFormContentTypes = true
+            it.http.strictContentTypes = true
             it.requestLogger.http { ctx, timeInMs -> }
             it.requestLogger.ws { ws -> }
             it.showJavalinBanner = false

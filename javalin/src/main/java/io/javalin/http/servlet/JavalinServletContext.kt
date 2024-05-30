@@ -48,7 +48,7 @@ data class JavalinServletContextConfig(
     val requestLoggerEnabled: Boolean,
     val defaultContentType: String,
     val jsonMapper: JsonMapper,
-    val strictFormContentTypes: Boolean
+    val strictContentTypes: Boolean
 ) {
     companion object {
         fun of(cfg: JavalinConfig): JavalinServletContextConfig =
@@ -59,7 +59,7 @@ data class JavalinServletContextConfig(
                 requestLoggerEnabled = cfg.pvt.requestLogger != null,
                 defaultContentType = cfg.http.defaultContentType,
                 jsonMapper = cfg.pvt.jsonMapper.value,
-                strictFormContentTypes = cfg.http.strictFormContentTypes,
+                strictContentTypes = cfg.http.strictContentTypes,
             )
     }
 }
@@ -139,8 +139,8 @@ class JavalinServletContext(
     private val formParams by javalinLazy { super.formParamMap() }
     override fun formParamMap(): Map<String, List<String>> = formParams
 
-    override fun strictFormContentTypes(): Boolean {
-        return cfg.strictFormContentTypes
+    override fun strictContentTypes(): Boolean {
+        return cfg.strictContentTypes
     }
 
     override fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
