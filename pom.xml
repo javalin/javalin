@@ -76,7 +76,7 @@
         <jar.plugin.version>3.4.1</jar.plugin.version>
         <surefire.plugin.version>3.2.5</surefire.plugin.version>
         <shade.plugin.version>3.5.3</shade.plugin.version>
-        <build-helper.plugin.version>3.5.0</build-helper.plugin.version>
+        <build-helper.plugin.version>3.6.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.4.1</enforcer.plugin.version>
         <clean.plugin.version>3.3.2</clean.plugin.version>
         <install.plugin.version>3.1.2</install.plugin.version>
@@ -99,7 +99,7 @@
         <okhttp.version>4.12.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
 
         <!-- SSL DEPENDENCIES -->
-        <sslcontext-kickstart.version>8.3.4</sslcontext-kickstart.version>
+        <sslcontext-kickstart.version>8.3.5</sslcontext-kickstart.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.25.3</assertj.version>
