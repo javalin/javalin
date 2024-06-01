@@ -99,7 +99,7 @@
         <okhttp.version>4.12.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
 
         <!-- SSL DEPENDENCIES -->
-        <sslcontext-kickstart.version>8.3.4</sslcontext-kickstart.version>
+        <sslcontext-kickstart.version>8.3.5</sslcontext-kickstart.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.25.3</assertj.version>
