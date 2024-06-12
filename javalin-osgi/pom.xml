@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>javalin-parent</artifactId>
+        <groupId>io.javalin</groupId>
+        <version>6.1.7-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>javalin-osgi</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <packaging>bundle</packaging>
+    <properties>
+        <bundle-symbolic-name>${project.groupId}.${project.artifactId}</bundle-symbolic-name>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-everything</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>compile</includeScope>
+                            <includeGroupIds>${project.parent.groupId}</includeGroupIds>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <excludes>**/MANIFEST.MF</excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>5.1.6</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludeDependencies>true</excludeDependencies>
+                    <supportedProjectTypes>
+                        <supportedProjectType>jar</supportedProjectType>
+                        <supportedProjectType>bundle</supportedProjectType>
+                    </supportedProjectTypes>
+                    <instructions>
+                        <Bundle-SymbolicName>${bundle-symbolic-name}</Bundle-SymbolicName>
+                        <Bundle-Description>Bundle: ${project.name}</Bundle-Description>
+                        <Bundle-Name>Javalin OSGi bundle</Bundle-Name>
+                        <Import-Package>
+                            org.eclipse.jetty.util.component,\
+                            com.aayushatharva.brotli4j;resolution:=optional,\
+                            com.aayushatharva.brotli4j.encoder;resolution:=optional,\
+                            com.fasterxml.jackson.databind;resolution:=optional,\
+                            com.fasterxml.jackson.module.kotlin;resolution:=optional,\
+                            com.fasterxml.jackson.datatype.jsr310;resolution:=optional,\
+                            org.ktorm.jackson;resolution:=optional,\
+                            com.github.mustachejava;resolution:=optional,\
+                            com.google.gson;resolution:=optional,\
+                            com.mitchellbosecke.pebble;resolution:=optional,\
+                            com.mitchellbosecke.pebble.loader;resolution:=optional,\
+                            com.mitchellbosecke.pebble.template;resolution:=optional,\
+                            com.nixxcode.jvmbrotli.common;resolution:=optional,\
+                            com.nixxcode.jvmbrotli.enc;resolution:=optional,\
+                            freemarker.template;resolution:=optional,\
+                            gg.jte;resolution:=optional,\
+                            gg.jte.output;resolution:=optional,\
+                            gg.jte.resolve;resolution:=optional,\
+                            io.micrometer.core.instrument;resolution:=optional,\
+                            io.micrometer.core.instrument.binder.http;resolution:=optional,\
+                            io.micrometer.core.instrument.binder.jetty;resolution:=optional,\
+                            io.micrometer.core.instrument.composite;resolution:=optional,\
+                            io.swagger.util;resolution:=optional,\
+                            io.swagger.v3.parser;resolution:=optional,\
+                            io.swagger.v3.parser.core.models;resolution:=optional,\
+                            org.apache.velocity;resolution:=optional,\
+                            org.apache.velocity.app;resolution:=optional,\
+                            org.apache.velocity.context;resolution:=optional,\
+                            org.commonmark.node;resolution:=optional,\
+                            org.commonmark.parser;resolution:=optional,\
+                            org.commonmark.renderer.html;resolution:=optional,\
+                            org.jtwig;resolution:=optional,\
+                            org.jtwig.environment;resolution:=optional,\
+                            org.thymeleaf;resolution:=optional,\
+                            org.thymeleaf.context;resolution:=optional,\
+                            org.thymeleaf.templatemode;resolution:=optional,\
+                            org.thymeleaf.templateresolver;resolution:=optional,
+                            kotlin.*, *
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
