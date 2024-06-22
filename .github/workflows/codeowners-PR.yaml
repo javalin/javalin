@@ -1,0 +1,16 @@
+name: Codeowners merge action
+run-name: Merge check on PR ${{ github.event.pull_request.number }} by ${{ github.event.pull_request.user.login }}
+on:
+  pull_request_target: { types: [opened] }
+  issue_comment: { types: [created] }
+  pull_request_review: { types: [submitted] }
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Codeowners merge check
+        uses: javalin/codeowner-selfmerge-action@ebb1c8800a0e95d6211a4c40331784f7c5c7823d # Latest commit on master branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

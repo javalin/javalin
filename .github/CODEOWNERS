@@ -1,0 +1,8 @@
+# Codeowners file for Javalin
+
+# This file is used to allow the maintainers of Javalin to merge pull requests pertaining to specific parts of the codebase.
+# The format is one line per file pattern, with a GitHub username. A tag can be added in brackets at the end of the line
+# for prefixing the PR title with a specific tag.
+# Due to the use of the brackets, github might report a syntax error, but it's safe to ignore it.
+
+/javalin-ssl/ @zugazagoitia [ssl]
