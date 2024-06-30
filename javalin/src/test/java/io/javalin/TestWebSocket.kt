@@ -165,7 +165,7 @@ class TestWebSocket {
             it.onMessage = { msg -> response = msg }
             it.connectBlocking()
         }
-        doBlocking({ testClient.send(clientJsonString) }, { response == null }) // have to wait for client to recive response
+        doBlocking({ testClient.send(clientJsonString) }, { response == null }) // have to wait for client to receive response
         assertThat(response).contains(""""value1":"updated"""")
         assertThat(response).contains(""""value2":"test2"""")
     }
