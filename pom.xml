@@ -78,7 +78,7 @@
         <shade.plugin.version>3.6.0</shade.plugin.version>
         <build-helper.plugin.version>3.6.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.5.0</enforcer.plugin.version>
-        <clean.plugin.version>3.3.2</clean.plugin.version>
+        <clean.plugin.version>3.4.0</clean.plugin.version>
         <install.plugin.version>3.1.2</install.plugin.version>
         <resources.plugin.version>3.3.1</resources.plugin.version>
         <source.plugin.version>3.3.1</source.plugin.version>
