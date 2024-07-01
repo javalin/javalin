@@ -99,6 +99,7 @@
                             org.commonmark.renderer.html;resolution:=optional,\
                             org.jtwig;resolution:=optional,\
                             org.jtwig.environment;resolution:=optional,\
+                            org.slf4j.spi;resolution:=optional,\
                             org.thymeleaf;resolution:=optional,\
                             org.thymeleaf.context;resolution:=optional,\
                             org.thymeleaf.templatemode;resolution:=optional,\
