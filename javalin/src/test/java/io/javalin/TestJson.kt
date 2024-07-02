@@ -29,6 +29,7 @@ import java.lang.reflect.Type
 import java.time.Instant
 
 internal class TestJson {
+    private val strictContentTypeJavalin = Javalin.create { cfg -> cfg.http.strictContentTypes = true }
 
     private val serializableObjectString = fasterJacksonMapper.toJsonString(SerializableObject())
 
@@ -85,6 +86,18 @@ internal class TestJson {
     fun `default mapper throws when mapping invalid json to class`() = TestUtil.test { app, http ->
         app.get("/") { it.bodyAsClass<NonSerializableObject>() }
         assertThat(http.get("/").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
+    }
+
+    @Test
+    fun `default mapper maps json to object with strict json request`() = TestUtil.test(strictContentTypeJavalin) { app, http ->
+        app.post("/") { it.result(it.bodyAsClass<SerializableObject>().value1) }
+        assertThat(http.post("/").contentType("application/json").body(serializableObjectString).asString().body).isEqualTo("FirstValue")
+    }
+
+    @Test
+    fun `default mapper throws when mapping strict non-json request to class`() = TestUtil.test(strictContentTypeJavalin) { app, http ->
+        app.post("/") { it.result(it.bodyAsClass<SerializableObject>().value1) }
+        assertThat(http.post("/").body(serializableObjectString).asString().httpCode()).isEqualTo(BAD_REQUEST)
     }
 
     @Test
