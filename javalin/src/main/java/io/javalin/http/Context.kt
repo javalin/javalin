@@ -280,16 +280,16 @@ interface Context {
     fun basicAuthCredentials(): BasicAuthCredentials? = getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
     /** Returns true if request is multipart. */
-    fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/") == true
+    fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.startsWith("multipart/") == true
 
     /** Returns true if request is multipart/form-data. */
-    fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/form-data") == true
+    fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.startsWith("multipart/form-data") == true
 
     /** Returns true if request is application/x-www-form-urlencoded. */
-    fun isFormUrlencoded(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("application/x-www-form-urlencoded") == true
+    fun isFormUrlencoded(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.startsWith("application/x-www-form-urlencoded") == true
 
     /** Returns true if request is application/json. */
-    fun isJson(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("application/json") == true
+    fun isJson(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.startsWith("application/json") == true
 
     /** Gets first [UploadedFile] for the specified name, or null. */
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
