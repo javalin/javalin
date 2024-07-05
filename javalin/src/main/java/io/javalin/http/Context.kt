@@ -288,7 +288,7 @@ interface Context {
     /** Returns true if request is application/x-www-form-urlencoded. */
     fun isFormUrlencoded(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("application/x-www-form-urlencoded") == true
 
-    /** Returns true if request is application/x-www-form-urlencoded. */
+    /** Returns true if request is application/json. */
     fun isJson(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("application/json") == true
 
     /** Gets first [UploadedFile] for the specified name, or null. */
