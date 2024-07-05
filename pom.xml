@@ -10,6 +10,7 @@
         <module>javalin-utils</module>
         <module>javalin-rendering</module>
         <module>javalin-ssl</module>
+        <module>javalin-osgi</module>
     </modules>
 
     <groupId>io.javalin</groupId>
