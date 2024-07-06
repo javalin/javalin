@@ -21,6 +21,10 @@ import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
 import java.util.*
 import java.util.function.Consumer
 
+const val useJdkForCorsFeatureFlag = false
+private val isValidOriginFn: (String) -> Boolean = if (useJdkForCorsFeatureFlag) CorsUtils::isValidOriginJdk else CorsUtils::isValidOrigin
+private val parseAsOriginPartsFn: (String) -> OriginParts = if (useJdkForCorsFeatureFlag) CorsUtils::parseAsOriginPartsJdk else CorsUtils::parseAsOriginParts
+
 /** Configuration for the [CorsPlugin]*/
 class CorsPluginConfig {
     internal val rules = mutableListOf<CorsRule>()
@@ -53,13 +57,13 @@ class CorsPluginConfig {
             val origins = listOf(host) + others.toList()
             origins.map { CorsUtils.addSchemeIfMissing(it, defaultScheme) }.forEachIndexed { idx, it ->
                 require(it != "null") { "Adding the string null as an allowed host is forbidden. Consider calling anyHost() instead" }
-                require(isValidOrigin(it)) { "The given value '${origins[idx]}' could not be transformed into a valid origin" }
                 val wildcardResult = originFulfillsWildcardRequirements(it)
                 when (wildcardResult) {
                     WildcardResult.WildcardOkay, WildcardResult.NoWildcardDetected -> Unit
                     WildcardResult.ErrorState.TooManyWildcards -> throw IllegalArgumentException("Too many wildcards detected inside '${origins[idx]}'. Only one at the start of the host is allowed!")
                     WildcardResult.ErrorState.WildcardNotAtTheStartOfTheHost -> throw IllegalArgumentException("The wildcard must be at the start of the passed in host. The value '${origins[idx]}' violates this requirement!")
                 }
+                require(isValidOriginFn(it)) { "The given value '${origins[idx]}' could not be transformed into a valid origin" }
                 allowedOrigins.add(it)
             }
         }
@@ -160,7 +164,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
     }
 
     private fun matchOrigin(clientOrigin: String, origins: List<String>): Boolean {
-        val clientOriginPart = parseAsOriginParts(clientOrigin)
+        val clientOriginPart = parseAsOriginPartsFn(clientOrigin)
         val serverOriginParts = origins.map(::parseAsOriginParts)
 
         return serverOriginParts.any { originsMatch(clientOriginPart, it) }
