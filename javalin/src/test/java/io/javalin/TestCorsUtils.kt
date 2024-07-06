@@ -7,7 +7,7 @@ import io.javalin.plugin.bundled.WildcardResult
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
-import org.assertj.core.api.Assertions.assertThatNullPointerException
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -183,6 +183,24 @@ class TestCorsUtils {
             assertThat(host).isEqualTo("*.example.com")
             assertThat(port).isEqualTo(8443)
         }
+
+        @Test
+        fun `ip4 works`() {
+            val (scheme, host, port) = CorsUtils.parseAsOriginParts("https://127.0.0.1")
+            assertThat(scheme).isEqualTo("https")
+            assertThat(host).isEqualTo("127.0.0.1")
+            assertThat(port).isEqualTo(443)
+        }
+
+        @Test
+        @Disabled
+        fun `ip6 works`() {
+            // will be fixed by switching implementations
+            val (scheme, host, port) = CorsUtils.parseAsOriginParts("https://[::1]")
+            assertThat(scheme).isEqualTo("https")
+            assertThat(host).isEqualTo("[::1]")
+            assertThat(port).isEqualTo(443)
+        }
     }
 
     @Nested
@@ -223,6 +241,27 @@ class TestCorsUtils {
             assertThat(scheme).isEqualTo("https")
             assertThat(host).isEqualTo("*.example.com")
             assertThat(port).isEqualTo(8443)
+        }
+
+        @Test
+        fun `ip4 works`() {
+            val (scheme, host, port) = CorsUtils.parseAsOriginPartsJdk("https://127.0.0.1")
+            assertThat(scheme).isEqualTo("https")
+            assertThat(host).isEqualTo("127.0.0.1")
+            assertThat(port).isEqualTo(443)
+        }
+
+        @Test
+        fun `ip6 works`() {
+            val (scheme, host, port) = CorsUtils.parseAsOriginPartsJdk("https://[::1]")
+            assertThat(scheme).isEqualTo("https")
+            assertThat(host).isEqualTo("[::1]")
+            assertThat(port).isEqualTo(443)
+        }
+
+        @Test
+        fun `ip6 without brackets is rejected`() {
+            assertThatExceptionOfType(URISyntaxException::class.java).isThrownBy { CorsUtils.parseAsOriginPartsJdk("https://::1") }
         }
     }
 
