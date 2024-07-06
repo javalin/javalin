@@ -14,10 +14,8 @@ import io.javalin.http.Header.VARY
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.bundled.CorsPluginConfig.CorsRule
-import io.javalin.plugin.bundled.CorsUtils.isValidOrigin
 import io.javalin.plugin.bundled.CorsUtils.originFulfillsWildcardRequirements
 import io.javalin.plugin.bundled.CorsUtils.originsMatch
-import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
 import java.util.*
 import java.util.function.Consumer
 
@@ -118,7 +116,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
     private fun handleCors(ctx: Context, cfg: CorsRule) {
         val clientOrigin = ctx.header(ORIGIN) ?: return
 
-        if (!isValidOrigin(clientOrigin)) {
+        if (!isValidOriginFn(clientOrigin)) {
             return
         }
 
@@ -165,7 +163,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
 
     private fun matchOrigin(clientOrigin: String, origins: List<String>): Boolean {
         val clientOriginPart = parseAsOriginPartsFn(clientOrigin)
-        val serverOriginParts = origins.map(::parseAsOriginParts)
+        val serverOriginParts = origins.map(parseAsOriginPartsFn)
 
         return serverOriginParts.any { originsMatch(clientOriginPart, it) }
     }
