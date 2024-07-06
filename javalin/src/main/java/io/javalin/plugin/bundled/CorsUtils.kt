@@ -45,8 +45,12 @@ internal object CorsUtils {
         if (origin == "null") {
             return true
         }
+        val wildcardSnippet = "://*."
+        val hasWildcard = wildcardSnippet in origin
+        val originWithoutWildcard = origin.replace(wildcardSnippet, "://")
+        val originToAnalyze = if (hasWildcard) originWithoutWildcard else origin
         try {
-            val uri = URI(origin).parseServerAuthority()
+            val uri = URI(originToAnalyze).parseServerAuthority()
             if (uri.path.isNullOrEmpty().not()) {
                 return false
             }

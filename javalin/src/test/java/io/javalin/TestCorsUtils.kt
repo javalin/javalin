@@ -48,7 +48,7 @@ class TestCorsUtils {
     @Nested
     inner class IsValidOrigin {
         @ParameterizedTest
-        @CsvSource(value = ["null", "https://example.com", "https://example.com:8443"])
+        @CsvSource(value = ["null", "https://example.com", "https://example.com:8443", "https://*.example.com"])
         fun `accepts valid origins`(origin: String) {
             assertThat(CorsUtils.isValidOrigin(origin)).describedAs(origin).isTrue
         }
@@ -61,7 +61,7 @@ class TestCorsUtils {
         }
 
         @ParameterizedTest
-        @CsvSource(value = ["null", "https://example.com", "https://example.com:8443"])
+        @CsvSource(value = ["null", "https://example.com", "https://example.com:8443", "https://*.example.com"])
         fun `accepts valid origins JDK`(origin: String) {
             assertThat(CorsUtils.isValidOriginJdk(origin)).describedAs(origin).isTrue
         }
