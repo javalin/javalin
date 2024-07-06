@@ -271,7 +271,6 @@ class TestCors {
         }
 
         @Test
-        @Disabled("TODO does not work yet for new impl")
         fun `ipv6 addresses are possible as allowed origin`() {
             assumeTrue(useJdkForCorsFeatureFlag, "only supported for jdk implementation")
             TestUtil.test(Javalin.create {
@@ -285,7 +284,6 @@ class TestCors {
         }
 
         @Test
-        @Disabled("TODO does not work yet for new impl")
         fun `wildcard feature does not interfere with ip6 addresses`() {
             assumeTrue(useJdkForCorsFeatureFlag, "only supported for jdk implementation")
             TestUtil.test(Javalin.create {
