@@ -262,6 +262,46 @@ class TestCors {
         }
 
         @Test
+        fun `ipv4 addresses are possible as allowed origin`() = TestUtil.test(Javalin.create {
+            it.registerPlugin(CorsPlugin { cors ->
+                cors.addRule { rule -> rule.allowHost("127.0.0.1") }
+            })
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+            assertThat(http.get("/", mapOf(ORIGIN to "https://127.0.0.1")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://127.0.0.1")
+        }
+
+        @Test
+        fun `wildcard feature does not interfere with ip4 addresses`() = TestUtil.test(Javalin.create {
+            it.registerPlugin(CorsPlugin { cors ->
+                cors.addRule { rule -> rule.allowHost("*.example.com", "127.0.0.1") }
+            })
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+            assertThat(http.get("/", mapOf(ORIGIN to "https://127.0.0.1")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://127.0.0.1")
+        }
+
+        @Test
+        fun `ipv6 addresses are possible as allowed origin`() = TestUtil.test(Javalin.create {
+            it.registerPlugin(CorsPlugin { cors ->
+                cors.addRule { rule -> rule.allowHost("[0:0:0:0:0:0:0:1]") }
+            })
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+            assertThat(http.get("/", mapOf(ORIGIN to "https://[0:0:0:0:0:0:0:1]")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://[0:0:0:0:0:0:0:1]")
+        }
+
+        @Test
+        fun `wildcard feature does not interfere with ip6 addresses`() = TestUtil.test(Javalin.create {
+            it.registerPlugin(CorsPlugin { cors ->
+                cors.addRule { rule -> rule.allowHost("*.example.com", "[::1]") }
+            })
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+            assertThat(http.get("/", mapOf(ORIGIN to "https://[::1]")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://[::1]")
+        }
+
+        @Test
         fun `gh-2246 chaining with andThen works`() {
             val cors = Consumer<JavalinConfig> { config ->
 
