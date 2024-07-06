@@ -75,7 +75,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
 
     init {
         require(pluginConfig.rules.isNotEmpty()) {
-            "At least one cors config has to be provided. Use CorsContainer.add() to add one."
+            "At least one cors config has to be provided. Use CorsPluginConfig.addRule() to add one."
         }
     }
 

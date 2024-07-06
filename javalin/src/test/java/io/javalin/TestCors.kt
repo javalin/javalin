@@ -39,7 +39,7 @@ class TestCors {
         fun `throws for zero configurations`() {
             assertThatExceptionOfType(IllegalArgumentException::class.java)
                 .isThrownBy { Javalin.create { it.registerPlugin(CorsPlugin()) } }
-                .withMessageStartingWith("At least one cors config has to be provided. Use CorsContainer.add() to add one.")
+                .withMessageStartingWith("At least one cors config has to be provided. Use CorsPluginConfig.addRule() to add one.")
         }
 
         @Test
