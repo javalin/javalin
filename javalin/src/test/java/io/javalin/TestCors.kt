@@ -6,6 +6,8 @@
 
 package io.javalin
 
+import io.javalin.apibuilder.ApiBuilder.*
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
@@ -16,7 +18,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.REFERER
-import io.javalin.http.HttpStatus.UNAUTHORIZED
+import io.javalin.http.TooManyRequestsResponse
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
@@ -27,6 +29,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.util.function.Consumer
 
 class TestCors {
 
@@ -256,6 +259,37 @@ class TestCors {
             assertThat(response.header(ACCESS_CONTROL_ALLOW_HEADERS)).isEqualTo("123")
             assertThat(response.header(ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("TEST")
             assertThat(response.body).isEqualTo("Hello")
+        }
+
+        @Test
+        fun `gh-2246 chaining with andThen works`() {
+            val cors = Consumer<JavalinConfig> { config ->
+
+                val corsPlugin = CorsPlugin { cors ->
+                    cors.addRule { rule -> rule.reflectClientOrigin = true }
+                }
+                // Workaround: call onStart directly
+                // onStart would otherwise be called on startup if we go the regular route of registerPlugin
+                // we register the routes here early so there are chronologically before the other before handlers
+                corsPlugin.onStart(config)
+            }
+            val routesApiBuilder = Consumer<JavalinConfig> { config ->
+                config.router.apiBuilder {
+                    path("/") {
+                        before { _ ->
+                            throw TooManyRequestsResponse()
+                        }
+                        get { ctx ->
+                            ctx.result("a")
+                        }
+                    }
+                }
+            }
+
+            val corsFirst = Javalin.create(cors.andThen(routesApiBuilder))
+            TestUtil.test(corsFirst) { _, http ->
+                assertThat(http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://some-origin")
+            }
         }
     }
 
