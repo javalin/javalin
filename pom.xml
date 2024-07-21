@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
     <modules>
@@ -15,7 +14,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>6.1.7-SNAPSHOT</version>
+    <version>6.2.0</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -32,7 +31,7 @@
         <connection>scm:git:git@github.com:javalin/javalin.git</connection>
         <developerConnection>scm:git:git@github.com:javalin/javalin.git</developerConnection>
         <url>https://github.com/javalin/javalin.git</url>
-        <tag>HEAD</tag>
+        <tag>javalin-parent-6.2.0</tag>
     </scm>
     <developers>
         <developer>
@@ -454,7 +453,7 @@
                         Similar JUnit issue: https://github.com/junit-team/junit5/issues/1377
                         -->
                         <excludes>
-                            <exclude/>
+                            <exclude />
                         </excludes>
                         <useModulePath>false</useModulePath>
                     </configuration>
