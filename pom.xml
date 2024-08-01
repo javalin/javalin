@@ -103,7 +103,7 @@
         <sslcontext-kickstart.version>8.3.6</sslcontext-kickstart.version>
 
         <!-- TEST DEPENDENCIES -->
-        <assertj.version>3.26.0</assertj.version>
+        <assertj.version>3.26.3</assertj.version>
         <moshi.version>1.15.1</moshi.version>
         <java.websocket.version>1.5.6</java.websocket.version>
         <junit.version>5.10.3</junit.version>
