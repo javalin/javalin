@@ -109,7 +109,7 @@
         <junit.version>5.10.3</junit.version>
         <jmh.version>1.37</jmh.version>
         <mockito.version>5.12.0</mockito.version>
-        <mockk.version>1.13.10</mockk.version>
+        <mockk.version>1.13.12</mockk.version>
         <unirest.version>3.14.5</unirest.version>
         <selenium.chrome.driver.version>4.20.0</selenium.chrome.driver.version>
         <webdrivermanager.version>5.9.2</webdrivermanager.version>
