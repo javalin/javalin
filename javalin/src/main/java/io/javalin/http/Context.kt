@@ -178,6 +178,15 @@ interface Context {
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
 
+    /** Gets a list of form params for the specified key, or empty list. */
+    fun <T> formParamsAsClass(key: String, clazz: Class<T>): Validator<List<T>> {
+        val params = (formParamMap()[key] ?: emptyList()).map {
+            appData(ValidationKey).validator(key, clazz, it).get()
+        }
+
+        return appData(ValidationKey).validator(key, params)
+    }
+
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> = when {
         isMultipartFormData() -> MultipartUtil.getFieldMap(req())
@@ -210,6 +219,15 @@ interface Context {
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
+
+    /** Gets a list of query params for the specified key, or empty list. */
+    fun <T> queryParamsAsClass(key: String, clazz: Class<T>): Validator<List<T>> {
+        val params = (queryParamMap()[key] ?: emptyList()).map {
+            appData(ValidationKey).validator(key, clazz, it).get()
+        }
+
+        return appData(ValidationKey).validator(key, params)
+    }
 
     /** Gets a map with all the query param keys and values. */
     fun queryParamMap(): Map<String, List<String>> = splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding() ?: "UTF-8")
@@ -527,5 +545,11 @@ inline fun <reified T : Any> Context.headerAsClass(header: String): Validator<T>
 /** Reified version of [Context.queryParamAsClass] (Kotlin only) */
 inline fun <reified T : Any> Context.queryParamAsClass(key: String): Validator<T> = queryParamAsClass(key, T::class.java)
 
+/** Reified version of [Context.queryParamsAsClass] (Kotlin only) */
+inline fun <reified T : Any> Context.queryParamsAsClass(key: String): Validator<List<T>> = queryParamsAsClass(key, T::class.java)
+
 /** Reified version of [Context.formParamAsClass] (Kotlin only) */
 inline fun <reified T : Any> Context.formParamAsClass(key: String): Validator<T> = formParamAsClass(key, T::class.java)
+
+/** Reified version of [Context.formParamsAsClass] (Kotlin only) */
+inline fun <reified T : Any> Context.formParamsAsClass(key: String): Validator<List<T>> = formParamsAsClass(key, T::class.java)

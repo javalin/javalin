@@ -7,10 +7,13 @@
 package io.javalin
 
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.formParamAsClass
+import io.javalin.http.formParamsAsClass
 import io.javalin.http.headerAsClass
 import io.javalin.http.queryParamAsClass
+import io.javalin.http.queryParamsAsClass
 import io.javalin.http.servlet.SESSION_CACHE_KEY_PREFIX
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.BasicAuthPlugin
@@ -222,6 +225,15 @@ class TestRequest {
     }
 
     @Test
+    fun `queryParams returns list of converted and validated supplied params`() = TestUtil.test { app, http ->
+        app.get("/1") { it.result(it.queryParamsAsClass<Double>("qp1").check({ it.all { it > .0 } }, "all values must be greater then 0").get().toString()) }
+        assertThat(http.getBody("/1?qp1=1.3&qp1=2.1&qp1=3.2")).isEqualTo("[1.3, 2.1, 3.2]")
+
+        app.get("/2") { it.result(it.queryParamsAsClass<Double>("qp1").check({ it.all { it > 0 } }, "all values must be greater then 0").get().toString()) }
+        assertThat(http.getStatus("/2?qp1=1.3&qp1=-2.1&qp1=3.2")).isEqualTo(HttpStatus.BAD_REQUEST)
+    }
+
+    @Test
     fun `query params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
         app.get("/1") { it.result("${it.queryParam("qp")}") }
         app.get("/2") { it.result("${it.queryParam("%+")}") }
@@ -255,6 +267,15 @@ class TestRequest {
     fun `formParam returns defaults to default value`() = TestUtil.test { app, http ->
         app.post("/") { it.result("" + it.formParamAsClass<Int>("fp4").getOrDefault(4)) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("4")
+    }
+
+    @Test
+    fun `formParams returns list of converted and validated supplied params`() = TestUtil.test { app, http ->
+        app.post("/1") { it.result(it.formParamsAsClass<Double>("fp1").check({ it.all { it > .0 } }, "all values must be greater then 0").get().toString()) }
+        assertThat(http.post("/1").body("fp1=1.3&fp1=2.1&fp1=3.2").asString().body).isEqualTo("[1.3, 2.1, 3.2]")
+
+        app.post("/2") { it.result(it.formParamsAsClass<Double>("fp1").check({ it.all { it > 0 } }, "all values must be greater then 0").get().toString()) }
+        assertThat(http.post("/2").body("fp1=1.3&fp1=-2.1&fp1=3.2").asString().status).isEqualTo(HttpStatus.BAD_REQUEST.code)
     }
 
     @Test
