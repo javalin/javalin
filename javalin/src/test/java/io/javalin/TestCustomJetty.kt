@@ -7,6 +7,8 @@
 
 package io.javalin
 
+import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.http.Header
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
@@ -235,6 +237,35 @@ class TestCustomJetty {
         TestUtil.test(filterJavalin) { _, http ->
             assertThat(http.get("/allowed").body).isEqualTo("Allowed!")
             assertThat(http.get("/anything-else").body).isEqualTo("Not allowed")
+        }
+    }
+
+    @Test
+    fun `can add filter to do url rewrites based on content type`() {
+        val filterJavalin = Javalin.create {
+            it.jetty.modifyServletContextHandler { handler ->
+                handler.addFilter(FilterHolder { req, res, chain ->
+                    val contentType = req.getContentType()
+                    val versionRegex = "vnd\\.blah\\.com\\+(v\\d)\\+json".toRegex()
+                    val matchResult = versionRegex.find(contentType)
+                    if (matchResult != null && req.getAttribute("forwarded") == null) {
+                        val version = matchResult.groupValues[1] // extract version number
+                        val newUri = "/$version${(req as HttpServletRequest).requestURI}"
+                        req.setAttribute("forwarded", true)
+                        req.getRequestDispatcher(newUri).forward(req, res)
+                    } else {
+                        chain.doFilter(req, res)
+                    }
+                }, "/*", EnumSet.allOf(DispatcherType::class.java))
+            }
+            it.router.apiBuilder {
+                get("/v1/test") { it.result("Version 1!") }
+                get("/v2/test") { it.result("Version 2!") }
+            }
+        }
+        TestUtil.test(filterJavalin) { _, http ->
+            assertThat(http.get("/test", mapOf(Header.CONTENT_TYPE to "vnd.blah.com+v1+json")).body).isEqualTo("Version 1!")
+            assertThat(http.get("/test", mapOf(Header.CONTENT_TYPE to "vnd.blah.com+v2+json")).body).isEqualTo("Version 2!")
         }
     }
 
