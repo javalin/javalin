@@ -3,7 +3,7 @@
     <parent>
         <artifactId>javalin-utils</artifactId>
         <groupId>io.javalin</groupId>
-        <version>6.2.1-SNAPSHOT</version>
+        <version>6.3.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
