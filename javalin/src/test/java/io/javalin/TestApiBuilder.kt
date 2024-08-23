@@ -7,7 +7,6 @@
 
 package io.javalin
 
-import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.before
 import io.javalin.apibuilder.ApiBuilder.crud
