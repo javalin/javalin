@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
-        <version>6.1.1-SNAPSHOT</version>
+        <version>6.3.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -12,7 +11,7 @@
 
     <properties>
         <copy-build-resources.skip>false</copy-build-resources.skip>
-        <jte.version>3.0.2</jte.version>
+        <jte.version>2.3.2</jte.version>
     </properties>
 
     <dependencies>
@@ -32,6 +31,12 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
@@ -58,19 +63,19 @@
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
-            <version>2.3.31</version>
+            <version>2.3.32</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.thymeleaf</groupId>
             <artifactId>thymeleaf</artifactId>
-            <version>3.1.0.M1</version>
+            <version>3.1.2.RELEASE</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.github.spullara.mustache.java</groupId>
             <artifactId>compiler</artifactId>
-            <version>0.9.10</version>
+            <version>0.9.14</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -94,7 +99,7 @@
         <dependency>
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>
-            <version>0.19.0</version>
+            <version>0.22.0</version>
             <optional>true</optional>
         </dependency>
         <!-- END OPTIONAL TEMPLATE ENGINES -->

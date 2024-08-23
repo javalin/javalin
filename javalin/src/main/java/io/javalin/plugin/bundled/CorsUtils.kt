@@ -135,6 +135,10 @@ internal object CorsUtils {
         if (!serverOrigin.host.startsWith("*.")) {
             return false
         }
+        // the above lines imply a requirement of at least one dot in the origin header sent by the client
+        if ('.' !in clientOrigin.host) {
+            return false
+        }
         val serverHostBase = serverOrigin.host.removePrefix("*.")
         val clientHostBase = clientOrigin.host.split('.', limit = 2)[1]
 

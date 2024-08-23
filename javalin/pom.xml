@@ -3,7 +3,7 @@
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
-        <version>6.1.1-SNAPSHOT</version>
+        <version>6.3.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -68,6 +68,12 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
@@ -205,7 +211,7 @@
                             <goal>add-module-info</goal>
                         </goals>
                         <configuration>
-                        <overwriteExistingFiles>true</overwriteExistingFiles>
+                            <overwriteExistingFiles>true</overwriteExistingFiles>
                             <module>
                                 <moduleInfoFile>./module-info.java
                                 </moduleInfoFile>
@@ -230,7 +236,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.3.0</version>
             </plugin>
         </plugins>
     </build>

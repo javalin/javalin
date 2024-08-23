@@ -47,7 +47,8 @@ data class JavalinServletContextConfig(
     val compressionStrategy: CompressionStrategy,
     val requestLoggerEnabled: Boolean,
     val defaultContentType: String,
-    val jsonMapper: JsonMapper
+    val jsonMapper: JsonMapper,
+    val strictContentTypes: Boolean
 ) {
     companion object {
         fun of(cfg: JavalinConfig): JavalinServletContextConfig =
@@ -58,6 +59,7 @@ data class JavalinServletContextConfig(
                 requestLoggerEnabled = cfg.pvt.requestLogger != null,
                 defaultContentType = cfg.http.defaultContentType,
                 jsonMapper = cfg.pvt.jsonMapper.value,
+                strictContentTypes = cfg.http.strictContentTypes,
             )
     }
 }
@@ -94,7 +96,9 @@ class JavalinServletContext(
         handlerType = parsedEndpoint.endpoint.method
         if (matchedPath != parsedEndpoint.endpoint.path) { // if the path has changed, we have to extract path params
             matchedPath = parsedEndpoint.endpoint.path
-            pathParamMap = parsedEndpoint.extractPathParams(requestUri)
+            if (parsedEndpoint.endpoint.hasPathParams()) {
+                pathParamMap = parsedEndpoint.extractPathParams(requestUri)
+            }
         }
         if (handlerType != AFTER) {
             endpointHandlerPath = parsedEndpoint.endpoint.path
@@ -134,6 +138,10 @@ class JavalinServletContext(
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
     private val formParams by javalinLazy { super.formParamMap() }
     override fun formParamMap(): Map<String, List<String>> = formParams
+
+    override fun strictContentTypes(): Boolean {
+        return cfg.strictContentTypes
+    }
 
     override fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
     override fun pathParam(key: String): String = pathParamOrThrow(pathParamMap, key, matchedPath)
@@ -191,12 +199,14 @@ fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.
     value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
 }
 
-fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> {
-    return if (string.isEmpty()) mapOf() else string.split("&").map { it.split("=", limit = 2) }.groupBy(
-        { URLDecoder.decode(it[0], charset) },
-        { if (it.size > 1) URLDecoder.decode(it[1], charset) else "" }
-    ).mapValues { it.value.toList() }
-}
+fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> =
+    if (string.isEmpty()) mapOf() else string.split("&")
+        .map { it.split("=", limit = 2).let { it.get(0) to it.getOrElse(1) { "" } } } // map missing values to empty strings
+        .groupBy({ it.first.urlDecode(charset) }, { it.second.urlDecode(charset) })
+        .mapNotNull { (k, v) -> k?.let { it to v.filterNotNull() } }.toMap()
+
+private fun String.urlDecode(charset: String): String? =
+    runCatching { URLDecoder.decode(this, charset) }.getOrNull()
 
 fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
     pathParams[key.replaceFirst("{", "").replaceFirst("}", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")

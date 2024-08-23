@@ -9,11 +9,12 @@
         <module>javalin-utils</module>
         <module>javalin-rendering</module>
         <module>javalin-ssl</module>
+        <module>javalin-osgi</module>
     </modules>
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>6.1.1-SNAPSHOT</version>
+    <version>6.3.1-SNAPSHOT</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -63,55 +64,55 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <kotlin.version>1.9.10</kotlin.version>
+        <kotlin.version>1.9.25</kotlin.version>
         <kotlin.compiler.jvmTarget>11</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
 
         <!-- PLUGINS -->
-        <compiler.plugin.version>3.12.1</compiler.plugin.version>
+        <compiler.plugin.version>3.13.0</compiler.plugin.version>
         <dokka.plugin.version>1.9.10</dokka.plugin.version>
         <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
-        <gpg.plugin.version>3.0.1</gpg.plugin.version>
-        <jar.plugin.version>3.2.2</jar.plugin.version>
-        <surefire.plugin.version>3.2.5</surefire.plugin.version>
-        <shade.plugin.version>3.5.2</shade.plugin.version>
-        <build-helper.plugin.version>3.3.0</build-helper.plugin.version>
-        <enforcer.plugin.version>3.1.0</enforcer.plugin.version>
-        <clean.plugin.version>3.2.0</clean.plugin.version>
-        <install.plugin.version>3.0.0-M1</install.plugin.version>
-        <resources.plugin.version>3.2.0</resources.plugin.version>
-        <source.plugin.version>3.2.1</source.plugin.version>
-        <moditect.plugin.version>1.1.0</moditect.plugin.version>
+        <gpg.plugin.version>3.2.4</gpg.plugin.version>
+        <jar.plugin.version>3.4.1</jar.plugin.version>
+        <surefire.plugin.version>3.3.1</surefire.plugin.version>
+        <shade.plugin.version>3.6.0</shade.plugin.version>
+        <build-helper.plugin.version>3.6.0</build-helper.plugin.version>
+        <enforcer.plugin.version>3.5.0</enforcer.plugin.version>
+        <clean.plugin.version>3.4.0</clean.plugin.version>
+        <install.plugin.version>3.1.2</install.plugin.version>
+        <resources.plugin.version>3.3.1</resources.plugin.version>
+        <source.plugin.version>3.3.1</source.plugin.version>
+        <moditect.plugin.version>1.2.2.Final</moditect.plugin.version>
         <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
-        <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
+        <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
 
         <!-- DEPENDENCIES -->
         <annotations.version>24.1.0</annotations.version>
-        <jetty.version>11.0.19</jetty.version>
+        <jetty.version>11.0.23</jetty.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
-        <jackson.version>2.16.1</jackson.version>
-        <jackson.databind.version>2.16.1</jackson.databind.version>
-        <brotli4j.version>1.15.0</brotli4j.version>
-        <logback.version>1.4.14</logback.version>
-        <slf4j.version>2.0.10</slf4j.version>
-        <gson.version>2.10.1</gson.version>
+        <jackson.version>2.17.2</jackson.version>
+        <jackson.databind.version>2.17.2</jackson.databind.version>
+        <brotli4j.version>1.16.0</brotli4j.version>
+        <logback.version>1.5.7</logback.version>
+        <slf4j.version>2.0.16</slf4j.version>
+        <gson.version>2.11.0</gson.version>
         <okhttp.version>4.12.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
 
         <!-- SSL DEPENDENCIES -->
-        <sslcontext-kickstart.version>8.3.1</sslcontext-kickstart.version>
+        <sslcontext-kickstart.version>8.3.6</sslcontext-kickstart.version>
 
         <!-- TEST DEPENDENCIES -->
-        <assertj.version>3.25.0</assertj.version>
-        <moshi.version>1.15.0</moshi.version>
+        <assertj.version>3.26.3</assertj.version>
+        <moshi.version>1.15.1</moshi.version>
         <java.websocket.version>1.5.6</java.websocket.version>
-        <junit.version>5.9.3</junit.version>
+        <junit.version>5.10.3</junit.version>
         <jmh.version>1.37</jmh.version>
-        <mockito.version>5.8.0</mockito.version>
-        <mockk.version>1.13.8</mockk.version>
+        <mockito.version>5.12.0</mockito.version>
+        <mockk.version>1.13.12</mockk.version>
         <unirest.version>3.14.5</unirest.version>
-        <selenium.chrome.driver.version>4.18.1</selenium.chrome.driver.version>
-        <webdrivermanager.version>5.7.0</webdrivermanager.version>
+        <selenium.chrome.driver.version>4.20.0</selenium.chrome.driver.version>
+        <webdrivermanager.version>5.9.2</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
 
@@ -275,7 +276,9 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${compiler.plugin.version}</version>
                 <executions>
                     <!-- Replacing default-compile as it is treated specially by maven -->
                     <execution>
@@ -307,55 +310,14 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.jetbrains.dokka</groupId>
-                <artifactId>dokka-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>pre-site</phase>
-                        <goals>
-                            <goal>dokka</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${enforcer.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>enforce-maven</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <requireJavaVersion>
-                                    <message>Current JDK version ${java.version}: should be ${jdk.version}, or higher!</message>
-                                    <version>${jdk.version}</version>
-                                </requireJavaVersion>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
+                <version>${resources.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>copy-license</id>
@@ -400,6 +362,7 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>${source.plugin.version}</version>
                 <executions>
@@ -492,7 +455,7 @@
                         <excludes>
                             <exclude />
                         </excludes>
-          	            <useModulePath>false</useModulePath>
+                        <useModulePath>false</useModulePath>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -554,20 +517,58 @@
 
     <profiles>
         <profile>
-            <id>dev</id>
-            <properties>
-                <gpg.skip>true</gpg.skip>
-            </properties>
-        </profile>
-        <profile>
-            <id>publish-snapshot</id>
-            <properties>
-                <gpg.skip>true</gpg.skip>
-            </properties>
-        </profile>
-        <profile>
             <id>sonatype-oss-release</id>
-            <!-- profile used by mvn release, uses default config -->
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jetbrains.dokka</groupId>
+                        <artifactId>dokka-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>pre-site</phase>
+                                <goals>
+                                    <goal>dokka</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <version>${enforcer.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>enforce-maven</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireJavaVersion>
+                                            <message>Current JDK version ${java.version} - Should be ${jdk.version}x</message>
+                                            <version>[${jdk.version}, ${jdk.version}.999)</version>
+                                        </requireJavaVersion>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${gpg.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 

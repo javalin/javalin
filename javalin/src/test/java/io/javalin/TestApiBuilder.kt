@@ -13,16 +13,21 @@ import io.javalin.apibuilder.ApiBuilder.before
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.delete
 import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.apibuilder.ApiBuilder.head
 import io.javalin.apibuilder.ApiBuilder.patch
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.apibuilder.ApiBuilder.post
 import io.javalin.apibuilder.ApiBuilder.put
+import io.javalin.apibuilder.ApiBuilder.sse
 import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.http.HandlerType
 import io.javalin.http.HttpStatus.CREATED
 import io.javalin.http.HttpStatus.NO_CONTENT
 import io.javalin.http.HttpStatus.OK
+import io.javalin.router.Endpoint
+import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.okHandler
 import io.javalin.testing.httpCode
@@ -360,6 +365,80 @@ class TestApiBuilder {
         override fun delete(ctx: Context, resourceId: String) {
             ctx.status(NO_CONTENT)
         }
+    }
+
+    enum class Role : RouteRole { A }
+
+    @Test
+    fun `ApiBuilder maps HEAD properly`() = testInsertion(HandlerType.HEAD) {
+        path("/1") { head { } }
+        path("/2") { head({ }, Role.A) }
+        head("/3") { }
+        head("/4", { }, Role.A)
+    }
+
+    @Test
+    fun `ApiBuilder maps GET properly`() = testInsertion(HandlerType.GET) {
+        path("/1") { get { } }
+        path("/2") { get({ }, Role.A) }
+        get("/3") { }
+        get("/4", { }, Role.A)
+    }
+
+    @Test
+    fun `ApiBuilder maps POST properly`() = testInsertion(HandlerType.POST) {
+        path("/1") { post { } }
+        path("/2") { post({ }, Role.A) }
+        post("/3") { }
+        post("/4", { }, Role.A)
+    }
+
+    @Test
+    fun `ApiBuilder maps PUT properly`() = testInsertion(HandlerType.PUT) {
+        path("/1") { put { } }
+        path("/2") { put({ }, Role.A) }
+        put("/3") { }
+        put("/4", { }, Role.A)
+    }
+
+    @Test
+    fun `ApiBuilder maps PATCH properly`() = testInsertion(HandlerType.PATCH) {
+        path("/1") { patch { } }
+        path("/2") { patch({ }, Role.A) }
+        patch("/3") { }
+        patch("/4", { }, Role.A)
+    }
+
+    @Test
+    fun `ApiBuilder maps DELETE properly`() = testInsertion(HandlerType.DELETE) {
+        path("/1") { delete { } }
+        path("/2") { delete({ }, Role.A) }
+        delete("/3") { }
+        delete("/4", { }, Role.A)
+    }
+
+    @Test
+    fun `ApiBuilder maps SSE properly`() = testInsertion(HandlerType.GET) { // SSE is just a GET
+        path("/1") { sse { } }
+        path("/2") { sse({ }, Role.A) }
+        sse("/3") { }
+        sse("/4", { }, Role.A)
+    }
+
+    private fun testInsertion(handlerType: HandlerType, runnable: Runnable) {
+        val app = Javalin.create { it.router.apiBuilder { runnable.run() } }
+        val endpoints = app.unsafeConfig().pvt.internalRouter.allHttpHandlers()
+        assertThat(endpoints).hasSize(4)
+        assertEndpoint(endpoints[0].endpoint, "/1", handlerType)
+        assertEndpoint(endpoints[1].endpoint, "/2", handlerType, Role.A)
+        assertEndpoint(endpoints[2].endpoint, "/3", handlerType)
+        assertEndpoint(endpoints[3].endpoint, "/4", handlerType, Role.A)
+    }
+
+    private fun assertEndpoint(endpoint: Endpoint, expectedPath: String, expectedMethod: HandlerType, vararg expectedRoles: Role) {
+        assertThat(endpoint.path).isEqualTo(expectedPath)
+        assertThat(endpoint.method).isEqualTo(expectedMethod)
+        assertThat(endpoint.roles).containsExactly(*expectedRoles)
     }
 
 }

@@ -14,6 +14,7 @@ import io.javalin.json.fromJsonString
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
 import io.javalin.testing.fasterJacksonMapper
+import io.javalin.util.FileUtil
 import jakarta.servlet.MultipartConfigElement
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -317,5 +318,25 @@ class TestMultipartForms {
 
         //and verify it
         assertThat(response).isEqualTo(expected)
+    }
+
+    @Test
+    fun `fileutil works`() {
+        val assertContent = { actual: String ->
+            if (CRLF in actual) {
+                assertThat(actual).isEqualTo(TEXT_FILE_CONTENT_CRLF)
+            } else {
+                assertThat(actual).isEqualTo(TEXT_FILE_CONTENT_LF)
+            }
+        }
+        val prefix = "src/test/resources/upload-test";
+        FileUtil.readFile("$prefix/text.txt").let { assertContent(it) }
+        FileUtil.readResource("/upload-test/text.txt").let { assertContent(it) }
+        File("$prefix/text.txt").inputStream().use { inputStream ->
+            FileUtil.streamToFile(inputStream, "$prefix/text-copy.txt")
+        }
+        val file = File("$prefix/text-copy.txt")
+        file.deleteOnExit()
+        assertContent(file.readText())
     }
 }

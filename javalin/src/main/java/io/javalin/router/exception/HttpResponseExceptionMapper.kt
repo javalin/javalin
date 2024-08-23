@@ -29,15 +29,13 @@ import java.util.*
 
 object HttpResponseExceptionMapper {
 
-    fun canHandle(t: Throwable) = HttpResponseException::class.java.isAssignableFrom(t::class.java) // is HttpResponseException or subclass
-
     fun handle(e: HttpResponseException, ctx: Context) = when {
         ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true || ctx.res().contentType == ContentType.HTML -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN)
         ctx.header(Header.ACCEPT)?.contains(ContentType.JSON) == true || ctx.res().contentType == ContentType.JSON -> ctx.status(e.status).result(jsonResult(e)).contentType(APPLICATION_JSON)
         else -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN)
     }
 
-    private fun jsonResult(e: HttpResponseException) =
+    internal fun jsonResult(e: HttpResponseException) =
         """|{
            |    "title": "${e.message?.jsonEscape()}",
            |    "status": ${e.status},

@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java_version: [17, 21]
+        java_version: [11, 17, 21]
         os: [windows-latest, macos-14, macos-13, ubuntu-latest] # Macos 13 is x86-64 and 14 is aarch64
 
     steps:
@@ -60,7 +60,7 @@ jobs:
         env:
           MAVEN_OPTS: -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4.0.1
+        uses: codecov/codecov-action@v4.5.0
         with:
           files: "${{ github.workspace }}/javalin-utils/coverage/target/site/jacoco-aggregate/jacoco.xml"
           verbose: true

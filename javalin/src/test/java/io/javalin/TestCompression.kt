@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
+import io.javalin.compression.Compressor
 import io.javalin.compression.Gzip
 import io.javalin.http.ContentType
 import io.javalin.http.Handler
@@ -21,9 +22,13 @@ import kong.unirest.Unirest
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIf
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
 import java.util.zip.GZIPInputStream
 import kotlin.streams.asStream
 import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
@@ -62,6 +67,25 @@ class TestCompression {
     private fun Javalin.addTestEndpoints() = this.apply {
         get("/huge") { it.result(getSomeObjects(1000).toString()) }
         get("/tiny") { it.result(getSomeObjects(10).toString()) }
+    }
+
+    @Test
+    fun `Compresssor interface works`() {
+        val comp = object : Compressor {
+            override fun encoding() = "enc"
+            override fun compress(out: OutputStream): OutputStream =
+                out.apply { "xyz".byteInputStream().copyTo(this) }
+        }
+        assertThat(comp.encoding()).isEqualTo("enc")
+        assertThat(ByteArrayOutputStream().apply { comp.compress(this) }.toByteArray()).isEqualTo("xyz".toByteArray())
+    }
+
+    @Test
+    fun `levels are enforced`() {
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { Gzip(-1) }
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { Gzip(10) }
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { Brotli(-1) }
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { Brotli(12) }
     }
 
     @Test
