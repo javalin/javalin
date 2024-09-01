@@ -106,7 +106,7 @@
         <assertj.version>3.26.3</assertj.version>
         <moshi.version>1.15.1</moshi.version>
         <java.websocket.version>1.5.7</java.websocket.version>
-        <junit.version>5.10.3</junit.version>
+        <junit.version>5.11.0</junit.version>
         <jmh.version>1.37</jmh.version>
         <mockito.version>5.13.0</mockito.version>
         <mockk.version>1.13.12</mockk.version>
