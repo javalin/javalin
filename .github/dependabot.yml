@@ -11,6 +11,10 @@ updates:
     labels:
       - "dependencies"
     target-branch: "master"
+    groups:
+      dependencies:
+        patterns:
+        - "*"
 
 
   - package-ecosystem: "github-actions"
@@ -23,3 +27,7 @@ updates:
     labels:
       - "dependencies"
     target-branch: "master"
+    groups:
+      dependencies:
+        patterns:
+        - "*"
