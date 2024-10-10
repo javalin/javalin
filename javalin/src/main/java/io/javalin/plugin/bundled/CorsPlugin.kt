@@ -82,7 +82,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
 
     init {
         require(pluginConfig.rules.isNotEmpty()) {
-            "At least one cors config has to be provided. Use CorsContainer.add() to add one."
+            "At least one cors config has to be provided. Use CorsPluginConfig.addRule() to add one."
         }
     }
 
@@ -96,6 +96,12 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
                 }
                 require(origins.isEmpty() || !corsRule.reflectClientOrigin) {
                     "Cannot set `allowedOrigins` if `reflectClientOrigin` is true"
+                }
+                require(!("*" in origins && corsRule.allowCredentials)) {
+                    """
+                        |Cannot use `anyHost()` / Origin: * if `allowCredentials` is true as that is rejected by all browsers.
+                        |Please use either an explicit list of allowed origins via `allowHost()` or use `reflectClientOrigin = true` without any origins.
+                        |Docs: https://javalin.io/plugins/cors""".trimMargin()
                 }
 
                 val validOptionStatusCodes = listOf(HttpStatus.NOT_FOUND, HttpStatus.METHOD_NOT_ALLOWED)

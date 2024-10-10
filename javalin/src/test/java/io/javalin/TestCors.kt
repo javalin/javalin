@@ -36,7 +36,7 @@ class TestCors {
         fun `throws for zero configurations`() {
             assertThatExceptionOfType(IllegalArgumentException::class.java)
                 .isThrownBy { Javalin.create { it.registerPlugin(CorsPlugin()) } }
-                .withMessageStartingWith("At least one cors config has to be provided. Use CorsContainer.add() to add one.")
+                .withMessageStartingWith("At least one cors config has to be provided. Use CorsPluginConfig.addRule() to add one.")
         }
 
         @Test
@@ -58,6 +58,20 @@ class TestCors {
                     })
                 }
             }.withMessageStartingWith("Cannot set `allowedOrigins` if `reflectClientOrigin` is true")
+        }
+
+        @Test
+        fun `throws for combination of anyHost and allowCredentials true`() {
+            assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
+                Javalin.create { config ->
+                    config.registerPlugin(CorsPlugin({ cors ->
+                        cors.addRule {
+                            it.anyHost()
+                            it.allowCredentials = true
+                        }
+                    }))
+                }
+            }.withMessageStartingWith("Cannot use `anyHost()` / Origin: * if `allowCredentials` is true as that is rejected by all browsers.")
         }
 
         @Test
