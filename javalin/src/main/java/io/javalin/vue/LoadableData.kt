@@ -5,7 +5,7 @@ const val loadableDataScript = """
 <script nonce="@internalAddNonce">
     class LoadableData {
         constructor(url, options = {cache: false, errorCallback: null}) {
-            this.isVue2 = Vue.version.startsWith("2");
+            this.isVue2 = Vue.version?.startsWith("2") ?? true;
             this._url = url;
             this._errorCallback = options.errorCallback ?? null;
             if (this.isVue2) {
