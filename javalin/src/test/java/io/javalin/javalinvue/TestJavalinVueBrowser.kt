@@ -194,8 +194,8 @@ class TestJavalinVueBrowser {
         driver.executeScript("window.ld1.refreshAll()")
         driver.waitForCondition("ld1.refreshing === false") // refresh sets this to true, then false after load
         driver.waitForCondition("ld1.refreshing === false") // refresh sets this to true, then false after load
-        assertThat(driver.checkWindow("ld1.data.length === 1")).isTrue()
-        assertThat(driver.checkWindow("ld2.data.length === 1")).isTrue()
+        assertThat(driver.checkWindow("ld1.data.length === 2")).isTrue()
+        assertThat(driver.checkWindow("ld2.data.length === 2")).isTrue()
     }
 
     @Test
