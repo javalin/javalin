@@ -54,6 +54,12 @@ class TestCorsUtils {
         }
 
         @ParameterizedTest
+        @CsvSource(value = ["https://*.example.com"])
+        fun `rejects wild cards in client mode`(origin: String) {
+            assertThat(CorsUtils.isValidOrigin(origin, client = true)).describedAs(origin).isFalse
+        }
+
+        @ParameterizedTest
         @EmptySource
         @CsvSource(value = ["://no-scheme", "o_O://illegal-underscore", "https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment"])
         fun `rejects invalid origins`(it: String) {
@@ -64,6 +70,12 @@ class TestCorsUtils {
         @CsvSource(value = ["null", "https://example.com", "https://example.com:8443", "https://*.example.com"])
         fun `accepts valid origins JDK`(origin: String) {
             assertThat(CorsUtils.isValidOriginJdk(origin)).describedAs(origin).isTrue
+        }
+
+        @ParameterizedTest
+        @CsvSource(value = ["https://*.example.com"])
+        fun `rejects wild cards in client mode JDK`(origin: String) {
+            assertThat(CorsUtils.isValidOriginJdk(origin, client = true)).describedAs(origin).isFalse
         }
 
         @ParameterizedTest

@@ -393,6 +393,37 @@ class TestCors {
                 .asString()
             assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
         }
+
+
+        @Test
+        fun `rejects wildcards in client origins`() = TestUtil.test(Javalin.create { cfg ->
+            cfg.registerPlugin(CorsPlugin { cors ->
+                cors.addRule {
+                    it.allowHost("https://*.example.com:8443")
+                }
+            })
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+            val response = Unirest.get(http.origin)
+                .header(ORIGIN, "https://*.example.com:8443")
+                .asString()
+            assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
+        }
+
+        @Test
+        fun `rejects null in client origins`() = TestUtil.test(Javalin.create { cfg ->
+            cfg.registerPlugin(CorsPlugin { cors ->
+                cors.addRule {
+                    it.allowHost("https://*.example.com:8443")
+                }
+            })
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+            val response = Unirest.get(http.origin)
+                .header(ORIGIN, "null")
+                .asString()
+            assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
+        }
     }
 
     @Nested

@@ -17,9 +17,13 @@ internal object CorsUtils {
      * __Notes:__
      * - We ignore list of origins
      */
-    internal fun isValidOrigin(origin: String): Boolean {
+    internal fun isValidOrigin(origin: String, client: Boolean = false): Boolean {
         val schemeAndHostDelimiter = origin.indexOf("://")
         val portResult = extractPort(origin)
+        if (client && "://*." in origin) {
+            return false
+        }
+
         return when {
             origin.isEmpty() -> false
             origin == "null" -> true
@@ -38,7 +42,7 @@ internal object CorsUtils {
         }
     }
 
-    internal fun isValidOriginJdk(origin: String): Boolean {
+    internal fun isValidOriginJdk(origin: String, client: Boolean = false): Boolean {
         if (origin.isEmpty()) {
             return false
         }
@@ -47,6 +51,9 @@ internal object CorsUtils {
         }
         val wildcardSnippet = "://*."
         val hasWildcard = wildcardSnippet in origin
+        if (client && hasWildcard) {
+            return false
+        }
         val originWithoutWildcard = origin.replace(wildcardSnippet, "://")
         val originToAnalyze = if (hasWildcard) originWithoutWildcard else origin
         try {
