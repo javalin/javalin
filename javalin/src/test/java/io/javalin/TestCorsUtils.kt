@@ -61,7 +61,7 @@ class TestCorsUtils {
 
         @ParameterizedTest
         @EmptySource
-        @CsvSource(value = ["://no-scheme", "o_O://illegal-underscore", "https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment"])
+        @CsvSource(value = ["://no-scheme", "o_O://illegal-underscore", "https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment", "https://user:pw@example.com"])
         fun `rejects invalid origins`(it: String) {
             assertThat(CorsUtils.isValidOrigin(it)).describedAs(it).isFalse
         }
@@ -80,7 +80,7 @@ class TestCorsUtils {
 
         @ParameterizedTest
         @EmptySource
-        @CsvSource(value = ["://no-scheme", "o_O://illegal-underscore", "https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment"])
+        @CsvSource(value = ["://no-scheme", "o_O://illegal-underscore", "https://example.com/", "https://example.com?query=true", "https://example.com:fakeport", "https://example.com:8${SHAN_ZERO}", "https://example.com:8${BOLD_ZERO}", "https://example.com#fragment", "https://user:pw@example.com"])
         fun `rejects invalid origins JDK`(it: String) {
             assertThat(CorsUtils.isValidOriginJdk(it)).describedAs(it).isFalse
         }
@@ -245,6 +245,11 @@ class TestCorsUtils {
             assertThat(scheme).isEqualTo("https")
             assertThat(host).isEqualTo("example.com")
             assertThat(port).isEqualTo(443)
+
+            val (scheme2, host2, port2) = CorsUtils.parseAsOriginPartsJdk("http://example.com")
+            assertThat(scheme2).isEqualTo("http")
+            assertThat(host2).isEqualTo("example.com")
+            assertThat(port2).isEqualTo(80)
         }
 
         @Test

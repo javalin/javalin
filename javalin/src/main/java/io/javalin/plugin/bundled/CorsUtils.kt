@@ -61,6 +61,9 @@ internal object CorsUtils {
             if (uri.path.isNullOrEmpty().not()) {
                 return false
             }
+            if (uri.userInfo.isNullOrEmpty().not()) {
+                return false
+            }
             if (uri.query.isNullOrEmpty().not()) {
                 return false
             }
