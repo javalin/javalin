@@ -19,10 +19,6 @@ import io.javalin.plugin.bundled.CorsUtils.originsMatch
 import java.util.*
 import java.util.function.Consumer
 
-const val useJdkForCorsFeatureFlag = false
-private val isValidOriginFn: (String, Boolean) -> Boolean = if (useJdkForCorsFeatureFlag) CorsUtils::isValidOriginJdk else CorsUtils::isValidOrigin
-private val parseAsOriginPartsFn: (String) -> OriginParts = if (useJdkForCorsFeatureFlag) CorsUtils::parseAsOriginPartsJdk else CorsUtils::parseAsOriginParts
-
 /** Configuration for the [CorsPlugin]*/
 class CorsPluginConfig {
     internal val rules = mutableListOf<CorsRule>()
@@ -61,7 +57,7 @@ class CorsPluginConfig {
                     WildcardResult.ErrorState.TooManyWildcards -> throw IllegalArgumentException("Too many wildcards detected inside '${origins[idx]}'. Only one at the start of the host is allowed!")
                     WildcardResult.ErrorState.WildcardNotAtTheStartOfTheHost -> throw IllegalArgumentException("The wildcard must be at the start of the passed in host. The value '${origins[idx]}' violates this requirement!")
                 }
-                require(isValidOriginFn(it, false)) { "The given value '${origins[idx]}' could not be transformed into a valid origin" }
+                require(CorsUtils.isValidOrigin(it, false)) { "The given value '${origins[idx]}' could not be transformed into a valid origin" }
                 allowedOrigins.add(it)
             }
         }
@@ -116,7 +112,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
     private fun handleCors(ctx: Context, cfg: CorsRule) {
         val clientOrigin = ctx.header(ORIGIN) ?: return
 
-        if (!isValidOriginFn(clientOrigin, true)) {
+        if (!CorsUtils.isValidOrigin(clientOrigin, true)) {
             return
         }
 
@@ -162,8 +158,8 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
     }
 
     private fun matchOrigin(clientOrigin: String, origins: List<String>): Boolean {
-        val clientOriginPart = parseAsOriginPartsFn(clientOrigin)
-        val serverOriginParts = origins.map(parseAsOriginPartsFn)
+        val clientOriginPart = CorsUtils.parseAsOriginParts(clientOrigin)
+        val serverOriginParts = origins.map(CorsUtils::parseAsOriginParts)
 
         return serverOriginParts.any { originsMatch(clientOriginPart, it) }
     }
