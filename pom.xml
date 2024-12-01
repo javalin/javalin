@@ -64,7 +64,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <kotlin.version>1.9.25</kotlin.version>
+        <kotlin.version>2.0.0</kotlin.version>
         <kotlin.compiler.jvmTarget>11</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
@@ -75,7 +75,7 @@
         <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
         <gpg.plugin.version>3.2.7</gpg.plugin.version>
         <jar.plugin.version>3.4.2</jar.plugin.version>
-        <surefire.plugin.version>3.5.0</surefire.plugin.version>
+        <surefire.plugin.version>3.5.2</surefire.plugin.version>
         <shade.plugin.version>3.6.0</shade.plugin.version>
         <build-helper.plugin.version>3.6.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.5.0</enforcer.plugin.version>
@@ -88,13 +88,13 @@
         <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
 
         <!-- DEPENDENCIES -->
-        <annotations.version>25.0.0</annotations.version>
+        <annotations.version>26.0.1</annotations.version>
         <jetty.version>11.0.24</jetty.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
-        <jackson.version>2.18.0</jackson.version>
-        <jackson.databind.version>2.18.0</jackson.databind.version>
+        <jackson.version>2.18.2</jackson.version>
+        <jackson.databind.version>2.18.2</jackson.databind.version>
         <brotli4j.version>1.17.0</brotli4j.version>
-        <logback.version>1.5.8</logback.version>
+        <logback.version>1.5.12</logback.version>
         <slf4j.version>2.0.16</slf4j.version>
         <gson.version>2.11.0</gson.version>
         <okhttp.version>4.12.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
@@ -106,12 +106,12 @@
         <assertj.version>3.26.3</assertj.version>
         <moshi.version>1.15.1</moshi.version>
         <java.websocket.version>1.5.7</java.websocket.version>
-        <junit.version>5.11.1</junit.version>
+        <junit.version>5.11.3</junit.version>
         <jmh.version>1.37</jmh.version>
-        <mockito.version>5.14.1</mockito.version>
-        <mockk.version>1.13.12</mockk.version>
+        <mockito.version>5.14.2</mockito.version>
+        <mockk.version>1.13.13</mockk.version>
         <unirest.version>3.14.5</unirest.version>
-        <selenium.chrome.driver.version>4.25.0</selenium.chrome.driver.version>
+        <selenium.chrome.driver.version>4.27.0</selenium.chrome.driver.version>
         <webdrivermanager.version>5.9.2</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
