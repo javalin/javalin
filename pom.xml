@@ -71,7 +71,7 @@
 
         <!-- PLUGINS -->
         <compiler.plugin.version>3.13.0</compiler.plugin.version>
-        <dokka.plugin.version>1.9.20</dokka.plugin.version>
+        <dokka.plugin.version>1.9.10</dokka.plugin.version> <!-- 1.9.20 is breaking with javalin-ssl config -->
         <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
         <gpg.plugin.version>3.2.7</gpg.plugin.version>
         <jar.plugin.version>3.4.2</jar.plugin.version>
