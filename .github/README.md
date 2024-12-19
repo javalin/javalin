@@ -262,8 +262,6 @@ Javalin.create { javalinConfig ->
 | Logo | Sponsor |
 |------|---------|
 | <img src="https://github.com/user-attachments/assets/07bf134b-db7a-4e53-b3db-f1681b0443ff" alt="Barbary Software" width="32" height="32"> | [@barbarysoftware](https://github.com/sponsors/barbarysoftware) (50 USD/m) |
-| <img src="https://github.com/user-attachments/assets/8d063d28-95e7-49c0-a754-a4f0b73257c9" alt="KabCash" width="32" height="32"> | [KabCash](https://kabcash.com/en) (50 USD/m) |
-
 
 ## Special thanks
 
