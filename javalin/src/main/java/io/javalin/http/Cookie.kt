@@ -43,7 +43,8 @@ enum class SameSite(val value: String) {
  * @param path indicates the path that must exist in the requested URL for the browser to
  * send the Cookie header. (default = "/")
  * @param maxAge indicates the number of seconds until the cookie expires.
- * A zero or negative number will expire the cookie immediately. (default = -1)
+ * A negative value means that the cookie is not stored persistently and will be deleted
+ * when the Web browser exits. A zero value causes the cookie to be deleted. (default = -1)
  * @param secure indicates that the cookie is sent to the server only when a request is
  * made with the https: scheme (except on localhost), and therefore, is more resistant
  * to man-in-the-middle attacks (default: false)
