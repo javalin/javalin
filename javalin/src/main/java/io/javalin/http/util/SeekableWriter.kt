@@ -37,7 +37,13 @@ object SeekableWriter {
             // non audio video file
             else -> (totalBytes - from)
         }
-        ctx.status(HttpStatus.PARTIAL_CONTENT)
+
+        val status = when {
+            audioOrVideo -> HttpStatus.PARTIAL_CONTENT
+            else -> HttpStatus.OK
+        }
+
+        ctx.status(status)
         ctx.header(Header.CONTENT_TYPE, contentType)
         ctx.header(Header.ACCEPT_RANGES, "bytes")
         ctx.header(Header.CONTENT_RANGE, "bytes $from-$to/$totalBytes")
