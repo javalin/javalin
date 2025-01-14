@@ -205,9 +205,9 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - range works and input stream closed`() = TestUtil.test { app, http ->
+    fun `seekable - av range works and input stream closed`() = TestUtil.test { app, http ->
         val input = getSeekableInput()
-        app.get("/seekable") { it.writeSeekableStream(input, ContentType.PLAIN) }
+        app.get("/seekable") { it.writeSeekableStream(input, ContentType.VIDEO_MPEG.toString()) }
         val response = Unirest.get(http.origin + "/seekable")
             .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
             .asString()
@@ -217,10 +217,10 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - no-range works and input stream closed`() = TestUtil.test { app, http ->
+    fun `seekable - av no-range works and input stream closed`() = TestUtil.test { app, http ->
         val input = getSeekableInput()
         val available = input.available()
-        app.get("/seekable-2") { it.writeSeekableStream(input, ContentType.PLAIN) }
+        app.get("/seekable-2") { it.writeSeekableStream(input, ContentType.VIDEO_MPEG.toString()) }
         val response = Unirest.get(http.origin + "/seekable-2").asString()
         assertThat(response.body.length).isEqualTo(available)
         assertThat(input.closedLatch.await(2, TimeUnit.SECONDS)).isTrue()
@@ -228,8 +228,8 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - overreaching range works`() = TestUtil.test { app, http ->
-        app.get("/seekable-3") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
+    fun `seekable - av overreaching range works`() = TestUtil.test { app, http ->
+        app.get("/seekable-3") { it.writeSeekableStream(getSeekableInput(), ContentType.VIDEO_MPEG.toString()) }
         val response = Unirest.get(http.origin + "/seekable-3")
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize * 4}"))
             .asBytes()
@@ -237,8 +237,8 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - file smaller than chunksize works`() = TestUtil.test { app, http ->
-        app.get("/seekable-4") { it.writeSeekableStream(getSeekableInput(repeats = 50), ContentType.PLAIN) }
+    fun `seekable - av file smaller than chunksize works`() = TestUtil.test { app, http ->
+        app.get("/seekable-4") { it.writeSeekableStream(getSeekableInput(repeats = 50), ContentType.VIDEO_MPEG.toString()) }
         val response = Unirest.get(http.origin + "/seekable-4")
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize}"))
             .asString().body
@@ -246,10 +246,10 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - large file works`() = TestUtil.test { app, http ->
+    fun `seekable - av large file works`() = TestUtil.test { app, http ->
         val prefixSize = 1L shl 31 //2GB
         val contentSize = 100L
-        app.get("/seekable-5") { it.writeSeekableStream(LargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
+        app.get("/seekable-5") { it.writeSeekableStream(LargeSeekableInput(prefixSize, contentSize), ContentType.VIDEO_MPEG.toString(), prefixSize + contentSize) }
         val response = Unirest.get(http.origin + "/seekable-5")
             .headers(mapOf(Header.RANGE to "bytes=${prefixSize}-${prefixSize + contentSize - 1}"))
             .asString()
@@ -262,7 +262,7 @@ class TestResponse {
 
     @Test
     fun `GH-1956 seekable request with no RANGE header contains Content-Length and Accept-Ranges`() = TestUtil.test { app, http ->
-        app.get("/seekable-6") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
+        app.get("/seekable-6") { it.writeSeekableStream(getSeekableInput(), ContentType.VIDEO_MPEG.toString()) }
         val response = Unirest.get(http.origin + "/seekable-6").asString()
         assertThat(response.headers[Header.CONTENT_LENGTH]?.get(0)).isGreaterThan("0")
         assertThat(response.headers[Header.ACCEPT_RANGES]?.get(0)).isEqualTo("bytes")
