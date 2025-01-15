@@ -23,18 +23,15 @@ object SeekableWriter {
         val requestedRange = ctx.header(Header.RANGE)!!.split("=")[1].split("-").filter { it.isNotEmpty() }
         val from = requestedRange[0].toLong()
         val to = when {
-            // file is recognized as audio or video
             isAudioOrVideoFile -> when {
                 from + chunkSize > totalBytes -> totalBytes - 1 // chunk bigger than file, write all
                 requestedRange.size == 2 -> requestedRange[1].toLong() // chunk smaller than file, to/from specified
-                else -> from + chunkSize - 1 // chunk smaller than file, to/from not specified
+                else -> from + chunkSize - 1
             }
             else -> (totalBytes - 1)
         }
         val contentLength = when {
-            // video/audio type file
             isAudioOrVideoFile -> min(to - from + 1, totalBytes)
-            // non audio video file
             else -> (totalBytes - from)
         }
 
