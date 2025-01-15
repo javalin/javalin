@@ -11,7 +11,7 @@ object SeekableWriter {
     var chunkSize = 128000
     fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long) = ctx.async {
         val uncompressedStream = ctx.res().outputStream
-        val audioOrVideo = contentType.isAudioOrVideo()
+        val isAudioOrVideoFile = contentType.isAudioOrVideo()
         ctx.header(Header.ACCEPT_RANGES, "bytes")
         if (ctx.header(Header.RANGE) == null) {
             ctx.header(Header.CONTENT_TYPE, contentType)
@@ -22,24 +22,24 @@ object SeekableWriter {
         }
         val requestedRange = ctx.header(Header.RANGE)!!.split("=")[1].split("-").filter { it.isNotEmpty() }
         val from = requestedRange[0].toLong()
-        val to = when(audioOrVideo) {
+        val to = when {
             // file is recognized as audio or video
-            true -> when {
+            isAudioOrVideoFile -> when {
                 from + chunkSize > totalBytes -> totalBytes - 1 // chunk bigger than file, write all
                 requestedRange.size == 2 -> requestedRange[1].toLong() // chunk smaller than file, to/from specified
                 else -> from + chunkSize - 1 // chunk smaller than file, to/from not specified
             }
-            false -> (totalBytes - 1)
+            else -> (totalBytes - 1)
         }
         val contentLength = when {
             // video/audio type file
-            audioOrVideo -> min(to - from + 1, totalBytes)
+            isAudioOrVideoFile -> min(to - from + 1, totalBytes)
             // non audio video file
             else -> (totalBytes - from)
         }
 
         val status = when {
-            audioOrVideo -> HttpStatus.PARTIAL_CONTENT
+            isAudioOrVideoFile -> HttpStatus.PARTIAL_CONTENT
             else -> HttpStatus.OK
         }
 
