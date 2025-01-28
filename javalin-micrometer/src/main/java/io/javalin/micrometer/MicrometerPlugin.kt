@@ -65,7 +65,7 @@ class MicrometerPlugin(config: Consumer<MicrometerPluginConfig>) : Plugin<Microm
                     }
                     val pathInfo = request.pathInfo.removePrefix(config.router.contextPath).prefixIfNot("/")
                     response.setHeader(EXCEPTION_HEADER, null)
-                    val handlerType = HandlerType.valueOf(request.method)
+                    val handlerType = HandlerType.findByName(request.method)
                     val uri = internalRouter.findHttpHandlerEntries(handlerType, pathInfo)
                         .map { it.endpoint.path }
                         .map { if (it == "/" || it.isBlank()) "root" else it }
