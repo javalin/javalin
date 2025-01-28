@@ -227,6 +227,28 @@ class MicrometerPluginTest {
         assertThat(notFoundCountGeneric).isEqualTo(requestCount.toLong())
     }
 
+    @Test
+    fun invalidMethod() = JavalinTest.test(setupApp(tagNotFoundMappedPaths = true)) { app, http ->
+        val requestCount = (2..9).random()
+        app.get("/hello") { ctx ->
+            ctx.status(OK)
+        }
+        repeat(requestCount) {
+            http.request("/hello") { b -> b.method("POSTS", null) }
+        }
+
+        val notFoundCountGeneric = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "NOT_FOUND")
+            .tag("method", "POSTS")
+            .tag("exception", "None")
+            .tag("status", "404")
+            .tag("outcome", "CLIENT_ERROR")
+            .timer()
+            .count()
+
+        assertThat(notFoundCountGeneric).isEqualTo(requestCount.toLong())
+    }
+
     private fun setupApp(
         tagRedirectPaths: Boolean = false,
         tagNotFoundMappedPaths: Boolean = false,
