@@ -149,9 +149,10 @@ enum class HttpStatus(val code: Int, val message: String) {
 
     companion object {
 
+        private val statusMap = values().associateBy { it.code }
+
         @JvmStatic
-        fun forStatus(status: Int): HttpStatus =
-            HttpStatus.entries.find { it.code == status } ?: UNKNOWN
+        fun forStatus(status: Int): HttpStatus = statusMap[status] ?: UNKNOWN
 
     }
 
