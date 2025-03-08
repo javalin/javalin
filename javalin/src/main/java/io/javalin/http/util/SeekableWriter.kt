@@ -11,6 +11,7 @@ object SeekableWriter {
     var chunkSize = 128000
     fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long) = ctx.async {
         val uncompressedStream = ctx.res().outputStream
+        val isAudioOrVideoFile = contentType.isAudioOrVideo()
         ctx.header(Header.ACCEPT_RANGES, "bytes")
         if (ctx.header(Header.RANGE) == null) {
             ctx.header(Header.CONTENT_TYPE, contentType)
@@ -22,15 +23,28 @@ object SeekableWriter {
         val requestedRange = ctx.header(Header.RANGE)!!.split("=")[1].split("-").filter { it.isNotEmpty() }
         val from = requestedRange[0].toLong()
         val to = when {
-            from + chunkSize > totalBytes -> totalBytes - 1 // chunk bigger than file, write all
-            requestedRange.size == 2 -> requestedRange[1].toLong() // chunk smaller than file, to/from specified
-            else -> from + chunkSize - 1 // chunk smaller than file, to/from not specified
+            isAudioOrVideoFile -> when {
+                from + chunkSize > totalBytes -> totalBytes - 1 // chunk bigger than file, write all
+                requestedRange.size == 2 -> requestedRange[1].toLong() // chunk smaller than file, to/from specified
+                else -> from + chunkSize - 1
+            }
+            else -> (totalBytes - 1)
         }
-        ctx.status(HttpStatus.PARTIAL_CONTENT)
+        val contentLength = when {
+            isAudioOrVideoFile -> min(to - from + 1, totalBytes)
+            else -> (totalBytes - from)
+        }
+
+        val status = when {
+            isAudioOrVideoFile -> HttpStatus.PARTIAL_CONTENT
+            else -> HttpStatus.OK
+        }
+
+        ctx.status(status)
         ctx.header(Header.CONTENT_TYPE, contentType)
         ctx.header(Header.ACCEPT_RANGES, "bytes")
         ctx.header(Header.CONTENT_RANGE, "bytes $from-$to/$totalBytes")
-        ctx.header(Header.CONTENT_LENGTH, "${min(to - from + 1, totalBytes)}")
+        ctx.header(Header.CONTENT_LENGTH, contentLength.toString())
         uncompressedStream.write(inputStream, from, to)
     }
 
@@ -46,5 +60,9 @@ object SeekableWriter {
             this.write(buffer, 0, read)
             bytesLeft -= read
         }
+    }
+
+    private fun String.isAudioOrVideo(): Boolean {
+        return this.startsWith("audio/") || this.startsWith("video/")
     }
 }

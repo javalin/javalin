@@ -74,6 +74,10 @@ class JettyServer(private val cfg: JavalinConfig) {
             })
             val httpConfiguration = defaultHttpConfiguration()
             cfg.pvt.jetty.httpConfigurationConfigs.forEach { it.accept(httpConfiguration) } // apply user config (before connectors)
+            // use the jetty value, either the default or something the user has specified with the cfg.jetty.modifyHttpConfiguration option if there is no value set with the new api.
+            if (cfg.http.responseBufferSize == null) {
+                cfg.http.responseBufferSize = httpConfiguration.outputBufferSize
+            }
             cfg.pvt.jetty.connectors.map { it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
             if (connectors.isEmpty()) { // add default connector if no connectors are specified
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {

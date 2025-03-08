@@ -60,6 +60,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
             matchedPath = entry.path,
             pathParamMap = entry.extractPathParams(requestUri),
         )
+        upgradeContext.setRouteRoles(entry.roles) // set roles for the matched handler
         req.setAttribute(upgradeContextKey, upgradeContext)
         setWsProtocolHeader(req, res)
         // add before handlers

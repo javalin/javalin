@@ -80,7 +80,7 @@ object Util {
     private fun formatBuildTime(buildTime: String): String? = try {
         val (release, now) = listOf(Instant.parse(buildTime), Instant.now())
         val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.US).withZone(ZoneId.of("Z"))
-        formatter.format(release) + if (now.isAfter(release.plus(90, ChronoUnit.DAYS))) {
+        formatter.format(release) + if (now.isAfter(release.plus(120, ChronoUnit.DAYS))) {
             ". Your Javalin version is ${ChronoUnit.DAYS.between(release, now)} days old. Consider checking for a newer version."
         } else ""
     } catch (e: Exception) {

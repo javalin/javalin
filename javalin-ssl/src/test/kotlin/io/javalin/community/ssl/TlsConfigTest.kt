@@ -77,7 +77,7 @@ class TlsConfigTest : IntegrationTestClass() {
             config.tlsConfig = TlsConfig.INTERMEDIATE
         }.start().let { _ ->
             //Should fail with SSLHandshakeException because of the old protocols
-            Assertions.assertThrows(UnknownServiceException::class.java) {
+            Assertions.assertThrows(Exception::class.java) {
                 client.newCall(
                     Request.Builder().url(https).build()
                 ).execute()

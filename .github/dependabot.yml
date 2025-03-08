@@ -3,13 +3,18 @@ updates:
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+      time: "04:30" # this is in UTC time
+    open-pull-requests-limit: 10
     commit-message:
       prefix: "[deps]"
     labels:
       - "dependencies"
     target-branch: "master"
+    groups:
+      dependencies:
+        patterns:
+        - "*"
 
 
   - package-ecosystem: "github-actions"
@@ -22,4 +27,7 @@ updates:
     labels:
       - "dependencies"
     target-branch: "master"
-
+    groups:
+      dependencies:
+        patterns:
+        - "*"

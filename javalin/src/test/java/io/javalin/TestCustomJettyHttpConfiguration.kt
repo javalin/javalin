@@ -79,4 +79,31 @@ class TestCustomJettyHttpConfiguration {
 
     }
 
+    @Test
+    fun `responseBufferSize - default is set to the jetty default for outputBufferSize`() = TestUtil.test { app, http ->
+        val firstHttpConnectionFactory = app.jettyServer().server().connectors.firstNotNullOfOrNull { (it as? ServerConnector)?.defaultConnectionFactory as? HttpConnectionFactory }
+        assertThat(app.unsafeConfig().http.responseBufferSize)
+            .isNotNull
+            .isEqualTo(firstHttpConnectionFactory?.httpConfiguration?.outputBufferSize)
+    }
+
+    @Test
+    fun `responseBufferSize - outputBufferSize set via jetty httpConfiguration is respected`() = TestUtil.test(Javalin.create { config ->
+        config.jetty.modifyHttpConfiguration { http -> http.outputBufferSize = 42_007 }
+    }) { app, http ->
+        assertThat(app.unsafeConfig().http.responseBufferSize)
+            .isNotNull
+            .isEqualTo(42_007)
+    }
+
+    @Test
+    fun `responseBufferSize - setting the javalin option has a higher priority than the jetty option`() = TestUtil.test(Javalin.create { config ->
+        config.http.responseBufferSize = 777_777
+        config.jetty.modifyHttpConfiguration { http -> http.outputBufferSize = 555_555 }
+    }) { app, http ->
+        assertThat(app.unsafeConfig().http.responseBufferSize)
+            .isNotNull
+            .isEqualTo(777_777)
+    }
+
 }

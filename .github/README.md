@@ -79,14 +79,14 @@ Please consider [:heart: Sponsoring](https://github.com/sponsors/tipsy) or starr
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>6.1.2</version>
+    <version>6.4.0</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```kotlin
-implementation("io.javalin:javalin:6.1.2")
+implementation("io.javalin:javalin:6.4.0")
 ```
 
 ### Start programming (Java)
@@ -259,7 +259,10 @@ Javalin.create { javalinConfig ->
 
 ## Sponsors
 
-* [@barbarysoftware](https://github.com/sponsors/barbarysoftware) (50 USD/m)
+| Logo | Sponsor | Amount |
+|------|---------|--------|
+| <img src="https://github.com/user-attachments/assets/07bf134b-db7a-4e53-b3db-f1681b0443ff" alt="Barbary Software" width="32" height="32"> | [@barbarysoftware](https://github.com/sponsors/barbarysoftware) | (50 USD/m) |
+| <img src="https://github.com/user-attachments/assets/06236654-649d-46dd-b174-11ce61e325ec" alt="Vasilis Soumakis" width="32" height="32"> | <a href="https://github.com/VassilisSoum">@VassilisSoum</a> | (25 USD/m) |
 
 ## Special thanks
 

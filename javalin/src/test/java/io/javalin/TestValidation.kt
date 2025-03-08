@@ -39,6 +39,8 @@ import java.util.*
 
 class TestValidation {
 
+    enum class MyEnum { CAT, DOG }
+
     @Test
     fun `pathParam gives correct error message`() = TestUtil.test { app, http ->
         app.get("/{param}") { it.pathParamAsClass<Int>("param").get() }
@@ -147,6 +149,19 @@ class TestValidation {
         }
         assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
         assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("""{"to":[{"message":"'to' has to be after 'from'","args":{},"value":1262347100.000000000}]}""")
+    }
+
+    @Test
+    fun `can convert enum`() = TestUtil.test(Javalin.create {
+        it.validation.register(MyEnum::class.java) { MyEnum.valueOf(it) }
+    }) { app, http ->
+        app.get("/enum") { ctx ->
+            val myEnum = ctx.queryParamAsClass<MyEnum>("my-enum").get()
+            ctx.result(myEnum.name)
+        }
+        assertThat(http.get("/enum?my-enum=CAT").body).isEqualTo("CAT")
+        assertThat(http.get("/enum?my-enum=DOG").body).isEqualTo("DOG")
+        assertThat(http.get("/enum?my-enum=HORSE").body).isEqualTo("""{"my-enum":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"HORSE"}]}""")
     }
 
     @Test
@@ -440,7 +455,7 @@ class TestValidation {
 
     @Test
     fun `typed value nullable validator works for negative case #1`() {
-        val validator =  Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
         validator.check({ it!!.key != "key" }, "unexpected key")
         validator.check({ it!!.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -450,7 +465,7 @@ class TestValidation {
 
     @Test
     fun `typed value nullable validator works for negative case #2`() {
-        val validator =  Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
         validator.check({ it!!.key != "key" }, "unexpected key")
         validator.check({ it!!.value != "value" }, "unexpected value")
         val errors = validator.errors()

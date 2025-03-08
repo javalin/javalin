@@ -41,7 +41,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         if (pvt.jetty.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.jetty.server!!)) else lateInitConfigs.add(config)
 
     override fun canHandle(ctx: Context) = nonSkippedHandlers(ctx.jettyReq()).any { handler ->
-        return try {
+        try {
             fileOrWelcomeFile(handler, ctx.target) != null
         } catch (e: Exception) {
             e.message?.contains("Rejected alias reference") == true ||  // we want to say these are un-handleable (404)
