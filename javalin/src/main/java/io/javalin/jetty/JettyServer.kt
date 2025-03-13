@@ -20,6 +20,7 @@ import org.eclipse.jetty.ee10.servlet.ServletHolder
 import org.eclipse.jetty.ee10.servlet.SessionHandler
 import org.eclipse.jetty.http.HttpCookie
 import org.eclipse.jetty.http.UriCompliance
+import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.LowResourceMonitor
@@ -64,7 +65,7 @@ class JettyServer(private val cfg: JavalinConfig) {
         val startupTimer = System.currentTimeMillis()
         server().apply {
             cfg.pvt.jetty.serverConsumers.forEach { it.accept(this) } // apply user config
-            setHandler(ServletContextHandler(SESSIONS).apply {
+            handler = handler.attachHandler(ServletContextHandler(SESSIONS).apply {
                 val (initializer, servlet) = cfg.pvt.servlet.value
                 if (initializer != null) this.addServletContainerInitializer(initializer)
                 contextPath = Util.normalizeContextPath(cfg.router.contextPath)
@@ -138,6 +139,24 @@ class JettyServer(private val cfg: JavalinConfig) {
         }
         JavalinLogger.info("Javalin has stopped")
         eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STOPPED)
+    }
+
+    private fun Handler?.attachHandler(servletContextHandler: ServletContextHandler) = when {
+        this == null -> servletContextHandler // server has no handler, just use Javalin handler
+        this is Handler.Sequence -> this.apply { addHandler(servletContextHandler) } // user is using a HandlerCollection, add Javalin handler to it
+        this is Handler.Wrapper -> this.apply {
+            (this.unwrap() as? Handler.Sequence)?.addHandler(servletContextHandler) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handler
+            (this.unwrap() as? Handler.Wrapper)?.handler = servletContextHandler // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
+        }
+
+        else -> throw IllegalStateException("Server has unsupported Handler attached to it (must be HandlerCollection or HandlerWrapper)")
+    }
+
+    private fun Handler.Wrapper.unwrap(): Handler = when (this.handler) {
+        null -> this // current HandlerWrapper is last element, return the HandlerWrapper itself
+        is Handler.Sequence -> this.handler // HandlerWrapper wraps HandlerCollection, return HandlerCollection
+        is Handler.Wrapper -> (this.handler as Handler.Wrapper).unwrap() // HandlerWrapper wraps another HandlerWrapper, recursive call required
+        else -> throw IllegalStateException("HandlerWrapper has unsupported Handler type (must be HandlerCollection or HandlerWrapper")
     }
 
     companion object {
