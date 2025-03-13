@@ -8,6 +8,7 @@ package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
 import io.javalin.event.JavalinLifecycleEvent
+import io.javalin.http.ContentType
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinBindException
 import io.javalin.util.JavalinException
@@ -166,6 +167,7 @@ class JettyServer(private val cfg: JavalinConfig) {
             addBean(LowResourceMonitor(this))
             insertHandler(StatisticsHandler())
             setAttribute("is-default-server", true)
+            mimeTypes.addInferred(ContentType.PLAIN, Charsets.UTF_8.name()) // set default encoding for text/plain
         }
 
         // UriCompliance.JETTY_11 makes Jetty accept ambiguous values in path, so Javalin can handle them
