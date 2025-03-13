@@ -168,9 +168,9 @@ class JettyServer(private val cfg: JavalinConfig) {
             setAttribute("is-default-server", true)
         }
 
-        // UriCompliance.RFC3986 makes Jetty accept ambiguous values in path, so Javalin can handle them
+        // UriCompliance.JETTY_11 makes Jetty accept ambiguous values in path, so Javalin can handle them
         fun defaultHttpConfiguration() = HttpConfiguration().apply {
-            uriCompliance = UriCompliance.RFC3986
+            uriCompliance = UriCompliance.JETTY_11
             sendServerVersion = false
         }
 

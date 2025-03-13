@@ -100,8 +100,6 @@ internal class TestTrailingSlashes {
         assertThat(http.getBody("/My-Url/")).isEqualTo("OK/")
     }
 
-    //https://jetty.org/docs/jetty/12/programming-guide/server/compliance.html#servleturi
-    @Disabled("URI UriCompliance: Error 400 Ambiguous URI path separator")
     @Test
     fun `utf-8 encoded path-params work`() = TestUtil.test(javalin) { app, http ->
         app.get("/{path-param}") { it.result(it.pathParam("path-param")) }
