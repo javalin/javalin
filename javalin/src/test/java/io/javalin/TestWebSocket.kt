@@ -24,7 +24,6 @@ import io.javalin.websocket.WsContext
 import io.javalin.websocket.pingFutures
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.StatusCode
 import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.util.WebSocketConstants
@@ -534,6 +533,7 @@ class TestWebSocket {
 
     @Test
     fun `websocket closeSession() methods`() {
+        class CloseStatus(val code: Int, val phrase: String)
         val scenarios = mapOf(
             { client: TestClient -> client.send("NO_ARGS") } to CloseStatus(1000, "null"),
             { client: TestClient -> client.send("STATUS_OBJECT") } to CloseStatus(1001, "STATUS_OBJECT"),
@@ -548,7 +548,7 @@ class TestWebSocket {
                     ws.onMessage { ctx ->
                         when (ctx.message()) {
                             "NO_ARGS" -> ctx.closeSession()
-                            "STATUS_OBJECT" -> ctx.closeSession(CloseStatus(1001, "STATUS_OBJECT"))
+                            "STATUS_OBJECT" -> ctx.closeSession(WsCloseStatus.GOING_AWAY, "STATUS_OBJECT")
                             "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
                             "CLOSE_STATUS" -> ctx.closeSession(WsCloseStatus.RESERVED)
                             else -> ctx.closeSession(1004, "UNEXPECTED")
