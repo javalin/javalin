@@ -13,15 +13,21 @@ import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
-import jakarta.servlet.ServletOutputStream
-import jakarta.servlet.http.HttpServletResponseWrapper
+import jakarta.servlet.http.HttpServletRequest
+import org.eclipse.jetty.ee10.servlet.ServletContextRequest
+import org.eclipse.jetty.ee10.servlet.ServletContextResponse
 import org.eclipse.jetty.http.MimeTypes
+import org.eclipse.jetty.http.content.HttpContent
+import org.eclipse.jetty.http.content.ResourceHttpContentFactory
 import org.eclipse.jetty.io.EofException
-import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
+import org.eclipse.jetty.util.Callback
 import org.eclipse.jetty.util.URIUtil
 import org.eclipse.jetty.util.resource.Resource
+import org.eclipse.jetty.util.resource.ResourceFactory
+import java.nio.ByteBuffer
 import java.nio.file.AccessDeniedException
 import java.nio.file.Files
 import kotlin.io.path.Path
@@ -40,7 +46,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (pvt.jetty.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.jetty.server!!)) else lateInitConfigs.add(config)
 
-    override fun canHandle(ctx: Context) = nonSkippedHandlers(ctx.jettyReq()).any { handler ->
+    override fun canHandle(ctx: Context) = nonSkippedHandlers(ctx.req()).any { handler ->
         try {
             fileOrWelcomeFile(handler, ctx.target) != null
         } catch (e: Exception) {
@@ -50,7 +56,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     }
 
     override fun handle(ctx: Context): Boolean {
-        nonSkippedHandlers(ctx.jettyReq()).forEach { handler ->
+        nonSkippedHandlers(ctx.req()).forEach { handler ->
             try {
                 val target = ctx.target
                 val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
@@ -61,7 +67,9 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                         false -> {
                             ctx.res().contentType = null // Jetty will only set the content-type if it's null
                             runCatching { // we wrap the response to compress it with javalin's compression strategy
-                                handler.handle(target, ctx.jettyReq(), ctx.req(), CompressingResponseWrapper(ctx))
+                                val request = ctx.jettyReq()
+                                // TODO: should not be NOOP callback
+                                handler.handle(request, CompressingResponseWrapper(ctx), Callback.NOOP)
                             }.isSuccess
                         }
                     }
@@ -76,11 +84,13 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     }
 
     private fun Resource?.fileOrNull(): Resource? = this?.takeIf { it.exists() && !it.isDirectory }
+    private fun ResourceHandler.getResource(path: String): Resource? =
+        baseResource.resolve(path)
     private fun fileOrWelcomeFile(handler: ResourceHandler, target: String): Resource? =
         handler.getResource(target)?.fileOrNull() ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.fileOrNull()
 
-    private fun nonSkippedHandlers(jettyRequest: Request) =
-        handlers.asSequence().filter { !it.config.skipFileFunction(jettyRequest) }
+    private fun nonSkippedHandlers(request: HttpServletRequest) =
+        handlers.asSequence().filter { !it.config.skipFileFunction(request) }
 
     private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
 
@@ -90,38 +100,46 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
 
     init {
         JavalinLogger.info("Static file handler added: ${config.refinedToString()}. File system location: '${getResourceBase(config)}'")
-        resourceBase = getResourceBase(config)
+        baseResource = getResourceBase(config)
         isDirAllowed = false
         isEtags = true
         server = jettyServer
-        mimeTypes = MimeTypes()
+        val mimeTypes = MimeTypes.Mutable()
         config.mimeTypes.getMapping().forEach { (ext, mimeType) ->
             mimeTypes.addMimeMapping(ext, mimeType)
         }
+        this.mimeTypes = mimeTypes
         start()
     }
 
-    override fun getResource(path: String): Resource {
-        val aliasResource by javalinLazy { baseResource!!.addPath(URIUtil.canonicalPath(path)) }
-        return when {
-            config.directory == "META-INF/resources/webjars" ->
-                Resource.newClassPathResource("META-INF/resources$path") ?: EmptyResource.INSTANCE
+    override fun newHttpContentFactory(): HttpContent.Factory? {
+        return object : ResourceHttpContentFactory(baseResource, mimeTypes) {
+            override fun resolve(path: String): Resource? {
+                val aliasResource by javalinLazy { baseResource!!.resolve(URIUtil.canonicalPath(path)) }
+                return when {
+                    config.directory == "META-INF/resources/webjars" ->
+                        ResourceFactory.of(this@ConfigurableHandler)
+                            .newClassLoaderResource("META-INF/resources$path", false)
 
-            config.aliasCheck != null && aliasResource.isAlias ->
-                if (config.aliasCheck?.check(path, aliasResource) == true) aliasResource else throw AccessDeniedException("Failed alias check")
+                    config.aliasCheck != null && aliasResource.isAlias ->
+                        if (config.aliasCheck?.checkAlias(path, aliasResource) == true) aliasResource else throw AccessDeniedException("Failed alias check")
 
-            config.hostedPath == "/" -> super.getResource(path) // same as regular ResourceHandler
-            path == config.hostedPath -> super.getResource("/")
-            path.startsWith(config.hostedPath + "/") -> super.getResource(path.removePrefix(config.hostedPath))
-            else -> EmptyResource.INSTANCE // files that don't start with hostedPath should not be accessible
+                    config.hostedPath == "/" -> super.resolve(path) // same as regular ResourceHandler
+                    path == config.hostedPath -> super.resolve("/")
+                    path.startsWith(config.hostedPath + "/") -> super.resolve(path.removePrefix(config.hostedPath))
+                    else -> null // files that don't start with hostedPath should not be accessible
+                }
+            }
         }
     }
 
-    private fun getResourceBase(config: StaticFileConfig): String {
+    private fun getResourceBase(config: StaticFileConfig): Resource {
         val noSuchDirMessageBuilder: (String) -> String = { "Static resource directory with path: '$it' does not exist." }
         val classpathHint = "Depending on your setup, empty folders might not get copied to classpath."
         if (config.location == Location.CLASSPATH) {
-            return Resource.newClassPathResource(config.directory)?.toString() ?: throw JavalinException("${noSuchDirMessageBuilder(config.directory)} $classpathHint")
+            return ResourceFactory.of(this)
+                .newClassLoaderResource(config.directory, false)
+                ?: throw JavalinException("${noSuchDirMessageBuilder(config.directory)} $classpathHint")
         }
 
         // Use the absolute path as this aids in debugging. Issues frequently come from incorrect root directories, not incorrect relative paths.
@@ -129,13 +147,25 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         if (!Files.exists(absoluteDirectoryPath)) {
             throw JavalinException(noSuchDirMessageBuilder(absoluteDirectoryPath.toString()))
         }
-        return config.directory
+        return ResourceFactory.of(this).newResource(config.directory)
     }
 
 }
 
-private fun Context.jettyReq() = Request.getBaseRequest(this.req())
+private fun Context.jettyReq() = ServletContextRequest.getServletContextRequest(this.req())
 
-private class CompressingResponseWrapper(private val ctx: Context) : HttpServletResponseWrapper(ctx.res()) {
-    override fun getOutputStream(): ServletOutputStream = ctx.outputStream()
+private class CompressingResponseWrapper(private val ctx: Context) : Response.Wrapper(
+    ServletContextRequest.getServletContextRequest(ctx.req()),
+    ServletContextResponse.getServletContextResponse(ctx.res()),
+) {
+    override fun write(last: Boolean, byteBuffer: ByteBuffer, callback: Callback) {
+        try {
+            // FIXME: does not look like a good idea...
+            // we make the non-blocking call block
+            ctx.outputStream().write(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining())
+            callback.succeeded()
+        } catch (e: Exception) {
+            callback.failed(e)
+        }
+    }
 }
