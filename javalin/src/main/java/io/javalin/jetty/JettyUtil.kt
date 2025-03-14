@@ -9,7 +9,7 @@ internal object JettyUtil {
 
     fun createJettyServletWithWebsocketsIfAvailable(cfg: JavalinConfig): ServletEntry? =
         when {
-            Util.classExists("org.eclipse.jetty.websocket.server.JettyWebSocketServlet") ->
+            Util.classExists("org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServlet") ->
                 ServletEntry(JettyWebSocketServletContainerInitializer(null), JavalinJettyServlet(cfg))
             else ->
                 null

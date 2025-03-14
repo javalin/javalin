@@ -343,7 +343,7 @@ class TestWebSocket {
             repeat(10) {
                 if (handlerError == null) Thread.sleep(5) // give Javalin time to trigger the error handler
             }
-            assertThat(handlerError!!.message).isEqualTo("Text message too large: (actual) ${textToSend.length} > (configured max text message size) $maxTextSize")
+            assertThat(handlerError!!.message).isEqualTo("Text message too large: ${textToSend.length} > $maxTextSize")
             assertThat(handlerError).isExactlyInstanceOf(MessageTooLargeException::class.java)
         }
     }

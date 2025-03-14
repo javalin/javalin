@@ -26,10 +26,10 @@ import kotlin.reflect.typeOf
  */
 abstract class WsContext(private val sessionId: String, @JvmField val session: Session) {
 
-    internal val upgradeCtx by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeContextKey) as Context }
+    internal val upgradeCtx by javalinLazy { session.jettyUpgradeRequest.getServletAttribute(upgradeContextKey) as Context }
 
     @Suppress("UNCHECKED_CAST")
-    private val sessionAttributes by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as? Map<String, Any> }
+    private val sessionAttributes by javalinLazy { session.jettyUpgradeRequest.getServletAttribute(upgradeSessionAttrsKey) as? Map<String, Any> }
 
     /** Returns the path that was used to match this request */
     fun matchedPath() = upgradeCtx.matchedPath()
