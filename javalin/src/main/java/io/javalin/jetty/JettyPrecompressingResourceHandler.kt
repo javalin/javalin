@@ -6,6 +6,7 @@ import io.javalin.compression.forType
 import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.util.JavalinLogger
+import org.eclipse.jetty.http.EtagUtils
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream
@@ -13,6 +14,8 @@ import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
 
 object JettyPrecompressingResourceHandler {
+
+    private val mimeTypes = MimeTypes()
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
 
@@ -24,7 +27,7 @@ object JettyPrecompressingResourceHandler {
 
     fun handle(target: String, resource: Resource, ctx: Context, compStrat: CompressionStrategy): Boolean {
         var compressor = findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "", compStrat)
-        val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
+        val contentType = mimeTypes.getMimeByExtension(target) // get content type by file extension
         if (contentType == null || excludedMimeType(contentType, compStrat)) {
             compressor = null
         }
@@ -45,6 +48,8 @@ object JettyPrecompressingResourceHandler {
         return true
     }
 
+    private val Resource.weakETag: String get() = EtagUtils.computeWeakEtag(this)
+
     private fun getStaticResourceByteArray(resource: Resource, target: String, compressor: Compressor?): ByteArray? {
         if (resource.length() > resourceMaxSize) {
             JavalinLogger.warn(
@@ -58,7 +63,7 @@ object JettyPrecompressingResourceHandler {
     }
 
     private fun getCompressedByteArray(resource: Resource, compressor: Compressor?): ByteArray {
-        val fileInput = resource.inputStream
+        val fileInput = resource.newInputStream()
         val byteArrayOutputStream = ByteArrayOutputStream()
         val outputStream: OutputStream =
             compressor?.compress(byteArrayOutputStream)

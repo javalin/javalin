@@ -58,7 +58,7 @@
         <!-- necessary for HTTP/2 and ALPN (application layer protocol negotiation) -->
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
-            <artifactId>http2-server</artifactId>
+            <artifactId>jetty-http2-server</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>

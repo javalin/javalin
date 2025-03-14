@@ -40,6 +40,7 @@ public class TestUtil {
             HttpUtil http = new HttpUtil(app.port());
             userCode.accept(app, http);
             app.delete("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
+            // FIXME: cookie are not removed
             http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
             app.stop();
         });
