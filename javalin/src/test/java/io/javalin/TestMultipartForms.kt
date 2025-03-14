@@ -16,11 +16,13 @@ import io.javalin.testing.UploadInfo
 import io.javalin.testing.fasterJacksonMapper
 import io.javalin.util.FileUtil
 import jakarta.servlet.MultipartConfigElement
+import jakarta.servlet.ServletException
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -145,15 +147,16 @@ class TestMultipartForms {
             ctx.result(ctx.uploadedFiles().joinToString(", ") { it.filename() })
         }
 
-        app.exception(IllegalStateException::class.java) { e, ctx ->
-            ctx.result("${e::class.java.canonicalName} ${e.message}")
+        app.exception(ServletException::class.java) { e, ctx ->
+            val rootCause = ExceptionUtils.getRootCause(e)
+            ctx.result(rootCause?.let { "${it::class.java.canonicalName} ${it.message}" } ?: "")
         }
 
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/image.png"))
             .field("text-field", "text")
             .asString()
-        assertThat(response.body).isEqualTo("java.lang.IllegalStateException Request exceeds maxRequestSize (10)")
+        assertThat(response.body).isEqualTo("java.lang.IllegalStateException max length exceeded: 10")
     }
 
     @Test
