@@ -20,6 +20,8 @@ import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.http.content.HttpContent
 import org.eclipse.jetty.http.content.ResourceHttpContentFactory
 import org.eclipse.jetty.io.EofException
+import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.ResourceService
 import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
@@ -69,7 +71,9 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                             runCatching { // we wrap the response to compress it with javalin's compression strategy
                                 val request = ctx.jettyReq()
                                 // TODO: should not be NOOP callback
-                                handler.handle(request, CompressingResponseWrapper(ctx), Callback.NOOP)
+                                // FIXME: wrapper does not work as expected
+                                //        remove for now until figure out how to work with compression in this case
+                                handler.handle(request, request.servletContextResponse, Callback.NOOP)
                             }.isSuccess
                         }
                     }
@@ -85,7 +89,8 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     private fun Resource?.fileOrNull(): Resource? = this?.takeIf { it.exists() && !it.isDirectory }
     private fun ResourceHandler.getResource(path: String): Resource? =
-        baseResource.resolve(path)
+        // FIXME: the HttpContent returned by `getContent` should be released after usage I think
+        httpContentFactory.getContent(path)?.resource
     private fun fileOrWelcomeFile(handler: ResourceHandler, target: String): Resource? =
         handler.getResource(target)?.fileOrNull() ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.fileOrNull()
 
@@ -110,6 +115,16 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         }
         this.mimeTypes = mimeTypes
         start()
+    }
+
+    override fun newResourceService(): ResourceService {
+        return object : ResourceService() {
+            // We override the getContent method because the original impl does the alias check
+            // with predefined SymlinkAllowedResourceAliasChecker
+            override fun getContent(path: String, request: Request): HttpContent? {
+                return httpContentFactory.getContent(path)
+            }
+        }
     }
 
     override fun newHttpContentFactory(): HttpContent.Factory? {
