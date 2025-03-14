@@ -109,11 +109,6 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         isDirAllowed = false
         isEtags = true
         server = jettyServer
-        val mimeTypes = MimeTypes.Mutable()
-        config.mimeTypes.getMapping().forEach { (ext, mimeType) ->
-            mimeTypes.addMimeMapping(ext, mimeType)
-        }
-        this.mimeTypes = mimeTypes
         start()
     }
 
@@ -128,6 +123,13 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     }
 
     override fun newHttpContentFactory(): HttpContent.Factory? {
+        // MimeTypes are forcibly set in `doStart` method
+        // But we need to update them before `newHttpContentFactory` is called in `doStart`
+        // because of that update them here
+        val mimeTypes = MimeTypes.Mutable(mimeTypes)
+        config.mimeTypes.getMapping().forEach { (ext, mimeType) ->
+            mimeTypes.addMimeMapping(ext, mimeType)
+        }
         return object : ResourceHttpContentFactory(baseResource, mimeTypes) {
             override fun resolve(path: String): Resource? {
                 val aliasResource by javalinLazy { baseResource!!.resolve(URIUtil.canonicalPath(path)) }
