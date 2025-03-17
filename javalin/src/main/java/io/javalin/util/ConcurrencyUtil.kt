@@ -2,9 +2,6 @@ package io.javalin.util
 
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
-import java.lang.invoke.MethodHandle
-import java.lang.invoke.MethodHandles
-import java.lang.invoke.MethodType
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -133,15 +130,11 @@ open class NamedVirtualThreadFactory(prefix: String) : NamedThreadFactory(prefix
         .unstarted(runnable)
 }
 
-class VirtualThreadBuilder {
-
-    companion object {
-        fun create(): Builder = BuilderImpl()
-        private val builderClass = Class.forName("java.lang.Thread\$Builder\$OfVirtual")
-        private val nameMethod = builderClass.getMethod("name", String::class.java)
-        private val unstartedMethod = builderClass.getMethod("unstarted", Runnable::class.java)
-        private val ofVirtualMethod = Thread::class.java.getMethod("ofVirtual")
-    }
+object VirtualThreadBuilder {
+    private val builderClass = Class.forName("java.lang.Thread\$Builder\$OfVirtual")
+    private val nameMethod = builderClass.getMethod("name", String::class.java)
+    private val unstartedMethod = builderClass.getMethod("unstarted", Runnable::class.java)
+    private val ofVirtualMethod = Thread::class.java.getMethod("ofVirtual")
 
     interface Builder {
         fun name(name: String): Builder
@@ -149,7 +142,6 @@ class VirtualThreadBuilder {
     }
 
     private class BuilderImpl : Builder {
-
         private val ofVirtual = ofVirtualMethod.invoke(null)
 
         override fun name(name: String): Builder {
@@ -158,8 +150,9 @@ class VirtualThreadBuilder {
         }
 
         override fun unstarted(runnable: Runnable): Thread {
-            return unstartedMethod
-                .invoke(ofVirtual, runnable) as Thread
+            return unstartedMethod.invoke(ofVirtual, runnable) as Thread
         }
     }
+
+    fun create(): Builder = BuilderImpl()
 }
