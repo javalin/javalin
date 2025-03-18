@@ -87,7 +87,13 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         return false
     }
 
-    private fun Resource?.fileOrNull(): Resource? = this?.takeIf { it.exists() && !it.isDirectory }
+    /**
+     * It looks like jetty resolves the file even if the path contains `/` in the end.
+     * [Resource.isDirectory] returns `false` in this case, and we need to explicitly check
+     * if [Resource.getURI] ends with `/`
+     * TODO: [Resource.isAlias] returns `true` in this case - maybe we can use that instead?
+     */
+    private fun Resource?.fileOrNull(): Resource? = this?.takeIf { it.exists() && !it.isDirectory && !it.uri.schemeSpecificPart.endsWith('/') }
     private fun ResourceHandler.getResource(path: String): Resource? =
         // FIXME: the HttpContent returned by `getContent` should be released after usage I think
         httpContentFactory.getContent(path)?.resource
