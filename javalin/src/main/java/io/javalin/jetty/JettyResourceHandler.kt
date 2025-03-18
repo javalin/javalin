@@ -74,7 +74,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                                 // FIXME: wrapper does not work as expected
                                 //        remove for now until figure out how to work with compression in this case
                                 handler.handle(request, request.servletContextResponse, Callback.NOOP)
-                            }.isSuccess
+                            }.getOrDefault(false)
                         }
                     }
                 }
@@ -114,10 +114,20 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
 
     override fun newResourceService(): ResourceService {
         return object : ResourceService() {
-            // We override the getContent method because the original impl does the alias check
-            // with predefined SymlinkAllowedResourceAliasChecker
+            // WebJars are treated as an alias because of:
+            // https://github.com/jetty/jetty.project/issues/12913
             override fun getContent(path: String, request: Request): HttpContent? {
-                return httpContentFactory.getContent(path)
+                val aliasCheck = config.aliasCheck
+                return if (aliasCheck != null) {
+                    httpContentFactory.getContent(path)?.also { content ->
+                        val resource = content.resource
+                        if (resource.isAlias && !aliasCheck.checkAlias(path, resource)) {
+                            throw AccessDeniedException("Failed alias check")
+                        }
+                    }
+                } else {
+                    super.getContent(path, request)
+                }
             }
         }
     }
@@ -132,14 +142,10 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         }
         return object : ResourceHttpContentFactory(baseResource, mimeTypes) {
             override fun resolve(path: String): Resource? {
-                val aliasResource by javalinLazy { baseResource!!.resolve(URIUtil.canonicalPath(path)) }
                 return when {
                     config.directory == "META-INF/resources/webjars" ->
                         ResourceFactory.of(this@ConfigurableHandler)
                             .newClassLoaderResource("META-INF/resources$path", false)
-
-                    config.aliasCheck != null && aliasResource.isAlias ->
-                        if (config.aliasCheck?.checkAlias(path, aliasResource) == true) aliasResource else throw AccessDeniedException("Failed alias check")
 
                     config.hostedPath == "/" -> super.resolve(path) // same as regular ResourceHandler
                     path == config.hostedPath -> super.resolve("/")
