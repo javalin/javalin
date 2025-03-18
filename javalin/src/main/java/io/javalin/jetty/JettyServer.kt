@@ -170,9 +170,9 @@ class JettyServer(private val cfg: JavalinConfig) {
             mimeTypes.addInferred(ContentType.PLAIN, Charsets.UTF_8.name()) // set default encoding for text/plain
         }
 
-        // UriCompliance.JETTY_11 makes Jetty accept ambiguous values in path, so Javalin can handle them
+        // UriCompliance.LEGACY makes Jetty accept ambiguous values in path, so Javalin can handle them
         fun defaultHttpConfiguration() = HttpConfiguration().apply {
-            uriCompliance = UriCompliance.JETTY_11
+            uriCompliance = UriCompliance.LEGACY
             sendServerVersion = false
         }
 
