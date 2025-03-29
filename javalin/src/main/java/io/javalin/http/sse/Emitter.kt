@@ -6,12 +6,12 @@ import java.io.InputStream
 
 const val COMMENT_PREFIX = ":"
 const val NEW_LINE = "\n"
-
+// before refactoring
 class Emitter(private var response: HttpServletResponse) {
 
     var closed = false
         private set
-
+// method to be refactored
     fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
         try {
             if (id != null) {
