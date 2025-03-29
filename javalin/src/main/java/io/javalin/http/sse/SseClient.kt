@@ -7,7 +7,7 @@ import java.io.Closeable
 import java.io.InputStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
-
+//before refactoring
 class SseClient internal constructor(
     private val ctx: Context
 ) : Closeable {
