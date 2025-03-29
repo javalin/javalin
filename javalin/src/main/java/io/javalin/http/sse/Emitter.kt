@@ -12,21 +12,25 @@ class Emitter(private var response: HttpServletResponse) {
     var closed = false
         private set
 // method to be refactored
-    fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
-        try {
-            if (id != null) {
-                write("id: $id$NEW_LINE")
-            }
-            write("event: $event$NEW_LINE")
+fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
+    try {
+        writeSseHeaders(event, id) // Extracted
+        writeSseData(data)        // Extracted
+        write(NEW_LINE)
+        response.flushBuffer()
+    } catch (ignored: IOException) {
+        closed = true
+    }
+}
 
-            data.buffered().reader().useLines {
-                it.forEach { line -> write("data: $line$NEW_LINE") }
-            }
+    private fun writeSseHeaders(event: String, id: String?) {
+        id?.let { write("id: $it$NEW_LINE") }
+        write("event: $event$NEW_LINE")
+    }
 
-            write(NEW_LINE)
-            response.flushBuffer()
-        } catch (ignored: IOException) {
-            closed = true
+    private fun writeSseData(data: InputStream) {
+        data.buffered().reader().useLines {
+            it.forEach { line -> write("data: $line$NEW_LINE") }
         }
     }
 
