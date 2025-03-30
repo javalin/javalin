@@ -33,7 +33,7 @@ fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
             it.forEach { line -> write("data: $line$NEW_LINE") }
         }
     }
-
+// marked for refactoring
     fun emit(comment: String) =
         try {
             comment.split(NEW_LINE).forEach {
