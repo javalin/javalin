@@ -36,7 +36,7 @@ fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
 // marked for refactoring
     fun emit(comment: String) =
         try {
-            val commentLinePrefix = "$COMMENT_PREFIX " // Explaining variable
+            val commentLinePrefix = "$COMMENT_PREFIX" // Explaining variable
             comment.split(NEW_LINE).forEach {
                 write("$commentLinePrefix $it$NEW_LINE")
             }
