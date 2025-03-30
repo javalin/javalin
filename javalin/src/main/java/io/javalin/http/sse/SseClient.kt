@@ -75,7 +75,7 @@ class SseClient internal constructor(
      * If the [emitter] fails to emit (remote client has disconnected),
      * the [close] function will be called instead.
      */
-    // marked for refactoring line 78
+    // marked for second refactoring design line 78
     fun sendComment(comment: String) {
         if (shouldAbortSending()) return // Extracted condition
         emitter.emit(comment)
