@@ -36,8 +36,9 @@ fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
 // marked for refactoring
     fun emit(comment: String) =
         try {
+            val commentLinePrefix = "$COMMENT_PREFIX " // Explaining variable
             comment.split(NEW_LINE).forEach {
-                write("$COMMENT_PREFIX $it$NEW_LINE")
+                write("$commentLinePrefix $it$NEW_LINE")
             }
             response.flushBuffer()
         } catch (ignored: IOException) {
