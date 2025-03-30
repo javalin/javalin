@@ -77,13 +77,13 @@ class SseClient internal constructor(
      */
     // marked for refactoring line 78
     fun sendComment(comment: String) {
-        if (terminated.get()) return logTerminated()
+        if (shouldAbortSending()) return // Extracted condition
         emitter.emit(comment)
-        if (emitter.closed) { // can't detect if closed before we try emitting
-            this.close()
-        }
+        checkForClosure()
     }
 
+    private fun shouldAbortSending() = terminated.get().also { if (it) logTerminated() }
+    private fun checkForClosure() { if (emitter.closed) close() }
     private fun logTerminated() = JavalinLogger.warn("Cannot send data, SseClient has been terminated.")
 
 }
