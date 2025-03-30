@@ -7,7 +7,7 @@ import java.io.Closeable
 import java.io.InputStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
-//before refactoring
+
 class SseClient internal constructor(
     private val ctx: Context
 ) : Closeable {
@@ -75,6 +75,7 @@ class SseClient internal constructor(
      * If the [emitter] fails to emit (remote client has disconnected),
      * the [close] function will be called instead.
      */
+    // marked for refactoring line 78
     fun sendComment(comment: String) {
         if (terminated.get()) return logTerminated()
         emitter.emit(comment)
