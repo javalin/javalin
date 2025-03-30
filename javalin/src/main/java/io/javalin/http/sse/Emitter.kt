@@ -6,22 +6,42 @@ import java.io.InputStream
 
 const val COMMENT_PREFIX = ":"
 const val NEW_LINE = "\n"
-// before refactoring
-class Emitter(private var response: HttpServletResponse) {
 
-    var closed = false
-        private set
-// method to be refactored
-fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
-    try {
-        writeSseHeaders(event, id) // Extracted
-        writeSseData(data)        // Extracted
-        write(NEW_LINE)
-        response.flushBuffer()
-    } catch (ignored: IOException) {
-        closed = true
+class Emitter(private val response: HttpServletResponse) {
+
+    private var closed = false
+    private var closeListener: (() -> Unit)? = null
+
+    fun onClose(listener: () -> Unit) {
+        closeListener = listener
     }
-}
+
+    @Throws(IOException::class)
+    fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
+        try {
+            writeSseHeaders(event, id)
+            writeSseData(data)
+            write(NEW_LINE)
+            flushResponse()
+        } catch (e: IOException) {
+            handleConnectionClosed()
+            throw e
+        }
+    }
+
+    @Throws(IOException::class)
+    fun emit(comment: String) {
+        try {
+            val commentLinePrefix = "$COMMENT_PREFIX"
+            comment.split(NEW_LINE).forEach {
+                write("$commentLinePrefix $it$NEW_LINE")
+            }
+            flushResponse()
+        } catch (e: IOException) {
+            handleConnectionClosed()
+            throw e
+        }
+    }
 
     private fun writeSseHeaders(event: String, id: String?) {
         id?.let { write("id: $it$NEW_LINE") }
@@ -33,29 +53,17 @@ fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
             it.forEach { line -> write("data: $line$NEW_LINE") }
         }
     }
-// marked for second refactoring design phase
-fun emit(comment: String) =
-    try {
-        writeCommentLines(comment)
-        flushResponse()
-    } catch (ignored: IOException) {
-        handleIOException()
-    }
 
-    private fun write(value: String) =
+    private fun write(value: String) {
         response.outputStream.print(value)
-
-    private fun writeCommentLines(comment: String) {
-        val commentLinePrefix = "$COMMENT_PREFIX"
-        comment.split(NEW_LINE).forEach {
-            write("$commentLinePrefix $it$NEW_LINE")
-        }
     }
 
     private fun flushResponse() {
         response.flushBuffer()
     }
-    private fun handleIOException() {
+
+    private fun handleConnectionClosed() {
         closed = true
+        closeListener?.invoke()
     }
 }
