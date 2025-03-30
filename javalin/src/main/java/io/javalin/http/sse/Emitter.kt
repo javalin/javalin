@@ -34,18 +34,28 @@ fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
         }
     }
 // marked for second refactoring design phase
-    fun emit(comment: String) =
-        try {
-            val commentLinePrefix = "$COMMENT_PREFIX" // Explaining variable
-            comment.split(NEW_LINE).forEach {
-                write("$commentLinePrefix $it$NEW_LINE")
-            }
-            response.flushBuffer()
-        } catch (ignored: IOException) {
-            closed = true
-        }
+fun emit(comment: String) =
+    try {
+        writeCommentLines(comment)
+        flushResponse()
+    } catch (ignored: IOException) {
+        handleIOException()
+    }
 
     private fun write(value: String) =
         response.outputStream.print(value)
 
+    private fun writeCommentLines(comment: String) {
+        val commentLinePrefix = "$COMMENT_PREFIX"
+        comment.split(NEW_LINE).forEach {
+            write("$commentLinePrefix $it$NEW_LINE")
+        }
+    }
+
+    private fun flushResponse() {
+        response.flushBuffer()
+    }
+    private fun handleIOException() {
+        closed = true
+    }
 }
