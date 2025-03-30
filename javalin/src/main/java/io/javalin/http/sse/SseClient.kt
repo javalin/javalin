@@ -77,8 +77,12 @@ class SseClient internal constructor(
      */
     // marked for second refactoring design line 78
     fun sendComment(comment: String) {
-        if (shouldAbortSending()) return // Extracted condition
-        emitter.emit(comment)
+        if (shouldAbortSending()) return
+        trySending { emitter.emit(comment) }
+    }
+
+    private fun trySending(block: () -> Unit) {
+        block()
         checkForClosure()
     }
 
