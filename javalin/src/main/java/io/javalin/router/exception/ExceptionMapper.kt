@@ -35,8 +35,8 @@ class ExceptionMapper(private val routerConfig: RouterConfig) {
             return handle(ctx, t.cause as Exception)
         }
         when {
-            isClientAbortException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.CLIENT_CLOSED_REQUEST)
-            isJettyTimeoutException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.REQUEST_TIMEOUT)
+            isClientAbortException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.forStatus(routerConfig.clientAbortStatus))
+            isJettyTimeoutException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.forStatus(routerConfig.timeoutStatus))
             t is Exception -> Util.findByClass(handlers, t.javaClass)?.handle(t, ctx) ?: uncaughtException(ctx, t)
             else -> handleUnexpectedThrowable(ctx.res(), t)
         }
@@ -51,8 +51,8 @@ class ExceptionMapper(private val routerConfig: RouterConfig) {
         res.status = INTERNAL_SERVER_ERROR.code
         when {
             throwable is Error -> routerConfig.javaLangErrorHandler.handle(res, throwable)
-            isClientAbortException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.CLIENT_CLOSED_REQUEST)
-            isJettyTimeoutException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.REQUEST_TIMEOUT)
+            isClientAbortException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(routerConfig.clientAbortStatus))
+            isJettyTimeoutException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(routerConfig.timeoutStatus))
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
         return null

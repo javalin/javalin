@@ -33,6 +33,10 @@ class RouterConfig(internal val cfg: JavalinConfig) {
     @JvmField var treatMultipleSlashesAsSingleSlash = false
     /** If true, treat '/PATH' and '/path' as the same path (default: false). */
     @JvmField var caseInsensitiveRoutes = false
+    /** Default HTTP status code when the server had a timeout. */
+    @JvmField var timeoutStatus = 408
+    /** Default HTTP status code when the client closes the connection. */
+    @JvmField var clientAbortStatus = 499
     // @formatter:on
 
     internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->

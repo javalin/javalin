@@ -108,15 +108,19 @@ class TestExceptionMapper {
     }
 
     @Test
-    fun `jetty eof exceptions are caught and handled as errors`() = TestUtil.test { app, http ->
+    fun `jetty eof exceptions are caught and handled as errors`() = TestUtil.test(Javalin.create {
+        it.router.clientAbortStatus = 499
+    }) { app, http ->
         app.get("/") { throw EofException() }
-        assertThat(http.get("/").httpCode()).isEqualTo(HttpStatus.CLIENT_CLOSED_REQUEST)
+        assertThat(http.get("/").httpCode()).isEqualTo(HttpStatus.forStatus(499))
     }
 
     @Test
-    fun `jetty timeout exceptions are caught and handled as errors`() = TestUtil.test { app, http ->
+    fun `jetty timeout exceptions are caught and handled as errors`() = TestUtil.test(Javalin.create {
+        it.router.timeoutStatus = 408
+    }) { app, http ->
         app.get("/") { throw IOException("timeout", TimeoutException()) }
-        assertThat(http.get("/").httpCode()).isEqualTo(HttpStatus.REQUEST_TIMEOUT)
+        assertThat(http.get("/").httpCode()).isEqualTo(HttpStatus.forStatus(408))
     }
 
     @Test
