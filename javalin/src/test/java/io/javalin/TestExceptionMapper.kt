@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.HttpResponseException
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.NOT_FOUND
@@ -20,6 +21,8 @@ import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.io.EofException
 import org.junit.jupiter.api.Test
+import java.io.IOException
+import java.util.concurrent.TimeoutException
 import kotlin.reflect.full.allSuperclasses
 
 class TestExceptionMapper {
@@ -107,7 +110,13 @@ class TestExceptionMapper {
     @Test
     fun `jetty eof exceptions are caught and handled as errors`() = TestUtil.test { app, http ->
         app.get("/") { throw EofException() }
-        assertThat(http.get("/").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
+        assertThat(http.get("/").httpCode()).isEqualTo(HttpStatus.CLIENT_CLOSED_REQUEST)
+    }
+
+    @Test
+    fun `jetty timeout exceptions are caught and handled as errors`() = TestUtil.test { app, http ->
+        app.get("/") { throw IOException("timeout", TimeoutException()) }
+        assertThat(http.get("/").httpCode()).isEqualTo(HttpStatus.REQUEST_TIMEOUT)
     }
 
     @Test
