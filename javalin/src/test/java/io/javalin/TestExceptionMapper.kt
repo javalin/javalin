@@ -109,7 +109,7 @@ class TestExceptionMapper {
 
     @Test
     fun `jetty eof exceptions are caught and handled as errors`() = TestUtil.test(Javalin.create {
-        it.router.clientAbortStatus = 499
+        it.jetty.clientAbortStatus = 499
     }) { app, http ->
         app.get("/") { throw EofException() }
         assertThat(http.get("/").httpCode()).isEqualTo(HttpStatus.forStatus(499))
@@ -117,7 +117,7 @@ class TestExceptionMapper {
 
     @Test
     fun `jetty timeout exceptions are caught and handled as errors`() = TestUtil.test(Javalin.create {
-        it.router.timeoutStatus = 408
+        it.jetty.timeoutStatus = 408
     }) { app, http ->
         app.get("/") { throw IOException("timeout", TimeoutException()) }
         assertThat(http.get("/").httpCode()).isEqualTo(HttpStatus.forStatus(408))

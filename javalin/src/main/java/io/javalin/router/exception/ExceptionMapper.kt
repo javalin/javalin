@@ -6,6 +6,7 @@
 
 package io.javalin.router.exception
 
+import io.javalin.config.JettyConfig
 import io.javalin.config.RouterConfig
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
@@ -20,7 +21,7 @@ import java.io.IOException
 import java.util.concurrent.CompletionException
 import java.util.concurrent.TimeoutException
 
-class ExceptionMapper(private val routerConfig: RouterConfig) {
+class ExceptionMapper(private val routerConfig: RouterConfig, private val jettyConfig: JettyConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
@@ -35,8 +36,8 @@ class ExceptionMapper(private val routerConfig: RouterConfig) {
             return handle(ctx, t.cause as Exception)
         }
         when {
-            isClientAbortException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.forStatus(routerConfig.clientAbortStatus))
-            isJettyTimeoutException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.forStatus(routerConfig.timeoutStatus))
+            isClientAbortException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.forStatus(jettyConfig.clientAbortStatus))
+            isJettyTimeoutException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.forStatus(jettyConfig.timeoutStatus))
             t is Exception -> Util.findByClass(handlers, t.javaClass)?.handle(t, ctx) ?: uncaughtException(ctx, t)
             else -> handleUnexpectedThrowable(ctx.res(), t)
         }
@@ -51,8 +52,8 @@ class ExceptionMapper(private val routerConfig: RouterConfig) {
         res.status = INTERNAL_SERVER_ERROR.code
         when {
             throwable is Error -> routerConfig.javaLangErrorHandler.handle(res, throwable)
-            isClientAbortException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(routerConfig.clientAbortStatus))
-            isJettyTimeoutException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(routerConfig.timeoutStatus))
+            isClientAbortException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(jettyConfig.clientAbortStatus))
+            isJettyTimeoutException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(jettyConfig.timeoutStatus))
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
         return null

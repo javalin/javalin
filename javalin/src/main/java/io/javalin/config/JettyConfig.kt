@@ -23,6 +23,10 @@ class JettyConfig(private val cfg: JavalinConfig) {
     @JvmField var defaultPort = 8080
     @JvmField var multipartConfig = MultipartConfig()
     @JvmField var threadPool: ThreadPool? = null
+    /** Default HTTP status code when the server had a timeout. */
+    @JvmField var timeoutStatus = 500
+    /** Default HTTP status code when the client closes the connection. */
+    @JvmField var clientAbortStatus = 500
     //@formatter:on
 
     /** Configure the jetty [Server]. This is useful if you want to configure Jetty features that are not exposed by Javalin.
