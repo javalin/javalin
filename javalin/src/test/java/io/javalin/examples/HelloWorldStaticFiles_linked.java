@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import org.eclipse.jetty.server.AliasCheck;
 import org.eclipse.jetty.server.handler.ContextHandler;
 
 public class HelloWorldStaticFiles_linked {
@@ -23,7 +25,7 @@ public class HelloWorldStaticFiles_linked {
             javalin.staticFiles.add(staticFiles -> {
                 staticFiles.directory = "src/test/external/";
                 staticFiles.location = Location.EXTERNAL;
-                staticFiles.aliasCheck = new ContextHandler.ApproveAliases();
+                staticFiles.aliasCheck = (path, resource) -> true;
             });
         }).start(7070);
     }

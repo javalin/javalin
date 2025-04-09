@@ -14,6 +14,7 @@ import io.javalin.http.HandlerType;
 import io.javalin.plugin.bundled.CorsPlugin;
 import io.javalin.plugin.bundled.RouteOverviewPlugin;
 import io.javalin.websocket.WsConfig;
+import org.eclipse.jetty.websocket.api.Callback;
 import org.jetbrains.annotations.NotNull;
 
 import static io.javalin.TestAccessManager.MyRole.ROLE_ONE;
@@ -80,7 +81,8 @@ public class VisualTest {
     }
 
     private static void wsMethodRef(WsConfig wsConfig) {
-        wsConfig.onConnect(ctx -> ctx.session.getRemote().sendString("Connected!"));
+        // FIXME: probably it should not be NOOP callback
+        wsConfig.onConnect(ctx -> ctx.session.sendText("Connected!", Callback.NOOP));
     }
 
     private static void methodReference(Context context) {
