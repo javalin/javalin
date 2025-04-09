@@ -24,8 +24,10 @@ class JettyConfig(private val cfg: JavalinConfig) {
     @JvmField var multipartConfig = MultipartConfig()
     @JvmField var threadPool: ThreadPool? = null
     /** Default HTTP status code when the server had a timeout. */
+    //TODO: change to 408 for javalin7
     @JvmField var timeoutStatus = 500
     /** Default HTTP status code when the client closes the connection. */
+    //TODO: change to 499 for javalin7
     @JvmField var clientAbortStatus = 500
     //@formatter:on
 
