@@ -25,7 +25,7 @@ class PrivateConfig(val cfg: JavalinConfig) {
 
     @JvmField val eventManager = EventManager()
     @JvmField val wsRouter = WsRouter(cfg.router)
-    @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, cfg.router)
+    @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, cfg.router, cfg.jetty)
     @JvmField var appDataManager = AppDataManager()
     @JvmField var pluginManager = PluginManager(cfg)
     @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy { JavalinJackson(null, cfg.useVirtualThreads) }

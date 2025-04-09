@@ -1,5 +1,6 @@
 package io.javalin.router
 
+import io.javalin.config.JettyConfig
 import io.javalin.config.RouterConfig
 import io.javalin.event.EventManager
 import io.javalin.event.HandlerMetaInfo
@@ -26,12 +27,13 @@ import java.util.stream.Stream
 open class InternalRouter(
     private val wsRouter: WsRouter,
     private val eventManager: EventManager,
-    private val routerConfig: RouterConfig
+    private val routerConfig: RouterConfig,
+    jettyConfig: JettyConfig
 ) {
 
     protected open val httpPathMatcher = PathMatcher()
     protected open val httpErrorMapper = ErrorMapper()
-    protected open val httpExceptionMapper = ExceptionMapper(routerConfig)
+    protected open val httpExceptionMapper = ExceptionMapper(routerConfig, jettyConfig)
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.

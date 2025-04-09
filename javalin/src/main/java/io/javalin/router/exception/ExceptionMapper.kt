@@ -6,10 +6,12 @@
 
 package io.javalin.router.exception
 
+import io.javalin.config.JettyConfig
 import io.javalin.config.RouterConfig
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.HttpResponseException
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.InternalServerErrorResponse
 import io.javalin.util.JavalinLogger
@@ -19,7 +21,7 @@ import java.io.IOException
 import java.util.concurrent.CompletionException
 import java.util.concurrent.TimeoutException
 
-class ExceptionMapper(private val routerConfig: RouterConfig) {
+class ExceptionMapper(private val routerConfig: RouterConfig, private val jettyConfig: JettyConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
@@ -34,7 +36,8 @@ class ExceptionMapper(private val routerConfig: RouterConfig) {
             return handle(ctx, t.cause as Exception)
         }
         when {
-            isSomewhatExpectedException(t) -> logDebugAndSetError(t, ctx.res())
+            isClientAbortException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.forStatus(jettyConfig.clientAbortStatus))
+            isJettyTimeoutException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.forStatus(jettyConfig.timeoutStatus))
             t is Exception -> Util.findByClass(handlers, t.javaClass)?.handle(t, ctx) ?: uncaughtException(ctx, t)
             else -> handleUnexpectedThrowable(ctx.res(), t)
         }
@@ -49,7 +52,8 @@ class ExceptionMapper(private val routerConfig: RouterConfig) {
         res.status = INTERNAL_SERVER_ERROR.code
         when {
             throwable is Error -> routerConfig.javaLangErrorHandler.handle(res, throwable)
-            isSomewhatExpectedException(throwable) -> logDebugAndSetError(throwable, res)
+            isClientAbortException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(jettyConfig.clientAbortStatus))
+            isJettyTimeoutException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(jettyConfig.timeoutStatus))
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
         return null
@@ -57,19 +61,16 @@ class ExceptionMapper(private val routerConfig: RouterConfig) {
 
 }
 
+private fun unwrap(t: Throwable) = (t as? CompletionException)?.cause ?: t
+
 // Jetty throws if client aborts during response writing. testing name avoids hard dependency on jetty.
-private fun isClientAbortException(t: Throwable) = t::class.java.name == "org.eclipse.jetty.io.EofException"
+private fun isClientAbortException(t: Throwable) = unwrap(t)::class.java.name == "org.eclipse.jetty.io.EofException"
 
 // Jetty may time out connections to avoid having broken connections that remain open forever
 // This is rare, but intended (see issues #163 and #1277)
-private fun isJettyTimeoutException(t: Throwable) = t is IOException && t.cause is TimeoutException
+private fun isJettyTimeoutException(t: Throwable) = unwrap(t) is IOException && t.cause is TimeoutException
 
-private fun isSomewhatExpectedException(t: Throwable): Boolean {
-    val unwrapped = (t as? CompletionException)?.cause ?: t
-    return isClientAbortException(unwrapped) || isJettyTimeoutException(unwrapped)
-}
-
-private fun logDebugAndSetError(t: Throwable, res: HttpServletResponse) {
-    JavalinLogger.debug("Client aborted or timed out", t)
-    res.status = INTERNAL_SERVER_ERROR.code
+private fun logDebugAndSetError(t: Throwable, res: HttpServletResponse, status: HttpStatus) {
+    JavalinLogger.debug("HTTP " + status.code + " " + status.message, t)
+    res.status = status.code
 }
