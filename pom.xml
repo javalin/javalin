@@ -70,7 +70,7 @@
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
 
         <!-- PLUGINS -->
-        <compiler.plugin.version>3.13.0</compiler.plugin.version>
+        <compiler.plugin.version>3.14.0</compiler.plugin.version>
         <dokka.plugin.version>1.9.10</dokka.plugin.version> <!-- 1.9.20 is breaking with javalin-ssl config -->
         <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
         <gpg.plugin.version>3.2.7</gpg.plugin.version>
