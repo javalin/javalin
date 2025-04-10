@@ -75,7 +75,7 @@
         <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
         <gpg.plugin.version>3.2.7</gpg.plugin.version>
         <jar.plugin.version>3.4.2</jar.plugin.version>
-        <surefire.plugin.version>3.5.0</surefire.plugin.version>
+        <surefire.plugin.version>3.5.3</surefire.plugin.version>
         <shade.plugin.version>3.6.0</shade.plugin.version>
         <build-helper.plugin.version>3.6.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.5.0</enforcer.plugin.version>
@@ -106,7 +106,7 @@
         <assertj.version>3.27.3</assertj.version>
         <moshi.version>1.15.1</moshi.version>
         <java.websocket.version>1.5.7</java.websocket.version>
-        <junit.version>5.11.1</junit.version>
+        <junit.version>5.12.1</junit.version>
         <jmh.version>1.37</jmh.version>
         <mockito.version>5.14.1</mockito.version>
         <mockk.version>1.13.12</mockk.version>
