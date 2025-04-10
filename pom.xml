@@ -108,7 +108,7 @@
         <java.websocket.version>1.6.0</java.websocket.version>
         <junit.version>5.12.1</junit.version>
         <jmh.version>1.37</jmh.version>
-        <mockito.version>5.14.1</mockito.version>
+        <mockito.version>5.16.1</mockito.version>
         <mockk.version>1.13.12</mockk.version>
         <unirest.version>3.14.5</unirest.version>
         <selenium.chrome.driver.version>4.25.0</selenium.chrome.driver.version>
