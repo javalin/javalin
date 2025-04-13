@@ -99,7 +99,7 @@
         <dependency>
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>
-            <version>0.23.0</version>
+            <version>0.24.0</version>
             <optional>true</optional>
         </dependency>
         <!-- END OPTIONAL TEMPLATE ENGINES -->
