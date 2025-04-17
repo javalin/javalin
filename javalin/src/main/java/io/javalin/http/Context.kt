@@ -360,6 +360,12 @@ interface Context {
     fun minSizeForCompression(minSizeForCompression: Int): Context
 
     /**
+     * Disables compression for the response output stream.
+     * Equivalent to calling [minSizeForCompression] with [Integer.MAX_VALUE].
+     */
+    fun disableCompression(): Context = minSizeForCompression(Int.MAX_VALUE)
+
+    /**
      * Writes the specified inputStream as a seekable stream.
      * You can change this default in [io.javalin.config.JavalinConfig].
      *
