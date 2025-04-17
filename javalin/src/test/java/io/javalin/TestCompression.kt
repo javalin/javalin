@@ -428,6 +428,14 @@ class TestCompression {
     }
 
     @Test
+    fun `disables compression using disableCompression`() {
+        testValidUncompressedHandler { ctx ->
+            ctx.disableCompression()
+            ctx.contentType(ContentType.APPLICATION_JSON).result(sampleJson10k)
+        }
+    }
+
+    @Test
     fun `compresses a large Stream of JSON`() {
         data class Foo(val value: Long) // will become 19 chars in JSON, 20 with comma separator
         fun createLargeJsonStream() = generateSequence { Foo(123456789) }.take(500).asStream() // > 10,000 chars
