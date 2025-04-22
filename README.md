@@ -2,32 +2,25 @@
 This readme is for Javalin developers. 
 If you are looking for the general readme, see [.github/README.md](.github/README.md).
 
-## Maven profiles
+## Getting started
+```sh
+gh repo clone javalin/javalin
+cd javalin
+./mvnw package   #(or `mvn package` if you have maven installed)
+./mvnw test      #(or `mvn test` if you have maven installed)
+```
 
-Our project uses Maven for build automation and dependency management. 
-We have defined three profiles in our `pom.xml` for different scenarios.
+If you run `test` before `package`, you will get an error in the OSGI artifact:
 
-### dev
-This profile is used for development. GPG signing of the artifacts is skipped in this profile. 
-You can activate it using the command `mvn <goals> -P dev`.
-
-### publish-snapshot
-This profile is used when publishing a snapshot version of the project. 
-GPG signing of the artifacts is also skipped in this profile. 
-You can activate it using the command `mvn <goals> -P publish-snapshot`.
-
-### sonatype-oss-release
-This profile is used for releasing the project artifacts to Sonatype OSSRH (OSS Repository Hosting). 
-It uses the default configuration. This is only used by tipsy to release the project.
-
-Replace `<goals>` with your desired Maven goals such as `clean install`.
+```
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-dependency-plugin:2.8:unpack-dependencies (unpack-everything) on project javalin-osgi: Artifact has not been packaged yet. When used on reactor artifact, unpack should be executed after packaging: see MDEP-98. -> [Help 1]
+```
 
 ## Running maven commands
 We have Maven wrapper included in the project, which means that
 you can run Maven commands without having Maven installed on your system.
+Simply replace any `mvn goal` command with `./mvnw goal`.
 
-For example, to run the tests for dev, use the following command:
-
-```shell
-./mvnw test -P dev
-```
+## Deploy
+The `sonatype-oss-release` profile is used for releasing the project artifacts to Sonatype OSSRH (OSS Repository Hosting). 
+This is only used by tipsy to release the project.

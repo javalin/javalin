@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.javalin</groupId>
         <artifactId>javalin-utils</artifactId>
-        <version>6.5.1-SNAPSHOT</version>
+        <version>6.6.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>coverage</artifactId>
@@ -51,6 +51,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.4</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>

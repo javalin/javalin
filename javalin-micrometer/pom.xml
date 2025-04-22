@@ -3,7 +3,7 @@
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
-        <version>6.5.1-SNAPSHOT</version>
+        <version>6.6.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -12,7 +12,7 @@
     <properties>
         <copy-build-resources.skip>false</copy-build-resources.skip>
 
-        <micrometer.version>1.13.4</micrometer.version>
+        <micrometer.version>1.14.5</micrometer.version>
     </properties>
 
     <dependencies>
