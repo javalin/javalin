@@ -430,13 +430,13 @@ class TestCompression {
     @Test
     fun `disableCompression disables compression even if size is big`() = TestUtil.test(superCompressingApp()) { app, http ->
         app.get("/disabled-compression") { ctx ->
-            ctx.disableCompression() // ✅ 네가 만든 기능
-            ctx.result("a".repeat(10_000)) // 충분히 압축 가능한 길이
+            ctx.disableCompression()
+            ctx.result("a".repeat(10_000))
         }
 
         val response = getResponse(http.origin, "/disabled-compression", "br, gzip")
 
-        assertThat(response.header(Header.CONTENT_ENCODING)).isNull() // ✅ 압축이 비활성화됐는지 검증
+        assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
     }
 
     @Test
