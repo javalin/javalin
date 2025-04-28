@@ -428,6 +428,18 @@ class TestCompression {
     }
 
     @Test
+    fun `disableCompression disables compression even if size is big`() = TestUtil.test(superCompressingApp()) { app, http ->
+        app.get("/disabled-compression") { ctx ->
+            ctx.disableCompression()
+            ctx.result("a".repeat(10_000))
+        }
+
+        val response = getResponse(http.origin, "/disabled-compression", "br, gzip")
+
+        assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
+    }
+
+    @Test
     fun `compresses a large Stream of JSON`() {
         data class Foo(val value: Long) // will become 19 chars in JSON, 20 with comma separator
         fun createLargeJsonStream() = generateSequence { Foo(123456789) }.take(500).asStream() // > 10,000 chars
