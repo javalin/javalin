@@ -7,15 +7,12 @@
 
 package io.javalin
 
-import com.mitchellbosecke.pebble.PebbleEngine
-import com.mitchellbosecke.pebble.loader.ClasspathLoader
-import gg.jte.ContentType
-import gg.jte.TemplateEngine
-import io.javalin.jte.JteTestPage
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.markdown.JavalinCommonmark
 import io.javalin.rendering.template.*
 import io.javalin.testtools.JavalinTest
+import io.pebbletemplates.pebble.PebbleEngine
+import io.pebbletemplates.pebble.loader.ClasspathLoader
 import org.apache.velocity.app.VelocityEngine
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
