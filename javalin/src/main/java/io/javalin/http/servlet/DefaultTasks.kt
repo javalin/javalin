@@ -12,12 +12,18 @@ import io.javalin.security.Roles
 import io.javalin.security.RouteRole
 import io.javalin.util.Util.firstOrNull
 import io.javalin.util.javalinLazy
+import io.javalin.util.JavalinLogger
 
 object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        servlet.router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
-            submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+        {
+            servlet.router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { 
+                entry -> {
+                    JavalinLogger.info("DefaultTasks.BEFORE{entry = ${entry}}")
+                    submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+                }
+            }
         }
     }
 
@@ -30,7 +36,9 @@ object DefaultTasks {
             servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()
         }
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
+            JavalinLogger.info("DefaultTasks.BEFORE_MATCHED{entry = [${entry.endpoint.method}, ${entry.endpoint.path}]}")
             if (willMatch) {
+
                 submitTask(LAST, Task(skipIfExceptionOccurred = true) {
                     val httpHandler = httpHandlerOrNull
                     if (httpHandler != null && !entry.endpoint.hasPathParams()) {
@@ -44,11 +52,15 @@ object DefaultTasks {
     }
 
     val HTTP = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
+        JavalinLogger.info("DefaultTasks.HTTP{requestUri = ${requestUri}}")
         servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull { entry ->
+            JavalinLogger.info("DefaultTasks.HTTP{entry = [${entry.endpoint.method}, ${entry.endpoint.path}]}")
             submitTask(
                 LAST,
                 Task {
-                    ctx.setRouteRoles(servlet.matchedRoles(ctx, requestUri)) // set roles for the matched handler
+                    var roles = servlet.matchedRoles(ctx, requestUri) // set roles for the matched handler
+                    JavalinLogger.info("DefaultTasks.HTTP.SubmitTask{roles = ${roles}}")
+                    ctx.setRouteRoles(roles)
                     entry.handle(ctx, requestUri)
                 }
             )

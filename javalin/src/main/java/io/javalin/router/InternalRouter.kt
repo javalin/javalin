@@ -24,6 +24,8 @@ import jakarta.servlet.http.HttpServletResponse
 import java.util.function.Consumer
 import java.util.stream.Stream
 
+import io.javalin.util.JavalinLogger
+
 open class InternalRouter(
     private val wsRouter: WsRouter,
     private val eventManager: EventManager,
@@ -41,6 +43,7 @@ open class InternalRouter(
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
     open fun addHttpEndpoint(endpoint: Endpoint): InternalRouter {
+        JavalinLogger.info("addHttpEndpoint, endpoint : " + endpoint)
         httpPathMatcher.add(ParsedEndpoint(endpoint, routerConfig))
         eventManager.fireHandlerAddedEvent(
             HandlerMetaInfo(
@@ -68,9 +71,10 @@ open class InternalRouter(
      * Finds all matching handlers for the specified handlerType and path.
      * @return a handler for the specified handlerType and path, or null if no handler is found
      */
-    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<ParsedEndpoint> =
-        httpPathMatcher.findEntries(handlerType, requestUri)
-
+    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<ParsedEndpoint> {
+        JavalinLogger.info("findHttpHandlerEntries")
+        return httpPathMatcher.findEntries(handlerType, requestUri)
+    }
     /**
      * Adds an error mapper for the specified content-type to the instance.
      * Useful for turning error-codes (404, 500) into standardized messages/pages

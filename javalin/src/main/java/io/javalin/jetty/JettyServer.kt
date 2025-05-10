@@ -115,7 +115,7 @@ class JettyServer(private val cfg: JavalinConfig) {
                | __  / / __ `/ | / / __ `/ / / __ \    / __ \
                |/ /_/ / /_/ /| |/ / /_/ / / / / / /   / /_/ /
                |\____/\__,_/ |___/\__,_/_/_/_/ /_/    \____/
-               |
+               |          (lazysegtree test-build)
                |       https://javalin.io/documentation
                |""".trimMargin()
         )

@@ -10,6 +10,8 @@ import io.javalin.router.matcher.PathSegment.Wildcard
 import io.javalin.util.javalinLazy
 import kotlin.LazyThreadSafetyMode.NONE
 
+import io.javalin.util.JavalinLogger
+
 private enum class ParserState {
     NORMAL,
     INSIDE_SLASH_IGNORING_BRACKETS,
@@ -34,6 +36,7 @@ internal fun convertSegment(segment: String, rawPath: String): PathSegment {
 }
 
 private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
+    JavalinLogger.info("parseAsPathSegment, segment : " + segment)
     var state: ParserState = NORMAL
     val pathNameAccumulator = mutableListOf<Char>()
     fun mapSingleChar(char: Char): PathSegment? = when (state) {
