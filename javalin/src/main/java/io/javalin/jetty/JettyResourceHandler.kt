@@ -50,8 +50,29 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         }
     }
 
+    override fun handlerConfig(ctx: Context) : StaticFileConfig? {
+        JavalinLogger.info("JettyResourceHandler.handlerConfig([${ctx.method()}, ${ctx.url()}])")
+
+        nonSkippedHandlers(ctx.jettyReq()).forEach { handler ->
+            JavalinLogger.info("JettyResourceHandler.handlerConfig - Trying handler = [${handler.config.hostedPath}, ${handler.config.directory}] )")
+            try {
+                val target = ctx.target
+                val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
+                if (fileOrWelcomeFile != null) {
+                    return handler.config;
+                }
+            } catch (e: Exception) { // it's fine, we'll just 404
+                if (e !is EofException) { // EofException is thrown when the client disconnects, which is fine
+                    JavalinLogger.info("Exception occurred while handling static resource", e)
+                }
+            }
+        }
+
+        return null;
+    }
+
     override fun handle(ctx: Context): Boolean {
-        
+
         JavalinLogger.info("JettyResourceHandler.handle([${ctx.method()}, ${ctx.fullUrl()}])")
         nonSkippedHandlers(ctx.jettyReq()).forEach { handler ->
             JavalinLogger.info("JettyResourceHandler.handle - Trying handler = [${handler.config.hostedPath}, ${handler.config.directory}] )")

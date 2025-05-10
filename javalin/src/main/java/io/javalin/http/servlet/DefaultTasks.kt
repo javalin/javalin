@@ -18,7 +18,7 @@ object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         {
-            servlet.router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { 
+            servlet.router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach {
                 entry -> {
                     JavalinLogger.info("DefaultTasks.BEFORE{entry = ${entry}}")
                     submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
@@ -121,9 +121,19 @@ object DefaultTasks {
         else -> false
     }
 
-    private fun JavalinServlet.matchedRoles(ctx: JavalinServletContext, requestUri: String): Set<RouteRole> =
-        this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()?.endpoint?.metadata(Roles::class.java)?.roles ?: emptySet()
-
+    private fun JavalinServlet.matchedRoles(ctx: JavalinServletContext, requestUri: String): Set<RouteRole> {
+        val parsedEndpoint = this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()
+        JavalinLogger.info("JavalinServlet.matchedRoles. ctx : [[${ctx.method()}, ${ctx.handlerType()}, ${ctx.url()}]]")
+        val res = parsedEndpoint?.endpoint?.metadata(Roles::class.java)?.roles ?: emptySet()
+        if ( parsedEndpoint == null) {
+            JavalinLogger.info("JavalinServlet.matchedRoles - parsedEndpoint is null")
+            if ( ctx.method() == HEAD || ctx.method() == GET ) {
+                var staticHandlerConfig =  this.cfg.pvt.resourceHandler?.handlerConfig(ctx);
+                return staticHandlerConfig?.roles ?: emptySet();
+            }
+        }
+        return res
+    }
 }
 
 internal fun Endpoint.hasPathParams() = this.path.contains("{") || this.path.contains("<")
