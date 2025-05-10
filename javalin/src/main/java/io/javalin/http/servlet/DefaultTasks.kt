@@ -66,6 +66,7 @@ object DefaultTasks {
             )
             return@TaskInitializer
         }
+        JavalinLogger.info("DefaultTasks.HTTP.submitTask2 - Before")
         submitTask(LAST, Task {
             if (ctx.method() == HEAD && servlet.router.hasHttpHandlerEntry(GET, requestUri)) { // return 200, there is a get handler
                 return@Task

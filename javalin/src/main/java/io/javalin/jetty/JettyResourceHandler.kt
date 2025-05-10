@@ -51,7 +51,10 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     }
 
     override fun handle(ctx: Context): Boolean {
+        
+        JavalinLogger.info("JettyResourceHandler.handle([${ctx.method()}, ${ctx.fullUrl()}])")
         nonSkippedHandlers(ctx.jettyReq()).forEach { handler ->
+            JavalinLogger.info("JettyResourceHandler.handle - Trying handler = [${handler.config.hostedPath}, ${handler.config.directory}] )")
             try {
                 val target = ctx.target
                 val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
