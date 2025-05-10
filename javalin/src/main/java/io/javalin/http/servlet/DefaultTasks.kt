@@ -71,8 +71,16 @@ object DefaultTasks {
                 return@Task
             }
             if (ctx.method() == HEAD || ctx.method() == GET) { // check for static resources (will write response if found)
-                if (servlet.cfg.pvt.resourceHandler?.handle(ctx) == true) return@Task
-                if (servlet.cfg.pvt.singlePageHandler.handle(ctx)) return@Task
+                var canResourceHandlerHandle = servlet.cfg.pvt.resourceHandler?.handle(ctx)
+                JavalinLogger.info("DefaultTasks.HTTP.submitTask2{ "+
+                    "ctx = [${ctx.method()}, ${ctx.handlerType()}], " +
+                    "requestUri = ${requestUri}, " +
+                    "canResourceHandlerHandle = ${canResourceHandlerHandle}, " +
+                    "}")
+                if (canResourceHandlerHandle == true) return@Task
+                var singlePageHandlerRes = servlet.cfg.pvt.singlePageHandler.handle(ctx)
+                JavalinLogger.info("DefaultTasks.HTTP.submitTask2{ singlePageHandlerRes = ${singlePageHandlerRes} }")
+                if (singlePageHandlerRes) return@Task
             }
             if (ctx.handlerType() == HandlerType.BEFORE) { // no match, status will be 404 or 405 after this point
                 ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
