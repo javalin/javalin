@@ -4,6 +4,7 @@ import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.jetty.JettyResourceHandler
+import io.javalin.security.RouteRole
 import java.util.function.Consumer
 
 /**
@@ -27,11 +28,13 @@ class StaticFilesConfig(private val cfg: JavalinConfig) {
      * Adds the given directory as a static file containers.
      * @param directory the directory where your files are located
      * @param location the location of the static directory (default: CLASSPATH)
+     * @param roles the roles which can access the the static directory (default: emptySet())
      */
     @JvmOverloads
-    fun add(directory: String, location: Location = Location.CLASSPATH) = add { staticFiles ->
+    fun add(directory: String, location: Location = Location.CLASSPATH, roles: Set<RouteRole> = emptySet()) = add { staticFiles ->
         staticFiles.directory = directory
         staticFiles.location = location
+        staticFiles.roles = roles
     }
 
     /**
