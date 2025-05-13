@@ -14,6 +14,7 @@ import io.javalin.testing.httpCode
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.io.File
 
 
 class TestStaticFileAccess {
@@ -98,11 +99,15 @@ class TestStaticFileAccess {
     @Test
     fun `Authentication works for multiple location`() = TestUtil.test(multiLocationStaticResourceApp) { _, http ->
         assertThat(callWithRole(http.origin, "/txt.txt", "ROLE_TWO")).isEqualTo(UNAUTHORIZED.message)
-        assertThat(callWithRole(http.origin, "/txt.txt", "ROLE_ONE")).isEqualTo("Sample text\n")
+        assertThat(callWithRole(http.origin, "/txt.txt", "ROLE_ONE")).isEqualTo(
+            File("src/test/external/txt.txt").takeIf { it.exists() }?.readText())
         assertThat(http.get("/txt.txt?role=ROLE_ONE").httpCode()).isEqualTo(HttpStatus.OK)
 
+        val content = javaClass.classLoader.getResourceAsStream("public/immutable/library-1.0.0.min.js")
+            ?.bufferedReader()
+            ?.use { it.readText() }
         assertThat(callWithRole(http.origin, "/library-1.0.0.min.js", "ROLE_ONE")).isEqualTo(UNAUTHORIZED.message)
-        assertThat(callWithRole(http.origin, "/library-1.0.0.min.js", "ROLE_TWO")).isEqualTo("console.log(\"Cached for a year\")\n")
+        assertThat(callWithRole(http.origin, "/library-1.0.0.min.js", "ROLE_TWO")).isEqualTo(content)
         assertThat(http.get("/library-1.0.0.min.js?role=ROLE_TWO").httpCode()).isEqualTo(HttpStatus.OK)
     }
 
