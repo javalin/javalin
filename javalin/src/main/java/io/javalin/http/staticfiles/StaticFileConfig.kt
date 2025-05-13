@@ -3,6 +3,7 @@ package io.javalin.http.staticfiles
 import io.javalin.config.StaticFilesConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Header
+import io.javalin.security.RouteRole
 import jakarta.servlet.http.HttpServletRequest
 import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
 
@@ -37,7 +38,8 @@ data class StaticFileConfig(
     @JvmField var aliasCheck: AliasCheck? = null,
     @JvmField var headers: Map<String, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
     @JvmField var skipFileFunction: (HttpServletRequest) -> Boolean = { false },
-    @JvmField val mimeTypes: MimeTypesConfig = MimeTypesConfig()
+    @JvmField val mimeTypes: MimeTypesConfig = MimeTypesConfig(),
+    @JvmField var roles: Set<RouteRole> = emptySet()
 ) {
     internal fun refinedToString(): String {
         return this.toString().replace(", skipFileFunction=(jakarta.servlet.http.HttpServletRequest) -> kotlin.Boolean", "")
