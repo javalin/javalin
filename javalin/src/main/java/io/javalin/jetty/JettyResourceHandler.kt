@@ -23,6 +23,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.util.URIUtil
 import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
+import java.net.URLDecoder
 import java.nio.file.AccessDeniedException
 import java.nio.file.Files
 import kotlin.io.path.Path
@@ -53,7 +54,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     override fun handle(ctx: Context): Boolean {
         nonSkippedHandlers(ctx.jettyReq()).forEach { handler ->
             try {
-                val target = ctx.target
+                val target = URLDecoder.decode(ctx.target, "UTF-8")
                 val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
                 if (fileOrWelcomeFile != null) {
                     handler.config.headers.forEach { ctx.header(it.key, it.value) } // set user headers
