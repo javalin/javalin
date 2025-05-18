@@ -444,9 +444,6 @@
                                 junit.jupiter.execution.timeout.default = 1m
                             </configurationParameters>
                         </properties>
-                        <argLine>
-                            -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
-                        </argLine>
                         <!--
                         default: **/*$*
                         Source: https://maven.apache.org/surefire/maven-surefire-plugin/test-mojo.html#excludes
