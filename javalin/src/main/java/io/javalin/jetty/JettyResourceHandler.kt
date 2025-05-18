@@ -90,7 +90,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         nonSkippedHandlers(ctx.jettyReq()).forEach { handler ->
             val target = ctx.target
             val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
-            if(fileOrWelcomeFile != null) {
+            if (fileOrWelcomeFile != null) {
                 return handler.config.roles;
             }
         }
