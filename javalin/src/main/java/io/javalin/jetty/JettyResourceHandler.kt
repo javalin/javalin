@@ -45,7 +45,8 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     override fun canHandle(ctx: Context) = nonSkippedHandlers(ctx.jettyReq()).any { handler ->
         try {
-            fileOrWelcomeFile(handler, ctx.target) != null
+            val target = URLDecoder.decode(ctx.target, "UTF-8")
+            fileOrWelcomeFile(handler, target) != null
         } catch (e: Exception) {
             e.message?.contains("Rejected alias reference") == true ||  // we want to say these are un-handleable (404)
                 e.message?.contains("Failed alias check") == true // we want to say these are un-handleable (404)
@@ -89,7 +90,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     override fun getResourceRouteRoles(ctx: Context): Set<RouteRole> {
         nonSkippedHandlers(ctx.jettyReq()).forEach { handler ->
-            val target = ctx.target
+            val target = URLDecoder.decode(ctx.target, "UTF-8")
             val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
             if (fileOrWelcomeFile != null) {
                 return handler.config.roles;
