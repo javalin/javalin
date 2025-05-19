@@ -20,6 +20,7 @@ import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.TestLogsKey
 import io.javalin.testing.httpCode
+import io.javalin.util.JavalinLogger
 import jakarta.servlet.DispatcherType
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.IOException
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -391,4 +393,47 @@ class TestStaticFiles {
         assertThat(http.get("/file.javalin").headers.getFirst(Header.CONTENT_TYPE)).contains("application/x-javalin")
         assertThat(http.getBody("/file.javalin")).contains("TESTFILE.javalin")
     }
+
+    @Test
+    fun `access files with non encoded names with encoded url`()  = TestUtil.test(externalStaticResourceApp) { _, http ->
+        val dirName = File("src/test/external")
+        val symbols = listOf(
+            '"', '<', '>', '#', '{', '}', '\\', '^', '~', '[', ']',
+            '%', '|', '\'', ':', '/', '?', '&', '=', '@', '+', '$', ',', ' '
+        )
+        val illegalWindowsChars = listOf('<', '>', ':', '"', '/', '\\', '|', '?', '*')
+
+        symbols.map { it ->
+            if (System.getProperty("os.name").contains("windows", ignoreCase = true) && it in illegalWindowsChars) {
+                JavalinLogger.info("Skipped symbol as windows don't allow file creation with $it.")
+            } else {
+                val tempFile = File.createTempFile("test$it", ".txt", dirName)
+                var path = tempFile.name
+                path = URLEncoder.encode(path, "UTF-8")
+                assertThat(http.get("/$path").httpCode()).isEqualTo(OK)
+                tempFile.deleteOnExit()
+            }
+        }
+    }
+
+    @Test
+    fun `access files with encoded names with encoded url`()  = TestUtil.test(externalStaticResourceApp) { _, http ->
+        val dirName = File("src/test/external")
+        val symbols = listOf(
+            "\"", "<", ">", "#", "{", "}", "\\", "^", "~", "[", "]",
+            "%", "|", "'", ":", "/", "?", "&", "=", "@", "+", "$", ",", " "
+        )
+        symbols.map { it ->
+            val encodedName = URLEncoder.encode(it, "UTF-8")
+            try {
+                val tempFile = File.createTempFile("test$encodedName", ".txt", dirName)
+                val path = tempFile.name
+                assertThat(http.get("/$path").httpCode()).isEqualTo(NOT_FOUND)
+                tempFile.deleteOnExit()
+            } catch (e: IOException) {
+                JavalinLogger.warn("Unable to create file with symbol $it.")
+            }
+        }
+    }
+
 }
