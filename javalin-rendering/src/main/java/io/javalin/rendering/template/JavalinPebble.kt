@@ -6,12 +6,12 @@
 
 package io.javalin.rendering.template
 
-import com.mitchellbosecke.pebble.PebbleEngine
-import com.mitchellbosecke.pebble.loader.ClasspathLoader
 import io.javalin.http.Context
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.util.RenderingDependency.PEBBLE
 import io.javalin.rendering.util.Util
+import io.pebbletemplates.pebble.PebbleEngine
+import io.pebbletemplates.pebble.loader.ClasspathLoader
 import java.io.StringWriter
 
 class JavalinPebble @JvmOverloads constructor(
