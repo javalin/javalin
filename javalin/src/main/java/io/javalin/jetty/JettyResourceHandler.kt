@@ -10,6 +10,7 @@ import io.javalin.config.PrivateConfig
 import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
+import io.javalin.security.RouteRole
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
@@ -44,7 +45,8 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     override fun canHandle(ctx: Context) = nonSkippedHandlers(ctx.jettyReq()).any { handler ->
         try {
-            fileOrWelcomeFile(handler, ctx.target) != null
+            val target = URLDecoder.decode(ctx.target, "UTF-8")
+            fileOrWelcomeFile(handler, target) != null
         } catch (e: Exception) {
             e.message?.contains("Rejected alias reference") == true ||  // we want to say these are un-handleable (404)
                 e.message?.contains("Failed alias check") == true // we want to say these are un-handleable (404)
@@ -85,6 +87,17 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         handlers.asSequence().filter { !it.config.skipFileFunction(jettyRequest) }
 
     private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
+
+    override fun getResourceRouteRoles(ctx: Context): Set<RouteRole> {
+        nonSkippedHandlers(ctx.jettyReq()).forEach { handler ->
+            val target = URLDecoder.decode(ctx.target, "UTF-8")
+            val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
+            if (fileOrWelcomeFile != null) {
+                return handler.config.roles;
+            }
+        }
+        return emptySet();
+    }
 
 }
 

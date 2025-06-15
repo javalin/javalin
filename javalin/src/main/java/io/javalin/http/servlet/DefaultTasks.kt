@@ -22,12 +22,15 @@ object DefaultTasks {
     }
 
     val BEFORE_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        val willMatch by javalinLazy {
-            ctx.setRouteRoles(servlet.matchedRoles(ctx, requestUri)) // set roles for the matched handler
-            servlet.willMatch(ctx, requestUri)
-        }
         val httpHandlerOrNull by javalinLazy {
             servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()
+        }
+        val isResourceHandler = httpHandlerOrNull == null && ctx.method() in setOf(HEAD, GET)
+        val matchedRouteRoles by javalinLazy { servlet.matchedRoles(ctx, requestUri) }
+        val resourceRouteRoles by javalinLazy { servlet.cfg.pvt.resourceHandler?.getResourceRouteRoles(ctx) ?: emptySet() }
+        val willMatch by javalinLazy {
+            ctx.setRouteRoles(if (isResourceHandler) resourceRouteRoles else matchedRouteRoles)
+            servlet.willMatch(ctx, requestUri)
         }
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
