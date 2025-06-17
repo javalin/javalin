@@ -7,6 +7,7 @@
 package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
+import io.javalin.router.EndpointMetadata;
 import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.http.Handler;
 import io.javalin.router.RoutingApi;
@@ -16,6 +17,7 @@ import io.javalin.websocket.WsConfig;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,6 +109,26 @@ public class ApiBuilder implements RoutingApi {
     }
 
     /**
+     * Adds a GET request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void get(@NotNull String path, @NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().get(prefixPath(path), handler, endpointMetadata);
+    }
+
+    /**
+     * Adds a GET request handler with the given roles for the current path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void get(@NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().get(prefixPath(""), handler, endpointMetadata);
+    }
+
+    /**
      * Adds a POST request handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
@@ -144,6 +166,26 @@ public class ApiBuilder implements RoutingApi {
      */
     public static void post(@NotNull Handler handler, @NotNull RouteRole... roles) {
         staticInstance().post(prefixPath(""), handler, roles);
+    }
+
+    /**
+     * Adds a POST request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void post(@NotNull String path, @NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().post(prefixPath(path), handler, endpointMetadata);
+    }
+
+    /**
+     * Adds a POST request handler with the given roles for the current path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void post(@NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().post(prefixPath(""), handler, endpointMetadata);
     }
 
     /**
@@ -187,6 +229,26 @@ public class ApiBuilder implements RoutingApi {
     }
 
     /**
+     * Adds a PUT request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void put(@NotNull String path, @NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().put(prefixPath(path), handler, endpointMetadata);
+    }
+
+    /**
+     * Adds a PUT request handler with the given roles for the current path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void put(@NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().put(prefixPath(""), handler, endpointMetadata);
+    }
+
+    /**
      * Adds a PATCH request handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
@@ -224,6 +286,26 @@ public class ApiBuilder implements RoutingApi {
      */
     public static void patch(@NotNull Handler handler, @NotNull RouteRole... roles) {
         staticInstance().patch(prefixPath(""), handler, roles);
+    }
+
+    /**
+     * Adds a PATCH request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().patch(prefixPath(path), handler, endpointMetadata);
+    }
+
+    /**
+     * Adds a PATCH request handler with the given roles for the current path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void patch(@NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().patch(prefixPath(""), handler, endpointMetadata);
     }
 
     /**
@@ -267,6 +349,26 @@ public class ApiBuilder implements RoutingApi {
     }
 
     /**
+     * Adds a DELETE request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().delete(prefixPath(path), handler, endpointMetadata);
+    }
+
+    /**
+     * Adds a DELETE request handler with the given roles for the current path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void delete(@NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().delete(prefixPath(""), handler, endpointMetadata);
+    }
+
+    /**
      * Adds a HEAD request handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
@@ -304,6 +406,26 @@ public class ApiBuilder implements RoutingApi {
      */
     public static void head(@NotNull Handler handler, @NotNull RouteRole... roles) {
         staticInstance().head(prefixPath(""), handler, roles);
+    }
+
+    /**
+     * Adds a HEAD request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void head(@NotNull String path, @NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().head(prefixPath(path), handler, endpointMetadata);
+    }
+
+    /**
+     * Adds a HEAD request handler with the given roles for the current path to the instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void head(@NotNull Handler handler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        staticInstance().head(prefixPath(""), handler, endpointMetadata);
     }
 
     // ********************************************************************************************
@@ -471,6 +593,16 @@ public class ApiBuilder implements RoutingApi {
     }
 
     /**
+     * Adds a CrudHandler handler to the current path with the given roles to the {@link Javalin} instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void crud(@NotNull CrudHandler crudHandler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        crud("", crudHandler, endpointMetadata);
+    }
+
+    /**
      * Adds a CrudHandler handler to the specified path to the {@link Javalin} instance.
      * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
      *
@@ -505,5 +637,32 @@ public class ApiBuilder implements RoutingApi {
         staticInstance().post(fullPath.replace(resourceId, ""), crudHandler::create, roles);
         staticInstance().patch(fullPath, ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), roles);
         staticInstance().delete(fullPath, ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), roles);
+    }
+
+    /**
+     * Adds a CrudHandler handler to the specified path with the given roles to the {@link Javalin} instance.
+     * The method can only be called inside a config.router.apiBuilder(EndpointGroup)}.
+     *
+     * @see CrudHandler
+     */
+    public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<EndpointMetadata> endpointMetadata) {
+        String fullPath = prefixPath(path);
+        String[] subPaths = Arrays.stream(fullPath.split("/")).filter(it -> !it.isEmpty()).toArray(String[]::new);
+        if (subPaths.length < 2) {
+            throw new IllegalArgumentException("CrudHandler requires a path like '/resource/{resource-id}'");
+        }
+        String resourceId = subPaths[subPaths.length - 1];
+        if (!(resourceId.startsWith("{") && resourceId.endsWith("}"))) {
+            throw new IllegalArgumentException("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'");
+        }
+        String resourceBase = subPaths[subPaths.length - 2];
+        if (resourceBase.startsWith("{") || resourceBase.startsWith("<") || resourceBase.endsWith("}") || resourceBase.endsWith(">")) {
+            throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/{user-id}'");
+        }
+        staticInstance().get(fullPath, ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), endpointMetadata);
+        staticInstance().get(fullPath.replace(resourceId, ""), crudHandler::getAll, endpointMetadata);
+        staticInstance().post(fullPath.replace(resourceId, ""), crudHandler::create, endpointMetadata);
+        staticInstance().patch(fullPath, ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), endpointMetadata);
+        staticInstance().delete(fullPath, ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), endpointMetadata);
     }
 }
