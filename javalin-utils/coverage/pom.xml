@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.javalin</groupId>
         <artifactId>javalin-utils</artifactId>
-        <version>6.6.1-SNAPSHOT</version>
+        <version>6.7.0</version>
     </parent>
 
     <artifactId>coverage</artifactId>
