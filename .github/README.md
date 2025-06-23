@@ -79,14 +79,14 @@ Please consider [:heart: Sponsoring](https://github.com/sponsors/tipsy) or starr
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>6.6.0</version>
+    <version>6.7.0</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```kotlin
-implementation("io.javalin:javalin:6.6.0")
+implementation("io.javalin:javalin:6.7.0")
 ```
 
 ### Start programming (Java)
