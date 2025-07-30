@@ -35,6 +35,14 @@ class TestExceptionMapper {
     }
 
     @Test
+    fun `exceptions in exception handlers use default handler`() = TestUtil.test { app, http ->
+        app.exception(Exception::class.java) { e, ctx -> throw IllegalArgumentException("Exception in exception handler") }
+        app.get("/") { throw NumberFormatException() }
+        assertThat(http.get("/").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
+        assertThat(http.getBody("/")).isEqualTo(INTERNAL_SERVER_ERROR.message)
+    }
+
+    @Test
     fun `mapped exceptions are handled`() = TestUtil.test { app, http ->
         app.get("/mapped-exception") { throw Exception() }
             .exception(Exception::class.java) { _, ctx -> ctx.result("It's been handled.") }
