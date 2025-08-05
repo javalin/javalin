@@ -38,8 +38,17 @@ class ExceptionMapper(private val routerConfig: RouterConfig, private val jettyC
         when {
             isClientAbortException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.forStatus(jettyConfig.clientAbortStatus))
             isJettyTimeoutException(t) -> logDebugAndSetError(t, ctx.res(), HttpStatus.forStatus(jettyConfig.timeoutStatus))
-            t is Exception -> Util.findByClass(handlers, t.javaClass)?.handle(t, ctx) ?: uncaughtException(ctx, t)
+            t is Exception -> handleExceptionSafely(ctx, t)
             else -> handleUnexpectedThrowable(ctx.res(), t)
+        }
+    }
+
+    private fun handleExceptionSafely(ctx: Context, exception: Exception) {
+        try {
+            Util.findByClass(handlers, exception.javaClass)?.handle(exception, ctx) ?: uncaughtException(ctx, exception)
+        } catch (exceptionInHandler: Throwable) {
+            JavalinLogger.warn("Exception handler for %s threw an error".format(exception.javaClass.simpleName), exceptionInHandler)
+            uncaughtException(ctx, exception)
         }
     }
 
