@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
+import io.javalin.compression.CompressionType
 import io.javalin.compression.Compressor
 import io.javalin.compression.Gzip
 import io.javalin.http.ContentType
@@ -68,6 +69,11 @@ class TestCompression {
         get("/huge") { it.result(getSomeObjects(1000).toString()) }
         get("/tiny") { it.result(getSomeObjects(10).toString()) }
     }
+
+    private fun preferredCompressors(prefCompressors : List<CompressionType>) = Javalin.create {
+        it.http.customCompression(CompressionStrategy(Brotli(), Gzip()).apply { preferredCompressors = prefCompressors })
+        it.staticFiles.add("/public", Location.CLASSPATH)
+    }.addTestEndpoints()
 
     @Test
     fun `Compresssor interface works`() {
@@ -447,6 +453,60 @@ class TestCompression {
             ctx.writeJsonStream(createLargeJsonStream())
         }
         // no test for uncompressed since writing a Stream<T> forces compression
+    }
+
+    @Test
+    @EnabledIf("brotliAvailable")
+    fun `assure preferred compressor is respected (br)`() = TestUtil.test(preferredCompressors(listOf(
+        CompressionType.BR, CompressionType.GZIP
+    ))) { app, http ->
+        getResponse(http.origin, "/huge", "gzip, br").let { response -> // dynamic
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
+        }
+        getResponse(http.origin, "/svg.svg", "gzip, br").let { response -> // static
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
+        }
+
+        getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
+        }
+        getResponse(http.origin, "/svg.svg", "br, gzip").let { response -> // static
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
+        }
+
+        getResponse(http.origin, "/huge", "").let { response -> // dynamic
+            assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
+        }
+        getResponse(http.origin, "/svg.svg", "").let { response -> // static
+            assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
+        }
+    }
+
+    @Test
+    @EnabledIf("brotliAvailable")
+    fun `assure preferred compressor is respected (gzip)`() = TestUtil.test(preferredCompressors(listOf(
+        CompressionType.GZIP, CompressionType.BR
+    ))) { app, http ->
+        getResponse(http.origin, "/huge", "gzip, br").let { response -> // dynamic
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+        }
+        getResponse(http.origin, "/svg.svg", "gzip, br").let { response -> // static
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+        }
+
+        getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+        }
+        getResponse(http.origin, "/svg.svg", "br, gzip").let { response -> // static
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+        }
+
+        getResponse(http.origin, "/huge", "").let { response -> // dynamic
+            assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
+        }
+        getResponse(http.origin, "/svg.svg", "").let { response -> // static
+            assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
+        }
     }
 
     private fun assertUncompressedResponse(origin: String, url: String) {

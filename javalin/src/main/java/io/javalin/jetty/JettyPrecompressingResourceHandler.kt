@@ -12,6 +12,8 @@ import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
+import java.util.Locale
+import java.util.Locale.getDefault
 import java.util.concurrent.ConcurrentHashMap
 
 object JettyPrecompressingResourceHandler {
@@ -27,26 +29,25 @@ object JettyPrecompressingResourceHandler {
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
     fun handle(target: String, resource: Resource, ctx: Context, compStrat: CompressionStrategy, config: StaticFileConfig): Boolean {
-        val acceptEncoding = ctx.header(Header.ACCEPT_ENCODING) ?: ""
-        var compressor = findMatchingCompressor(acceptEncoding, compStrat)
-        
+        var compressor = compStrat.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")
+
         // Apply custom mime types from configuration first
-        val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull { 
-            target.endsWith(".${it.key}", ignoreCase = true) 
+        val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull {
+            target.endsWith(".${it.key}", ignoreCase = true)
         }?.value
-        
+
         val contentType = customMimeType ?: mimeTypes.getMimeByExtension(target) // get content type by file extension
-        
+
         if (contentType == null || excludedMimeType(contentType, compStrat)) {
             compressor = null
         }
-        
+
         val resultByteArray = getStaticResourceByteArray(resource, target, compressor) ?: return false
-        
+
         // Set headers first, before calling ctx.result()
         ctx.header(Header.CONTENT_LENGTH, resultByteArray.size.toString())
         ctx.header(Header.CONTENT_TYPE, contentType ?: "")
-        
+
         if (compressor != null) {
             // Disable Javalin's compression since we're serving precompressed content
             ctx.disableCompression()
@@ -97,12 +98,4 @@ object JettyPrecompressingResourceHandler {
         else -> compressionStrategy.excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
     }
 
-    private fun findMatchingCompressor(
-        contentTypeHeader: String,
-        compressionStrategy: CompressionStrategy
-    ): Compressor? =
-        contentTypeHeader
-            .split(",")
-            .map { it.trim() }
-            .firstNotNullOfOrNull { compressionStrategy.compressors.forType(it) }
 }

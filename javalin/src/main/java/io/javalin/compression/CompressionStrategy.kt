@@ -5,6 +5,7 @@ import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
+import java.util.Locale.getDefault
 
 /**
  * This class is a settings container for Javalin's content compression.
@@ -74,6 +75,8 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         "application/x-rar-compressed"
     )
 
+    var preferredCompressors: List<CompressionType> = listOf()
+
     /**
      * When enabling Brotli, we try loading the jvm-brotli native libraries first.
      * If this fails, we keep Brotli disabled and warn the user.
@@ -99,6 +102,37 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
                 null
             }
         }
+    }
+
+    private fun getPreferredCompressorForSupportedCompressors(supportedCompressors: List<String>): Compressor?
+    {
+        for (preferredCompressor in preferredCompressors) {
+            if(supportedCompressors.contains(preferredCompressor.typeName)) {
+                val compressor = compressors.forType(preferredCompressor.typeName)
+
+                if(compressor != null) {
+                    return compressor
+                }
+            }
+        }
+
+        return null;
+    }
+
+    fun findMatchingCompressor(encodingHeaderValue: String): Compressor?
+    {
+        val supportedCompressors = encodingHeaderValue
+            .split(",")
+            .map { it.trim() }
+            .map { it.lowercase(getDefault()) }
+
+        val compressor = getPreferredCompressorForSupportedCompressors(supportedCompressors)
+
+        if (compressor != null) {
+            return compressor
+        }
+
+        return supportedCompressors.firstNotNullOfOrNull { compressors.forType(it) }
     }
 
 }
