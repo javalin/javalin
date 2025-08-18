@@ -23,6 +23,7 @@ import io.javalin.router.ParsedEndpoint
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.PluginManager
+import io.javalin.router.Endpoint
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.JavalinLogger
@@ -80,6 +81,7 @@ class JavalinServletContext(
     internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
     private var resultStream: InputStream? = null,
     private var minSizeForCompression: Int = cfg.compressionStrategy.defaultMinSizeForCompression,
+    private var endpoint: Endpoint? = null
 ) : Context {
 
     init {
@@ -94,6 +96,7 @@ class JavalinServletContext(
 
     fun update(parsedEndpoint: ParsedEndpoint, requestUri: String) = also {
         handlerType = parsedEndpoint.endpoint.method
+        endpoint = parsedEndpoint.endpoint
         if (matchedPath != parsedEndpoint.endpoint.path) { // if the path has changed, we have to extract path params
             matchedPath = parsedEndpoint.endpoint.path
             if (parsedEndpoint.endpoint.hasPathParams()) {
@@ -130,6 +133,7 @@ class JavalinServletContext(
 
     override fun handlerType(): HandlerType = handlerType
     override fun matchedPath(): String = matchedPath
+    override fun matchedEndpoint(): Endpoint? = endpoint
 
     /** has to be cached, because we can read input stream only once */
     private val body by javalinLazy(SYNCHRONIZED) { super.bodyAsBytes() }
