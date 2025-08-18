@@ -10,6 +10,8 @@ import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
+import java.util.Locale
+import java.util.Locale.getDefault
 import java.util.concurrent.ConcurrentHashMap
 
 object JettyPrecompressingResourceHandler {
@@ -79,9 +81,22 @@ object JettyPrecompressingResourceHandler {
     private fun findMatchingCompressor(
         contentTypeHeader: String,
         compressionStrategy: CompressionStrategy
-    ): Compressor? =
-        contentTypeHeader
+    ): Compressor? {
+        val supportedCompressors = contentTypeHeader
             .split(",")
             .map { it.trim() }
-            .firstNotNullOfOrNull { compressionStrategy.compressors.forType(it) }
+            .map { it.lowercase(getDefault()) }
+
+        for (preferredCompressor in compressionStrategy.preferredCompressors) {
+            if(supportedCompressors.contains(preferredCompressor.typeName)) {
+                val compressor = compressionStrategy.compressors.forType(preferredCompressor.typeName)
+
+                if(compressor != null) {
+                    return compressor
+                }
+            }
+        }
+
+        return supportedCompressors.firstNotNullOfOrNull { compressionStrategy.compressors.forType(it) }
+    }
 }

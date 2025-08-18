@@ -5,6 +5,7 @@ import io.javalin.http.Header
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.WriteListener
 import java.io.OutputStream
+import java.util.Locale.getDefault
 
 internal class CompressedOutputStream(
     val minSizeForCompression: Int,
@@ -50,11 +51,23 @@ internal class CompressedOutputStream(
 }
 
 private fun findMatchingCompressor(
-    compression: CompressionStrategy,
+    compressionStrategy: CompressionStrategy,
     ctx: Context,
 ): Compressor? =
     ctx.header(Header.ACCEPT_ENCODING)?.let { acceptedEncoding ->
-        compression.compressors.firstOrNull { acceptedEncoding.contains(it.encoding(), ignoreCase = true) }
+        val acceptedEncodingLowerCase = acceptedEncoding.lowercase(getDefault())
+
+        for (preferredCompressor in compressionStrategy.preferredCompressors) {
+            if(acceptedEncodingLowerCase.contains(preferredCompressor.typeName)) {
+                val compressor = compressionStrategy.compressors.forType(preferredCompressor.typeName)
+
+                if(compressor != null) {
+                    return compressor
+                }
+            }
+        }
+
+        return compressionStrategy.compressors.firstOrNull { acceptedEncodingLowerCase.contains(it.encoding(), ignoreCase = true) }
     }
 
 
