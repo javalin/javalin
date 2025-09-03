@@ -21,6 +21,8 @@ import org.eclipse.jetty.ee10.servlet.ServletContextHandler
 import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketCreator
 import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServlet
 import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServletFactory
+import org.eclipse.jetty.server.session.Session
+import org.eclipse.jetty.websocket.api.util.WebSocketConstants
 
 internal const val upgradeContextKey = "javalin-ws-upgrade-context"
 internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"
