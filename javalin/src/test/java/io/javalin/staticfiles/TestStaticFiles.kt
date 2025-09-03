@@ -28,9 +28,9 @@ import jakarta.servlet.FilterConfig
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.ServletResponseHttpWrapper
-import org.eclipse.jetty.server.handler.ContextHandler
-import org.eclipse.jetty.servlet.FilterHolder
+import org.eclipse.jetty.ee10.servlet.ServletResponseHttpWrapper
+import org.eclipse.jetty.ee10.servlet.FilterHolder
+import org.eclipse.jetty.server.AliasCheck
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -94,7 +94,7 @@ class TestStaticFiles {
     fun `alias checks for static files should work`() {
         val staticWithAliasResourceApp = Javalin.create { config ->
             // block aliases for txt files
-            val aliasCheck = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
+            val aliasCheck = AliasCheck { path, resource -> !path.endsWith(".txt") }
             config.staticFiles.add {
                 it.aliasCheck = aliasCheck
                 it.directory = workingDirectory.absolutePath
