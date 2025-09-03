@@ -178,10 +178,7 @@ class JettyServer(private val cfg: JavalinConfig) {
             sendServerVersion = false
         }
 
-        fun defaultSessionHandler() = SessionHandler().apply {
-            httpOnly = true
-            sameSite = HttpCookie.SameSite.LAX
-        }
+        fun defaultSessionHandler() = SessionHandler()
     }
 
     private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"
