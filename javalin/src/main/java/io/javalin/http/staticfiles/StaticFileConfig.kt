@@ -5,7 +5,8 @@ import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.security.RouteRole
 import jakarta.servlet.http.HttpServletRequest
-import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
+// TODO: Check if AliasCheck still exists in Jetty 12
+// import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
 
 /** The static files location. */
 enum class Location {
@@ -35,7 +36,8 @@ data class StaticFileConfig(
     @JvmField var directory: String = "/public",
     @JvmField var location: Location = Location.CLASSPATH,
     @JvmField var precompress: Boolean = false,
-    @JvmField var aliasCheck: AliasCheck? = null,
+    // TODO: Update AliasCheck for Jetty 12
+    // @JvmField var aliasCheck: AliasCheck? = null,
     @JvmField var headers: Map<String, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
     @JvmField var skipFileFunction: (HttpServletRequest) -> Boolean = { false },
     @JvmField val mimeTypes: MimeTypesConfig = MimeTypesConfig(),

@@ -89,7 +89,7 @@
 
         <!-- DEPENDENCIES -->
         <annotations.version>26.0.2</annotations.version>
-        <jetty.version>11.0.25</jetty.version>
+        <jetty.version>12.1.0</jetty.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
         <jackson.version>2.18.3</jackson.version>
         <jackson.databind.version>2.18.3</jackson.databind.version>
@@ -169,10 +169,18 @@
                 <version>${logback.version}</version>
             </dependency>
 
-            <!-- Jetty -->
+            <!-- Jetty Core -->
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-bom</artifactId>
+                <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Jetty EE10 for servlet components -->
+            <dependency>
+                <groupId>org.eclipse.jetty.ee10</groupId>
+                <artifactId>jetty-ee10-bom</artifactId>
                 <version>${jetty.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
