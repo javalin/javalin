@@ -27,10 +27,10 @@ import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.handler.StatisticsHandler
-import org.eclipse.jetty.ee10.servlet.SessionHandler
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler.SESSIONS
-import org.eclipse.jetty.ee10.servlet.ServletHolder
+import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
+import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.ThreadPool
 
 class JettyServer(private val cfg: JavalinConfig) {
@@ -178,7 +178,10 @@ class JettyServer(private val cfg: JavalinConfig) {
             sendServerVersion = false
         }
 
-        fun defaultSessionHandler() = SessionHandler()
+        fun defaultSessionHandler() = SessionHandler().apply {
+            httpOnly = true
+            sameSite = HttpCookie.SameSite.LAX
+        }
     }
 
     private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"

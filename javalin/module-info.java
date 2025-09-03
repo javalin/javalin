@@ -26,11 +26,11 @@ module io.javalin {
     requires transitive kotlin.stdlib;
     requires transitive org.slf4j;
     requires transitive org.eclipse.jetty.server;
-    requires transitive org.eclipse.jetty.ee10.servlet;
+    requires transitive org.eclipse.jetty.servlet;
     requires transitive org.eclipse.jetty.util;
     requires transitive org.eclipse.jetty.websocket.core.common;
     requires transitive org.eclipse.jetty.websocket.jetty.api;
-    requires transitive org.eclipse.jetty.ee10.websocket.jetty.server;
+    requires transitive org.eclipse.jetty.websocket.jetty.server;
 
     //optional dependencies
     requires static org.jetbrains.annotations;

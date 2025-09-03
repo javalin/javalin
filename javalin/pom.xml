@@ -37,12 +37,8 @@
             <artifactId>jetty-server</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty.ee10</groupId>
-            <artifactId>jetty-ee10-servlet</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.ee10.websocket</groupId>
-            <artifactId>jetty-ee10-websocket-jetty-server</artifactId>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-jetty-server</artifactId>
         </dependency>
 
         <!-- BEGIN Optional dependencies -->
@@ -147,7 +143,7 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
-            <artifactId>jetty-http2-server</artifactId>
+            <artifactId>http2-server</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
