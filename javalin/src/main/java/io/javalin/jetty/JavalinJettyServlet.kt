@@ -21,7 +21,7 @@ import org.eclipse.jetty.ee10.servlet.ServletContextHandler
 import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketCreator
 import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServlet
 import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServletFactory
-import org.eclipse.jetty.server.session.Session
+import org.eclipse.jetty.server.Session
 import org.eclipse.jetty.websocket.api.util.WebSocketConstants
 
 internal const val upgradeContextKey = "javalin-ws-upgrade-context"
@@ -43,7 +43,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
             val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as JavalinServletContext
             req.httpServletRequest.setAttribute(upgradeContextKey, preUpgradeContext.changeBaseRequest(req.httpServletRequest))
             val session = req.session as? Session?
-            req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) })
+            req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, session?.let { emptyMap<String, Any>() } ?: emptyMap())
             return@JettyWebSocketCreator WsConnection(cfg.pvt.wsRouter.wsPathMatcher, cfg.pvt.wsRouter.wsExceptionMapper, cfg.pvt.wsLogger)
         })
     }
