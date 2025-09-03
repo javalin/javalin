@@ -61,6 +61,7 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
         tryAfterHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
         wsLogger?.wsCloseHandler?.handleClose(ctx)
         ctx.disableAutomaticPings()
+        ctx.cleanup() // Clean up session attributes after all handlers are done
     }
 
     @OnWebSocketError

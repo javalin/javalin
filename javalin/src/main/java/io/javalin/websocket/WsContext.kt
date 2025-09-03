@@ -15,6 +15,7 @@ import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.core.CloseStatus
 import java.lang.reflect.Type
 import java.nio.ByteBuffer
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
@@ -25,6 +26,19 @@ import kotlin.reflect.typeOf
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
 abstract class WsContext(private val sessionId: String, @JvmField val session: Session) {
+
+    companion object {
+        // Global storage for WebSocket session attributes keyed by session hashCode
+        private val sessionAttributes = ConcurrentHashMap<Int, MutableMap<String, Any?>>()
+        
+        private fun getSessionAttributeMap(session: Session): MutableMap<String, Any?> {
+            return sessionAttributes.computeIfAbsent(session.hashCode()) { mutableMapOf() }
+        }
+        
+        internal fun clearSessionAttributes(session: Session) {
+            sessionAttributes.remove(session.hashCode())
+        }
+    }
 
     internal val upgradeCtx by javalinLazy { session.jettyUpgradeRequest.getServletAttribute(upgradeContextKey) as Context }
 
@@ -124,14 +138,24 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     /** Gets a [Map] with all the request cookies */
     fun cookieMap(): Map<String, String> = upgradeCtx.cookieMap()
 
-    /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle. */
-    fun attribute(key: String, value: Any?) = upgradeCtx.attribute(key, value)
+    // Custom WebSocket attribute storage
+    private val wsAttributes = getSessionAttributeMap(session)
 
-    /** Gets the specified attribute from the request. */
-    fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
+    /** Sets an attribute on the WebSocket session. WebSocket attributes are separate from HTTP request attributes. */
+    fun attribute(key: String, value: Any?) {
+        if (value == null) {
+            wsAttributes.remove(key)
+        } else {
+            wsAttributes[key] = value
+        }
+    }
 
-    /** Gets a [Map] with all the attribute keys and values on the request */
-    fun attributeMap(): Map<String, Any?> = upgradeCtx.attributeMap()
+    /** Gets the specified attribute from the WebSocket session. */
+    @Suppress("UNCHECKED_CAST")
+    fun <T> attribute(key: String): T? = wsAttributes[key] as? T
+
+    /** Gets a [Map] with all the WebSocket session attribute keys and values */
+    fun attributeMap(): Map<String, Any?> = wsAttributes.toMap()
 
     /** Gets a session attribute by name */
     @Suppress("UNCHECKED_CAST")
@@ -173,6 +197,11 @@ class WsCloseContext(sessionId: String, session: Session, private val statusCode
 
     /** The reason for the close */
     fun reason(): String? = reason
+    
+    /** Clean up session attributes - should be called after close handlers */
+    internal fun cleanup() {
+        clearSessionAttributes(session)
+    }
 }
 
 class WsBinaryMessageContext(sessionId: String, session: Session, private val data: ByteArray, private val offset: Int, private val length: Int) : WsContext(sessionId, session) {
