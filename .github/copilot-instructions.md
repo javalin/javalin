@@ -85,6 +85,36 @@ javalin/
 - **Editor config**: `.editorconfig` - 4 spaces, UTF-8, LF line endings
 - **Code style**: IntelliJ defaults with import optimization
 
+### Commit Message Convention
+Follow the repository's strict commit message format:
+```
+[component/area]: Description of change
+```
+
+**Examples:**
+- `[core] Add feature for HTTP request handling`
+- `[workflow] Update GitHub Actions dependencies`
+- `[deps] Bump Jackson version to fix security issue`
+- `[static-files] Fix path decoding for special characters`
+- `[context] Add method to disable response compression`
+- `[tests] Add unit tests for new validation logic`
+- `[github] Update documentation and README files`
+
+**Component categories commonly used:**
+- `[core]` - Core framework functionality
+- `[context]` - Request/response context changes
+- `[router]` - Routing and handler logic
+- `[static-files]` - Static file serving
+- `[websocket]` - WebSocket functionality
+- `[jetty]` - Jetty server configuration
+- `[deps]` - Dependency updates
+- `[tests]` - Test-related changes
+- `[workflow]` - GitHub Actions and CI
+- `[github]` - Documentation and repository files
+- `[maven-release-plugin]` - Release process
+- `[micrometer]` - Metrics integration
+- `[ssl]` - SSL/TLS functionality
+
 ### Testing Guidelines
 - **Unit tests**: Fast, no external dependencies
 - **Integration tests**: Use TestUtil.test() helper for server lifecycle
