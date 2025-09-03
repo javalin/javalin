@@ -17,12 +17,11 @@ import io.javalin.util.javalinLazy
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.eclipse.jetty.ee10.servlet.SessionHandler
-import org.eclipse.jetty.session.Session
-import org.eclipse.jetty.websocket.api.util.WebSocketConstants
+import jakarta.servlet.http.HttpSession
 import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketCreator
 import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServlet
 import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServletFactory
+import org.eclipse.jetty.websocket.api.util.WebSocketConstants
 
 internal const val upgradeContextKey = "javalin-ws-upgrade-context"
 internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"
@@ -42,7 +41,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
         factory.setCreator(JettyWebSocketCreator { req, _ -> // this is called when a websocket is created (after [service])
             val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as JavalinServletContext
             req.httpServletRequest.setAttribute(upgradeContextKey, preUpgradeContext.changeBaseRequest(req.httpServletRequest))
-            val session = req.session as? Session?
+            val session = req.session as? HttpSession?
             req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) })
             return@JettyWebSocketCreator WsConnection(cfg.pvt.wsRouter.wsPathMatcher, cfg.pvt.wsRouter.wsExceptionMapper, cfg.pvt.wsLogger)
         })

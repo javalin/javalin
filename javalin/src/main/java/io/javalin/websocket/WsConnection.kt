@@ -6,13 +6,16 @@
 
 package io.javalin.websocket
 
+import org.eclipse.jetty.ee10.websocket.server.JettyServerUpgradeRequest
+import org.eclipse.jetty.util.BufferUtil
+import org.eclipse.jetty.websocket.api.Callback
 import org.eclipse.jetty.websocket.api.Session
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
-import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest
+import java.nio.ByteBuffer
 import java.util.*
 
 /**
@@ -24,7 +27,7 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
 
     private val sessionId: String = UUID.randomUUID().toString()
 
-    @OnWebSocketConnect
+    @OnWebSocketOpen
     fun onConnect(session: Session) {
         val ctx = WsConnectContext(sessionId, session)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
@@ -41,11 +44,14 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
     }
 
     @OnWebSocketMessage
-    fun onMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
-        val ctx = WsBinaryMessageContext(sessionId, session, buffer, offset, length)
+    fun onMessage(session: Session, buffer: ByteBuffer, callback: Callback) {
+        // FIXME: should utilize the ByteBuffer instead of ByteArray
+        val data = BufferUtil.toArray(buffer)
+        val ctx = WsBinaryMessageContext(sessionId, session, data, 0, data.size)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)
+        callback.succeed()
     }
 
     @OnWebSocketClose
