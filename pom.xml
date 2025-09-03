@@ -87,10 +87,10 @@
 
         <!-- DEPENDENCIES -->
         <annotations.version>26.0.2</annotations.version>
-        <jetty.version>11.0.25</jetty.version>
+        <jetty.version>12.1.0</jetty.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
-        <jackson.version>2.18.3</jackson.version>
-        <jackson.databind.version>2.18.3</jackson.databind.version>
+        <jackson.version>2.20.0</jackson.version>
+        <jackson.databind.version>2.20.0</jackson.databind.version>
         <brotli4j.version>1.18.0</brotli4j.version>
         <logback.version>1.5.18</logback.version>
         <slf4j.version>2.0.17</slf4j.version>
