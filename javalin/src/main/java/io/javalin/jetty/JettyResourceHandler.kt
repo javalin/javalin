@@ -100,13 +100,18 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
             if (baseResource == null) return null
             val resource = baseResource.resolve(path)
             if (resource != null && resource.exists() && !resource.isDirectory) {
-                // TODO: Implement proper alias checking for Jetty 12
-                // For now, check manually if it's an alias and the alias check exists
-                // if (resource.isAlias && config.aliasCheck != null) {
-                //     if (!config.aliasCheck!!.invoke(path, resource)) {
-                //         return null
-                //     }
-                // }
+                // Check for alias - by default, block aliases for security unless explicitly allowed
+                if (resource.isAlias) {
+                    if (config.aliasCheck != null) {
+                        // Apply the configured alias check using correct method name
+                        if (!config.aliasCheck!!.checkAlias(path, resource)) {
+                            return null // Alias check failed, return null to trigger 404
+                        }
+                    } else {
+                        // No alias check configured - default is to block all aliases for security
+                        return null
+                    }
+                }
                 resource
             } else {
                 null
