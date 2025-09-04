@@ -8,6 +8,7 @@ package io.javalin.jetty
 
 import io.javalin.config.PrivateConfig
 import io.javalin.http.Context
+import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.security.RouteRole
@@ -17,6 +18,7 @@ import io.javalin.util.javalinLazy
 import jakarta.servlet.http.HttpServletRequest
 import org.eclipse.jetty.ee10.servlet.ServletContextRequest
 import org.eclipse.jetty.ee10.servlet.ServletContextResponse
+import org.eclipse.jetty.http.EtagUtils
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.http.content.HttpContent
 import org.eclipse.jetty.http.content.ResourceHttpContentFactory
@@ -49,28 +51,26 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (pvt.jetty.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.jetty.server!!)) else lateInitConfigs.add(config)
 
-    override fun canHandle(ctx: Context) = nonSkippedHandlers(ctx.req()).any { handler ->
+    override fun canHandle(ctx: Context) = matchingHandlers(ctx.req(), ctx.target).any { (handler, resourcePath) ->
         try {
-            fileOrWelcomeFile(handler, ctx.target) != null
+            fileOrWelcomeFile(handler, resourcePath) != null
         } catch (e: Exception) {
             false
         }
     }
 
     override fun handle(ctx: Context): Boolean {
-        nonSkippedHandlers(ctx.req()).forEach { handler ->
+        matchingHandlers(ctx.req(), ctx.target).forEach { (handler, resourcePath) ->
             try {
-                val target = ctx.target
-                val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
+                val fileOrWelcomeFile = fileOrWelcomeFile(handler, resourcePath)
                 if (fileOrWelcomeFile != null) {
                     handler.config.headers.forEach { ctx.header(it.key, it.value) } // set user headers
                     return when (handler.config.precompress) {
-                        true -> JettyPrecompressingResourceHandler.handle(target, fileOrWelcomeFile, ctx, pvt.compressionStrategy)
+                        true -> JettyPrecompressingResourceHandler.handle(resourcePath, fileOrWelcomeFile, ctx, pvt.compressionStrategy)
                         false -> {
-                            ctx.res().contentType = null // Jetty will only set the content-type if it's null
                             try {
-                                val request = ctx.jettyReq()
-                                handler.handle(request, request.servletContextResponse, Callback.NOOP)
+                                // Handle resource manually without precompression
+                                serveResourceDirectly(fileOrWelcomeFile, resourcePath, ctx)
                                 true
                             } catch (e: Exception) {
                                 false
@@ -110,12 +110,48 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     private fun nonSkippedHandlers(request: HttpServletRequest) =
         handlers.asSequence().filter { !it.config.skipFileFunction(request) }
 
+    private fun matchingHandlers(request: HttpServletRequest, target: String): Sequence<Pair<ConfigurableHandler, String>> =
+        nonSkippedHandlers(request).mapNotNull { handler ->
+            val hostedPath = handler.config.hostedPath
+            when {
+                hostedPath == "/" -> handler to target
+                target.startsWith(hostedPath) -> handler to target.removePrefix(hostedPath)
+                else -> null
+            }
+        }
+
     private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
 
+    private fun serveResourceDirectly(resource: Resource, target: String, ctx: Context) {
+        val mimeTypes = MimeTypes()
+        val contentType = mimeTypes.getMimeByExtension(target)
+        
+        // Set content type
+        if (contentType != null) {
+            ctx.contentType(contentType)
+        }
+        
+        // Handle ETag
+        val weakETag = resource.weakETag
+        ctx.header(Header.IF_NONE_MATCH)?.let { requestEtag ->
+            if (requestEtag == weakETag) {
+                ctx.status(304)
+                return
+            }
+        }
+        ctx.header(Header.ETAG, weakETag)
+        
+        // Set content length
+        ctx.header(Header.CONTENT_LENGTH, resource.length().toString())
+        
+        // Serve the resource content - read all bytes to avoid channel issues
+        val bytes = resource.newInputStream().use { it.readAllBytes() }
+        ctx.result(bytes)
+    }
+
     override fun getResourceRouteRoles(ctx: Context): Set<RouteRole> {
-        nonSkippedHandlers(ctx.req()).forEach { handler ->
-            val target = ctx.target
-            val fileOrWelcomeFile = fileOrWelcomeFile(handler, target)
+        matchingHandlers(ctx.req(), ctx.target).forEach { (handler, resourcePath) ->
+            val fileOrWelcomeFile = fileOrWelcomeFile(handler, resourcePath)
             if (fileOrWelcomeFile != null) {
                 return handler.config.roles;
             }
@@ -156,6 +192,8 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
 }
 
 private fun Context.jettyReq() = ServletContextRequest.getServletContextRequest(this.req())
+
+private val Resource.weakETag: String get() = EtagUtils.computeWeakEtag(this)
 
 private class CompressingResponseWrapper(private val ctx: Context) : Response.Wrapper(
     ServletContextRequest.getServletContextRequest(ctx.req()),

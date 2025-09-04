@@ -76,7 +76,12 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
         val requestUri = ctx.session.uriNoContextPath()
         try {
             matcher.findBeforeHandlerEntries(requestUri).forEach { handle.invoke(it) }
-            matcher.findEndpointHandlerEntry(requestUri)!!.let { handle.invoke(it) } // never null, 404 is handled in front
+            val endpointHandler = matcher.findEndpointHandlerEntry(requestUri)
+            if (endpointHandler != null) {
+                handle.invoke(endpointHandler)
+            } else {
+                throw RuntimeException("No WebSocket endpoint handler found for: $requestUri")
+            }
         } catch (e: Exception) {
             exceptionMapper.handle(e, ctx)
         }
