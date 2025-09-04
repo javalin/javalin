@@ -32,7 +32,6 @@ import org.eclipse.jetty.util.Callback
 import org.eclipse.jetty.util.URIUtil
 import org.eclipse.jetty.util.resource.Resource
 import org.eclipse.jetty.util.resource.ResourceFactory
-import java.net.URLDecoder
 import java.nio.ByteBuffer
 import java.nio.file.AccessDeniedException
 import java.nio.file.Files
@@ -52,28 +51,16 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (pvt.jetty.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.jetty.server!!)) else lateInitConfigs.add(config)
 
-    override fun canHandle(ctx: Context): Boolean {
-        val target = try {
-            URLDecoder.decode(ctx.target, "UTF-8")
+    override fun canHandle(ctx: Context) = matchingHandlers(ctx.req(), ctx.target).any { (handler, resourcePath) ->
+        try {
+            fileOrWelcomeFile(handler, resourcePath) != null
         } catch (e: Exception) {
-            ctx.target // fallback to original if decoding fails
-        }
-        return matchingHandlers(ctx.req(), target).any { (handler, resourcePath) ->
-            try {
-                fileOrWelcomeFile(handler, resourcePath) != null
-            } catch (e: Exception) {
-                false
-            }
+            false
         }
     }
 
     override fun handle(ctx: Context): Boolean {
-        val target = try {
-            URLDecoder.decode(ctx.target, "UTF-8")
-        } catch (e: Exception) {
-            ctx.target // fallback to original if decoding fails
-        }
-        matchingHandlers(ctx.req(), target).forEach { (handler, resourcePath) ->
+        matchingHandlers(ctx.req(), ctx.target).forEach { (handler, resourcePath) ->
             try {
                 val fileOrWelcomeFile = fileOrWelcomeFile(handler, resourcePath)
                 if (fileOrWelcomeFile != null) {
@@ -105,14 +92,20 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
      * It looks like jetty resolves the file even if the path contains `/` in the end.
      * [Resource.isDirectory] returns `false` in this case, and we need to explicitly check
      * if [Resource.getURI] ends with `/`
-     * TODO: [Resource.isAlias] returns `true` in this case - maybe we can use that instead?
+     * However, when alias checking is enabled and passes, we should allow such resources.
      */
-    private fun Resource?.fileOrNull(): Resource? = this?.takeIf { it.exists() && !it.isDirectory && !it.uri.schemeSpecificPart.endsWith('/') }
-    private fun ConfigurableHandler.getResource(path: String): Resource? {
+    private fun Resource?.fileOrNull(aliasCheckPassed: Boolean = false): Resource? = 
+        this?.takeIf { 
+            it.exists() && !it.isDirectory && 
+            (!it.uri.schemeSpecificPart.endsWith('/') || aliasCheckPassed) 
+        }
+    
+    private fun ConfigurableHandler.getResource(path: String): Pair<Resource?, Boolean>? {
         return try {
             if (baseResource == null) return null
             val resource = baseResource.resolve(path)
             if (resource != null && resource.exists() && !resource.isDirectory) {
+                var aliasCheckPassed = false
                 // Check for alias - by default, block aliases for security unless explicitly allowed
                 if (resource.isAlias) {
                     if (config.aliasCheck != null) {
@@ -120,12 +113,13 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                         if (!config.aliasCheck!!.checkAlias(path, resource)) {
                             return null // Alias check failed, return null to trigger 404
                         }
+                        aliasCheckPassed = true
                     } else {
                         // No alias check configured - default is to block all aliases for security
                         return null
                     }
                 }
-                resource
+                Pair(resource, aliasCheckPassed)
             } else {
                 null
             }
@@ -133,8 +127,12 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
             null
         }
     }
-    private fun fileOrWelcomeFile(handler: ConfigurableHandler, target: String): Resource? =
-        handler.getResource(target)?.fileOrNull() ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.fileOrNull()
+    
+    private fun fileOrWelcomeFile(handler: ConfigurableHandler, target: String): Resource? {
+        val (resource, aliasCheckPassed) = handler.getResource(target) ?: (null to false)
+        return resource?.fileOrNull(aliasCheckPassed) 
+            ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.first?.fileOrNull()
+    }
 
     private fun nonSkippedHandlers(request: HttpServletRequest) =
         handlers.asSequence().filter { !it.config.skipFileFunction(request) }
@@ -187,12 +185,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     }
 
     override fun getResourceRouteRoles(ctx: Context): Set<RouteRole> {
-        val target = try {
-            URLDecoder.decode(ctx.target, "UTF-8")
-        } catch (e: Exception) {
-            ctx.target // fallback to original if decoding fails
-        }
-        matchingHandlers(ctx.req(), target).forEach { (handler, resourcePath) ->
+        matchingHandlers(ctx.req(), ctx.target).forEach { (handler, resourcePath) ->
             val fileOrWelcomeFile = fileOrWelcomeFile(handler, resourcePath)
             if (fileOrWelcomeFile != null) {
                 return handler.config.roles;
