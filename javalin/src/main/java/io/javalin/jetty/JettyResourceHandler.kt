@@ -32,6 +32,7 @@ import org.eclipse.jetty.util.Callback
 import org.eclipse.jetty.util.URIUtil
 import org.eclipse.jetty.util.resource.Resource
 import org.eclipse.jetty.util.resource.ResourceFactory
+import java.net.URLDecoder
 import java.nio.ByteBuffer
 import java.nio.file.AccessDeniedException
 import java.nio.file.Files
@@ -51,16 +52,28 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (pvt.jetty.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.jetty.server!!)) else lateInitConfigs.add(config)
 
-    override fun canHandle(ctx: Context) = matchingHandlers(ctx.req(), ctx.target).any { (handler, resourcePath) ->
-        try {
-            fileOrWelcomeFile(handler, resourcePath) != null
+    override fun canHandle(ctx: Context): Boolean {
+        val target = try {
+            URLDecoder.decode(ctx.target, "UTF-8")
         } catch (e: Exception) {
-            false
+            ctx.target // fallback to original if decoding fails
+        }
+        return matchingHandlers(ctx.req(), target).any { (handler, resourcePath) ->
+            try {
+                fileOrWelcomeFile(handler, resourcePath) != null
+            } catch (e: Exception) {
+                false
+            }
         }
     }
 
     override fun handle(ctx: Context): Boolean {
-        matchingHandlers(ctx.req(), ctx.target).forEach { (handler, resourcePath) ->
+        val target = try {
+            URLDecoder.decode(ctx.target, "UTF-8")
+        } catch (e: Exception) {
+            ctx.target // fallback to original if decoding fails
+        }
+        matchingHandlers(ctx.req(), target).forEach { (handler, resourcePath) ->
             try {
                 val fileOrWelcomeFile = fileOrWelcomeFile(handler, resourcePath)
                 if (fileOrWelcomeFile != null) {
@@ -174,7 +187,12 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     }
 
     override fun getResourceRouteRoles(ctx: Context): Set<RouteRole> {
-        matchingHandlers(ctx.req(), ctx.target).forEach { (handler, resourcePath) ->
+        val target = try {
+            URLDecoder.decode(ctx.target, "UTF-8")
+        } catch (e: Exception) {
+            ctx.target // fallback to original if decoding fails
+        }
+        matchingHandlers(ctx.req(), target).forEach { (handler, resourcePath) ->
             val fileOrWelcomeFile = fileOrWelcomeFile(handler, resourcePath)
             if (fileOrWelcomeFile != null) {
                 return handler.config.roles;
