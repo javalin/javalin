@@ -5,6 +5,7 @@ import io.javalin.compression.Compressor
 import io.javalin.compression.forType
 import io.javalin.http.Context
 import io.javalin.http.Header
+import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.util.JavalinLogger
 import org.eclipse.jetty.http.EtagUtils
 import org.eclipse.jetty.http.MimeTypes
@@ -25,9 +26,15 @@ object JettyPrecompressingResourceHandler {
     @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
-    fun handle(target: String, resource: Resource, ctx: Context, compStrat: CompressionStrategy): Boolean {
+    fun handle(target: String, resource: Resource, ctx: Context, compStrat: CompressionStrategy, config: StaticFileConfig): Boolean {
         var compressor = findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "", compStrat)
-        val contentType = mimeTypes.getMimeByExtension(target) // get content type by file extension
+        
+        // Apply custom mime types from configuration first
+        val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull { 
+            target.endsWith(".${it.key}", ignoreCase = true) 
+        }?.value
+        
+        val contentType = customMimeType ?: mimeTypes.getMimeByExtension(target) // get content type by file extension
         if (contentType == null || excludedMimeType(contentType, compStrat)) {
             compressor = null
         }

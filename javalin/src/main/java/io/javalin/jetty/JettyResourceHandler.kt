@@ -66,11 +66,11 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                 if (fileOrWelcomeFile != null) {
                     handler.config.headers.forEach { ctx.header(it.key, it.value) } // set user headers
                     return when (handler.config.precompress) {
-                        true -> JettyPrecompressingResourceHandler.handle(resourcePath, fileOrWelcomeFile, ctx, pvt.compressionStrategy)
+                        true -> JettyPrecompressingResourceHandler.handle(resourcePath, fileOrWelcomeFile, ctx, pvt.compressionStrategy, handler.config)
                         false -> {
                             try {
                                 // Handle resource manually without precompression
-                                serveResourceDirectly(fileOrWelcomeFile, resourcePath, ctx)
+                                serveResourceDirectly(fileOrWelcomeFile, resourcePath, ctx, handler.config)
                                 true
                             } catch (e: Exception) {
                                 false
@@ -99,7 +99,13 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         return try {
             if (baseResource == null) return null
             val resource = baseResource.resolve(path)
-            if (resource != null && resource.exists() && !resource.isDirectory) resource else null
+            if (resource != null && resource.exists() && !resource.isDirectory) {
+                // TODO: Implement proper alias checking for Jetty 12
+                // For now, let built-in Jetty mechanisms handle alias checking
+                resource
+            } else {
+                null
+            }
         } catch (e: Exception) {
             null
         }
@@ -122,9 +128,15 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
 
-    private fun serveResourceDirectly(resource: Resource, target: String, ctx: Context) {
+    private fun serveResourceDirectly(resource: Resource, target: String, ctx: Context, config: StaticFileConfig) {
         val mimeTypes = MimeTypes()
-        val contentType = mimeTypes.getMimeByExtension(target)
+        
+        // Apply custom mime types from configuration
+        val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull { 
+            target.endsWith(".${it.key}", ignoreCase = true) 
+        }?.value
+        
+        val contentType = customMimeType ?: mimeTypes.getMimeByExtension(target)
         
         // Set content type
         if (contentType != null) {
@@ -168,6 +180,10 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         baseResource = getResourceBase(config)
         isDirAllowed = false
         isEtags = true
+        // TODO: Set alias check if configured - need to find correct API for Jetty 12
+        // if (config.aliasCheck != null) {
+        //     this.addAliasCheck(config.aliasCheck)
+        // }
         server = jettyServer
         start()
     }
