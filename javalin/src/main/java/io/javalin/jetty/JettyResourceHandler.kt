@@ -95,13 +95,18 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
      * TODO: [Resource.isAlias] returns `true` in this case - maybe we can use that instead?
      */
     private fun Resource?.fileOrNull(): Resource? = this?.takeIf { it.exists() && !it.isDirectory && !it.uri.schemeSpecificPart.endsWith('/') }
-    private fun ResourceHandler.getResource(path: String): Resource? {
+    private fun ConfigurableHandler.getResource(path: String): Resource? {
         return try {
             if (baseResource == null) return null
             val resource = baseResource.resolve(path)
             if (resource != null && resource.exists() && !resource.isDirectory) {
                 // TODO: Implement proper alias checking for Jetty 12
-                // For now, let built-in Jetty mechanisms handle alias checking
+                // For now, check manually if it's an alias and the alias check exists
+                // if (resource.isAlias && config.aliasCheck != null) {
+                //     if (!config.aliasCheck!!.invoke(path, resource)) {
+                //         return null
+                //     }
+                // }
                 resource
             } else {
                 null
@@ -110,7 +115,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
             null
         }
     }
-    private fun fileOrWelcomeFile(handler: ResourceHandler, target: String): Resource? =
+    private fun fileOrWelcomeFile(handler: ConfigurableHandler, target: String): Resource? =
         handler.getResource(target)?.fileOrNull() ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.fileOrNull()
 
     private fun nonSkippedHandlers(request: HttpServletRequest) =
@@ -182,9 +187,9 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         baseResource = getResourceBase(config)
         isDirAllowed = false
         isEtags = true
-        // TODO: Set alias check if configured - need to find correct API for Jetty 12
+        // TODO: Set alias checks if configured for Jetty 12 - need to investigate correct API
         // if (config.aliasCheck != null) {
-        //     this.addAliasCheck(config.aliasCheck)
+        //     // aliasCheckers.add(config.aliasCheck)
         // }
         server = jettyServer
         start()

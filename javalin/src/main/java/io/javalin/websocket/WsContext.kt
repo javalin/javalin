@@ -12,7 +12,6 @@ import io.javalin.jetty.upgradeSessionAttrsKey
 import io.javalin.util.javalinLazy
 import org.eclipse.jetty.websocket.api.Callback
 import org.eclipse.jetty.websocket.api.Session
-import org.eclipse.jetty.websocket.core.CloseStatus
 import java.lang.reflect.Type
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
@@ -178,9 +177,6 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
 
     /** Close the session */
     fun closeSession(): Unit = session.close()
-
-    /** Close the session with a [CloseStatus] */
-    fun closeSession(closeStatus: CloseStatus): Unit = session.close(closeStatus.code, "", Callback.NOOP)
 
     /** Close the session with a code and reason */
     fun closeSession(code: Int, reason: String?): Unit = session.close(code, reason, Callback.NOOP)

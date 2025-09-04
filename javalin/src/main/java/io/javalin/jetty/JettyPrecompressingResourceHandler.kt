@@ -40,14 +40,19 @@ object JettyPrecompressingResourceHandler {
         if (contentType == null || excludedMimeType(contentType, compStrat)) {
             compressor = null
         }
+        
         val resultByteArray = getStaticResourceByteArray(resource, target, compressor) ?: return false
-        if (compressor != null) {
-            ctx.header(Header.CONTENT_ENCODING, compressor.encoding())
-            // Disable Javalin's compression since we're serving precompressed content
-            ctx.disableCompression()
-        }
+        
+        // Set headers first, before calling ctx.result()
         ctx.header(Header.CONTENT_LENGTH, resultByteArray.size.toString())
         ctx.header(Header.CONTENT_TYPE, contentType ?: "")
+        
+        if (compressor != null) {
+            // Disable Javalin's compression since we're serving precompressed content
+            ctx.disableCompression()
+            // Set content-encoding header on the Jetty response directly
+            ctx.res().setHeader(Header.CONTENT_ENCODING, compressor.encoding())
+        }
         ctx.header(Header.IF_NONE_MATCH)?.let { requestEtag ->
             if (requestEtag == resource.weakETag) { // jetty resource use weakETag too
                 ctx.status(304)
