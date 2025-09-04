@@ -17,7 +17,6 @@ import io.javalin.jetty.JettyPrecompressingResourceHandler
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
-import io.javalin.util.JavalinLogger
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -34,6 +33,7 @@ class TestStaticFilesPrecompressor {
         Javalin.create { javalin ->
             javalin.http.brotliAndGzipCompression()
             javalin.staticFiles.add { staticFiles ->
+                staticFiles.hostedPath = "/webjars"
                 staticFiles.directory = "META-INF/resources/webjars"
                 staticFiles.precompress = true
             }
@@ -51,63 +51,46 @@ class TestStaticFilesPrecompressor {
     @Test
     fun `content-length unavailable for large files if precompression not enabled`() = TestUtil.test(Javalin.create { config -> config.staticFiles.enableWebjars() }) { _, http ->
         val swaggerBundleResponse = http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip")
-        if (swaggerBundleResponse.code == 200) {
-            assertThat(swaggerBundleResponse.contentLength()).isNull()
-        } else {
-            JavalinLogger.warn("Skipping swagger-ui-bundle.js test - webjar not available (status: ${swaggerBundleResponse.code})")
-        }
+        assertThat(swaggerBundleResponse.code).isEqualTo(200)
+        assertThat(swaggerBundleResponse.contentLength()).isNull()
         
         val swaggerGzResponse = http.getFile("$swaggerBasePath/swagger-ui.js.gz", "gzip")
-        if (swaggerGzResponse.code == 200) {
-            assertThat(swaggerGzResponse.contentLength()).isNull()
-        } else {
-            JavalinLogger.warn("Skipping swagger-ui.js.gz test - webjar not available (status: ${swaggerGzResponse.code})")
-        }
+        assertThat(swaggerGzResponse.code).isEqualTo(200)
+        assertThat(swaggerGzResponse.contentLength()).isNull()
     }
 
     @Test
     fun `content-length available for large files if precompression enabled`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
         val secretResponse = http.getFile("/secret.html", "br, gzip")
-        assertThat(secretResponse.code).describedAs("secret.html status").isEqualTo(200)
+        assertThat(secretResponse.code).isEqualTo(200)
         assertThat(secretResponse.contentLength()).isNotBlank()
         
         val libraryResponse = http.getFile("/library-1.0.0.min.js", "br")
-        assertThat(libraryResponse.code).describedAs("library.js status").isEqualTo(200)
+        assertThat(libraryResponse.code).isEqualTo(200)
         assertThat(libraryResponse.contentLength()).isNotBlank()
         
         val swaggerResponse = http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip")
-        if (swaggerResponse.code == 200) {
-            assertThat(swaggerResponse.contentLength()).isNotBlank()
-        } else {
-            JavalinLogger.warn("Skipping swagger-ui-bundle.js test - webjar not available (status: ${swaggerResponse.code})")
-        }
+        assertThat(swaggerResponse.code).isEqualTo(200)
+        assertThat(swaggerResponse.contentLength()).isNotBlank()
     }
 
     @Test
     fun `compression works if precompression enabled`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
         val secretResponse = http.getFile("/secret.html", "gzip")
-        assertThat(secretResponse.code).describedAs("secret.html status").isEqualTo(200)
+        assertThat(secretResponse.code).isEqualTo(200)
         assertThat(secretResponse.contentEncoding()).isEqualTo("gzip")
         
         val libraryResponse = http.getFile("/library-1.0.0.min.js", "br")
-        assertThat(libraryResponse.code).describedAs("library.js status").isEqualTo(200)
+        assertThat(libraryResponse.code).isEqualTo(200)
         assertThat(libraryResponse.contentEncoding()).isEqualTo("br")
         
         val swaggerResponse = http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip")
-        if (swaggerResponse.code == 200) {
-            assertThat(swaggerResponse.contentEncoding()).isEqualTo("gzip")
-        } else {
-            // Skip assertion if webjar is not available (404)
-            JavalinLogger.warn("Skipping swagger-ui-bundle.js test - webjar not available (status: ${swaggerResponse.code})")
-        }
+        assertThat(swaggerResponse.code).isEqualTo(200)
+        assertThat(swaggerResponse.contentEncoding()).isEqualTo("gzip")
         
         val swaggerGzResponse = http.getFile("$swaggerBasePath/swagger-ui.js.gz", "gzip")
-        if (swaggerGzResponse.code == 200) {
-            assertThat(swaggerGzResponse.contentEncoding()).isNull()
-        } else {
-            // Skip assertion if webjar is not available (404)
-            JavalinLogger.warn("Skipping swagger-ui.js.gz test - webjar not available (status: ${swaggerGzResponse.code})")
-        }
+        assertThat(swaggerGzResponse.code).isEqualTo(200)
+        assertThat(swaggerGzResponse.contentEncoding()).isNull()
     }
 
     @Test
