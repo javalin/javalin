@@ -39,11 +39,15 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
     override fun configure(factory: JettyWebSocketServletFactory) { // this is called once, before everything
         cfg.pvt.jetty.wsFactoryConfigs.forEach{ it.accept(factory) }
         factory.setCreator(JettyWebSocketCreator { req, _ -> // this is called when a websocket is created (after [service])
-            val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as JavalinServletContext
-            req.httpServletRequest.setAttribute(upgradeContextKey, preUpgradeContext.changeBaseRequest(req.httpServletRequest))
-            val session = req.session as? HttpSession?
-            req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) })
-            return@JettyWebSocketCreator WsConnection(cfg.pvt.wsRouter.wsPathMatcher, cfg.pvt.wsRouter.wsExceptionMapper, cfg.pvt.wsLogger)
+            try {
+                val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as JavalinServletContext
+                req.httpServletRequest.setAttribute(upgradeContextKey, preUpgradeContext.changeBaseRequest(req.httpServletRequest))
+                val session = try { req.session as? HttpSession? } catch (e: Exception) { null }
+                req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) })
+                return@JettyWebSocketCreator WsConnection(cfg.pvt.wsRouter.wsPathMatcher, cfg.pvt.wsRouter.wsExceptionMapper, cfg.pvt.wsLogger)
+            } catch (e: Exception) {
+                throw RuntimeException("Failed to create WebSocket connection. Req type: ${req.javaClass.name}", e)
+            }
         })
     }
 
@@ -51,35 +55,39 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
         if (req.getHeader(Header.SEC_WEBSOCKET_KEY) == null) { // this isn't a websocket request
             return httpServlet.service(req, res) // treat as normal HTTP request
         }
-        val requestUri = req.requestURI.removePrefix(req.contextPath)
-        val entry = cfg.pvt.wsRouter.wsPathMatcher.findEndpointHandlerEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
-        val upgradeContext = JavalinServletContext(
-            cfg = servletContextConfig,
-            req = req,
-            res = res,
-            matchedPath = entry.path,
-            pathParamMap = entry.extractPathParams(requestUri),
-        )
-        upgradeContext.setRouteRoles(entry.roles) // set roles for the matched handler
-        req.setAttribute(upgradeContextKey, upgradeContext)
-        setWsProtocolHeader(req, res)
-        // add before handlers
-        cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_BEFORE_UPGRADE, requestUri)
-            .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
-        // add actual upgrade handler
-        upgradeContext.tasks.offer(Task { super.service(req, res) })
-        // add after handlers
-        cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
-            .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
+        try {
+            val requestUri = req.requestURI.removePrefix(req.contextPath)
+            val entry = cfg.pvt.wsRouter.wsPathMatcher.findEndpointHandlerEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
+            val upgradeContext = JavalinServletContext(
+                cfg = servletContextConfig,
+                req = req,
+                res = res,
+                matchedPath = entry.path,
+                pathParamMap = entry.extractPathParams(requestUri),
+            )
+            upgradeContext.setRouteRoles(entry.roles) // set roles for the matched handler
+            req.setAttribute(upgradeContextKey, upgradeContext)
+            setWsProtocolHeader(req, res)
+            // add before handlers
+            cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_BEFORE_UPGRADE, requestUri)
+                .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
+            // add actual upgrade handler
+            upgradeContext.tasks.offer(Task { super.service(req, res) })
+            // add after handlers
+            cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
+                .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
 
-        while (upgradeContext.tasks.isNotEmpty()) {
-            try {
-                val task = upgradeContext.tasks.poll()
-                task.handler.handle()
-            } catch (e: Exception) {
-                cfg.pvt.internalRouter.handleHttpException(upgradeContext, e)
-                break
+            while (upgradeContext.tasks.isNotEmpty()) {
+                try {
+                    val task = upgradeContext.tasks.poll()
+                    task.handler.handle()
+                } catch (e: Exception) {
+                    cfg.pvt.internalRouter.handleHttpException(upgradeContext, e)
+                    break
+                }
             }
+        } catch (e: Exception) {
+            throw RuntimeException("WebSocket service failed for ${req.requestURI}", e)
         }
     }
 

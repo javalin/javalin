@@ -94,7 +94,15 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
 }
 
 internal val Session.jettyUpgradeRequest: JettyServerUpgradeRequest
-    get() = this.upgradeRequest as JettyServerUpgradeRequest
+    get() = try {
+        this.upgradeRequest as JettyServerUpgradeRequest
+    } catch (e: ClassCastException) {
+        throw RuntimeException("Failed to cast upgradeRequest to JettyServerUpgradeRequest. Actual type: ${this.upgradeRequest?.javaClass?.name}", e)
+    }
 
-private fun Session.uriNoContextPath(): String =
+private fun Session.uriNoContextPath(): String = try {
     this.upgradeRequest.requestURI.path.removePrefix(jettyUpgradeRequest.httpServletRequest.contextPath)
+} catch (e: Exception) {
+    // Fallback - just use the path without removing context path
+    this.upgradeRequest.requestURI.path
+}

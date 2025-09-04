@@ -40,10 +40,22 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
         }
     }
 
-    internal val upgradeCtx by javalinLazy { session.jettyUpgradeRequest.getServletAttribute(upgradeContextKey) as Context }
+    internal val upgradeCtx by javalinLazy { 
+        try {
+            session.jettyUpgradeRequest.getServletAttribute(upgradeContextKey) as Context 
+        } catch (e: Exception) {
+            throw RuntimeException("Failed to get upgrade context. Session type: ${session.javaClass.name}, upgradeRequest type: ${session.upgradeRequest?.javaClass?.name}", e)
+        }
+    }
 
     @Suppress("UNCHECKED_CAST")
-    private val sessionAttributes by javalinLazy { session.jettyUpgradeRequest.getServletAttribute(upgradeSessionAttrsKey) as? Map<String, Any> }
+    private val sessionAttributes by javalinLazy { 
+        try {
+            session.jettyUpgradeRequest.getServletAttribute(upgradeSessionAttrsKey) as? Map<String, Any>
+        } catch (e: Exception) {
+            null // Return null if we can't access session attributes
+        }
+    }
 
     /** Returns the path that was used to match this request */
     fun matchedPath() = upgradeCtx.matchedPath()
