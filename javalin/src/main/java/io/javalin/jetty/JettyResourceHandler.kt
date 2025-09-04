@@ -68,13 +68,13 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                         true -> JettyPrecompressingResourceHandler.handle(target, fileOrWelcomeFile, ctx, pvt.compressionStrategy)
                         false -> {
                             ctx.res().contentType = null // Jetty will only set the content-type if it's null
-                            runCatching { // we wrap the response to compress it with javalin's compression strategy
+                            try {
                                 val request = ctx.jettyReq()
-                                // TODO: should not be NOOP callback
-                                // FIXME: wrapper does not work as expected
-                                //        remove for now until figure out how to work with compression in this case
                                 handler.handle(request, request.servletContextResponse, Callback.NOOP)
-                            }.getOrDefault(false)
+                                true
+                            } catch (e: Exception) {
+                                false
+                            }
                         }
                     }
                 }
@@ -95,9 +95,15 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
      * TODO: [Resource.isAlias] returns `true` in this case - maybe we can use that instead?
      */
     private fun Resource?.fileOrNull(): Resource? = this?.takeIf { it.exists() && !it.isDirectory && !it.uri.schemeSpecificPart.endsWith('/') }
-    private fun ResourceHandler.getResource(path: String): Resource? =
-        // FIXME: the HttpContent returned by `getContent` should be released after usage I think
-        httpContentFactory.getContent(path)?.resource
+    private fun ResourceHandler.getResource(path: String): Resource? {
+        return try {
+            if (baseResource == null) return null
+            val resource = baseResource.resolve(path)
+            if (resource != null && resource.exists() && !resource.isDirectory) resource else null
+        } catch (e: Exception) {
+            null
+        }
+    }
     private fun fileOrWelcomeFile(handler: ResourceHandler, target: String): Resource? =
         handler.getResource(target)?.fileOrNull() ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.fileOrNull()
 
