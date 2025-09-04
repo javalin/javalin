@@ -50,8 +50,8 @@ object JettyPrecompressingResourceHandler {
         if (compressor != null) {
             // Disable Javalin's compression since we're serving precompressed content
             ctx.disableCompression()
-            // Set content-encoding header on the Jetty response directly
-            ctx.res().setHeader(Header.CONTENT_ENCODING, compressor.encoding())
+            // Set content-encoding header directly on Context - this should persist
+            ctx.header(Header.CONTENT_ENCODING, compressor.encoding())
         }
         ctx.header(Header.IF_NONE_MATCH)?.let { requestEtag ->
             if (requestEtag == resource.weakETag) { // jetty resource use weakETag too
