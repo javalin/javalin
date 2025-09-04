@@ -27,7 +27,8 @@ object JettyPrecompressingResourceHandler {
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
     fun handle(target: String, resource: Resource, ctx: Context, compStrat: CompressionStrategy, config: StaticFileConfig): Boolean {
-        var compressor = findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "", compStrat)
+        val acceptEncoding = ctx.header(Header.ACCEPT_ENCODING) ?: ""
+        var compressor = findMatchingCompressor(acceptEncoding, compStrat)
         
         // Apply custom mime types from configuration first
         val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull { 
@@ -35,12 +36,15 @@ object JettyPrecompressingResourceHandler {
         }?.value
         
         val contentType = customMimeType ?: mimeTypes.getMimeByExtension(target) // get content type by file extension
+        
         if (contentType == null || excludedMimeType(contentType, compStrat)) {
             compressor = null
         }
         val resultByteArray = getStaticResourceByteArray(resource, target, compressor) ?: return false
         if (compressor != null) {
             ctx.header(Header.CONTENT_ENCODING, compressor.encoding())
+            // Disable Javalin's compression since we're serving precompressed content
+            ctx.disableCompression()
         }
         ctx.header(Header.CONTENT_LENGTH, resultByteArray.size.toString())
         ctx.header(Header.CONTENT_TYPE, contentType ?: "")
