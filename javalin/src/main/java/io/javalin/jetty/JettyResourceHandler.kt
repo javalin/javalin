@@ -121,7 +121,10 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
             val hostedPath = handler.config.hostedPath
             when {
                 hostedPath == "/" -> handler to target
-                target.startsWith(hostedPath) -> handler to target.removePrefix(hostedPath)
+                target.startsWith(hostedPath) -> {
+                    val resourcePath = target.removePrefix(hostedPath).removePrefix("/")
+                    handler to resourcePath
+                }
                 else -> null
             }
         }
@@ -153,11 +156,10 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         }
         ctx.header(Header.ETAG, weakETag)
         
-        // Set content length
-        ctx.header(Header.CONTENT_LENGTH, resource.length().toString())
-        
         // Serve the resource content - read all bytes to avoid channel issues
         val bytes = resource.newInputStream().use { it.readAllBytes() }
+        
+        // Don't set content-length manually - let Javalin handle it after compression
         ctx.result(bytes)
     }
 
