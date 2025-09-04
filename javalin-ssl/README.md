@@ -171,10 +171,10 @@ sslPlugin.reload {
 
 ## Depends on
 
-| Package                                                                 | License                                                                                                              |
-|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
-| [Javalin](https://github.com/javalin/javalin)                           | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) |
-| [SSLContext Kickstart](https://github.com/Hakky54/sslcontext-kickstart) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) |
+| Package                                       | License                                                                                                              |
+|-----------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| [Javalin](https://github.com/javalin/javalin) | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) |
+| [Ayza](https://github.com/Hakky54/ayza)       | [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) |
 
 ## Contributing
 

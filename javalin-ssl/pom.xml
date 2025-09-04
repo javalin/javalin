@@ -83,15 +83,15 @@
         </dependency>
         <dependency>
             <groupId>io.github.hakky54</groupId>
-            <artifactId>sslcontext-kickstart</artifactId>
+            <artifactId>ayza</artifactId>
         </dependency>
         <dependency>
             <groupId>io.github.hakky54</groupId>
-            <artifactId>sslcontext-kickstart-for-pem</artifactId>
+            <artifactId>ayza-for-pem</artifactId>
         </dependency>
         <dependency>
             <groupId>io.github.hakky54</groupId>
-            <artifactId>sslcontext-kickstart-for-jetty</artifactId>
+            <artifactId>ayza-for-jetty</artifactId>
         </dependency>
         <!-- BEGIN TEST DEPENDENCIES -->
         <dependency>
