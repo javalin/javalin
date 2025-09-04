@@ -57,7 +57,15 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     }
 
     /** Returns the path that was used to match this request */
-    fun matchedPath() = upgradeCtx.matchedPath()
+    fun matchedPath(): String {
+        return try {
+            // Try to get from path info storage first (preferred for Jetty 12)
+            WsConnection.getPathInfo(session)?.matchedPath ?: upgradeCtx.matchedPath()
+        } catch (e: Exception) {
+            // Fallback - try to reconstruct from upgrade request
+            session.upgradeRequest.requestURI.path
+        }
+    }
 
     /** Reified version of [sendAsClass] (Kotlin only) */
     @OptIn(ExperimentalStdlibApi::class)
@@ -114,7 +122,15 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     inline fun <reified T : Any> queryParamAsClass(key: String) = queryParamAsClass(key, T::class.java)
 
     /** Returns a [Map] of all the path parameters */
-    fun pathParamMap(): Map<String, String> = upgradeCtx.pathParamMap()
+    fun pathParamMap(): Map<String, String> {
+        return try {
+            // Try to get from path info storage first (preferred for Jetty 12)
+            WsConnection.getPathInfo(session)?.pathParams ?: upgradeCtx.pathParamMap()
+        } catch (e: Exception) {
+            // Fallback - return empty map
+            emptyMap()
+        }
+    }
 
     /** Returns a [String] of the session id */
     fun sessionId(): String = sessionId
@@ -123,7 +139,16 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
      *
      * Ex: If the handler path is /users/{user-id}, and a browser GETs /users/123, pathParam("user-id") will return "123"
      */
-    fun pathParam(key: String): String = upgradeCtx.pathParam(key)
+    fun pathParam(key: String): String {
+        return try {
+            // Try to get from path info storage first (preferred for Jetty 12)
+            val pathParams = WsConnection.getPathInfo(session)?.pathParams
+            pathParams?.get(key) ?: upgradeCtx.pathParam(key)
+        } catch (e: Exception) {
+            // Fallback - throw exception like the original would
+            throw IllegalArgumentException("Path parameter '$key' not found")
+        }
+    }
 
     /** Creates a typed [io.javalin.validation.Validator] for the [pathParam] value */
     fun <T> pathParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.pathParamAsClass(key, clazz)

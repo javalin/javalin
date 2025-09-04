@@ -6,6 +6,7 @@
 
 package io.javalin.websocket
 
+import io.javalin.jetty.upgradeContextKey
 import org.eclipse.jetty.ee10.websocket.server.JettyServerUpgradeRequest
 import org.eclipse.jetty.util.BufferUtil
 import org.eclipse.jetty.websocket.api.Callback
@@ -17,6 +18,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
 import java.nio.ByteBuffer
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Is instantiated for every WebSocket connection. It keeps the session and sessionId and handles incoming events by
@@ -25,14 +27,52 @@ import java.util.*
 @WebSocket
 class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsConfig?) {
 
+    companion object {
+        // Global storage for path information keyed by session hashCode
+        private val sessionPathInfo = ConcurrentHashMap<Int, PathInfo>()
+        
+        data class PathInfo(val matchedPath: String, val pathParams: Map<String, String>)
+        
+        private fun storePathInfo(session: Session, matchedPath: String, pathParams: Map<String, String>) {
+            sessionPathInfo[session.hashCode()] = PathInfo(matchedPath, pathParams)
+        }
+        
+        internal fun getPathInfo(session: Session): PathInfo? {
+            return sessionPathInfo[session.hashCode()]
+        }
+        
+        internal fun clearPathInfo(session: Session) {
+            sessionPathInfo.remove(session.hashCode())
+        }
+    }
+
     private val sessionId: String = UUID.randomUUID().toString()
 
     @OnWebSocketOpen
     fun onConnect(session: Session) {
+        // Store path information for later access
+        val requestUri = getRequestUri(session)
+        val entry = matcher.findEndpointHandlerEntry(requestUri)
+        
+        // Store the matched path and path params in companion object storage
+        storePathInfo(session, entry?.path ?: requestUri, entry?.extractPathParams(requestUri) ?: emptyMap())
+        
         val ctx = WsConnectContext(sessionId, session)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
         wsLogger?.wsConnectHandler?.handleConnect(ctx)
+    }
+    
+    private fun getRequestUri(session: Session): String {
+        return try {
+            // Try to get the request URI that was already processed by the servlet
+            val upgradeRequest = session.upgradeRequest as? org.eclipse.jetty.ee10.websocket.server.JettyServerUpgradeRequest
+            val context = upgradeRequest?.httpServletRequest?.getAttribute(upgradeContextKey) as? io.javalin.http.servlet.JavalinServletContext
+            context?.path() ?: session.uriNoContextPath()
+        } catch (e: Exception) {
+            // Fallback to the legacy approach
+            session.uriNoContextPath()
+        }
     }
 
     @OnWebSocketMessage
@@ -62,6 +102,7 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
         wsLogger?.wsCloseHandler?.handleClose(ctx)
         ctx.disableAutomaticPings()
         ctx.cleanup() // Clean up session attributes after all handlers are done
+        clearPathInfo(session) // Clean up path information
     }
 
     @OnWebSocketError
@@ -73,7 +114,9 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
     }
 
     private fun tryBeforeAndEndpointHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
-        val requestUri = ctx.session.uriNoContextPath()
+        // Get the request URI using the same logic as onConnect
+        val requestUri = getRequestUri(ctx.session)
+        
         try {
             matcher.findBeforeHandlerEntries(requestUri).forEach { handle.invoke(it) }
             val endpointHandler = matcher.findEndpointHandlerEntry(requestUri)
@@ -88,7 +131,7 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
     }
 
     private fun tryAfterHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
-        val requestUri = ctx.session.uriNoContextPath()
+        val requestUri = getRequestUri(ctx.session)
         try {
             matcher.findAfterHandlerEntries(requestUri).forEach { handle.invoke(it) }
         } catch (e: Exception) {
@@ -105,9 +148,14 @@ internal val Session.jettyUpgradeRequest: JettyServerUpgradeRequest
         throw RuntimeException("Failed to cast upgradeRequest to JettyServerUpgradeRequest. Actual type: ${this.upgradeRequest?.javaClass?.name}", e)
     }
 
-private fun Session.uriNoContextPath(): String = try {
-    this.upgradeRequest.requestURI.path.removePrefix(jettyUpgradeRequest.httpServletRequest.contextPath)
-} catch (e: Exception) {
-    // Fallback - just use the path without removing context path
-    this.upgradeRequest.requestURI.path
+private fun Session.uriNoContextPath(): String {
+    val fullPath = this.upgradeRequest.requestURI.path
+    try {
+        val contextPath = jettyUpgradeRequest.httpServletRequest.contextPath
+        return fullPath.removePrefix(contextPath ?: "")
+    } catch (e: Exception) {
+        // If we can't access the context path, assume it's a root context
+        // Only strip known context paths if they exist
+        return fullPath
+    }
 }
