@@ -100,7 +100,7 @@
         <okhttp.version>4.12.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
 
         <!-- SSL DEPENDENCIES -->
-        <sslcontext-kickstart.version>9.1.0</sslcontext-kickstart.version>
+        <ayza.version>10.0.0</ayza.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.27.3</assertj.version>
@@ -181,18 +181,18 @@
             <!-- SSL Plugin -->
             <dependency>
                 <groupId>io.github.hakky54</groupId>
-                <artifactId>sslcontext-kickstart</artifactId>
-                <version>${sslcontext-kickstart.version}</version>
+                <artifactId>ayza</artifactId>
+                <version>${ayza.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.hakky54</groupId>
-                <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-                <version>${sslcontext-kickstart.version}</version>
+                <artifactId>ayza-for-jetty</artifactId>
+                <version>${ayza.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.hakky54</groupId>
-                <artifactId>sslcontext-kickstart-for-pem</artifactId>
-                <version>${sslcontext-kickstart.version}</version>
+                <artifactId>ayza-for-pem</artifactId>
+                <version>${ayza.version}</version>
             </dependency>
 
             <!-- BEGIN Optional dependencies -->
