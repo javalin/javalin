@@ -104,16 +104,48 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     }
 
     /** Returns the full query [String], or null if no query is present */
-    fun queryString(): String? = upgradeCtx.queryString()
+    fun queryString(): String? {
+        return try {
+            // Try to get from path info storage first (preferred for Jetty 12)
+            WsConnection.getPathInfo(session)?.queryString ?: upgradeCtx.queryString()
+        } catch (e: Exception) {
+            // Fallback - try to extract from request URI
+            session.upgradeRequest.requestURI.query
+        }
+    }
 
     /** Returns a [Map] of all the query parameters */
-    fun queryParamMap(): Map<String, List<String>> = upgradeCtx.queryParamMap()
+    fun queryParamMap(): Map<String, List<String>> {
+        return try {
+            // Try to get from path info storage first (preferred for Jetty 12)
+            WsConnection.getPathInfo(session)?.queryParams ?: upgradeCtx.queryParamMap()
+        } catch (e: Exception) {
+            // Fallback - return empty map
+            emptyMap()
+        }
+    }
 
     /** Returns a [List] of all the query parameters for the given key, or an empty [List] if no such parameter exists */
-    fun queryParams(key: String): List<String> = upgradeCtx.queryParams(key)
+    fun queryParams(key: String): List<String> {
+        return try {
+            // Try to get from path info storage first (preferred for Jetty 12)
+            WsConnection.getPathInfo(session)?.queryParams?.get(key) ?: upgradeCtx.queryParams(key)
+        } catch (e: Exception) {
+            // Fallback - return empty list
+            emptyList()
+        }
+    }
 
     /** Returns the first query parameter for the given key, or null if no such parameter exists */
-    fun queryParam(key: String): String? = upgradeCtx.queryParam(key)
+    fun queryParam(key: String): String? {
+        return try {
+            // Try to get from path info storage first (preferred for Jetty 12)
+            WsConnection.getPathInfo(session)?.queryParams?.get(key)?.firstOrNull() ?: upgradeCtx.queryParam(key)
+        } catch (e: Exception) {
+            // Fallback - return null
+            null
+        }
+    }
 
     /** Creates a typed [io.javalin.validation.Validator] for the [queryParam] value */
     fun <T> queryParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.queryParamAsClass(key, clazz)

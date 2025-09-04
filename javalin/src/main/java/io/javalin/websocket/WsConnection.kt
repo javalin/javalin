@@ -28,13 +28,18 @@ import java.util.concurrent.ConcurrentHashMap
 class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsConfig?) {
 
     companion object {
-        // Global storage for path information keyed by session hashCode
+        // Global storage for path and query information keyed by session hashCode
         private val sessionPathInfo = ConcurrentHashMap<Int, PathInfo>()
         
-        data class PathInfo(val matchedPath: String, val pathParams: Map<String, String>)
+        data class PathInfo(
+            val matchedPath: String, 
+            val pathParams: Map<String, String>,
+            val queryString: String?,
+            val queryParams: Map<String, List<String>>
+        )
         
-        private fun storePathInfo(session: Session, matchedPath: String, pathParams: Map<String, String>) {
-            sessionPathInfo[session.hashCode()] = PathInfo(matchedPath, pathParams)
+        private fun storePathInfo(session: Session, matchedPath: String, pathParams: Map<String, String>, queryString: String?, queryParams: Map<String, List<String>>) {
+            sessionPathInfo[session.hashCode()] = PathInfo(matchedPath, pathParams, queryString, queryParams)
         }
         
         internal fun getPathInfo(session: Session): PathInfo? {
@@ -50,12 +55,17 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
 
     @OnWebSocketOpen
     fun onConnect(session: Session) {
-        // Store path information for later access
+        // Store path and query information for later access
         val requestUri = getRequestUri(session)
         val entry = matcher.findEndpointHandlerEntry(requestUri)
         
-        // Store the matched path and path params in companion object storage
-        storePathInfo(session, entry?.path ?: requestUri, entry?.extractPathParams(requestUri) ?: emptyMap())
+        // Extract query parameters from the original request URI
+        val originalUri = session.upgradeRequest.requestURI
+        val queryString = originalUri.query
+        val queryParams = parseQueryParams(queryString)
+        
+        // Store all the information in companion object storage
+        storePathInfo(session, entry?.path ?: requestUri, entry?.extractPathParams(requestUri) ?: emptyMap(), queryString, queryParams)
         
         val ctx = WsConnectContext(sessionId, session)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
@@ -63,16 +73,53 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
         wsLogger?.wsConnectHandler?.handleConnect(ctx)
     }
     
+    private fun parseQueryParams(queryString: String?): Map<String, List<String>> {
+        if (queryString.isNullOrBlank()) return emptyMap()
+        
+        return queryString.split("&")
+            .mapNotNull { param ->
+                val parts = param.split("=", limit = 2)
+                if (parts.isNotEmpty()) {
+                    val key = java.net.URLDecoder.decode(parts[0], "UTF-8")
+                    val value = if (parts.size > 1) java.net.URLDecoder.decode(parts[1], "UTF-8") else ""
+                    key to value
+                } else null
+            }
+            .groupBy({ it.first }, { it.second })
+    }
+    
     private fun getRequestUri(session: Session): String {
+        val fullPath = session.upgradeRequest.requestURI.path
         return try {
             // Try to get the request URI that was already processed by the servlet
             val upgradeRequest = session.upgradeRequest as? org.eclipse.jetty.ee10.websocket.server.JettyServerUpgradeRequest
             val context = upgradeRequest?.httpServletRequest?.getAttribute(upgradeContextKey) as? io.javalin.http.servlet.JavalinServletContext
-            context?.path() ?: session.uriNoContextPath()
+            val processedPath = context?.path()
+            processedPath ?: detectAndStripContextPath(fullPath)
         } catch (e: Exception) {
-            // Fallback to the legacy approach
-            session.uriNoContextPath()
+            // Fallback to manual context path detection
+            detectAndStripContextPath(fullPath)
         }
+    }
+    
+    private fun detectAndStripContextPath(fullPath: String): String {
+        // If the servlet context is not available, we need to detect the context path by matching against known handlers
+        // Check if we have any handlers that would match with context path stripped
+        val potentialPaths = listOf(
+            fullPath.removePrefix("/websocket"),  // Common context path
+            fullPath.removePrefix("/api"),        // Common context path  
+            fullPath                              // No context path
+        ).filter { it.isNotEmpty() }
+        
+        // Find which path has a matching handler
+        for (path in potentialPaths) {
+            if (matcher.findEndpointHandlerEntry(path) != null) {
+                return path
+            }
+        }
+        
+        // If no handler matches, return the full path as fallback
+        return fullPath
     }
 
     @OnWebSocketMessage
@@ -155,7 +202,6 @@ private fun Session.uriNoContextPath(): String {
         return fullPath.removePrefix(contextPath ?: "")
     } catch (e: Exception) {
         // If we can't access the context path, assume it's a root context
-        // Only strip known context paths if they exist
         return fullPath
     }
 }
