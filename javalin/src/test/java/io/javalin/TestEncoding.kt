@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.http.ContentType
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -20,6 +21,7 @@ class TestEncoding {
     @Test
     fun `unicode path-params work`() = TestUtil.test { app, http ->
         app.get("/{path-param}") { it.result(it.pathParam("path-param")) }
+        assertThat(http.getStatus("/æøå")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/æøå")).isEqualTo("æøå")
         assertThat(http.getBody("/♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
         assertThat(http.getBody("/こんにちは")).isEqualTo("こんにちは")
@@ -28,6 +30,7 @@ class TestEncoding {
     @Test
     fun `unicode query-params work`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.queryParam("qp")!!) }
+        assertThat(http.getStatus("/?qp=æøå")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/?qp=æøå")).isEqualTo("æøå")
         assertThat(http.getBody("/?qp=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
         assertThat(http.getBody("/?qp=こんにちは")).isEqualTo("こんにちは")
