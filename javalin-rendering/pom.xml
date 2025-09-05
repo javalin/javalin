@@ -11,7 +11,7 @@
 
     <properties>
         <copy-build-resources.skip>false</copy-build-resources.skip>
-        <jte.version>2.3.2</jte.version>
+        <jte.version>3.0.0</jte.version>
     </properties>
 
     <dependencies>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>io.pebbletemplates</groupId>
             <artifactId>pebble</artifactId>
-            <version>3.1.6</version>
+            <version>3.2.0</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -99,7 +99,7 @@
         <dependency>
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>
-            <version>0.24.0</version>
+            <version>0.25.1</version>
             <optional>true</optional>
         </dependency>
         <!-- END OPTIONAL TEMPLATE ENGINES -->
