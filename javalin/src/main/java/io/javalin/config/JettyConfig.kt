@@ -4,7 +4,7 @@ import io.javalin.jetty.JettyServer
 import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.ee10.servlet.SessionHandler
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler
 import org.eclipse.jetty.util.thread.ThreadPool
 import org.eclipse.jetty.websocket.jetty.server.JettyWebSocketServletFactory

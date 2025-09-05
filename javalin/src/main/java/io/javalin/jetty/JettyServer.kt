@@ -24,10 +24,8 @@ import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.server.handler.HandlerCollection
-import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.handler.StatisticsHandler
-import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.ee10.servlet.SessionHandler
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler.SESSIONS
 import org.eclipse.jetty.ee10.servlet.ServletHolder
@@ -36,7 +34,7 @@ import org.eclipse.jetty.util.thread.ThreadPool
 class JettyServer(private val cfg: JavalinConfig) {
 
     init {
-        MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
+        MimeTypes.Mutable().addInferred(ContentType.PLAIN, Charsets.UTF_8.name()) // set default encoding for text/plain
 
         if (cfg.startupWatcherEnabled) {
             Thread {
@@ -147,20 +145,20 @@ class JettyServer(private val cfg: JavalinConfig) {
 
     private fun Handler?.attachHandler(servletContextHandler: ServletContextHandler) = when {
         this == null -> servletContextHandler // server has no handler, just use Javalin handler
-        this is HandlerCollection -> this.apply { addHandler(servletContextHandler) } // user is using a HandlerCollection, add Javalin handler to it
-        this is HandlerWrapper -> this.apply {
-            (this.unwrap() as? HandlerCollection)?.addHandler(servletContextHandler) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handler
-            (this.unwrap() as? HandlerWrapper)?.handler = servletContextHandler // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
+        this is Handler.Collection -> this.apply { addHandler(servletContextHandler) } // user is using a Handler.Collection, add Javalin handler to it
+        this is Handler.Wrapper -> this.apply {
+            (this.unwrap() as? Handler.Collection)?.addHandler(servletContextHandler) // if Handler.Collection unwraps as Handler.Collection, add Javalin handler
+            (this.unwrap() as? Handler.Wrapper)?.handler = servletContextHandler // if Handler.Wrapper unwraps as Handler.Wrapper, add Javalin last
         }
 
-        else -> throw IllegalStateException("Server has unsupported Handler attached to it (must be HandlerCollection or HandlerWrapper)")
+        else -> throw IllegalStateException("Server has unsupported Handler attached to it (must be Handler.Collection or Handler.Wrapper)")
     }
 
-    private fun HandlerWrapper.unwrap(): Handler = when (this.handler) {
-        null -> this // current HandlerWrapper is last element, return the HandlerWrapper itself
-        is HandlerCollection -> this.handler // HandlerWrapper wraps HandlerCollection, return HandlerCollection
-        is HandlerWrapper -> (this.handler as HandlerWrapper).unwrap() // HandlerWrapper wraps another HandlerWrapper, recursive call required
-        else -> throw IllegalStateException("HandlerWrapper has unsupported Handler type (must be HandlerCollection or HandlerWrapper")
+    private fun Handler.Wrapper.unwrap(): Handler = when (this.handler) {
+        null -> this // current Handler.Wrapper is last element, return the Handler.Wrapper itself
+        is Handler.Collection -> this.handler // Handler.Wrapper wraps Handler.Collection, return Handler.Collection
+        is Handler.Wrapper -> (this.handler as Handler.Wrapper).unwrap() // Handler.Wrapper wraps another Handler.Wrapper, recursive call required
+        else -> throw IllegalStateException("Handler.Wrapper has unsupported Handler type (must be Handler.Collection or Handler.Wrapper")
     }
 
     companion object {
@@ -179,7 +177,7 @@ class JettyServer(private val cfg: JavalinConfig) {
         }
 
         fun defaultSessionHandler() = SessionHandler().apply {
-            httpOnly = true
+            sessionCookieConfig.isHttpOnly = true
             sameSite = HttpCookie.SameSite.LAX
         }
     }
