@@ -7,6 +7,7 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
@@ -80,7 +81,9 @@ class TestStaticFilesEdgeCases {
         // test http1 first:
         val http1App = Javalin.create { it.staticFiles.add("/public") }
         TestUtil.test(http1App) { _, http ->
-            assertThat(http.getBody("/styles.css")).contains("CSS works")
+            val response = http.get("/styles.css")
+            assertThat(response.status).isEqualTo(OK.code)
+            assertThat(response.body).contains("CSS works")
         }
         // then test http2:
         val port = ServerSocket(0).use { it.localPort }

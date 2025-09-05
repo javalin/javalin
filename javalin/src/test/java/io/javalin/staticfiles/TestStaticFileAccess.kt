@@ -5,6 +5,7 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
@@ -75,25 +76,31 @@ class TestStaticFileAccess {
     @Test
     fun `Authentication works for passing static config`() = TestUtil.test(passingStaticFileConfigResourceApp) { _, http ->
         assertThat(callWithRole(http.origin, "/html.html", "ROLE_TWO")).isEqualTo(UNAUTHORIZED.message)
-        assertThat(http.get("/html.html?role=ROLE_ONE").httpCode()).isEqualTo(HttpStatus.OK)
-        assertThat(http.get("/html.html?role=ROLE_ONE").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
-        assertThat(http.getBody("/html.html?role=ROLE_ONE")).contains("HTML works")
+        val response = http.get("/html.html?role=ROLE_ONE")
+        assertThat(response.httpCode()).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("HTML works")
     }
 
     @Test
     fun `Authentication works for classPath location`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(callWithRole(http.origin, "/html.html", "ROLE_TWO")).isEqualTo(UNAUTHORIZED.message)
-        assertThat(http.get("/html.html?role=ROLE_ONE").httpCode()).isEqualTo(HttpStatus.OK)
-        assertThat(http.get("/html.html?role=ROLE_ONE").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
-        assertThat(http.getBody("/html.html?role=ROLE_ONE")).contains("HTML works")
+        val response = http.get("/html.html?role=ROLE_ONE")
+        assertThat(response.httpCode()).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("HTML works")
     }
 
     @Test
     fun `Authentication works for external location`() = TestUtil.test(externalStaticResourceApp) { _, http ->
         assertThat(callWithRole(http.origin, "/html.html", "ROLE_TWO")).isEqualTo(UNAUTHORIZED.message)
-        assertThat(http.get("/html.html?role=ROLE_ONE").httpCode()).isEqualTo(HttpStatus.OK)
-        assertThat(http.get("/html.html?role=ROLE_ONE").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
-        assertThat(http.getBody("/html.html?role=ROLE_ONE")).contains("HTML works")
+        val response = http.get("/html.html?role=ROLE_ONE")
+        assertThat(response.httpCode()).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("HTML works")
     }
 
     @Test
