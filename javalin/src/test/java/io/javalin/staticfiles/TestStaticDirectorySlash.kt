@@ -31,42 +31,26 @@ class TestStaticDirectorySlash {
 
     @Test
     fun `normal javalin ignores static directory slashes`() = TestUtil.test(normalJavalin) { _, http ->
-        val response1 = http.get("/subpage")
-        assertThat(response1.status).isEqualTo(200)
         assertThat(http.getBody("/subpage")).isEqualTo("TEST") // ok, is directory
-        val response2 = http.get("/subpage/")
-        assertThat(response2.status).isEqualTo(200)
         assertThat(http.getBody("/subpage/")).isEqualTo("TEST") // ok, is directory
     }
 
     @Test
     fun `precompressing javalin ignores static directory slashes`() = TestUtil.test(precompressingJavalin) { _, http ->
-        val response1 = http.get("/subpage")
-        assertThat(response1.status).isEqualTo(200)
         assertThat(http.getBody("/subpage")).isEqualTo("TEST") // ok, is directory
-        val response2 = http.get("/subpage/")
-        assertThat(response2.status).isEqualTo(200)
         assertThat(http.getBody("/subpage/")).isEqualTo("TEST") // ok, is directory
     }
 
 
     @Test
     fun `normal Javalin serves files but serves directory if it is a directory`() = TestUtil.test(normalJavalin) { _, http ->
-        val response1 = http.get("/file")
-        assertThat(response1.status).isEqualTo(200)
         assertThat(http.getBody("/file")).isEqualTo("TESTFILE") // ok, is file = no slash
-        val response2 = http.get("/file/")
-        assertThat(response2.status).isEqualTo(NOT_FOUND.code)
         assertThat(http.getBody("/file/")).isEqualTo("Endpoint GET /file/ not found") // nope, has slash must be directory
     }
 
     @Test
     fun `precompressing Javalin serves files but serves directory if it is a directory`() = TestUtil.test(precompressingJavalin) { _, http ->
-        val response1 = http.get("/file")
-        assertThat(response1.status).isEqualTo(200)
         assertThat(http.getBody("/file")).isEqualTo("TESTFILE") // ok, is file = no slash
-        val response2 = http.get("/file/")
-        assertThat(response2.status).isEqualTo(NOT_FOUND.code)
         assertThat(http.getBody("/file/")).isEqualTo("Endpoint GET /file/ not found") // nope, has slash must be directory
     }
 

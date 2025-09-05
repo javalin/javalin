@@ -218,16 +218,16 @@ class TestStaticFiles {
 
     @Test
     fun `expires is set to max-age=0 by default`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        val response = http.get("/script.js")
-        assertThat(response.status).isEqualTo(OK.code)
-        assertThat(response.headers.getFirst(Header.CACHE_CONTROL)).isEqualTo("max-age=0")
+        assertThat(http.get("/script.js"))
+            .extracting({ it.status }, { it.headers.getFirst(Header.CACHE_CONTROL) })
+            .containsExactly(OK.code, "max-age=0")
     }
 
     @Test
     fun `can set custom headers`() = TestUtil.test(customHeaderApp) { _, http ->
-        val response = http.get("/immutable/library-1.0.0.min.js")
-        assertThat(response.status).isEqualTo(OK.code)
-        assertThat(response.headers.getFirst(Header.CACHE_CONTROL)).isEqualTo("max-age=31622400")
+        assertThat(http.get("/immutable/library-1.0.0.min.js"))
+            .extracting({ it.status }, { it.headers.getFirst(Header.CACHE_CONTROL) })
+            .containsExactly(OK.code, "max-age=31622400")
     }
 
     @Test
