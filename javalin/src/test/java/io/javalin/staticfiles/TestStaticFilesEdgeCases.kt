@@ -80,6 +80,8 @@ class TestStaticFilesEdgeCases {
         // test http1 first:
         val http1App = Javalin.create { it.staticFiles.add("/public") }
         TestUtil.test(http1App) { _, http ->
+            val response = http.get("/styles.css")
+            assertThat(response.status).isEqualTo(200)
             assertThat(http.getBody("/styles.css")).contains("CSS works")
         }
         // then test http2:
@@ -97,6 +99,7 @@ class TestStaticFilesEdgeCases {
             val http2client = listOf(H2_PRIOR_KNOWLEDGE).let { OkHttpClient.Builder().protocols(it).build() }
             val path = "http://localhost:$port/styles.css"
             val response = http2client.newCall(Request.Builder().url(path).build()).execute()
+            assertThat(response.code).isEqualTo(200)
             assertThat(response.body?.string()).contains("CSS works")
             assertThat(response.protocol).isEqualTo(H2_PRIOR_KNOWLEDGE)
         }.stop()
@@ -122,7 +125,9 @@ class TestStaticFilesEdgeCases {
             }
         }.start().also {
             assertThat(untrustedHttpsCall(port, "/idontexist.css").code).isEqualTo(404)
-            assertThat(untrustedHttpsCall(port, "/styles.css").body?.string()).contains("CSS works")
+            val response = untrustedHttpsCall(port, "/styles.css")
+            assertThat(response.code).isEqualTo(200)
+            assertThat(response.body?.string()).contains("CSS works")
         }.stop()
     }
 
@@ -142,7 +147,9 @@ class TestStaticFilesEdgeCases {
                 ServerConnector(server).apply { this.port = 0 }
             }
         }.start().also {
-            assertThat(untrustedHttpsCall(port, "/styles.css").body?.string()).contains("CSS works")
+            val response = untrustedHttpsCall(port, "/styles.css")
+            assertThat(response.code).isEqualTo(200)
+            assertThat(response.body?.string()).contains("CSS works")
         }.stop()
     }
 
