@@ -15,6 +15,13 @@ import kong.unirest.Unirest
 
 class HttpUtil(port: Int) {
 
+    init {
+        if (!standardCookieHandlingSet) {
+            Unirest.config().cookieSpec("standard") // handles cookies according to RFC 6265
+            standardCookieHandlingSet = true
+        }
+    }
+
     @JvmField
     val origin: String = "http://localhost:$port"
 
@@ -34,6 +41,10 @@ class HttpUtil(port: Int) {
     fun jsonGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.JSON).asString()
     fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Connection", "keep-alive").header("Cache-Control", "no-cache").asStringAsync()
     fun wsUpgradeRequest(path: String) =Unirest.get(origin + path).header(Header.SEC_WEBSOCKET_KEY, "not-null").asString()
+
+    companion object {
+        var standardCookieHandlingSet = false
+    }
 }
 
 fun HttpResponse<*>.httpCode(): HttpStatus =
