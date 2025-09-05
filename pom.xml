@@ -570,6 +570,10 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>publish-snapshot</id>
+            <!-- Profile for publishing snapshot versions to the repository -->
+        </profile>
     </profiles>
 
 </project>
