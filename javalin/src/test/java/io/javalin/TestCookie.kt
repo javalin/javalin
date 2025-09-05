@@ -2,6 +2,7 @@ package io.javalin
 
 import io.javalin.http.Cookie
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.SameSite
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
@@ -52,6 +53,7 @@ class TestCookie {
     @Test
     fun `single cookie returns null when missing`() = TestUtil.test { app, http ->
         app.get("/read-cookie-1") { it.result("" + it.cookie("my-cookie")) }
+        assertThat(http.getStatus("/read-cookie-1")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/read-cookie-1")).isEqualTo("null")
     }
 
@@ -65,6 +67,7 @@ class TestCookie {
     @Test
     fun `cookie-map returns empty when no cookies are set`() = TestUtil.test { app, http ->
         app.get("/read-cookie-3") { it.result(it.cookieMap().toString()) }
+        assertThat(http.getStatus("/read-cookie-3")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/read-cookie-3")).isEqualTo("{}")
     }
 
@@ -83,6 +86,7 @@ class TestCookie {
         app.get("/create-cookie") { it.cookie("Test", "Tast") }
         app.get("/get-cookie") { it.result(it.cookie("Test")!!) }
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).isEqualTo("Test=Tast; Path=/")
+        assertThat(http.getStatus("/get-cookie")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/get-cookie")).isEqualTo("Tast")
     }
 

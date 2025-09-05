@@ -62,6 +62,7 @@ class TestResponse {
 
         app.get("/hello") { it.result(bytes) }
         val response = Unirest.get("${http.origin}/hello").asBytes()
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body.size).isEqualTo(bytes.size)
         assertThat(bytes).isEqualTo(response.body)
     }
@@ -72,6 +73,7 @@ class TestResponse {
         Random().nextBytes(buf)
         app.get("/stream") { it.result(ByteArrayInputStream(buf)) }
         val response = Unirest.get("${http.origin}/stream").asBytes()
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body.size).isEqualTo(buf.size)
         assertThat(buf).isEqualTo(response.body)
     }
@@ -89,7 +91,9 @@ class TestResponse {
             ctx.result(inputStream)
         }
 
-        assertThat(http.getBody("/file")).isEqualTo("Hello, World!")
+        val response = http.get("/file")
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.body).isEqualTo("Hello, World!")
         // Expecting an IOException for reading a closed stream
         assertThatIOException()
             .isThrownBy { inputStream.read() }
@@ -119,8 +123,9 @@ class TestResponse {
     fun `setting a header works`() = TestUtil.test { app, http ->
         val headerValue = UUID.randomUUID().toString()
         app.get("/") { it.header(Header.EXPIRES, headerValue) }
-        val responseHeader = http.get("/").headers.getFirst(Header.EXPIRES)
-        assertThat(responseHeader).isEqualTo(headerValue)
+        val response = http.get("/")
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.headers.getFirst(Header.EXPIRES)).isEqualTo(headerValue)
     }
 
     @Test
@@ -130,14 +135,16 @@ class TestResponse {
             it.header(Header.EXPIRES, headerValue)
             it.removeHeader(Header.EXPIRES)
         }
-        val responseHeader = http.get("/").headers.getFirst(Header.EXPIRES)
-        assertThat(responseHeader).isBlank()
+        val response = http.get("/")
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.headers.getFirst(Header.EXPIRES)).isBlank()
     }
 
     @Test
     fun `redirect in before-handler works`() = TestUtil.test { app, http ->
         app.before("/before") { it.redirect("/redirected") }
         app.get("/redirected") { it.result("Redirected") }
+        assertThat(http.getStatus("/before")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/before")).isEqualTo("Redirected")
     }
 
@@ -146,6 +153,7 @@ class TestResponse {
         app.get("/get") { throw Exception() }
         app.exception(Exception::class.java) { _, ctx -> ctx.redirect("/redirected") }
         app.get("/redirected") { it.result("Redirected") }
+        assertThat(http.getStatus("/get")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/get")).isEqualTo("Redirected")
     }
 
@@ -190,6 +198,7 @@ class TestResponse {
             context.result()
         }
 
+        assertThat(http.getStatus("/test")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/test")).isEqualTo(result)
     }
 

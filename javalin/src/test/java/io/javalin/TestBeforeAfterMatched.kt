@@ -26,7 +26,9 @@ class TestBeforeAfterMatched {
         app.afterMatched { it.result(it.result() + "-after-matched") }
         app.after { it.result(it.result() + "!") }
 
+        assertThat(http.getStatus("/other-path")).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Endpoint GET /other-path not found!")
+        assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/hello")).isEqualTo("before-matched-hello-after-matched!")
     }
 
@@ -179,7 +181,9 @@ class TestBeforeAfterMatched {
             it.skipRemainingHandlers()
         }
         app.get("/hello") { it.result("hello") }
+        assertThat(http.getStatus("/other-path")).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Endpoint GET /other-path not found")
+        assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/hello")).isEqualTo("static-before")
     }
 
@@ -192,6 +196,7 @@ class TestBeforeAfterMatched {
         app.beforeMatched { it.attribute("before", "matched") }
         app.afterMatched { it.result(it.result() + "!") }
 
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("matched!")
         assertThat(http.getBody("/other")).isEqualTo("matched!")
     }

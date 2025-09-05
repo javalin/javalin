@@ -9,6 +9,7 @@ package io.javalin
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.bodyAsClass
@@ -52,6 +53,7 @@ internal class TestJson {
     @Test
     fun `default mapper treats strings as already being json`() = TestUtil.test { app, http ->
         app.get("/") { it.json("ok") }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("ok")
     }
 
@@ -59,6 +61,7 @@ internal class TestJson {
     fun `default mapper doesn't deadlock when streaming large objects`() = TestUtil.test { app, http ->
         val big = mapOf("big" to "1".repeat(100_000))
         app.get("/") { it.jsonStream(big) }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo(fasterJacksonMapper.toJsonString(big))
     }
 

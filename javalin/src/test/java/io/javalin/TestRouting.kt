@@ -12,6 +12,7 @@ import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.TRACE
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
 import io.javalin.http.HttpStatus.OK
@@ -44,6 +45,7 @@ class TestRouting {
     @Test
     fun `basic hello world works`() = TestUtil.test { app, http ->
         app.get("/hello") { it.result("Hello World") }
+        assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")
     }
 
@@ -53,6 +55,7 @@ class TestRouting {
             it.get("/hello") { ctx -> ctx.result("Hello World") }
         }
     }) { _, http ->
+        assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")
     }
 
@@ -102,6 +105,7 @@ class TestRouting {
             get("/hello") { it.result("Hello World") }
         }
     }) { _, http ->
+        assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")
     }
 
@@ -164,6 +168,7 @@ class TestRouting {
         app.before { it.result(it.result() + "2") }
         app.get("/hello") { it.result(it.result() + "Hello") }
         app.after { it.result(it.result() + "3") }
+        assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/hello")).isEqualTo("12Hello3")
     }
 
@@ -177,6 +182,7 @@ class TestRouting {
     @Test
     fun `literal colon in path segment works`() = TestUtil.test { app, http ->
         app.get("/hello:world") { it.result("Hello World") }
+        assertThat(http.getStatus("/hello:world")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/hello:world")).isEqualTo("Hello World")
     }
 
@@ -390,6 +396,7 @@ class TestRouting {
         }
         it.router.ignoreTrailingSlashes = false
     }) { app, http ->
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("root")
         assertThat(http.getBody("/home")).isEqualTo("home")
     }
@@ -399,6 +406,7 @@ class TestRouting {
         it.router.caseInsensitiveRoutes = true
     }) { app, http ->
         app.get("/paTh") { it.result("ok") }
+        assertThat(http.getStatus("/path")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/path")).isEqualTo("ok")
         assertThat(http.getBody("/PATH")).isEqualTo("ok")
         assertThat(http.getBody("/Path")).isEqualTo("ok")
@@ -410,6 +418,7 @@ class TestRouting {
         it.router.caseInsensitiveRoutes = true
     }) { app, http ->
         app.get("/patH/<param>") { it.result(it.pathParam("param")) }
+        assertThat(http.getStatus("/path/value")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/path/value")).isEqualTo("value")
         assertThat(http.getBody("/PATH/vAlUe")).isEqualTo("vAlUe")
         assertThat(http.getBody("/Path/VALUe")).isEqualTo("VALUe")
