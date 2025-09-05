@@ -341,6 +341,7 @@ class TestRequest {
         app.get("/matched/{path-param}") { }
         app.get("/matched/{another-path-param}") { }
         app.after { it.result(it.endpointHandlerPath()) }
+        assertThat(http.getStatus("/matched/p1")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/{path-param}")
     }
 
@@ -348,12 +349,14 @@ class TestRequest {
     fun `endpointHandlerPath doesn't crash for 404s`() = TestUtil.test { app, http ->
         app.before { }
         app.after { it.result(it.endpointHandlerPath()) }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(http.getBody("/")).isEqualTo("No handler matched request path/method (404/405)")
     }
 
     @Test
     fun `servlet-context is not null`() = TestUtil.test { app, http ->
         app.get("/") { it.result(if (it.req().servletContext != null) "not-null" else "null") }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("not-null")
     }
 
@@ -363,36 +366,43 @@ class TestRequest {
     @Test
     fun `contentLength works`() = TestUtil.test { app, http ->
         app.post("/") { it.result(it.contentLength().toString()) }
-        assertThat(http.post("/").body("Hello").asString().body).isEqualTo("5")
+        val response = http.post("/").body("Hello").asString()
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.body).isEqualTo("5")
     }
 
     @Test
     fun `host works`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.host()!!) }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("localhost:" + app.port())
     }
 
     @Test
     fun `ip works`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.ip()) }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("127.0.0.1")
     }
 
     @Test
     fun `protocol works`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.protocol()) }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("HTTP/1.1")
     }
 
     @Test
     fun `scheme works`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.scheme()) }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("http")
     }
 
     @Test
     fun `url works`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.url()) }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("http://localhost:" + app.port() + "/")
     }
 
@@ -400,6 +410,7 @@ class TestRequest {
     fun `fullUrl works`() = TestUtil.test { app, http ->
         val root = http.origin + "/"
         app.get("/") { it.result(it.fullUrl()) }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo(root)
         assertThat(http.getBody("/?test")).isEqualTo("$root?test")
         assertThat(http.getBody("/?test=tast")).isEqualTo("$root?test=tast")
@@ -408,24 +419,29 @@ class TestRequest {
     @Test
     fun `empty contextPath works`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.contextPath()) }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("")
     }
 
     @Test
     fun `contextPath with value works`() = TestUtil.test(Javalin.create { it.router.contextPath = "/ctx" }) { app, http ->
         app.get("/") { it.result(it.contextPath()) }
+        assertThat(http.getStatus("/ctx/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/ctx/")).isEqualTo("/ctx")
     }
 
     @Test
     fun `userAgent works`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.userAgent()!!) }
+        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("unirest-java/3.1.00")
     }
 
     @Test
     fun `validator header works`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.headerAsClass<Double>("double-header").get().javaClass.name) }
-        assertThat(http.getBody("/", mapOf("double-header" to "12.34"))).isEqualTo("java.lang.Double")
+        val response = http.get("/", mapOf("double-header" to "12.34"))
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.body).isEqualTo("java.lang.Double")
     }
 }
