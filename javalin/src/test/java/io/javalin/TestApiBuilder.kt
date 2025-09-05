@@ -22,6 +22,7 @@ import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.CREATED
 import io.javalin.http.HttpStatus.NO_CONTENT
 import io.javalin.http.HttpStatus.OK
@@ -48,6 +49,7 @@ class TestApiBuilder {
             }
         }
     ) { app, http ->
+        assertThat(http.getStatus("/level-1/hello")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/level-1/hello")).isEqualTo("Hello from level 1")
     }
 
@@ -96,6 +98,7 @@ class TestApiBuilder {
             }
         }
     ) { app, http ->
+        assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/hello")).isEqualTo("Hello from level 0")
         assertThat(http.getBody("/level-1/hello")).isEqualTo("Hello from level 1")
         assertThat(http.getBody("/level-1/level-2/hello")).isEqualTo("Hello from level 2")
