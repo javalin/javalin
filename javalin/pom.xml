@@ -3,7 +3,7 @@
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
-        <version>6.7.1-SNAPSHOT</version>
+        <version>7.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -35,17 +35,10 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>${jetty.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty.ee10</groupId>
-            <artifactId>jetty-ee10-servlet</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.ee10.websocket</groupId>
-            <artifactId>jetty-ee10-websocket-jetty-server</artifactId>
-            <version>${jetty.version}</version>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-jetty-server</artifactId>
         </dependency>
 
         <!-- BEGIN Optional dependencies -->
@@ -150,7 +143,7 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
-            <artifactId>jetty-http2-server</artifactId>
+            <artifactId>http2-server</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

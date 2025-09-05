@@ -18,7 +18,7 @@ import jakarta.servlet.ServletContextListener
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.ee10.servlet.FilterHolder
+import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.jupiter.api.Test
 import java.util.*
 

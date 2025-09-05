@@ -3,7 +3,7 @@
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
-        <version>6.7.1-SNAPSHOT</version>
+        <version>7.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -58,7 +58,7 @@
         <!-- necessary for HTTP/2 and ALPN (application layer protocol negotiation) -->
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
-            <artifactId>jetty-http2-server</artifactId>
+            <artifactId>http2-server</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>

@@ -20,7 +20,6 @@ class StaticFilesConfig(private val cfg: JavalinConfig) {
 
     /** Enable webjars access. They will be available at /webjars/name/version/file.ext. */
     fun enableWebjars() = add { staticFiles ->
-        staticFiles.hostedPath = "/webjars"
         staticFiles.directory = "META-INF/resources/webjars"
         staticFiles.headers = mapOf(Header.CACHE_CONTROL to "max-age=31622400")
     }

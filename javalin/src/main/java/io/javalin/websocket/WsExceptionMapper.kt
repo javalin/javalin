@@ -8,7 +8,6 @@ package io.javalin.websocket
 
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
-import org.eclipse.jetty.websocket.api.Callback
 import org.eclipse.jetty.websocket.api.StatusCode
 
 /**
@@ -28,7 +27,7 @@ class WsExceptionMapper {
             handler.handle(exception, ctx)
         } else {
             JavalinLogger.warn("Uncaught exception in WebSocket handler", exception)
-            ctx.session.close(StatusCode.SERVER_ERROR, exception.message, Callback.NOOP)
+            ctx.session.close(StatusCode.SERVER_ERROR, exception.message)
         }
     }
 

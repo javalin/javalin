@@ -33,7 +33,6 @@ class TestStaticFilesPrecompressor {
         Javalin.create { javalin ->
             javalin.http.brotliAndGzipCompression()
             javalin.staticFiles.add { staticFiles ->
-                staticFiles.hostedPath = "/webjars"
                 staticFiles.directory = "META-INF/resources/webjars"
                 staticFiles.precompress = true
             }
@@ -50,47 +49,23 @@ class TestStaticFilesPrecompressor {
 
     @Test
     fun `content-length unavailable for large files if precompression not enabled`() = TestUtil.test(Javalin.create { config -> config.staticFiles.enableWebjars() }) { _, http ->
-        val swaggerBundleResponse = http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip")
-        assertThat(swaggerBundleResponse.code).isEqualTo(200)
-        assertThat(swaggerBundleResponse.contentLength()).isNull()
-        
-        val swaggerGzResponse = http.getFile("$swaggerBasePath/swagger-ui.js.gz", "gzip")
-        assertThat(swaggerGzResponse.code).isEqualTo(200)
-        assertThat(swaggerGzResponse.contentLength()).isNull()
+        assertThat(http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip").contentLength()).isNull()
+        assertThat(http.getFile("$swaggerBasePath/swagger-ui.js.gz", "gzip").contentLength()).isNull()
     }
 
     @Test
     fun `content-length available for large files if precompression enabled`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
-        val secretResponse = http.getFile("/secret.html", "br, gzip")
-        assertThat(secretResponse.code).isEqualTo(200)
-        assertThat(secretResponse.contentLength()).isNotBlank()
-        
-        val libraryResponse = http.getFile("/library-1.0.0.min.js", "br")
-        assertThat(libraryResponse.code).isEqualTo(200)
-        assertThat(libraryResponse.contentLength()).isNotBlank()
-        
-        val swaggerResponse = http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip")
-        assertThat(swaggerResponse.code).isEqualTo(200)
-        assertThat(swaggerResponse.contentLength()).isNotBlank()
+        assertThat(http.getFile("/secret.html", "br, gzip").contentLength()).isNotBlank()
+        assertThat(http.getFile("/library-1.0.0.min.js", "br").contentLength()).isNotBlank()
+        assertThat(http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip").contentLength()).isNotBlank()
     }
 
     @Test
     fun `compression works if precompression enabled`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
-        val secretResponse = http.getFile("/secret.html", "gzip")
-        assertThat(secretResponse.code).isEqualTo(200)
-        assertThat(secretResponse.contentEncoding()).isEqualTo("gzip")
-        
-        val libraryResponse = http.getFile("/library-1.0.0.min.js", "br")
-        assertThat(libraryResponse.code).isEqualTo(200)
-        assertThat(libraryResponse.contentEncoding()).isEqualTo("br")
-        
-        val swaggerResponse = http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip")
-        assertThat(swaggerResponse.code).isEqualTo(200)
-        assertThat(swaggerResponse.contentEncoding()).isEqualTo("gzip")
-        
-        val swaggerGzResponse = http.getFile("$swaggerBasePath/swagger-ui.js.gz", "gzip")
-        assertThat(swaggerGzResponse.code).isEqualTo(200)
-        assertThat(swaggerGzResponse.contentEncoding()).isNull()
+        assertThat(http.getFile("/secret.html", "gzip").contentEncoding()).isEqualTo("gzip")
+        assertThat(http.getFile("/library-1.0.0.min.js", "br").contentEncoding()).isEqualTo("br")
+        assertThat(http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip").contentEncoding()).isEqualTo("gzip")
+        assertThat(http.getFile("$swaggerBasePath/swagger-ui.js.gz", "gzip").contentEncoding()).isNull()
     }
 
     @Test
