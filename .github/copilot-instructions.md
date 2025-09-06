@@ -27,9 +27,7 @@ Always reference these instructions first and fallback to search or bash command
   - `javalin-testtools/` - Testing utilities
   - `javalin-rendering/` - Template engine plugins
   - `javalin-ssl/` - SSL/TLS helpers
-  - `javalin-micrometer/` - Metrics integration
   - `javalin-bundle/` - All-in-one bundle
-  - `javalin-osgi/` - OSGi bundle
 
 ## Validation Scenarios
 
@@ -112,7 +110,6 @@ Follow the repository's strict commit message format:
 - `[workflow]` - GitHub Actions and CI
 - `[github]` - Documentation and repository files
 - `[maven-release-plugin]` - Release process
-- `[micrometer]` - Metrics integration
 - `[ssl]` - SSL/TLS functionality
 
 ### Testing Guidelines

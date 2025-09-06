@@ -5,11 +5,9 @@
         <module>javalin</module>
         <module>javalin-bundle</module>
         <module>javalin-testtools</module>
-        <module>javalin-micrometer</module>
         <module>javalin-utils</module>
         <module>javalin-rendering</module>
         <module>javalin-ssl</module>
-        <module>javalin-osgi</module>
     </modules>
 
     <groupId>io.javalin</groupId>
