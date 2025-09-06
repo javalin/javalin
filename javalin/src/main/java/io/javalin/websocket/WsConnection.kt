@@ -79,7 +79,7 @@ class WsConnection(
     }
 
     private fun tryBeforeAndEndpointHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
-        val requestUri = ctx.session.uriNoContextPath()
+        val requestUri = upgradeCtx.extractedData.requestUri
         try {
             matcher.findBeforeHandlerEntries(requestUri).forEach { handle.invoke(it) }
             matcher.findEndpointHandlerEntry(requestUri)!!.let { handle.invoke(it) } // never null, 404 is handled in front
@@ -89,7 +89,7 @@ class WsConnection(
     }
 
     private fun tryAfterHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
-        val requestUri = ctx.session.uriNoContextPath()
+        val requestUri = upgradeCtx.extractedData.requestUri
         try {
             matcher.findAfterHandlerEntries(requestUri).forEach { handle.invoke(it) }
         } catch (e: Exception) {
@@ -97,22 +97,4 @@ class WsConnection(
         }
     }
 
-}
-
-internal val Session.jettyUpgradeRequest: JettyServerUpgradeRequest
-    get() = try {
-        this.upgradeRequest as JettyServerUpgradeRequest
-    } catch (e: ClassCastException) {
-        throw RuntimeException("Failed to cast upgradeRequest to JettyServerUpgradeRequest. Actual type: ${this.upgradeRequest?.javaClass?.name}", e)
-    }
-
-private fun Session.uriNoContextPath(): String {
-    val fullPath = this.upgradeRequest.requestURI.path
-    try {
-        val contextPath = jettyUpgradeRequest.httpServletRequest.contextPath
-        return fullPath.removePrefix(contextPath ?: "")
-    } catch (e: Exception) {
-        // If we can't access the context path, assume it's a root context
-        return fullPath
-    }
 }

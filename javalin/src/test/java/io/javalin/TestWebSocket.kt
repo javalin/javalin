@@ -214,6 +214,22 @@ class TestWebSocket {
     }
 
     @Test
+    fun `context-path vs no context-path app`() {
+        val noContextPathApp = Javalin.create().apply {
+            this.ws("/p/{id}") { it.onConnect { this.logger().log.add(it.pathParam("id")) } }
+        }.start(0)
+        val contextPathApp = Javalin.create { it.router.contextPath = "/websocket" }.apply {
+            this.ws("/p/{id}") { it.onConnect { this.logger().log.add(it.pathParam("id")) } }
+        }.start(0)
+        TestClient(noContextPathApp, "/p/ncpa").connectAndDisconnect()
+        TestClient(contextPathApp, "/websocket/p/cpa").connectAndDisconnect()
+        assertThat(noContextPathApp.logger().log).containsExactly("ncpa")
+        assertThat(contextPathApp.logger().log).containsExactly("cpa")
+        noContextPathApp.stop()
+        contextPathApp.stop()
+    }
+
+    @Test
     fun `websocket 404 works`() = TestUtil.test { app, _ ->
         val response = Unirest.get("http://localhost:" + app.port() + "/invalid-path")
             .header("Connection", "Upgrade")

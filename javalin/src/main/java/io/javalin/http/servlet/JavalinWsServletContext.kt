@@ -23,6 +23,7 @@ class JavalinWsServletContext(
 }
 
 data class UpgradeRequestData(val context: JavalinWsServletContext) {
+    val requestUri = context.req().requestURI.removePrefix(context.req().contextPath)
     val host = context.host()
     val queryParamMap = context.queryParamMap()
     val headerMap = context.headerMap()
