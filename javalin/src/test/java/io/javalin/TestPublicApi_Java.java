@@ -206,7 +206,7 @@ public class TestPublicApi_Java {
             ctx.status(HttpStatus.FOUND);
             ctx.status();
             ctx.cookie("name","value",2);
-            ctx.cookie(new Cookie("name","value","/path", 2, true, 3));
+            ctx.cookie(new Cookie("name","value","/path", 2, true));
             ctx.removeCookie("name","/path");
             ctx.json(new User());
             ctx.jsonStream(new User());

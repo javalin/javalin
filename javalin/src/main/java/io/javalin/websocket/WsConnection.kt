@@ -6,13 +6,18 @@
 
 package io.javalin.websocket
 
+import io.javalin.http.Context
+import io.javalin.http.servlet.JavalinWsServletContext
+import org.eclipse.jetty.ee10.websocket.server.JettyServerUpgradeRequest
+import org.eclipse.jetty.util.BufferUtil
+import org.eclipse.jetty.websocket.api.Callback
 import org.eclipse.jetty.websocket.api.Session
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
-import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest
+import java.nio.ByteBuffer
 import java.util.*
 
 /**
@@ -20,13 +25,18 @@ import java.util.*
  * delegating to the registered before, endpoint, after and logger handlers.
  */
 @WebSocket
-class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsConfig?) {
+class WsConnection(
+    val matcher: WsPathMatcher,
+    val exceptionMapper: WsExceptionMapper,
+    val wsLogger: WsConfig?,
+    val upgradeCtx: JavalinWsServletContext
+) {
 
     private val sessionId: String = UUID.randomUUID().toString()
 
-    @OnWebSocketConnect
+    @OnWebSocketOpen
     fun onConnect(session: Session) {
-        val ctx = WsConnectContext(sessionId, session)
+        val ctx = WsConnectContext(sessionId, session, upgradeCtx)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
         wsLogger?.wsConnectHandler?.handleConnect(ctx)
@@ -34,23 +44,26 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
 
     @OnWebSocketMessage
     fun onMessage(session: Session, message: String) {
-        val ctx = WsMessageContext(sessionId, session, message)
+        val ctx = WsMessageContext(sessionId, session, upgradeCtx, message)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsMessageHandler?.handleMessage(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsMessageHandler?.handleMessage(ctx) }
         wsLogger?.wsMessageHandler?.handleMessage(ctx)
     }
 
     @OnWebSocketMessage
-    fun onMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
-        val ctx = WsBinaryMessageContext(sessionId, session, buffer, offset, length)
+    fun onMessage(session: Session, buffer: ByteBuffer, callback: Callback) {
+        // FIXME: should utilize the ByteBuffer instead of ByteArray
+        val data = BufferUtil.toArray(buffer)
+        val ctx = WsBinaryMessageContext(sessionId, session, upgradeCtx, data, 0, data.size)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)
+        callback.succeed()
     }
 
     @OnWebSocketClose
     fun onClose(session: Session, statusCode: Int, reason: String?) {
-        val ctx = WsCloseContext(sessionId, session, statusCode, reason)
+        val ctx = WsCloseContext(sessionId, session, upgradeCtx, statusCode, reason)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
         wsLogger?.wsCloseHandler?.handleClose(ctx)
@@ -59,14 +72,14 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
 
     @OnWebSocketError
     fun onError(session: Session, throwable: Throwable?) {
-        val ctx = WsErrorContext(sessionId, session, throwable)
+        val ctx = WsErrorContext(sessionId, session, upgradeCtx, throwable)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsErrorHandler?.handleError(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsErrorHandler?.handleError(ctx) }
         wsLogger?.wsErrorHandler?.handleError(ctx)
     }
 
     private fun tryBeforeAndEndpointHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
-        val requestUri = ctx.session.uriNoContextPath()
+        val requestUri = upgradeCtx.extractedData.requestUri
         try {
             matcher.findBeforeHandlerEntries(requestUri).forEach { handle.invoke(it) }
             matcher.findEndpointHandlerEntry(requestUri)!!.let { handle.invoke(it) } // never null, 404 is handled in front
@@ -76,7 +89,7 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
     }
 
     private fun tryAfterHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
-        val requestUri = ctx.session.uriNoContextPath()
+        val requestUri = upgradeCtx.extractedData.requestUri
         try {
             matcher.findAfterHandlerEntries(requestUri).forEach { handle.invoke(it) }
         } catch (e: Exception) {
@@ -85,9 +98,3 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
     }
 
 }
-
-internal val Session.jettyUpgradeRequest: JettyServerUpgradeRequest
-    get() = this.upgradeRequest as JettyServerUpgradeRequest
-
-private fun Session.uriNoContextPath(): String =
-    this.upgradeRequest.requestURI.path.removePrefix(jettyUpgradeRequest.httpServletRequest.contextPath)

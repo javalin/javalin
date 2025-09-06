@@ -64,7 +64,7 @@ data class JavalinServletContextConfig(
     }
 }
 
-class JavalinServletContext(
+open class JavalinServletContext(
     private val cfg: JavalinServletContextConfig,
     val tasks: Deque<Task> = ArrayDeque(8),
     var exceptionOccurred: Boolean = false,
@@ -87,10 +87,6 @@ class JavalinServletContext(
     }
 
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
-
-    fun changeBaseRequest(req: HttpServletRequest) = also {
-        this.req = req
-    }
 
     fun update(parsedEndpoint: ParsedEndpoint, requestUri: String) = also {
         handlerType = parsedEndpoint.endpoint.method

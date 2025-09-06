@@ -16,7 +16,7 @@ class HttpConfig(private val cfg: JavalinConfig) {
     @JvmField var generateEtags = false
     @JvmField var prefer405over404 = false
     @JvmField var strictContentTypes = false
-    @JvmField var maxRequestSize = 1_000_000L // increase this or use inputstream to handle large requests
+    @JvmField var maxRequestSize = 786_431L // increase this or use inputstream to handle large requests
     @JvmField var responseBufferSize: Int? = null
     @JvmField var defaultContentType = ContentType.PLAIN
     @JvmField var asyncTimeout = 0L
