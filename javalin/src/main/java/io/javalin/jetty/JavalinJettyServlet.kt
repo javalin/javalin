@@ -24,7 +24,6 @@ import org.eclipse.jetty.websocket.server.JettyWebSocketServlet
 import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
 
 internal const val upgradeDataKey = "javalin-ws-upgrade-data"
-internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"
 
 /**
  * The [JavalinJettyServlet] is responsible for both WebSocket and HTTP requests.
