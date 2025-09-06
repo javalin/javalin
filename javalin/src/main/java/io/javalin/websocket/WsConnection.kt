@@ -20,13 +20,13 @@ import java.util.*
  * delegating to the registered before, endpoint, after and logger handlers.
  */
 @WebSocket
-class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsConfig?) {
+class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsConfig?, val upgradeData: WsUpgradeData) {
 
     private val sessionId: String = UUID.randomUUID().toString()
 
     @OnWebSocketConnect
     fun onConnect(session: Session) {
-        val ctx = WsConnectContext(sessionId, session)
+        val ctx = WsConnectContext(sessionId, session, upgradeData)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
         wsLogger?.wsConnectHandler?.handleConnect(ctx)
@@ -34,7 +34,7 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
 
     @OnWebSocketMessage
     fun onMessage(session: Session, message: String) {
-        val ctx = WsMessageContext(sessionId, session, message)
+        val ctx = WsMessageContext(sessionId, session, upgradeData, message)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsMessageHandler?.handleMessage(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsMessageHandler?.handleMessage(ctx) }
         wsLogger?.wsMessageHandler?.handleMessage(ctx)
@@ -42,7 +42,7 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
 
     @OnWebSocketMessage
     fun onMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
-        val ctx = WsBinaryMessageContext(sessionId, session, buffer, offset, length)
+        val ctx = WsBinaryMessageContext(sessionId, session, upgradeData, buffer, offset, length)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)
@@ -50,16 +50,17 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
 
     @OnWebSocketClose
     fun onClose(session: Session, statusCode: Int, reason: String?) {
-        val ctx = WsCloseContext(sessionId, session, statusCode, reason)
+        val ctx = WsCloseContext(sessionId, session, upgradeData, statusCode, reason)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
         wsLogger?.wsCloseHandler?.handleClose(ctx)
         ctx.disableAutomaticPings()
+        ctx.cleanup() // Clean up session attributes
     }
 
     @OnWebSocketError
     fun onError(session: Session, throwable: Throwable?) {
-        val ctx = WsErrorContext(sessionId, session, throwable)
+        val ctx = WsErrorContext(sessionId, session, upgradeData, throwable)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsErrorHandler?.handleError(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsErrorHandler?.handleError(ctx) }
         wsLogger?.wsErrorHandler?.handleError(ctx)

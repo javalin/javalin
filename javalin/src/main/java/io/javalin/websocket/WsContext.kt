@@ -7,7 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.http.Context
-import io.javalin.jetty.upgradeContextKey
+import io.javalin.jetty.upgradeDataKey
 import io.javalin.jetty.upgradeSessionAttrsKey
 import io.javalin.util.javalinLazy
 import org.eclipse.jetty.websocket.api.CloseStatus
@@ -15,6 +15,7 @@ import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
 import java.lang.reflect.Type
 import java.nio.ByteBuffer
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
@@ -26,13 +27,26 @@ import kotlin.reflect.typeOf
  */
 abstract class WsContext(private val sessionId: String, @JvmField val session: Session) {
 
-    internal val upgradeCtx by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeContextKey) as Context }
+    internal val upgradeData by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeDataKey) as WsUpgradeData }
 
     @Suppress("UNCHECKED_CAST")
-    private val sessionAttributes by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as? Map<String, Any> }
+    private val sessionAttributes by javalinLazy { upgradeData.sessionAttributeMap }
+
+    companion object {
+        // Store per-session attributes that can be modified during WebSocket lifecycle
+        private val sessionAttributeStores = ConcurrentHashMap<String, ConcurrentHashMap<String, Any?>>()
+        
+        fun getAttributeStore(sessionId: String): ConcurrentHashMap<String, Any?> {
+            return sessionAttributeStores.computeIfAbsent(sessionId) { ConcurrentHashMap() }
+        }
+        
+        fun cleanupSession(sessionId: String) {
+            sessionAttributeStores.remove(sessionId)
+        }
+    }
 
     /** Returns the path that was used to match this request */
-    fun matchedPath() = upgradeCtx.matchedPath()
+    fun matchedPath() = upgradeData.matchedPath
 
     /** Reified version of [sendAsClass] (Kotlin only) */
     @OptIn(ExperimentalStdlibApi::class)
@@ -42,7 +56,7 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     fun send(message: Any) = sendAsClass(message, message::class.java)
 
     /** Serializes object to a JSON-string using the registered [io.javalin.json.JsonMapper] and sends it over the socket */
-    fun sendAsClass(message: Any, type: Type) = send(upgradeCtx.jsonMapper().toJsonString(message, type))
+    fun sendAsClass(message: Any, type: Type) = send(upgradeData.jsonMapper.toJsonString(message, type))
 
     /** Sends a [String] over the socket */
     fun send(message: String) = session.remote.sendString(message)
@@ -71,25 +85,25 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     }
 
     /** Returns the full query [String], or null if no query is present */
-    fun queryString(): String? = upgradeCtx.queryString()
+    fun queryString(): String? = upgradeData.queryString
 
     /** Returns a [Map] of all the query parameters */
-    fun queryParamMap(): Map<String, List<String>> = upgradeCtx.queryParamMap()
+    fun queryParamMap(): Map<String, List<String>> = upgradeData.queryParamMap
 
     /** Returns a [List] of all the query parameters for the given key, or an empty [List] if no such parameter exists */
-    fun queryParams(key: String): List<String> = upgradeCtx.queryParams(key)
+    fun queryParams(key: String): List<String> = upgradeData.queryParamMap[key] ?: emptyList()
 
     /** Returns the first query parameter for the given key, or null if no such parameter exists */
-    fun queryParam(key: String): String? = upgradeCtx.queryParam(key)
+    fun queryParam(key: String): String? = upgradeData.queryParamMap[key]?.firstOrNull()
 
     /** Creates a typed [io.javalin.validation.Validator] for the [queryParam] value */
-    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.queryParamAsClass(key, clazz)
+    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = upgradeData.validation.validator(key, clazz, queryParam(key))
 
     /** Reified version of [queryParamAsClass] (Kotlin only) */
     inline fun <reified T : Any> queryParamAsClass(key: String) = queryParamAsClass(key, T::class.java)
 
     /** Returns a [Map] of all the path parameters */
-    fun pathParamMap(): Map<String, String> = upgradeCtx.pathParamMap()
+    fun pathParamMap(): Map<String, String> = upgradeData.pathParamMap
 
     /** Returns a [String] of the session id */
     fun sessionId(): String = sessionId
@@ -98,10 +112,10 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
      *
      * Ex: If the handler path is /users/{user-id}, and a browser GETs /users/123, pathParam("user-id") will return "123"
      */
-    fun pathParam(key: String): String = upgradeCtx.pathParam(key)
+    fun pathParam(key: String): String = upgradeData.pathParamMap[key] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '${upgradeData.matchedPath}'.")
 
     /** Creates a typed [io.javalin.validation.Validator] for the [pathParam] value */
-    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.pathParamAsClass(key, clazz)
+    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = upgradeData.validation.validator(key, clazz, pathParam(key))
 
     /** Reified version of [pathParamAsClass] (Kotlin only) */
     inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
@@ -110,35 +124,43 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     fun host(): String = session.jettyUpgradeRequest.host // why can't we get this from upgradeCtx?
 
     /** Gets a request header by name, or null. */
-    fun header(header: String): String? = upgradeCtx.header(header)
+    fun header(header: String): String? = upgradeData.headerMap[header]
 
     /** Gets a [Map] with all the header keys and values  */
-    fun headerMap(): Map<String, String> = upgradeCtx.headerMap()
+    fun headerMap(): Map<String, String> = upgradeData.headerMap
 
     /** Creates a typed [io.javalin.validation.Validator] for the [header] value */
-    fun <T> headerAsClass(header: String, clazz: Class<T>) = upgradeCtx.headerAsClass(header, clazz)
+    fun <T> headerAsClass(header: String, clazz: Class<T>) = upgradeData.validation.validator(header, clazz, header(header))
 
     /** Gets a request cookie by name, or null. */
-    fun cookie(name: String) = upgradeCtx.cookie(name)
+    fun cookie(name: String) = upgradeData.cookieMap[name]
 
     /** Gets a [Map] with all the request cookies */
-    fun cookieMap(): Map<String, String> = upgradeCtx.cookieMap()
+    fun cookieMap(): Map<String, String> = upgradeData.cookieMap
 
     /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle. */
-    fun attribute(key: String, value: Any?) = upgradeCtx.attribute(key, value)
+    fun attribute(key: String, value: Any?) {
+        getAttributeStore(sessionId)[key] = value
+    }
 
     /** Gets the specified attribute from the request. */
-    fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
+    fun <T> attribute(key: String): T? {
+        // First check WebSocket session attributes, then fallback to upgrade attributes
+        return getAttributeStore(sessionId)[key] as? T ?: upgradeData.attributeMap[key] as? T
+    }
 
     /** Gets a [Map] with all the attribute keys and values on the request */
-    fun attributeMap(): Map<String, Any?> = upgradeCtx.attributeMap()
+    fun attributeMap(): Map<String, Any?> {
+        // Merge upgrade attributes with session attributes, session attributes take precedence
+        return upgradeData.attributeMap + getAttributeStore(sessionId)
+    }
 
     /** Gets a session attribute by name */
     @Suppress("UNCHECKED_CAST")
     fun <T> sessionAttribute(key: String): T? = sessionAttributeMap()[key] as T
 
     /** Gets a [Map] with all the session attributes */
-    fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes ?: mapOf()
+    fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes
 
     /** Close the session */
     fun closeSession(): Unit = session.close()
@@ -157,14 +179,25 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     override fun hashCode(): Int = session.hashCode()
 }
 
-class WsConnectContext(sessionId: String, session: Session) : WsContext(sessionId, session)
+class WsConnectContext(sessionId: String, session: Session, upgradeData: WsUpgradeData) : WsContext(sessionId, session) {
+    init {
+        // Store upgradeData for access by the base class
+        session.jettyUpgradeRequest.httpServletRequest.setAttribute(upgradeDataKey, upgradeData)
+    }
+}
 
-class WsErrorContext(sessionId: String, session: Session, private val error: Throwable?) : WsContext(sessionId, session) {
+class WsErrorContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val error: Throwable?) : WsContext(sessionId, session) {
+    init {
+        session.jettyUpgradeRequest.httpServletRequest.setAttribute(upgradeDataKey, upgradeData)
+    }
     /** Get the [Throwable] error that occurred */
     fun error(): Throwable? = error
 }
 
-class WsCloseContext(sessionId: String, session: Session, private val statusCode: Int, private val reason: String?) : WsContext(sessionId, session) {
+class WsCloseContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val statusCode: Int, private val reason: String?) : WsContext(sessionId, session) {
+    init {
+        session.jettyUpgradeRequest.httpServletRequest.setAttribute(upgradeDataKey, upgradeData)
+    }
     /** The int status for why connection was closed */
     fun status(): Int = statusCode
 
@@ -173,9 +206,17 @@ class WsCloseContext(sessionId: String, session: Session, private val statusCode
 
     /** The reason for the close */
     fun reason(): String? = reason
+    
+    /** Clean up session attributes when WebSocket closes */
+    fun cleanup() {
+        cleanupSession(sessionId())
+    }
 }
 
-class WsBinaryMessageContext(sessionId: String, session: Session, private val data: ByteArray, private val offset: Int, private val length: Int) : WsContext(sessionId, session) {
+class WsBinaryMessageContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val data: ByteArray, private val offset: Int, private val length: Int) : WsContext(sessionId, session) {
+    init {
+        session.jettyUpgradeRequest.httpServletRequest.setAttribute(upgradeDataKey, upgradeData)
+    }
     /** Get the binary data of the message */
     fun data(): ByteArray = data
 
@@ -186,12 +227,15 @@ class WsBinaryMessageContext(sessionId: String, session: Session, private val da
     fun length(): Int = length
 }
 
-class WsMessageContext(sessionId: String, session: Session, private val message: String) : WsContext(sessionId, session) {
+class WsMessageContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val message: String) : WsContext(sessionId, session) {
+    init {
+        session.jettyUpgradeRequest.httpServletRequest.setAttribute(upgradeDataKey, upgradeData)
+    }
     /** Receive a string message from the client */
     fun message(): String = message
 
     /** Receive a message from the client as a class */
-    fun <T> messageAsClass(type: Type): T = upgradeCtx.jsonMapper().fromJsonString(message, type)
+    fun <T> messageAsClass(type: Type): T = upgradeData.jsonMapper.fromJsonString(message, type)
 
     /** See Also: [messageAsClass] */
     fun <T> messageAsClass(clazz: Class<T>): T = messageAsClass(type = clazz as Type)

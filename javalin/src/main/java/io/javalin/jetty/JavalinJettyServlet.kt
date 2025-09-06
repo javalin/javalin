@@ -23,7 +23,7 @@ import org.eclipse.jetty.websocket.server.JettyWebSocketCreator
 import org.eclipse.jetty.websocket.server.JettyWebSocketServlet
 import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
 
-internal const val upgradeContextKey = "javalin-ws-upgrade-context"
+internal const val upgradeDataKey = "javalin-ws-upgrade-data"
 internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"
 
 /**
@@ -39,11 +39,8 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
     override fun configure(factory: JettyWebSocketServletFactory) { // this is called once, before everything
         cfg.pvt.jetty.wsFactoryConfigs.forEach{ it.accept(factory) }
         factory.setCreator(JettyWebSocketCreator { req, _ -> // this is called when a websocket is created (after [service])
-            val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as JavalinServletContext
-            req.httpServletRequest.setAttribute(upgradeContextKey, preUpgradeContext.changeBaseRequest(req.httpServletRequest))
-            val session = req.session as? Session?
-            req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) })
-            return@JettyWebSocketCreator WsConnection(cfg.pvt.wsRouter.wsPathMatcher, cfg.pvt.wsRouter.wsExceptionMapper, cfg.pvt.wsLogger)
+            val upgradeData = req.httpServletRequest.getAttribute(upgradeDataKey) as WsUpgradeData
+            return@JettyWebSocketCreator WsConnection(cfg.pvt.wsRouter.wsPathMatcher, cfg.pvt.wsRouter.wsExceptionMapper, cfg.pvt.wsLogger, upgradeData)
         })
     }
 
@@ -61,7 +58,25 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
             pathParamMap = entry.extractPathParams(requestUri),
         )
         upgradeContext.setRouteRoles(entry.roles) // set roles for the matched handler
-        req.setAttribute(upgradeContextKey, upgradeContext)
+        
+        // Create upgrade data with extracted information
+        val session = req.session
+        val sessionAttributes = session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) } ?: mapOf()
+        val upgradeData = WsUpgradeData(
+            matchedPath = entry.path,
+            pathParamMap = entry.extractPathParams(requestUri),
+            queryString = req.queryString,
+            queryParamMap = upgradeContext.queryParamMap(),
+            headerMap = upgradeContext.headerMap(),
+            cookieMap = upgradeContext.cookieMap(),
+            attributeMap = upgradeContext.attributeMap(),
+            sessionAttributeMap = sessionAttributes,
+            routeRoles = upgradeContext.routeRoles(),
+            jsonMapper = upgradeContext.jsonMapper(),
+            validation = upgradeContext.appData(io.javalin.validation.Validation.ValidationKey)
+        )
+        
+        req.setAttribute(upgradeDataKey, upgradeData)
         setWsProtocolHeader(req, res)
         // add before handlers
         cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_BEFORE_UPGRADE, requestUri)
