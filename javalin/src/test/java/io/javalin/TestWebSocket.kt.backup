@@ -24,7 +24,6 @@ import io.javalin.websocket.WsContext
 import io.javalin.websocket.pingFutures
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
-
 import org.eclipse.jetty.websocket.api.StatusCode
 import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.util.WebSocketConstants
@@ -535,11 +534,11 @@ class TestWebSocket {
     @Test
     fun `websocket closeSession() methods`() {
         val scenarios = mapOf(
-            { client: TestClient -> client.send("NO_ARGS") } to WsCloseStatus.NORMAL_CLOSURE,
-            { client: TestClient -> client.send("STATUS_OBJECT") } to WsCloseStatus.GOING_AWAY,
-            { client: TestClient -> client.send("CODE_AND_REASON") } to WsCloseStatus.PROTOCOL_ERROR,
-            { client: TestClient -> client.send("CLOSE_STATUS") } to WsCloseStatus.RESERVED,
-            { client: TestClient -> client.send("UNEXPECTED") } to WsCloseStatus.RESERVED
+            { client: TestClient -> client.send("NO_ARGS") } to CloseStatus(1000, "null"),
+            { client: TestClient -> client.send("STATUS_OBJECT") } to CloseStatus(1001, "STATUS_OBJECT"),
+            { client: TestClient -> client.send("CODE_AND_REASON") } to CloseStatus(1002, "CODE_AND_REASON"),
+            { client: TestClient -> client.send("CLOSE_STATUS") } to CloseStatus(WsCloseStatus.RESERVED.code, "CODE_AND_REASON"),
+            { client: TestClient -> client.send("UNEXPECTED") } to CloseStatus(1004, "UNEXPECTED")
         )
 
         scenarios.forEach { (sendAction, closeStatus) ->
@@ -548,16 +547,16 @@ class TestWebSocket {
                     ws.onMessage { ctx ->
                         when (ctx.message()) {
                             "NO_ARGS" -> ctx.closeSession()
-                            "STATUS_OBJECT" -> ctx.closeSession(WsCloseStatus.GOING_AWAY)
+                            "STATUS_OBJECT" -> ctx.closeSession(CloseStatus(1001, "STATUS_OBJECT"))
                             "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
                             "CLOSE_STATUS" -> ctx.closeSession(WsCloseStatus.RESERVED)
                             else -> ctx.closeSession(1004, "UNEXPECTED")
                         }
                     }
-                    ws.onClose { ctx ->
-                        // Check the close status code matches expected
-                        assertThat(ctx.status()).isEqualTo(closeStatus.code)
-                        assertThat(ctx.closeStatus().code).isEqualTo(closeStatus.code)
+                    ws.onClose {
+                        assertThat(it.reason() ?: "null").isEqualTo(closeStatus.phrase)
+                        assertThat(it.status()).isEqualTo(closeStatus.code)
+                        assertThat(it.closeStatus().code).isEqualTo(closeStatus.code)
                     }
                 }
                 TestClient(app, "/websocket", onOpen = { sendAction(it) }).connectBlocking()

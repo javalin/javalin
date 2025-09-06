@@ -20,7 +20,7 @@ import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.binder.http.DefaultHttpJakartaServletRequestTagsProvider
 import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics
 import io.micrometer.core.instrument.binder.jetty.JettyServerThreadPoolMetrics
-import io.micrometer.jetty11.TimedHandler
+// import io.micrometer.jetty11.TimedHandler // Temporarily commented out for Jetty 12 compatibility
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.util.function.Consumer
@@ -56,6 +56,9 @@ class MicrometerPlugin(config: Consumer<MicrometerPluginConfig>) : Plugin<Microm
         }
 
         config.jetty.modifyServer { server ->
+            // TODO: Jetty 12 migration - TimedHandler needs to be updated for Jetty 12 compatibility
+            // Temporarily commented out until micrometer-jetty12 is available
+            /*
             server.insertHandler(TimedHandler(pluginConfig.registry, pluginConfig.tags, object : DefaultHttpJakartaServletRequestTagsProvider() {
                 override fun getTags(request: HttpServletRequest, response: HttpServletResponse): Iterable<Tag> {
                     val exceptionName = if (pluginConfig.tagExceptionName) {
@@ -79,6 +82,7 @@ class MicrometerPlugin(config: Consumer<MicrometerPluginConfig>) : Plugin<Microm
                     )
                 }
             }))
+            */
 
             JettyServerThreadPoolMetrics(server.threadPool, pluginConfig.tags).bindTo(pluginConfig.registry)
             config.events.serverStarted {

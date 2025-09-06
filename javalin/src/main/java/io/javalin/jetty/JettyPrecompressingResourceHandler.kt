@@ -5,7 +5,9 @@ import io.javalin.compression.Compressor
 import io.javalin.compression.forType
 import io.javalin.http.Context
 import io.javalin.http.Header
+import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.util.JavalinLogger
+import org.eclipse.jetty.http.EtagUtils
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream
@@ -13,6 +15,8 @@ import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
 
 object JettyPrecompressingResourceHandler {
+
+    private val mimeTypes = MimeTypes()
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
 
@@ -22,18 +26,33 @@ object JettyPrecompressingResourceHandler {
     @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
-    fun handle(target: String, resource: Resource, ctx: Context, compStrat: CompressionStrategy): Boolean {
-        var compressor = findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "", compStrat)
-        val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
+    fun handle(target: String, resource: Resource, ctx: Context, compStrat: CompressionStrategy, config: StaticFileConfig): Boolean {
+        val acceptEncoding = ctx.header(Header.ACCEPT_ENCODING) ?: ""
+        var compressor = findMatchingCompressor(acceptEncoding, compStrat)
+        
+        // Apply custom mime types from configuration first
+        val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull { 
+            target.endsWith(".${it.key}", ignoreCase = true) 
+        }?.value
+        
+        val contentType = customMimeType ?: mimeTypes.getMimeByExtension(target) // get content type by file extension
+        
         if (contentType == null || excludedMimeType(contentType, compStrat)) {
             compressor = null
         }
+        
         val resultByteArray = getStaticResourceByteArray(resource, target, compressor) ?: return false
-        if (compressor != null) {
-            ctx.header(Header.CONTENT_ENCODING, compressor.encoding())
-        }
+        
+        // Set headers first, before calling ctx.result()
         ctx.header(Header.CONTENT_LENGTH, resultByteArray.size.toString())
         ctx.header(Header.CONTENT_TYPE, contentType ?: "")
+        
+        if (compressor != null) {
+            // Disable Javalin's compression since we're serving precompressed content
+            ctx.disableCompression()
+            // Set content-encoding header directly on Context - this should persist
+            ctx.header(Header.CONTENT_ENCODING, compressor.encoding())
+        }
         ctx.header(Header.IF_NONE_MATCH)?.let { requestEtag ->
             if (requestEtag == resource.weakETag) { // jetty resource use weakETag too
                 ctx.status(304)
@@ -44,6 +63,8 @@ object JettyPrecompressingResourceHandler {
         ctx.result(resultByteArray)
         return true
     }
+
+    private val Resource.weakETag: String get() = EtagUtils.computeWeakEtag(this)
 
     private fun getStaticResourceByteArray(resource: Resource, target: String, compressor: Compressor?): ByteArray? {
         if (resource.length() > resourceMaxSize) {
@@ -58,7 +79,7 @@ object JettyPrecompressingResourceHandler {
     }
 
     private fun getCompressedByteArray(resource: Resource, compressor: Compressor?): ByteArray {
-        val fileInput = resource.inputStream
+        val fileInput = resource.newInputStream()
         val byteArrayOutputStream = ByteArrayOutputStream()
         val outputStream: OutputStream =
             compressor?.compress(byteArrayOutputStream)

@@ -71,6 +71,10 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
+            <artifactId>jetty-http2-client-transport</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.http2</groupId>
             <artifactId>jetty-http2-server</artifactId>
         </dependency>
         <dependency>

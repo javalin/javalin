@@ -80,7 +80,7 @@ public class VisualTest {
     }
 
     private static void wsMethodRef(WsConfig wsConfig) {
-        wsConfig.onConnect(ctx -> ctx.session.getRemote().sendString("Connected!"));
+        wsConfig.onConnect(ctx -> ctx.send("Connected!"));
     }
 
     private static void methodReference(Context context) {
