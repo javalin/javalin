@@ -41,16 +41,6 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
         wsLogger?.wsMessageHandler?.handleMessage(ctx)
     }
 
-    @OnWebSocketMessage
-    fun onMessage(session: Session, buffer: ByteBuffer) {
-        val data = ByteArray(buffer.remaining())
-        buffer.get(data)
-        val ctx = WsBinaryMessageContext(sessionId, session, upgradeData, data, 0, data.size)
-        tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
-        tryAfterHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
-        wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)
-    }
-
     @OnWebSocketClose
     fun onClose(session: Session, statusCode: Int, reason: String?) {
         val ctx = WsCloseContext(sessionId, session, upgradeData, statusCode, reason)
@@ -70,17 +60,18 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
     }
 
     private fun tryBeforeAndEndpointHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
-        val requestUri = ctx.session.uriNoContextPath()
+        val requestUri = ctx.upgradeData.requestUri
         try {
             matcher.findBeforeHandlerEntries(requestUri).forEach { handle.invoke(it) }
-            matcher.findEndpointHandlerEntry(requestUri)!!.let { handle.invoke(it) } // never null, 404 is handled in front
+            val endpointEntry = matcher.findEndpointHandlerEntry(requestUri)
+            endpointEntry?.let { handle.invoke(it) } // never null, 404 is handled in front
         } catch (e: Exception) {
             exceptionMapper.handle(e, ctx)
         }
     }
 
     private fun tryAfterHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
-        val requestUri = ctx.session.uriNoContextPath()
+        val requestUri = ctx.upgradeData.requestUri
         try {
             matcher.findAfterHandlerEntries(requestUri).forEach { handle.invoke(it) }
         } catch (e: Exception) {

@@ -61,6 +61,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
         val session = req.session
         val sessionAttributes = session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) } ?: mapOf()
         val upgradeData = WsUpgradeData(
+            requestUri = requestUri,
             matchedPath = entry.path,
             pathParamMap = entry.extractPathParams(requestUri),
             queryString = req.queryString,

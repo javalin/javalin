@@ -15,6 +15,7 @@ import io.javalin.validation.Validation
  * This replaces the need to carry over the full servlet context for Jetty 12 migration.
  */
 data class WsUpgradeData(
+    val requestUri: String,
     val matchedPath: String,
     val pathParamMap: Map<String, String>,
     val queryString: String?,

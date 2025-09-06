@@ -23,7 +23,7 @@ import kotlin.reflect.typeOf
  * It adds functionality similar to the API found in [io.javalin.http.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-abstract class WsContext(private val sessionId: String, @JvmField val session: Session, protected val upgradeData: WsUpgradeData) {
+abstract class WsContext(private val sessionId: String, @JvmField val session: Session, val upgradeData: WsUpgradeData) {
 
     @Suppress("UNCHECKED_CAST")
     private val sessionAttributes by javalinLazy { upgradeData.sessionAttributeMap }
