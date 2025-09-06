@@ -7,6 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.http.Context
+import io.javalin.http.servlet.JavalinWsServletContext
 import org.eclipse.jetty.ee10.websocket.server.JettyServerUpgradeRequest
 import org.eclipse.jetty.util.BufferUtil
 import org.eclipse.jetty.websocket.api.Callback
@@ -28,7 +29,7 @@ class WsConnection(
     val matcher: WsPathMatcher,
     val exceptionMapper: WsExceptionMapper,
     val wsLogger: WsConfig?,
-    val upgradeCtx: Context
+    val upgradeCtx: JavalinWsServletContext
 ) {
 
     private val sessionId: String = UUID.randomUUID().toString()
@@ -81,7 +82,7 @@ class WsConnection(
         val requestUri = ctx.session.uriNoContextPath()
         try {
             matcher.findBeforeHandlerEntries(requestUri).forEach { handle.invoke(it) }
-            matcher.findEndpointHandlerEntry(requestUri)?.let { handle.invoke(it) }
+            matcher.findEndpointHandlerEntry(requestUri)!!.let { handle.invoke(it) } // never null, 404 is handled in front
         } catch (e: Exception) {
             exceptionMapper.handle(e, ctx)
         }

@@ -190,7 +190,19 @@ class TestWebSocket {
     }
 
     @Test
-    fun `routing and pathParams work`() = TestUtil.test(contextPathJavalin()) { app, _ ->
+    fun `routing and pathParams work without context path`() = TestUtil.test { app, _ ->
+        app.ws("/params/{1}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1")) } }
+        app.ws("/params/{1}/test/{2}/{3}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
+        app.ws("/*") { ws -> ws.onConnect { _ -> app.logger().log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
+        TestClient(app, "/params/one").connectAndDisconnect()
+        TestClient(app, "/params/%E2%99%94").connectAndDisconnect()
+        TestClient(app, "/params/another/test/long/path").connectAndDisconnect()
+        assertThat(app.logger().log).containsExactlyInAnyOrder("one", "♔", "another long path")
+        assertThat(app.logger().log).doesNotContain("catchall")
+    }
+
+    @Test
+    fun `routing and pathParams work with context path`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         app.ws("/params/{1}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1")) } }
         app.ws("/params/{1}/test/{2}/{3}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
         app.ws("/*") { ws -> ws.onConnect { _ -> app.logger().log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
@@ -220,7 +232,7 @@ class TestWebSocket {
             ws.onClose { ctx -> app.logger().log.add("Closed connection from: " + ctx.host()) }
         }
         TestClient(app, "/websocket", mapOf("Test" to "HeaderParameter")).connectAndDisconnect()
-        assertThat(app.logger().log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost")
+        assertThat(app.logger().log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost:${app.port()}")
     }
 
     @Test
@@ -344,7 +356,7 @@ class TestWebSocket {
             repeat(10) {
                 if (handlerError == null) Thread.sleep(5) // give Javalin time to trigger the error handler
             }
-            assertThat(handlerError!!.message).isEqualTo("Text message too large: (actual) ${textToSend.length} > (configured max text message size) $maxTextSize")
+            assertThat(handlerError!!.message).isEqualTo("Text message too large: ${textToSend.length} > $maxTextSize")
             assertThat(handlerError).isExactlyInstanceOf(MessageTooLargeException::class.java)
         }
     }
@@ -612,14 +624,13 @@ class TestWebSocket {
     }
 
     @Test
-    fun `wsBeforeUpgrade can modify the upgrade request but wsAfterUpgrade can not`() = TestUtil.test { app, http ->
-        app.wsBeforeUpgrade { it.header("X-Before", "demo") }
+    fun `wsBeforeUpgrade and after can modify the upgrade request`() = TestUtil.test { app, http ->
+        app.wsBeforeUpgrade { it.header("X-Before", "before") }
         app.wsAfterUpgrade { it.header("X-After", "after") }
-
         app.ws("/ws") {}
         val response = http.wsUpgradeRequest("/ws")
-        assertThat(response.headers.getFirst("X-Before")).isEqualTo("demo")
-        assertThat(response.headers.containsKey("X-After")).isFalse()
+        assertThat(response.headers.getFirst("X-Before")).isEqualTo("before")
+        assertThat(response.headers.getFirst("X-After")).isEqualTo("after")
     }
 
     @Test

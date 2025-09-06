@@ -7,8 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.http.Context
-import io.javalin.jetty.upgradeSessionAttrsKey
-import io.javalin.util.javalinLazy
+import io.javalin.http.servlet.JavalinWsServletContext
 import org.eclipse.jetty.websocket.api.Callback
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.core.CloseStatus
@@ -23,11 +22,7 @@ import kotlin.reflect.typeOf
  * It adds functionality similar to the API found in [io.javalin.http.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-abstract class WsContext(private val sessionId: String, @JvmField val session: Session, val upgradeCtx: Context) {
-
-
-    @Suppress("UNCHECKED_CAST")
-    private val sessionAttributes by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as? Map<String, Any> }
+abstract class WsContext(private val sessionId: String, @JvmField val session: Session, val upgradeCtx: JavalinWsServletContext) {
 
     /** Returns the path that was used to match this request */
     fun matchedPath() = upgradeCtx.matchedPath()
@@ -105,38 +100,35 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
 
     /** Returns the host as a [String] */
-    fun host(): String = session.jettyUpgradeRequest.host // why can't we get this from upgradeCtx?
+    fun host(): String? = upgradeCtx.extractedData.host
 
     /** Gets a request header by name, or null. */
-    fun header(header: String): String? = upgradeCtx.header(header)
+    fun header(header: String): String? = upgradeCtx.extractedData.headerMap[header]
 
     /** Gets a [Map] with all the header keys and values  */
-    fun headerMap(): Map<String, String> = upgradeCtx.headerMap()
-
-    /** Creates a typed [io.javalin.validation.Validator] for the [header] value */
-    fun <T> headerAsClass(header: String, clazz: Class<T>) = upgradeCtx.headerAsClass(header, clazz)
+    fun headerMap(): Map<String, String> = upgradeCtx.extractedData.headerMap
 
     /** Gets a request cookie by name, or null. */
-    fun cookie(name: String) = upgradeCtx.cookie(name)
+    fun cookie(name: String) = cookieMap()[name]
 
     /** Gets a [Map] with all the request cookies */
-    fun cookieMap(): Map<String, String> = upgradeCtx.cookieMap()
+    fun cookieMap(): Map<String, String> = upgradeCtx.extractedData.cookieMap
 
     /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle. */
-    fun attribute(key: String, value: Any?) = upgradeCtx.attribute(key, value)
+    fun attribute(key: String, value: Any?) = upgradeCtx.extractedData.attributeMap.put(key, value)
 
     /** Gets the specified attribute from the request. */
-    fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
+    fun <T> attribute(key: String): T? = attributeMap()[key] as T?
 
     /** Gets a [Map] with all the attribute keys and values on the request */
-    fun attributeMap(): Map<String, Any?> = upgradeCtx.attributeMap()
+    fun attributeMap(): Map<String, Any?> = upgradeCtx.extractedData.attributeMap
 
     /** Gets a session attribute by name */
     @Suppress("UNCHECKED_CAST")
     fun <T> sessionAttribute(key: String): T? = sessionAttributeMap()[key] as T
 
     /** Gets a [Map] with all the session attributes */
-    fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes ?: mapOf()
+    fun sessionAttributeMap(): Map<String, Any?> = upgradeCtx.extractedData.sessionAttributeMap
 
     /** Close the session */
     fun closeSession(): Unit = session.close()
@@ -155,14 +147,14 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     override fun hashCode(): Int = session.hashCode()
 }
 
-class WsConnectContext(sessionId: String, session: Session, upgradeCtx: Context) : WsContext(sessionId, session, upgradeCtx)
+class WsConnectContext(sessionId: String, session: Session, upgradeCtx: JavalinWsServletContext) : WsContext(sessionId, session, upgradeCtx)
 
-class WsErrorContext(sessionId: String, session: Session, upgradeCtx: Context, private val error: Throwable?) : WsContext(sessionId, session, upgradeCtx) {
+class WsErrorContext(sessionId: String, session: Session, upgradeCtx: JavalinWsServletContext, private val error: Throwable?) : WsContext(sessionId, session, upgradeCtx) {
     /** Get the [Throwable] error that occurred */
     fun error(): Throwable? = error
 }
 
-class WsCloseContext(sessionId: String, session: Session, upgradeCtx: Context, private val statusCode: Int, private val reason: String?) : WsContext(sessionId, session, upgradeCtx) {
+class WsCloseContext(sessionId: String, session: Session, upgradeCtx: JavalinWsServletContext, private val statusCode: Int, private val reason: String?) : WsContext(sessionId, session, upgradeCtx) {
     /** The int status for why connection was closed */
     fun status(): Int = statusCode
 
@@ -173,7 +165,7 @@ class WsCloseContext(sessionId: String, session: Session, upgradeCtx: Context, p
     fun reason(): String? = reason
 }
 
-class WsBinaryMessageContext(sessionId: String, session: Session, upgradeCtx: Context, private val data: ByteArray, private val offset: Int, private val length: Int) : WsContext(sessionId, session, upgradeCtx) {
+class WsBinaryMessageContext(sessionId: String, session: Session, upgradeCtx: JavalinWsServletContext, private val data: ByteArray, private val offset: Int, private val length: Int) : WsContext(sessionId, session, upgradeCtx) {
     /** Get the binary data of the message */
     fun data(): ByteArray = data
 
@@ -184,7 +176,7 @@ class WsBinaryMessageContext(sessionId: String, session: Session, upgradeCtx: Co
     fun length(): Int = length
 }
 
-class WsMessageContext(sessionId: String, session: Session, upgradeCtx: Context, private val message: String) : WsContext(sessionId, session, upgradeCtx) {
+class WsMessageContext(sessionId: String, session: Session, upgradeCtx: JavalinWsServletContext, private val message: String) : WsContext(sessionId, session, upgradeCtx) {
     /** Receive a string message from the client */
     fun message(): String = message
 
