@@ -274,7 +274,7 @@ interface Context {
     fun cookieStore(): CookieStore = CookieStore(this)
 
     /** Gets a request cookie by name, or null. */
-    fun cookie(name: String): String? = req().getCookie(name)
+    fun cookie(name: String): String? = req().cookies?.find { it.name == name }?.value
 
     /** Gets a map with all the cookie keys and values on the request(). */
     fun cookieMap(): Map<String, String> = req().cookies?.associate { it.name to it.value } ?: emptyMap()

@@ -145,7 +145,7 @@ class TestMultipartForms {
             ctx.result(ctx.uploadedFiles().joinToString(", ") { it.filename() })
         }
 
-        app.exception(Exception::class.java) { e, ctx ->
+        app.exception(IllegalStateException::class.java) { e, ctx ->
             ctx.result("${e::class.java.canonicalName} ${e.message}")
         }
 
@@ -153,7 +153,7 @@ class TestMultipartForms {
             .field("upload", File("src/test/resources/upload-test/image.png"))
             .field("text-field", "text")
             .asString()
-        assertThat(response.body).contains("org.eclipse.jetty.http.BadMessageException: 400: bad multipart")
+        assertThat(response.body).isEqualTo("java.lang.IllegalStateException Request exceeds maxRequestSize (10)")
     }
 
     @Test

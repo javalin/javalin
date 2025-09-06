@@ -138,10 +138,9 @@ class TestCookie {
     }
 
     private fun cookieIsEffectivelyRemoved(cookie: String, path: String): Boolean {
-        val parts = cookie.split(";")
-        val pathMatches = parts[1].split("=")[1].trim() == path
-        val expiresEpoch = parts[2].trim() == "Expires=Thu, 01 Jan 1970 00:00:00 GMT"
-        val maxAgeZero = parts.size > 3 && parts[3].trim() == "Max-Age=0"
-        return pathMatches && (expiresEpoch || maxAgeZero)
+        val pathMatches = cookie.split(";")[1].split("=")[1] == path
+        val expiresEpoch = cookie.split(";")[2] == " Expires=Thu, 01-Jan-1970 00:00:00 GMT"
+        val maxAgeZero = cookie.split(";")[3] == " Max-Age=0"
+        return pathMatches && expiresEpoch && maxAgeZero
     }
 }

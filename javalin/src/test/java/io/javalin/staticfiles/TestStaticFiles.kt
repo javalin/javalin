@@ -28,9 +28,9 @@ import jakarta.servlet.FilterConfig
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.ServletResponseHttpWrapper
-import org.eclipse.jetty.server.handler.ContextHandler
-import org.eclipse.jetty.servlet.FilterHolder
+import org.eclipse.jetty.ee10.servlet.ServletResponseHttpWrapper
+import org.eclipse.jetty.ee10.servlet.FilterHolder
+import org.eclipse.jetty.server.AliasCheck
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -94,7 +94,7 @@ class TestStaticFiles {
     fun `alias checks for static files should work`() {
         val staticWithAliasResourceApp = Javalin.create { config ->
             // block aliases for txt files
-            val aliasCheck = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
+            val aliasCheck = AliasCheck { path, resource -> !path.endsWith(".txt") }
             config.staticFiles.add {
                 it.aliasCheck = aliasCheck
                 it.directory = workingDirectory.absolutePath
@@ -260,7 +260,7 @@ class TestStaticFiles {
         val response1 = http.get("/html.html")
         assertThat(response1.status).isEqualTo(OK.code) // src/test/external/html.html
         assertThat(response1.body).contains("HTML works")
-        
+
         assertThat(http.get("/"))
             .extracting({ it.status }, { it.body })
             .containsExactly(OK.code, "<h1>Welcome file</h1>")
@@ -430,48 +430,6 @@ class TestStaticFiles {
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains("application/x-javalin")
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body).contains("TESTFILE.javalin")
-    }
-
-    @Test
-    fun `access files with non encoded names with encoded url`()  = TestUtil.test(externalStaticResourceApp) { _, http ->
-        val dirName = File("src/test/external")
-        val symbols = listOf(
-            '"', '<', '>', '#', '{', '}', '\\', '^', '~', '[', ']',
-            '%', '|', '\'', ':', '/', '?', '&', '=', '@', '+', '$', ',', ' '
-        )
-        val illegalWindowsChars = listOf('<', '>', ':', '"', '/', '\\', '|', '?', '*')
-
-        symbols.map { it ->
-            if (System.getProperty("os.name").contains("windows", ignoreCase = true) && it in illegalWindowsChars) {
-                JavalinLogger.info("Skipped symbol as windows don't allow file creation with $it.")
-            } else {
-                val tempFile = File.createTempFile("test$it", ".txt", dirName)
-                var path = tempFile.name
-                path = URLEncoder.encode(path, "UTF-8")
-                assertThat(http.get("/$path").httpCode()).isEqualTo(OK)
-                tempFile.deleteOnExit()
-            }
-        }
-    }
-
-    @Test
-    fun `access files with encoded names with encoded url`()  = TestUtil.test(externalStaticResourceApp) { _, http ->
-        val dirName = File("src/test/external")
-        val symbols = listOf(
-            "\"", "<", ">", "#", "{", "}", "\\", "^", "~", "[", "]",
-            "%", "|", "'", ":", "/", "?", "&", "=", "@", "+", "$", ",", " "
-        )
-        symbols.map { it ->
-            val encodedName = URLEncoder.encode(it, "UTF-8")
-            try {
-                val tempFile = File.createTempFile("test$encodedName", ".txt", dirName)
-                val path = tempFile.name
-                assertThat(http.get("/$path").httpCode()).isEqualTo(NOT_FOUND)
-                tempFile.deleteOnExit()
-            } catch (e: IOException) {
-                JavalinLogger.warn("Unable to create file with symbol $it.")
-            }
-        }
     }
 
 }

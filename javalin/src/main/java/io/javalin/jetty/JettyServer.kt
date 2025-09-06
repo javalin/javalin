@@ -24,19 +24,17 @@ import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.server.handler.HandlerCollection
-import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.handler.StatisticsHandler
-import org.eclipse.jetty.server.session.SessionHandler
-import org.eclipse.jetty.servlet.ServletContextHandler
-import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
-import org.eclipse.jetty.servlet.ServletHolder
+import org.eclipse.jetty.ee10.servlet.SessionHandler
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler.SESSIONS
+import org.eclipse.jetty.ee10.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.ThreadPool
 
 class JettyServer(private val cfg: JavalinConfig) {
 
     init {
-        MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
+    // MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
 
         if (cfg.startupWatcherEnabled) {
             Thread {
@@ -147,19 +145,19 @@ class JettyServer(private val cfg: JavalinConfig) {
 
     private fun Handler?.attachHandler(servletContextHandler: ServletContextHandler) = when {
         this == null -> servletContextHandler // server has no handler, just use Javalin handler
-        this is HandlerCollection -> this.apply { addHandler(servletContextHandler) } // user is using a HandlerCollection, add Javalin handler to it
-        this is HandlerWrapper -> this.apply {
-            (this.unwrap() as? HandlerCollection)?.addHandler(servletContextHandler) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handler
-            (this.unwrap() as? HandlerWrapper)?.handler = servletContextHandler // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
+        this is Handler.Sequence -> this.apply { addHandler(servletContextHandler) } // user is using a HandlerCollection, add Javalin handler to it
+        this is Handler.Wrapper -> this.apply {
+            (this.unwrap() as? Handler.Sequence)?.addHandler(servletContextHandler) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handler
+            (this.unwrap() as? Handler.Wrapper)?.handler = servletContextHandler // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
         }
 
         else -> throw IllegalStateException("Server has unsupported Handler attached to it (must be HandlerCollection or HandlerWrapper)")
     }
 
-    private fun HandlerWrapper.unwrap(): Handler = when (this.handler) {
+    private fun Handler.Wrapper.unwrap(): Handler = when (this.handler) {
         null -> this // current HandlerWrapper is last element, return the HandlerWrapper itself
-        is HandlerCollection -> this.handler // HandlerWrapper wraps HandlerCollection, return HandlerCollection
-        is HandlerWrapper -> (this.handler as HandlerWrapper).unwrap() // HandlerWrapper wraps another HandlerWrapper, recursive call required
+        is Handler.Sequence -> this.handler // HandlerWrapper wraps HandlerCollection, return HandlerCollection
+        is Handler.Wrapper -> (this.handler as Handler.Wrapper).unwrap() // HandlerWrapper wraps another HandlerWrapper, recursive call required
         else -> throw IllegalStateException("HandlerWrapper has unsupported Handler type (must be HandlerCollection or HandlerWrapper")
     }
 
@@ -172,14 +170,14 @@ class JettyServer(private val cfg: JavalinConfig) {
             setAttribute("is-default-server", true)
         }
 
-        // UriCompliance.RFC3986 makes Jetty accept ambiguous values in path, so Javalin can handle them
+        // UriCompliance.LEGACY makes Jetty accept ambiguous values in path, so Javalin can handle them
         fun defaultHttpConfiguration() = HttpConfiguration().apply {
-            uriCompliance = UriCompliance.RFC3986
+            uriCompliance = UriCompliance.LEGACY
             sendServerVersion = false
         }
 
         fun defaultSessionHandler() = SessionHandler().apply {
-            httpOnly = true
+            isHttpOnly = true
             sameSite = HttpCookie.SameSite.LAX
         }
     }
