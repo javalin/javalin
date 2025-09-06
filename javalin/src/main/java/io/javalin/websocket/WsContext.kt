@@ -7,7 +7,6 @@
 package io.javalin.websocket
 
 import io.javalin.http.Context
-import io.javalin.jetty.upgradeDataKey
 import io.javalin.util.javalinLazy
 import org.eclipse.jetty.websocket.api.Callback
 import org.eclipse.jetty.websocket.api.Session
@@ -24,9 +23,7 @@ import kotlin.reflect.typeOf
  * It adds functionality similar to the API found in [io.javalin.http.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-abstract class WsContext(private val sessionId: String, @JvmField val session: Session) {
-
-    internal val upgradeData by javalinLazy { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeDataKey) as WsUpgradeData }
+abstract class WsContext(private val sessionId: String, @JvmField val session: Session, protected val upgradeData: WsUpgradeData) {
 
     @Suppress("UNCHECKED_CAST")
     private val sessionAttributes by javalinLazy { upgradeData.sessionAttributeMap }
@@ -178,25 +175,14 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     override fun hashCode(): Int = session.hashCode()
 }
 
-class WsConnectContext(sessionId: String, session: Session, upgradeData: WsUpgradeData) : WsContext(sessionId, session) {
-    init {
-        // Store upgradeData for access by the base class
-        session.jettyUpgradeRequest.httpServletRequest.setAttribute(upgradeDataKey, upgradeData)
-    }
-}
+class WsConnectContext(sessionId: String, session: Session, upgradeData: WsUpgradeData) : WsContext(sessionId, session, upgradeData)
 
-class WsErrorContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val error: Throwable?) : WsContext(sessionId, session) {
-    init {
-        session.jettyUpgradeRequest.httpServletRequest.setAttribute(upgradeDataKey, upgradeData)
-    }
+class WsErrorContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val error: Throwable?) : WsContext(sessionId, session, upgradeData) {
     /** Get the [Throwable] error that occurred */
     fun error(): Throwable? = error
 }
 
-class WsCloseContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val statusCode: Int, private val reason: String?) : WsContext(sessionId, session) {
-    init {
-        session.jettyUpgradeRequest.httpServletRequest.setAttribute(upgradeDataKey, upgradeData)
-    }
+class WsCloseContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val statusCode: Int, private val reason: String?) : WsContext(sessionId, session, upgradeData) {
     /** The int status for why connection was closed */
     fun status(): Int = statusCode
 
@@ -212,10 +198,7 @@ class WsCloseContext(sessionId: String, session: Session, upgradeData: WsUpgrade
     }
 }
 
-class WsBinaryMessageContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val data: ByteArray, private val offset: Int, private val length: Int) : WsContext(sessionId, session) {
-    init {
-        session.jettyUpgradeRequest.httpServletRequest.setAttribute(upgradeDataKey, upgradeData)
-    }
+class WsBinaryMessageContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val data: ByteArray, private val offset: Int, private val length: Int) : WsContext(sessionId, session, upgradeData) {
     /** Get the binary data of the message */
     fun data(): ByteArray = data
 
@@ -226,10 +209,7 @@ class WsBinaryMessageContext(sessionId: String, session: Session, upgradeData: W
     fun length(): Int = length
 }
 
-class WsMessageContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val message: String) : WsContext(sessionId, session) {
-    init {
-        session.jettyUpgradeRequest.httpServletRequest.setAttribute(upgradeDataKey, upgradeData)
-    }
+class WsMessageContext(sessionId: String, session: Session, upgradeData: WsUpgradeData, private val message: String) : WsContext(sessionId, session, upgradeData) {
     /** Receive a string message from the client */
     fun message(): String = message
 

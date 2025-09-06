@@ -13,6 +13,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
 import org.eclipse.jetty.ee10.websocket.server.JettyServerUpgradeRequest
+import java.nio.ByteBuffer
 import java.util.*
 
 /**
@@ -41,8 +42,10 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
     }
 
     @OnWebSocketMessage
-    fun onMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
-        val ctx = WsBinaryMessageContext(sessionId, session, upgradeData, buffer, offset, length)
+    fun onMessage(session: Session, buffer: ByteBuffer) {
+        val data = ByteArray(buffer.remaining())
+        buffer.get(data)
+        val ctx = WsBinaryMessageContext(sessionId, session, upgradeData, data, 0, data.size)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)
