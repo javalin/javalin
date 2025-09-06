@@ -9,9 +9,9 @@ package io.javalin.websocket
 import io.javalin.http.Context
 import io.javalin.jetty.upgradeDataKey
 import io.javalin.util.javalinLazy
-import org.eclipse.jetty.websocket.api.CloseStatus
-import org.eclipse.jetty.websocket.api.RemoteEndpoint
+import org.eclipse.jetty.websocket.api.Callback
 import org.eclipse.jetty.websocket.api.Session
+import org.eclipse.jetty.websocket.core.CloseStatus
 import java.lang.reflect.Type
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
@@ -58,14 +58,14 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     fun sendAsClass(message: Any, type: Type) = send(upgradeData.jsonMapper.toJsonString(message, type))
 
     /** Sends a [String] over the socket */
-    fun send(message: String) = session.remote.sendString(message)
+    fun send(message: String) = session.sendText(message, Callback.NOOP)
 
     /** Sends a [ByteBuffer] over the socket */
-    fun send(message: ByteBuffer) = session.remote.sendBytes(message)
+    fun send(message: ByteBuffer) = session.sendBinary(message, Callback.NOOP)
 
     /** Sends a ping over the socket */
     @JvmOverloads
-    fun sendPing(applicationData: ByteBuffer? = null) = session.remote.sendPing(applicationData ?: ByteBuffer.allocate(0))
+    fun sendPing(applicationData: ByteBuffer? = null) = session.sendPing(applicationData ?: ByteBuffer.allocate(0), Callback.NOOP)
 
     /** Enables automatic pings at a 15 second interval, preventing the connection from timing out */
     fun enableAutomaticPings() {
@@ -165,14 +165,14 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     fun closeSession(): Unit = session.close()
 
     /** Close the session with a [CloseStatus] */
-    fun closeSession(closeStatus: CloseStatus): Unit = session.close(closeStatus)
+    fun closeSession(closeStatus: CloseStatus): Unit = closeSession(closeStatus.code, closeStatus.reason)
 
     /** Close the session with a code and reason */
-    fun closeSession(code: Int, reason: String?): Unit = session.close(code, reason)
+    fun closeSession(code: Int, reason: String?): Unit = session.close(code, reason, Callback.NOOP)
 
     /** Close the session with a [WsCloseStatus] */
     @JvmOverloads
-    fun closeSession(closeStatus: WsCloseStatus, reason: String? = null): Unit = session.close(closeStatus.code, reason ?: closeStatus.message())
+    fun closeSession(closeStatus: WsCloseStatus, reason: String? = null): Unit = closeSession(closeStatus.code, reason ?: closeStatus.message())
 
     override fun equals(other: Any?): Boolean = session == (other as WsContext).session
     override fun hashCode(): Int = session.hashCode()
