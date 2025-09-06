@@ -94,12 +94,12 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
      * if [Resource.getURI] ends with `/`
      * However, when alias checking is enabled and passes, we should allow such resources.
      */
-    private fun Resource?.fileOrNull(aliasCheckPassed: Boolean = false): Resource? = 
-        this?.takeIf { 
-            it.exists() && !it.isDirectory && 
-            (!it.uri.schemeSpecificPart.endsWith('/') || aliasCheckPassed) 
+    private fun Resource?.fileOrNull(aliasCheckPassed: Boolean = false): Resource? =
+        this?.takeIf {
+            it.exists() && !it.isDirectory &&
+            (!it.uri.schemeSpecificPart.endsWith('/') || aliasCheckPassed)
         }
-    
+
     private fun ConfigurableHandler.getResource(path: String): Pair<Resource?, Boolean>? {
         return try {
             if (baseResource == null) return null
@@ -127,10 +127,10 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
             null
         }
     }
-    
+
     private fun fileOrWelcomeFile(handler: ConfigurableHandler, target: String): Resource? {
         val (resource, aliasCheckPassed) = handler.getResource(target) ?: (null to false)
-        return resource?.fileOrNull(aliasCheckPassed) 
+        return resource?.fileOrNull(aliasCheckPassed)
             ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.first?.fileOrNull()
     }
 
@@ -154,19 +154,19 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     private fun serveResourceDirectly(resource: Resource, target: String, ctx: Context, config: StaticFileConfig) {
         val mimeTypes = MimeTypes()
-        
+
         // Apply custom mime types from configuration
-        val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull { 
-            target.endsWith(".${it.key}", ignoreCase = true) 
+        val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull {
+            target.endsWith(".${it.key}", ignoreCase = true)
         }?.value
-        
+
         val contentType = customMimeType ?: mimeTypes.getMimeByExtension(target)
-        
+
         // Set content type
         if (contentType != null) {
             ctx.contentType(contentType)
         }
-        
+
         // Handle ETag
         val weakETag = resource.weakETag
         ctx.header(Header.IF_NONE_MATCH)?.let { requestEtag ->
@@ -176,10 +176,10 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
             }
         }
         ctx.header(Header.ETAG, weakETag)
-        
+
         // Serve the resource content - read all bytes to avoid channel issues
         val bytes = resource.newInputStream().use { it.readAllBytes() }
-        
+
         // Don't set content-length manually - let Javalin handle it after compression
         ctx.result(bytes)
     }
@@ -230,22 +230,4 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
 
 }
 
-private fun Context.jettyReq() = ServletContextRequest.getServletContextRequest(this.req())
-
 private val Resource.weakETag: String get() = EtagUtils.computeWeakEtag(this)
-
-private class CompressingResponseWrapper(private val ctx: Context) : Response.Wrapper(
-    ServletContextRequest.getServletContextRequest(ctx.req()),
-    ServletContextResponse.getServletContextResponse(ctx.res()),
-) {
-    override fun write(last: Boolean, byteBuffer: ByteBuffer, callback: Callback) {
-        try {
-            // FIXME: does not look like a good idea...
-            // we make the non-blocking call block
-            ctx.outputStream().write(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining())
-            callback.succeeded()
-        } catch (e: Exception) {
-            callback.failed(e)
-        }
-    }
-}
