@@ -7,40 +7,63 @@ import java.io.InputStream
 const val COMMENT_PREFIX = ":"
 const val NEW_LINE = "\n"
 
-class Emitter(private var response: HttpServletResponse) {
+class Emitter(private val response: HttpServletResponse) {
 
-    var closed = false
-        private set
+    private var closed = false
+    private var closeListener: (() -> Unit)? = null
 
+    fun onClose(listener: () -> Unit) {
+        closeListener = listener
+    }
+
+    @Throws(IOException::class)
     fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
         try {
-            if (id != null) {
-                write("id: $id$NEW_LINE")
-            }
-            write("event: $event$NEW_LINE")
-
-            data.buffered().reader().useLines {
-                it.forEach { line -> write("data: $line$NEW_LINE") }
-            }
-
+            writeSseHeaders(event, id)
+            writeSseData(data)
             write(NEW_LINE)
-            response.flushBuffer()
-        } catch (ignored: IOException) {
-            closed = true
+            flushResponse()
+        } catch (e: IOException) {
+            handleConnectionClosed()
+            throw e
         }
     }
 
-    fun emit(comment: String) =
+    @Throws(IOException::class)
+    fun emit(comment: String) {
         try {
+            val commentLinePrefix = "$COMMENT_PREFIX"
             comment.split(NEW_LINE).forEach {
-                write("$COMMENT_PREFIX $it$NEW_LINE")
+                write("$commentLinePrefix $it$NEW_LINE")
             }
-            response.flushBuffer()
-        } catch (ignored: IOException) {
-            closed = true
+            flushResponse()
+        } catch (e: IOException) {
+            handleConnectionClosed()
+            throw e
         }
+    }
 
-    private fun write(value: String) =
+    private fun writeSseHeaders(event: String, id: String?) {
+        id?.let { write("id: $it$NEW_LINE") }
+        write("event: $event$NEW_LINE")
+    }
+
+    private fun writeSseData(data: InputStream) {
+        data.buffered().reader().useLines {
+            it.forEach { line -> write("data: $line$NEW_LINE") }
+        }
+    }
+
+    private fun write(value: String) {
         response.outputStream.print(value)
+    }
 
+    private fun flushResponse() {
+        response.flushBuffer()
+    }
+
+    private fun handleConnectionClosed() {
+        closed = true
+        closeListener?.invoke()
+    }
 }
