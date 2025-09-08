@@ -100,7 +100,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun addHttpHandler(httpMethod: HandlerType, path: String, handler: Handler): API = addHttpHandler(httpMethod, path, handler, *emptyArray())
+    fun addHttpHandler(httpMethod: HandlerType, path: String, handler: Handler): API = addHttpHandler(httpMethod, path, handler, *emptyArray<RouteRole>())
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
@@ -112,6 +112,26 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
             Endpoint.create(handlerType, path)
                 .addMetadata(Roles(roles.toSet()))
                 .handler(handler)
+        )
+
+    /**
+     * Adds a request handler for the specified handlerType and path to the instance.
+     * This is the method that all the verb-methods (get/post/put/etc) call.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg metadata: EndpointMetadata): API =
+        addEndpoint(
+            Endpoint(handlerType, path, metadata.toSet(), handler)
+        )
+
+    /**
+     * Adds a request handler for the specified handlerType and path to the instance.
+     * This is the method that all the verb-methods (get/post/put/etc) call.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, metadata: Set<EndpointMetadata>): API =
+        addEndpoint(
+            Endpoint(handlerType, path, metadata, handler)
         )
 
     /**
@@ -204,6 +224,48 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
     fun options(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(OPTIONS, path, handler, *roles)
+
+    /**
+     * Adds a GET request handler with the given roles for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun get(path: String, handler: Handler, metadata: Set<EndpointMetadata>): API = addHttpHandler(GET, path, handler, metadata)
+
+    /**
+     * Adds a POST request handler with the given roles for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun post(path: String, handler: Handler, metadata: Set<EndpointMetadata>): API = addHttpHandler(POST, path, handler, metadata)
+
+    /**
+     * Adds a PUT request handler with the given roles for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun put(path: String, handler: Handler, metadata: Set<EndpointMetadata>): API = addHttpHandler(PUT, path, handler, metadata)
+
+    /**
+     * Adds a PATCH request handler with the given roles for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun patch(path: String, handler: Handler, metadata: Set<EndpointMetadata>): API = addHttpHandler(PATCH, path, handler, metadata)
+
+    /**
+     * Adds a DELETE request handler with the given roles for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun delete(path: String, handler: Handler, metadata: Set<EndpointMetadata>): API = addHttpHandler(DELETE, path, handler, metadata)
+
+    /**
+     * Adds a HEAD request handler with the given roles for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun head(path: String, handler: Handler, metadata: Set<EndpointMetadata>): API = addHttpHandler(HEAD, path, handler, metadata)
+
+    /**
+     * Adds a OPTIONS request handler with the given roles for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun options(path: String, handler: Handler, metadata: Set<EndpointMetadata>): API = addHttpHandler(OPTIONS, path, handler, metadata)
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
