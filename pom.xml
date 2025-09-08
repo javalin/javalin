@@ -62,6 +62,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.build.outputTimestamp>2024-08-22T14:22:00Z</project.build.outputTimestamp>
         <kotlin.version>1.9.25</kotlin.version>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
@@ -464,9 +465,6 @@
                             <manifest>
                                 <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             </manifest>
-                            <manifestEntries>
-                                <Build-Time>${maven.build.timestamp}</Build-Time>
-                            </manifestEntries>
                             <pomPropertiesFile>${project.build.directory}/pom.properties</pomPropertiesFile>
                         </archive>
                     </configuration>
@@ -479,9 +477,6 @@
                             <manifest>
                                 <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             </manifest>
-                            <manifestEntries>
-                                <Build-Time>${maven.build.timestamp}</Build-Time>
-                            </manifestEntries>
                             <pomPropertiesFile>${project.build.directory}/pom.properties</pomPropertiesFile>
                         </archive>
                     </configuration>
