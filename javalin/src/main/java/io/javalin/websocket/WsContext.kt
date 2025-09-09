@@ -8,6 +8,7 @@ package io.javalin.websocket
 
 import io.javalin.http.Context
 import io.javalin.http.servlet.JavalinWsServletContext
+import io.javalin.validation.Validation
 import org.eclipse.jetty.websocket.api.Callback
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.core.CloseStatus
@@ -22,7 +23,10 @@ import kotlin.reflect.typeOf
  * It adds functionality similar to the API found in [io.javalin.http.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-abstract class WsContext(private val sessionId: String, @JvmField val session: Session, val upgradeCtx: JavalinWsServletContext) {
+abstract class WsContext(val upgradeCtx: JavalinWsServletContext) {
+
+    @JvmField val session: Session = upgradeCtx.extractedData.session
+    @JvmField val sessionId: String = upgradeCtx.extractedData.sessionId
 
     /** Returns the path that was used to match this request */
     fun matchedPath() = upgradeCtx.matchedPath()
@@ -47,7 +51,7 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     @JvmOverloads
     fun sendPing(applicationData: ByteBuffer? = null) = session.sendPing(applicationData ?: ByteBuffer.allocate(0), Callback.NOOP)
 
-    /** Enables automatic pings at a 15 second interval, preventing the connection from timing out */
+    /** Enables automatic pings at a 15-second interval, preventing the connection from timing out */
     fun enableAutomaticPings() {
         enableAutomaticPings(15, TimeUnit.SECONDS, null)
     }
@@ -67,16 +71,16 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     fun queryString(): String? = upgradeCtx.queryString()
 
     /** Returns a [Map] of all the query parameters */
-    fun queryParamMap(): Map<String, List<String>> = upgradeCtx.queryParamMap()
+    fun queryParamMap(): Map<String, List<String>> = upgradeCtx.extractedData.queryParamMap
 
     /** Returns a [List] of all the query parameters for the given key, or an empty [List] if no such parameter exists */
-    fun queryParams(key: String): List<String> = upgradeCtx.queryParams(key)
+    fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
 
     /** Returns the first query parameter for the given key, or null if no such parameter exists */
-    fun queryParam(key: String): String? = upgradeCtx.queryParam(key)
+    fun queryParam(key: String): String? = queryParams(key).firstOrNull()
 
     /** Creates a typed [io.javalin.validation.Validator] for the [queryParam] value */
-    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.queryParamAsClass(key, clazz)
+    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.appData(Validation.ValidationKey).validator(key, clazz, queryParam(key))
 
     /** Reified version of [queryParamAsClass] (Kotlin only) */
     inline fun <reified T : Any> queryParamAsClass(key: String) = queryParamAsClass(key, T::class.java)
@@ -147,14 +151,14 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     override fun hashCode(): Int = session.hashCode()
 }
 
-class WsConnectContext(sessionId: String, session: Session, upgradeCtx: JavalinWsServletContext) : WsContext(sessionId, session, upgradeCtx)
+class WsConnectContext(upgradeCtx: JavalinWsServletContext) : WsContext(upgradeCtx)
 
-class WsErrorContext(sessionId: String, session: Session, upgradeCtx: JavalinWsServletContext, private val error: Throwable?) : WsContext(sessionId, session, upgradeCtx) {
+class WsErrorContext(upgradeCtx: JavalinWsServletContext, private val error: Throwable?) : WsContext(upgradeCtx) {
     /** Get the [Throwable] error that occurred */
     fun error(): Throwable? = error
 }
 
-class WsCloseContext(sessionId: String, session: Session, upgradeCtx: JavalinWsServletContext, private val statusCode: Int, private val reason: String?) : WsContext(sessionId, session, upgradeCtx) {
+class WsCloseContext(upgradeCtx: JavalinWsServletContext, private val statusCode: Int, private val reason: String?) : WsContext(upgradeCtx) {
     /** The int status for why connection was closed */
     fun status(): Int = statusCode
 
@@ -165,18 +169,12 @@ class WsCloseContext(sessionId: String, session: Session, upgradeCtx: JavalinWsS
     fun reason(): String? = reason
 }
 
-class WsBinaryMessageContext(sessionId: String, session: Session, upgradeCtx: JavalinWsServletContext, private val data: ByteArray, private val offset: Int, private val length: Int) : WsContext(sessionId, session, upgradeCtx) {
+class WsBinaryMessageContext(upgradeCtx: JavalinWsServletContext, private val data: ByteBuffer) : WsContext(upgradeCtx) {
     /** Get the binary data of the message */
-    fun data(): ByteArray = data
-
-    /** Get the offset of the binary data */
-    fun offset(): Int = offset
-
-    /** Get the length of the binary data */
-    fun length(): Int = length
+    fun data(): ByteBuffer = data
 }
 
-class WsMessageContext(sessionId: String, session: Session, upgradeCtx: JavalinWsServletContext, private val message: String) : WsContext(sessionId, session, upgradeCtx) {
+class WsMessageContext(upgradeCtx: JavalinWsServletContext, private val message: String) : WsContext(upgradeCtx) {
     /** Receive a string message from the client */
     fun message(): String = message
 

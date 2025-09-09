@@ -111,7 +111,7 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
     private fun wsDevLogger(ws: WsConfig) {
         ws.onConnect { ctx -> ctx.logEvent("onConnect") }
         ws.onMessage { ctx -> ctx.logEvent("onMessage", "Message (next line):\n${ctx.message()}") }
-        ws.onBinaryMessage { ctx -> ctx.logEvent("onBinaryMessage", "Offset: ${ctx.offset()}, Length: ${ctx.length()}\nMessage (next line):\n${ctx.data()}") }
+        ws.onBinaryMessage { ctx -> ctx.logEvent("onBinaryMessage", "Message (next line):\n${ctx.data()}") }
         ws.onClose { ctx -> ctx.logEvent("onClose", "StatusCode: ${ctx.status()}\nReason: ${ctx.reason() ?: "No reason was provided"}") }
         ws.onError { ctx -> ctx.logEvent("onError", "Throwable:  ${ctx.error() ?: "No throwable was provided"}") }
     }

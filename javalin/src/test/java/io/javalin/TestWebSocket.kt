@@ -24,6 +24,7 @@ import io.javalin.websocket.WsContext
 import io.javalin.websocket.pingFutures
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.util.BufferUtil
 
 import org.eclipse.jetty.websocket.api.StatusCode
 import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
@@ -177,7 +178,8 @@ class TestWebSocket {
         val receivedBinaryData = mutableListOf<ByteArray>()
         app.ws("/binary") { ws ->
             ws.onBinaryMessage { ctx ->
-                receivedBinaryData.add(ctx.data())
+                val data = BufferUtil.toArray(ctx.data())
+                receivedBinaryData.add(data)
             }
         }
         TestClient(app, "/websocket/binary").also {

@@ -1,6 +1,5 @@
 package io.javalin.config
 
-import io.javalin.jetty.JettyServer
 import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
