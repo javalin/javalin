@@ -14,17 +14,24 @@ import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
 
+/**
+ * Handler for pre-compressed static resources leveraging Jetty 12 capabilities.
+ * This handler optimizes static file serving by pre-compressing and caching resources,
+ * while leveraging Jetty's native ETag computation and resource management.
+ */
 object JettyPrecompressingResourceHandler {
 
+    // Reuse single MimeTypes instance for better performance
     private val mimeTypes = MimeTypes()
 
+    // Cache for pre-compressed resources
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
 
     @JvmStatic
     fun clearCache() = compressedFiles.clear()
 
     @JvmField
-    var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
+    var resourceMaxSize: Int = 2 * 1024 * 1024 // Maximum size for pre-compression in bytes
 
     fun handle(target: String, resource: Resource, ctx: Context, compStrat: CompressionStrategy, config: StaticFileConfig): Boolean {
         val acceptEncoding = ctx.header(Header.ACCEPT_ENCODING) ?: ""

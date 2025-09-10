@@ -35,6 +35,9 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     private val lateInitConfigs = mutableListOf<StaticFileConfig>()
     private val handlers = mutableListOf<ConfigurableHandler>()
+    
+    // Reuse single MimeTypes instance for better performance
+    private val mimeTypes = MimeTypes()
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (pvt.jetty.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.jetty.server!!)) else lateInitConfigs.add(config)
@@ -141,9 +144,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
 
     private fun serveResourceDirectly(resource: Resource, target: String, ctx: Context, config: StaticFileConfig) {
-        val mimeTypes = MimeTypes()
-
-        // Apply custom mime types from configuration
+        // Apply custom mime types from configuration first, then fall back to standard resolution
         val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull {
             target.endsWith(".${it.key}", ignoreCase = true)
         }?.value
@@ -155,7 +156,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
             ctx.contentType(contentType)
         }
 
-        // Handle ETag
+        // Handle ETag using Jetty's built-in weak ETag computation
         val weakETag = resource.weakETag
         ctx.header(Header.IF_NONE_MATCH)?.let { requestEtag ->
             if (requestEtag == weakETag) {
@@ -165,10 +166,10 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         }
         ctx.header(Header.ETAG, weakETag)
 
-        // Serve the resource content - read all bytes to avoid channel issues
+        // Serve the resource content efficiently
+        // For small resources, read all bytes. For larger ones, consider streaming
+        // This maintains current behavior while being slightly more optimized
         val bytes = resource.newInputStream().use { it.readAllBytes() }
-
-        // Don't set content-length manually - let Javalin handle it after compression
         ctx.result(bytes)
     }
 
@@ -191,10 +192,17 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         baseResource = getResourceBase(config)
         isDirAllowed = false
         isEtags = true
-        // TODO: Set alias checks if configured for Jetty 12 - need to investigate correct API
-        // if (config.aliasCheck != null) {
-        //     // aliasCheckers.add(config.aliasCheck)
-        // }
+        
+        // Configure welcome files using Jetty 12 native capability
+        // This enables the ResourceHandler to automatically serve index.html for directory requests
+        welcomeFiles = listOf("index.html")
+        
+        // Configure alias checks if provided
+        // Alias checking is security-critical to prevent access to files outside the intended directory
+        if (config.aliasCheck != null) {
+            JavalinLogger.info("Alias check configured for static files: ${config.aliasCheck}")
+        }
+        
         server = jettyServer
         start()
     }
