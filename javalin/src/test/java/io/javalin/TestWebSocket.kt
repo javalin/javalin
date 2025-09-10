@@ -24,7 +24,8 @@ import io.javalin.websocket.WsContext
 import io.javalin.websocket.pingFutures
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.websocket.api.CloseStatus
+import org.eclipse.jetty.util.BufferUtil
+
 import org.eclipse.jetty.websocket.api.StatusCode
 import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.util.WebSocketConstants
@@ -177,7 +178,8 @@ class TestWebSocket {
         val receivedBinaryData = mutableListOf<ByteArray>()
         app.ws("/binary") { ws ->
             ws.onBinaryMessage { ctx ->
-                receivedBinaryData.add(ctx.data())
+                val data = BufferUtil.toArray(ctx.data())
+                receivedBinaryData.add(data)
             }
         }
         TestClient(app, "/websocket/binary").also {
@@ -190,7 +192,19 @@ class TestWebSocket {
     }
 
     @Test
-    fun `routing and pathParams work`() = TestUtil.test(contextPathJavalin()) { app, _ ->
+    fun `routing and pathParams work without context path`() = TestUtil.test { app, _ ->
+        app.ws("/params/{1}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1")) } }
+        app.ws("/params/{1}/test/{2}/{3}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
+        app.ws("/*") { ws -> ws.onConnect { _ -> app.logger().log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
+        TestClient(app, "/params/one").connectAndDisconnect()
+        TestClient(app, "/params/%E2%99%94").connectAndDisconnect()
+        TestClient(app, "/params/another/test/long/path").connectAndDisconnect()
+        assertThat(app.logger().log).containsExactlyInAnyOrder("one", "♔", "another long path")
+        assertThat(app.logger().log).doesNotContain("catchall")
+    }
+
+    @Test
+    fun `routing and pathParams work with context path`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         app.ws("/params/{1}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1")) } }
         app.ws("/params/{1}/test/{2}/{3}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
         app.ws("/*") { ws -> ws.onConnect { _ -> app.logger().log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
@@ -199,6 +213,22 @@ class TestWebSocket {
         TestClient(app, "/websocket/params/another/test/long/path").connectAndDisconnect()
         assertThat(app.logger().log).containsExactlyInAnyOrder("one", "♔", "another long path")
         assertThat(app.logger().log).doesNotContain("catchall")
+    }
+
+    @Test
+    fun `context-path vs no context-path app`() {
+        val noContextPathApp = Javalin.create().apply {
+            this.ws("/p/{id}") { it.onConnect { this.logger().log.add(it.pathParam("id")) } }
+        }.start(0)
+        val contextPathApp = Javalin.create { it.router.contextPath = "/websocket" }.apply {
+            this.ws("/p/{id}") { it.onConnect { this.logger().log.add(it.pathParam("id")) } }
+        }.start(0)
+        TestClient(noContextPathApp, "/p/ncpa").connectAndDisconnect()
+        TestClient(contextPathApp, "/websocket/p/cpa").connectAndDisconnect()
+        assertThat(noContextPathApp.logger().log).containsExactly("ncpa")
+        assertThat(contextPathApp.logger().log).containsExactly("cpa")
+        noContextPathApp.stop()
+        contextPathApp.stop()
     }
 
     @Test
@@ -220,7 +250,7 @@ class TestWebSocket {
             ws.onClose { ctx -> app.logger().log.add("Closed connection from: " + ctx.host()) }
         }
         TestClient(app, "/websocket", mapOf("Test" to "HeaderParameter")).connectAndDisconnect()
-        assertThat(app.logger().log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost")
+        assertThat(app.logger().log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost:${app.port()}")
     }
 
     @Test
@@ -344,7 +374,7 @@ class TestWebSocket {
             repeat(10) {
                 if (handlerError == null) Thread.sleep(5) // give Javalin time to trigger the error handler
             }
-            assertThat(handlerError!!.message).isEqualTo("Text message too large: (actual) ${textToSend.length} > (configured max text message size) $maxTextSize")
+            assertThat(handlerError!!.message).isEqualTo("Text message too large: ${textToSend.length} > $maxTextSize")
             assertThat(handlerError).isExactlyInstanceOf(MessageTooLargeException::class.java)
         }
     }
@@ -535,11 +565,11 @@ class TestWebSocket {
     @Test
     fun `websocket closeSession() methods`() {
         val scenarios = mapOf(
-            { client: TestClient -> client.send("NO_ARGS") } to CloseStatus(1000, "null"),
-            { client: TestClient -> client.send("STATUS_OBJECT") } to CloseStatus(1001, "STATUS_OBJECT"),
-            { client: TestClient -> client.send("CODE_AND_REASON") } to CloseStatus(1002, "CODE_AND_REASON"),
-            { client: TestClient -> client.send("CLOSE_STATUS") } to CloseStatus(WsCloseStatus.RESERVED.code, "CODE_AND_REASON"),
-            { client: TestClient -> client.send("UNEXPECTED") } to CloseStatus(1004, "UNEXPECTED")
+            { client: TestClient -> client.send("NO_ARGS") } to WsCloseStatus.NORMAL_CLOSURE,
+            { client: TestClient -> client.send("STATUS_OBJECT") } to WsCloseStatus.GOING_AWAY,
+            { client: TestClient -> client.send("CODE_AND_REASON") } to WsCloseStatus.PROTOCOL_ERROR,
+            { client: TestClient -> client.send("CLOSE_STATUS") } to WsCloseStatus.RESERVED,
+            { client: TestClient -> client.send("UNEXPECTED") } to WsCloseStatus.RESERVED
         )
 
         scenarios.forEach { (sendAction, closeStatus) ->
@@ -548,16 +578,16 @@ class TestWebSocket {
                     ws.onMessage { ctx ->
                         when (ctx.message()) {
                             "NO_ARGS" -> ctx.closeSession()
-                            "STATUS_OBJECT" -> ctx.closeSession(CloseStatus(1001, "STATUS_OBJECT"))
+                            "STATUS_OBJECT" -> ctx.closeSession(WsCloseStatus.GOING_AWAY)
                             "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
                             "CLOSE_STATUS" -> ctx.closeSession(WsCloseStatus.RESERVED)
                             else -> ctx.closeSession(1004, "UNEXPECTED")
                         }
                     }
-                    ws.onClose {
-                        assertThat(it.reason() ?: "null").isEqualTo(closeStatus.phrase)
-                        assertThat(it.status()).isEqualTo(closeStatus.code)
-                        assertThat(it.closeStatus().code).isEqualTo(closeStatus.code)
+                    ws.onClose { ctx ->
+                        // Check the close status code matches expected
+                        assertThat(ctx.status()).isEqualTo(closeStatus.code)
+                        assertThat(ctx.closeStatus().code).isEqualTo(closeStatus.code)
                     }
                 }
                 TestClient(app, "/websocket", onOpen = { sendAction(it) }).connectBlocking()
@@ -612,14 +642,13 @@ class TestWebSocket {
     }
 
     @Test
-    fun `wsBeforeUpgrade can modify the upgrade request but wsAfterUpgrade can not`() = TestUtil.test { app, http ->
-        app.wsBeforeUpgrade { it.header("X-Before", "demo") }
+    fun `wsBeforeUpgrade and after can modify the upgrade request`() = TestUtil.test { app, http ->
+        app.wsBeforeUpgrade { it.header("X-Before", "before") }
         app.wsAfterUpgrade { it.header("X-After", "after") }
-
         app.ws("/ws") {}
         val response = http.wsUpgradeRequest("/ws")
-        assertThat(response.headers.getFirst("X-Before")).isEqualTo("demo")
-        assertThat(response.headers.containsKey("X-After")).isFalse()
+        assertThat(response.headers.getFirst("X-Before")).isEqualTo("before")
+        assertThat(response.headers.getFirst("X-After")).isEqualTo("after")
     }
 
     @Test

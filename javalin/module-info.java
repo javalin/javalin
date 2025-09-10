@@ -26,11 +26,11 @@ module io.javalin {
     requires transitive kotlin.stdlib;
     requires transitive org.slf4j;
     requires transitive org.eclipse.jetty.server;
-    requires transitive org.eclipse.jetty.servlet;
+    requires transitive org.eclipse.jetty.ee10.servlet;
     requires transitive org.eclipse.jetty.util;
     requires transitive org.eclipse.jetty.websocket.core.common;
-    requires transitive org.eclipse.jetty.websocket.jetty.api;
-    requires transitive org.eclipse.jetty.websocket.jetty.server;
+    requires transitive org.eclipse.jetty.ee10.websocket.jetty.server;
+    requires transitive org.eclipse.jetty.websocket.api;
 
     //optional dependencies
     requires static org.jetbrains.annotations;
@@ -39,7 +39,7 @@ module io.javalin {
     requires static com.fasterxml.jackson.databind;
     requires static com.fasterxml.jackson.kotlin;
     requires static com.google.gson;
-    
+
     //Required to use the Service Loader on this type
     uses org.slf4j.spi.SLF4JServiceProvider;
 }
