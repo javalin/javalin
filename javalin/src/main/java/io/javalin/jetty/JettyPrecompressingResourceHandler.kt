@@ -33,17 +33,23 @@ object JettyPrecompressingResourceHandler {
     @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // Maximum size for pre-compression in bytes
 
+    /**
+     * Handle static resource serving with pre-compression using Jetty 12 native capabilities.
+     * This method leverages Jetty's ETag computation and resource management while adding
+     * pre-compression optimization on top.
+     */
     fun handle(target: String, resource: Resource, ctx: Context, compStrat: CompressionStrategy, config: StaticFileConfig): Boolean {
         val acceptEncoding = ctx.header(Header.ACCEPT_ENCODING) ?: ""
         var compressor = findMatchingCompressor(acceptEncoding, compStrat)
         
-        // Apply custom mime types from configuration first
+        // Apply custom mime types from configuration first, leveraging the same logic as the main handler
         val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull { 
             target.endsWith(".${it.key}", ignoreCase = true) 
         }?.value
         
-        val contentType = customMimeType ?: mimeTypes.getMimeByExtension(target) // get content type by file extension
+        val contentType = customMimeType ?: mimeTypes.getMimeByExtension(target)
         
+        // Skip compression for excluded MIME types
         if (contentType == null || excludedMimeType(contentType, compStrat)) {
             compressor = null
         }
@@ -55,15 +61,16 @@ object JettyPrecompressingResourceHandler {
         ctx.header(Header.CONTENT_TYPE, contentType ?: "")
         
         if (compressor != null) {
-            // Disable Javalin's compression since we're serving precompressed content
+            // Disable Javalin's compression since we're serving pre-compressed content
             ctx.disableCompression()
-            // Set content-encoding header directly on Context - this should persist
             ctx.header(Header.CONTENT_ENCODING, compressor.encoding())
         }
+        
+        // Handle ETag using Jetty's native weak ETag computation (same as main handler)
         ctx.header(Header.IF_NONE_MATCH)?.let { requestEtag ->
-            if (requestEtag == resource.weakETag) { // jetty resource use weakETag too
+            if (requestEtag == resource.weakETag) {
                 ctx.status(304)
-                return true // return early if resource is same as client cached version
+                return true // Return early if resource matches client cached version
             }
         }
         ctx.header(Header.ETAG, resource.weakETag)
@@ -71,6 +78,10 @@ object JettyPrecompressingResourceHandler {
         return true
     }
 
+    /**
+     * Extension property that leverages Jetty 12's native ETag computation.
+     * This uses the same weak ETag algorithm that Jetty's ResourceHandler uses internally.
+     */
     private val Resource.weakETag: String get() = EtagUtils.computeWeakEtag(this)
 
     private fun getStaticResourceByteArray(resource: Resource, target: String, compressor: Compressor?): ByteArray? {

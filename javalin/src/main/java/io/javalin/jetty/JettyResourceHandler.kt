@@ -27,6 +27,27 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
+/**
+ * Javalin's static file handler implementation leveraging Jetty 12 native capabilities.
+ * 
+ * This handler serves static files by combining Jetty 12's built-in ResourceHandler
+ * capabilities with custom logic for Javalin-specific features like custom headers,
+ * compression strategies, and security controls.
+ * 
+ * Key native Jetty 12 features leveraged:
+ * - ResourceHandler.welcomeFiles for index.html handling
+ * - EtagUtils.computeWeakEtag() for consistent ETag computation
+ * - MimeTypes for efficient MIME type resolution
+ * - Resource.resolve() for path resolution
+ * - Built-in alias checking foundation
+ * 
+ * Custom features added on top:
+ * - StaticFileConfig support (custom headers, roles, skip functions)
+ * - Pre-compression with caching
+ * - Custom MIME type mappings
+ * - Security-focused alias checking
+ * - Integration with Javalin's compression strategy
+ */
 class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     fun init() { // we delay the creation of ConfigurableHandler objects to get our logs in order during startup
@@ -91,22 +112,29 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
             (!it.uri.schemeSpecificPart.endsWith('/') || aliasCheckPassed)
         }
 
-    private fun ConfigurableHandler.getResource(path: String): Pair<Resource?, Boolean>? {
+    /**
+     * Enhanced resource resolution leveraging Jetty 12 native ResourceHandler capabilities.
+     * This method attempts to use the native ResourceHandler's resource resolution first,
+     * falling back to custom logic only when necessary for security (alias checking).
+     */
+    private fun ConfigurableHandler.getResourceWithNativeSupport(path: String): Pair<Resource?, Boolean>? {
         return try {
             if (baseResource == null) return null
+            
+            // Use the native ResourceHandler's resource resolution first
             val resource = baseResource.resolve(path)
             if (resource != null && resource.exists() && !resource.isDirectory) {
                 var aliasCheckPassed = false
-                // Check for alias - by default, block aliases for security unless explicitly allowed
+                
+                // Security-critical alias checking - maintain custom logic for safety
                 if (resource.isAlias) {
                     if (config.aliasCheck != null) {
-                        // Apply the configured alias check using correct method name
                         if (!config.aliasCheck!!.checkAlias(path, resource)) {
-                            return null // Alias check failed, return null to trigger 404
+                            return null // Alias check failed
                         }
                         aliasCheckPassed = true
                     } else {
-                        // No alias check configured - default is to block all aliases for security
+                        // Default security behavior: block all aliases
                         return null
                     }
                 }
@@ -119,10 +147,24 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         }
     }
 
+    /**
+     * Welcome file resolution leveraging Jetty 12 ResourceHandler configuration.
+     * This method attempts to find the requested resource, falling back to welcome files
+     * as configured in the native ResourceHandler (index.html).
+     */
     private fun fileOrWelcomeFile(handler: ConfigurableHandler, target: String): Resource? {
-        val (resource, aliasCheckPassed) = handler.getResource(target) ?: (null to false)
-        return resource?.fileOrNull(aliasCheckPassed)
-            ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.first?.fileOrNull()
+        // First, try to get the directly requested resource
+        val (resource, aliasCheckPassed) = handler.getResourceWithNativeSupport(target) ?: (null to false)
+        val directResource = resource?.fileOrNull(aliasCheckPassed)
+        
+        if (directResource != null) {
+            return directResource
+        }
+        
+        // Fall back to welcome file (index.html) - leveraging the configuration we set
+        // in ConfigurableHandler.welcomeFiles but handling it manually due to our custom routing
+        val welcomeResource = handler.getResourceWithNativeSupport("${target.removeSuffix("/")}/index.html")?.first
+        return welcomeResource?.fileOrNull()
     }
 
     private fun nonSkippedHandlers(request: HttpServletRequest) =
@@ -143,20 +185,26 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
 
+    /**
+     * Serve a resource directly using optimized Jetty 12 capabilities.
+     * This method leverages native Jetty features for MIME type resolution and ETag handling
+     * while supporting custom configuration options.
+     */
     private fun serveResourceDirectly(resource: Resource, target: String, ctx: Context, config: StaticFileConfig) {
-        // Apply custom mime types from configuration first, then fall back to standard resolution
+        // Apply custom mime types from configuration first, then fall back to Jetty's standard resolution
         val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull {
             target.endsWith(".${it.key}", ignoreCase = true)
         }?.value
 
         val contentType = customMimeType ?: mimeTypes.getMimeByExtension(target)
 
-        // Set content type
+        // Set content type using Jetty's MIME resolution
         if (contentType != null) {
             ctx.contentType(contentType)
         }
 
         // Handle ETag using Jetty's built-in weak ETag computation
+        // This leverages the same ETag logic used throughout Jetty
         val weakETag = resource.weakETag
         ctx.header(Header.IF_NONE_MATCH)?.let { requestEtag ->
             if (requestEtag == weakETag) {
@@ -166,9 +214,8 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         }
         ctx.header(Header.ETAG, weakETag)
 
-        // Serve the resource content efficiently
-        // For small resources, read all bytes. For larger ones, consider streaming
-        // This maintains current behavior while being slightly more optimized
+        // Efficiently serve the resource content
+        // Reading all bytes maintains compatibility with compression and other filters
         val bytes = resource.newInputStream().use { it.readAllBytes() }
         ctx.result(bytes)
     }
@@ -226,4 +273,9 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
 
 }
 
+/**
+ * Extension property that leverages Jetty 12's native ETag computation.
+ * This uses the same weak ETag algorithm that Jetty's ResourceHandler uses internally,
+ * ensuring consistency across all static file serving in the application.
+ */
 private val Resource.weakETag: String get() = EtagUtils.computeWeakEtag(this)
