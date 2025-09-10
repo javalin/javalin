@@ -42,7 +42,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     override fun canHandle(ctx: Context) = matchingHandlers(ctx.req(), ctx.target).any { (handler, resourcePath) ->
         try {
-            handler.resolveResource(resourcePath) != null
+            fileOrWelcomeFile(handler, resourcePath) != null
         } catch (e: Exception) {
             false
         }
@@ -51,16 +51,13 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     override fun handle(ctx: Context): Boolean {
         matchingHandlers(ctx.req(), ctx.target).forEach { (handler, resourcePath) ->
             try {
-                // Set custom headers first
-                handler.config.headers.forEach { ctx.header(it.key, it.value) }
-                
-                // Use simplified resource resolution that leverages Jetty's capabilities
-                val resource = handler.resolveResource(resourcePath)
-                if (resource != null) {
+                val fileOrWelcomeFile = fileOrWelcomeFile(handler, resourcePath)
+                if (fileOrWelcomeFile != null) {
+                    handler.config.headers.forEach { ctx.header(it.key, it.value) } // set user headers
                     return when (handler.config.precompress) {
-                        true -> JettyPrecompressingResourceHandler.handle(resourcePath, resource, ctx, pvt.compressionStrategy, handler.config)
+                        true -> JettyPrecompressingResourceHandler.handle(resourcePath, fileOrWelcomeFile, ctx, pvt.compressionStrategy, handler.config)
                         false -> {
-                            serveResourceDirectly(resource, resourcePath, ctx, handler.config)
+                            serveResourceDirectly(fileOrWelcomeFile, resourcePath, ctx, handler.config)
                             true
                         }
                     }
@@ -76,37 +73,66 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     }
 
     /**
-     * Resolve resource with welcome file support and alias checking.
-     * Leverages Jetty's native capabilities where possible.
+     * It looks like jetty resolves the file even if the path contains `/` in the end.
+     * [Resource.isDirectory] returns `false` in this case, and we need to explicitly check
+     * if [Resource.getURI] ends with `/`
+     * However, when alias checking is enabled and passes, we should allow such resources.
      */
-    private fun ConfigurableHandler.resolveResource(path: String): Resource? = try {
-        baseResource?.resolve(path)?.takeIf { it.exists() }?.let { resource ->
-            if (resource.isDirectory) {
-                // Try welcome files using Jetty's configured welcome files
-                welcomeFiles.asSequence()
-                    .mapNotNull { resource.resolve(it)?.takeIf { it.exists() && !it.isDirectory } }
-                    .firstOrNull()
-                    ?.let { checkAliasIfNeeded(it, "$path/${it.getFileName()}") }
-            } else if (!resource.uri.schemeSpecificPart.endsWith('/')) {
-                checkAliasIfNeeded(resource, path)
-            } else null
+    private fun Resource?.fileOrNull(aliasCheckPassed: Boolean = false): Resource? =
+        this?.takeIf {
+            it.exists() && !it.isDirectory &&
+            (!it.uri.schemeSpecificPart.endsWith('/') || aliasCheckPassed)
         }
-    } catch (e: Exception) { null }
 
-    private fun ConfigurableHandler.checkAliasIfNeeded(resource: Resource, path: String): Resource? =
-        if (resource.isAlias && config.aliasCheck?.checkAlias(path, resource) != true) null else resource
+    private fun ConfigurableHandler.getResource(path: String): Pair<Resource?, Boolean>? {
+        return try {
+            if (baseResource == null) return null
+            val resource = baseResource.resolve(path)
+            if (resource != null && resource.exists() && !resource.isDirectory) {
+                var aliasCheckPassed = false
+                // Check for alias - by default, block aliases for security unless explicitly allowed
+                if (resource.isAlias) {
+                    if (config.aliasCheck != null) {
+                        // Apply the configured alias check using correct method name
+                        if (!config.aliasCheck!!.checkAlias(path, resource)) {
+                            return null // Alias check failed, return null to trigger 404
+                        }
+                        aliasCheckPassed = true
+                    } else {
+                        // No alias check configured - default is to block all aliases for security
+                        return null
+                    }
+                }
+                Pair(resource, aliasCheckPassed)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun fileOrWelcomeFile(handler: ConfigurableHandler, target: String): Resource? {
+        val (resource, aliasCheckPassed) = handler.getResource(target) ?: (null to false)
+        return resource?.fileOrNull(aliasCheckPassed)
+            ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.first?.fileOrNull()
+    }
+
+    private fun nonSkippedHandlers(request: HttpServletRequest) =
+        handlers.asSequence().filter { !it.config.skipFileFunction(request) }
 
     private fun matchingHandlers(request: HttpServletRequest, target: String): Sequence<Pair<ConfigurableHandler, String>> =
-        handlers.asSequence()
-            .filter { !it.config.skipFileFunction(request) }
-            .mapNotNull { handler ->
-                val hostedPath = handler.config.hostedPath
-                when {
-                    hostedPath == "/" -> handler to target
-                    target.startsWith(hostedPath) -> handler to target.removePrefix(hostedPath).removePrefix("/")
-                    else -> null
+        nonSkippedHandlers(request).mapNotNull { handler ->
+            val hostedPath = handler.config.hostedPath
+            when {
+                hostedPath == "/" -> handler to target
+                target.startsWith(hostedPath) -> {
+                    val resourcePath = target.removePrefix(hostedPath).removePrefix("/")
+                    handler to resourcePath
                 }
+                else -> null
             }
+        }
 
     private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
 
@@ -130,10 +156,15 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         ctx.result(resource.newInputStream().use { it.readAllBytes() })
     }
 
-    override fun getResourceRouteRoles(ctx: Context): Set<RouteRole> =
-        matchingHandlers(ctx.req(), ctx.target)
-            .firstOrNull { (handler, resourcePath) -> handler.resolveResource(resourcePath) != null }
-            ?.first?.config?.roles ?: emptySet()
+    override fun getResourceRouteRoles(ctx: Context): Set<RouteRole> {
+        matchingHandlers(ctx.req(), ctx.target).forEach { (handler, resourcePath) ->
+            val fileOrWelcomeFile = fileOrWelcomeFile(handler, resourcePath)
+            if (fileOrWelcomeFile != null) {
+                return handler.config.roles;
+            }
+        }
+        return emptySet();
+    }
 
 }
 
@@ -150,19 +181,20 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     }
 
     private fun getResourceBase(config: StaticFileConfig): Resource {
-        return when (config.location) {
-            Location.CLASSPATH -> {
-                val errorMsg = "Static resource directory with path: '${config.directory}' does not exist."
-                ResourceFactory.of(this).newClassLoaderResource(config.directory, false)
-                    ?: throw JavalinException("$errorMsg Depending on your setup, empty folders might not get copied to classpath.")
-            }
-            else -> {
-                val absolutePath = Path(config.directory).absolute().normalize()
-                val errorMsg = "Static resource directory with path: '$absolutePath' does not exist."
-                if (!Files.exists(absolutePath)) throw JavalinException(errorMsg)
-                ResourceFactory.of(this).newResource(config.directory)
-            }
+        val noSuchDirMessageBuilder: (String) -> String = { "Static resource directory with path: '$it' does not exist." }
+        val classpathHint = "Depending on your setup, empty folders might not get copied to classpath."
+        if (config.location == Location.CLASSPATH) {
+            return ResourceFactory.of(this)
+                .newClassLoaderResource(config.directory, false)
+                ?: throw JavalinException("${noSuchDirMessageBuilder(config.directory)} $classpathHint")
         }
+
+        // Use the absolute path as this aids in debugging. Issues frequently come from incorrect root directories, not incorrect relative paths.
+        val absoluteDirectoryPath = Path(config.directory).absolute().normalize()
+        if (!Files.exists(absoluteDirectoryPath)) {
+            throw JavalinException(noSuchDirMessageBuilder(absoluteDirectoryPath.toString()))
+        }
+        return ResourceFactory.of(this).newResource(config.directory)
     }
 
 }
