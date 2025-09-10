@@ -8,14 +8,12 @@ package io.javalin.jetty
 
 import io.javalin.config.PrivateConfig
 import io.javalin.http.Context
-import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.security.RouteRole
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
-import org.eclipse.jetty.http.EtagUtils
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.io.EofException
 import org.eclipse.jetty.server.Server
@@ -35,140 +33,65 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     private val lateInitConfigs = mutableListOf<StaticFileConfig>()
     private val handlers = mutableListOf<ConfigurableHandler>()
-    private val mimeTypes = MimeTypes() // Cache MimeTypes instance instead of creating per request
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (pvt.jetty.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.jetty.server!!)) else lateInitConfigs.add(config)
 
-    override fun canHandle(ctx: Context) = matchingHandlers(ctx.req(), ctx.target).any { (handler, resourcePath) ->
-        try {
-            fileOrWelcomeFile(handler, resourcePath) != null
-        } catch (e: Exception) {
-            false
-        }
-    }
+    override fun canHandle(ctx: Context) = findHandler(ctx) != null
 
     override fun handle(ctx: Context): Boolean {
-        matchingHandlers(ctx.req(), ctx.target).forEach { (handler, resourcePath) ->
-            try {
-                val fileOrWelcomeFile = fileOrWelcomeFile(handler, resourcePath)
-                if (fileOrWelcomeFile != null) {
-                    handler.config.headers.forEach { ctx.header(it.key, it.value) } // set user headers
-                    return when (handler.config.precompress) {
-                        true -> JettyPrecompressingResourceHandler.handle(resourcePath, fileOrWelcomeFile, ctx, pvt.compressionStrategy, handler.config)
-                        false -> {
-                            serveResourceDirectly(fileOrWelcomeFile, resourcePath, ctx, handler.config)
-                            true
-                        }
-                    }
+        val (handler, resourcePath) = findHandler(ctx) ?: return false
+        
+        try {
+            // Apply custom headers
+            handler.config.headers.forEach { ctx.header(it.key, it.value) }
+            
+            return when (handler.config.precompress) {
+                true -> {
+                    val resource = handler.getResource(resourcePath) ?: return false
+                    JettyPrecompressingResourceHandler.handle(resourcePath, resource, ctx, pvt.compressionStrategy, handler.config)
                 }
-            } catch (e: EofException) {
-                // ignore
-            } catch (e: Exception) {
-                if (e.message?.contains("Rejected alias reference") == true || e.message?.contains("Failed alias check") == true) return@forEach
-                throw e
-            }
-        }
-        return false
-    }
-
-    /**
-     * It looks like jetty resolves the file even if the path contains `/` in the end.
-     * [Resource.isDirectory] returns `false` in this case, and we need to explicitly check
-     * if [Resource.getURI] ends with `/`
-     * However, when alias checking is enabled and passes, we should allow such resources.
-     */
-    private fun Resource?.fileOrNull(aliasCheckPassed: Boolean = false): Resource? =
-        this?.takeIf {
-            it.exists() && !it.isDirectory &&
-            (!it.uri.schemeSpecificPart.endsWith('/') || aliasCheckPassed)
-        }
-
-    private fun ConfigurableHandler.getResource(path: String): Pair<Resource?, Boolean>? {
-        return try {
-            if (baseResource == null) return null
-            val resource = baseResource.resolve(path)
-            if (resource != null && resource.exists() && !resource.isDirectory) {
-                var aliasCheckPassed = false
-                // Check for alias - by default, block aliases for security unless explicitly allowed
-                if (resource.isAlias) {
-                    if (config.aliasCheck != null) {
-                        // Apply the configured alias check using correct method name
-                        if (!config.aliasCheck!!.checkAlias(path, resource)) {
-                            return null // Alias check failed, return null to trigger 404
-                        }
-                        aliasCheckPassed = true
-                    } else {
-                        // No alias check configured - default is to block all aliases for security
-                        return null
-                    }
+                false -> {
+                    // Use Jetty's native resource resolution and serving capabilities
+                    handler.handleResource(resourcePath, ctx)
                 }
-                Pair(resource, aliasCheckPassed)
-            } else {
-                null
             }
+        } catch (e: EofException) {
+            return false
         } catch (e: Exception) {
-            null
+            if (e.message?.contains("alias") == true) return false
+            throw e
         }
     }
 
-    private fun fileOrWelcomeFile(handler: ConfigurableHandler, target: String): Resource? {
-        val (resource, aliasCheckPassed) = handler.getResource(target) ?: (null to false)
-        return resource?.fileOrNull(aliasCheckPassed)
-            ?: handler.getResource("${target.removeSuffix("/")}/index.html")?.first?.fileOrNull()
-    }
-
-    private fun nonSkippedHandlers(request: HttpServletRequest) =
-        handlers.asSequence().filter { !it.config.skipFileFunction(request) }
-
-    private fun matchingHandlers(request: HttpServletRequest, target: String): Sequence<Pair<ConfigurableHandler, String>> =
-        nonSkippedHandlers(request).mapNotNull { handler ->
-            val hostedPath = handler.config.hostedPath
-            when {
-                hostedPath == "/" -> handler to target
-                target.startsWith(hostedPath) -> {
-                    val resourcePath = target.removePrefix(hostedPath).removePrefix("/")
-                    handler to resourcePath
+    private fun findHandler(ctx: Context): Pair<ConfigurableHandler, String>? {
+        val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
+        return handlers.asSequence()
+            .filter { !it.config.skipFileFunction(ctx.req()) }
+            .mapNotNull { handler ->
+                val hostedPath = handler.config.hostedPath
+                when {
+                    hostedPath == "/" -> handler to target
+                    target.startsWith(hostedPath) -> {
+                        val resourcePath = target.removePrefix(hostedPath).removePrefix("/")
+                        handler to resourcePath
+                    }
+                    else -> null
                 }
-                else -> null
             }
-        }
-
-    private val Context.target get() = this.req().requestURI.removePrefix(this.req().contextPath)
-
-    private fun serveResourceDirectly(resource: Resource, target: String, ctx: Context, config: StaticFileConfig) {
-        // Determine content type (custom types override default)
-        val contentType = config.mimeTypes.getMapping().entries
-            .firstOrNull { target.endsWith(".${it.key}", ignoreCase = true) }?.value
-            ?: mimeTypes.getMimeByExtension(target)
-
-        contentType?.let { ctx.contentType(it) }
-
-        // Handle ETag for conditional requests
-        val weakETag = resource.weakETag
-        if (ctx.header(Header.IF_NONE_MATCH) == weakETag) {
-            ctx.status(304)
-            return
-        }
-        ctx.header(Header.ETAG, weakETag)
-
-        // Serve content efficiently
-        ctx.result(resource.newInputStream().use { it.readAllBytes() })
+            .firstOrNull { (handler, resourcePath) ->
+                handler.getResource(resourcePath) != null
+            }
     }
 
-    override fun getResourceRouteRoles(ctx: Context): Set<RouteRole> {
-        matchingHandlers(ctx.req(), ctx.target).forEach { (handler, resourcePath) ->
-            val fileOrWelcomeFile = fileOrWelcomeFile(handler, resourcePath)
-            if (fileOrWelcomeFile != null) {
-                return handler.config.roles;
-            }
-        }
-        return emptySet();
-    }
+    override fun getResourceRouteRoles(ctx: Context): Set<RouteRole> =
+        findHandler(ctx)?.first?.config?.roles ?: emptySet()
 
 }
 
 open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server) : ResourceHandler() {
+
+    private val jettyMimeTypes = MimeTypes() // Use Jetty's native MIME type handling
 
     init {
         JavalinLogger.info("Static file handler added: ${config.refinedToString()}. File system location: '${getResourceBase(config)}'")
@@ -179,6 +102,82 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         server = jettyServer
         start()
     }
+
+    fun getResource(path: String): Resource? {
+        return try {
+            if (baseResource == null) return null
+            
+            // Use ResourceHandler's native resource resolution
+            val resource = baseResource.resolve(path)
+            if (resource?.exists() == true && !resource.isDirectory) {
+                // Check for alias - by default, block aliases for security unless explicitly allowed
+                if (resource.isAlias && config.aliasCheck == null) {
+                    return null // No alias check configured - default is to block all aliases for security
+                }
+                if (resource.isAlias && config.aliasCheck != null) {
+                    // Apply the configured alias check
+                    if (!config.aliasCheck!!.checkAlias(path, resource)) {
+                        return null // Alias check failed, return null to trigger 404
+                    }
+                }
+                return resource
+            }
+            
+            // Check for welcome file (index.html) using Jetty's native logic
+            val welcomeResource = baseResource.resolve("${path.removeSuffix("/")}/index.html")
+            if (welcomeResource?.exists() == true && !welcomeResource.isDirectory) {
+                // Also check alias for welcome file
+                if (welcomeResource.isAlias && config.aliasCheck == null) {
+                    return null
+                }
+                if (welcomeResource.isAlias && config.aliasCheck != null) {
+                    if (!config.aliasCheck!!.checkAlias("${path.removeSuffix("/")}/index.html", welcomeResource)) {
+                        return null
+                    }
+                }
+                return welcomeResource
+            }
+            
+            null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun handleResource(resourcePath: String, ctx: Context): Boolean {
+        val resource = getResource(resourcePath) ?: return false
+        
+        // Use Jetty's native content type resolution with custom override support
+        val contentType = config.mimeTypes.getMapping().entries
+            .firstOrNull { resourcePath.endsWith(".${it.key}", ignoreCase = true) }?.value
+            ?: jettyMimeTypes.getMimeByExtension(resourcePath)
+        
+        contentType?.let { ctx.contentType(it) }
+        
+        // Use Jetty's native ETag support
+        if (isEtags) {
+            val etag = resource.etagValue
+            if (etag != null) {
+                // Handle conditional requests using Jetty's ETag logic
+                if (ctx.header("If-None-Match") == etag) {
+                    ctx.status(304)
+                    return true
+                }
+                ctx.header("ETag", etag)
+            }
+        }
+        
+        // Serve the resource content
+        ctx.result(resource.newInputStream().use { it.readAllBytes() })
+        return true
+    }
+
+    private val Resource.etagValue: String?
+        get() = try {
+            org.eclipse.jetty.http.EtagUtils.computeWeakEtag(this)
+        } catch (e: Exception) {
+            null
+        }
 
     private fun getResourceBase(config: StaticFileConfig): Resource {
         val noSuchDirMessageBuilder: (String) -> String = { "Static resource directory with path: '$it' does not exist." }
@@ -198,5 +197,3 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     }
 
 }
-
-private val Resource.weakETag: String get() = EtagUtils.computeWeakEtag(this)
