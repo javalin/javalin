@@ -74,6 +74,8 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         "application/x-rar-compressed"
     )
 
+    var preferredCompressors: List<CompressionType> = listOf()
+
     /**
      * When enabling Brotli, we try loading the jvm-brotli native libraries first.
      * If this fails, we keep Brotli disabled and warn the user.
