@@ -46,15 +46,12 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
             // Apply custom headers
             handler.config.headers.forEach { ctx.header(it.key, it.value) }
             
-            return when (handler.config.precompress) {
-                true -> {
-                    val resource = handler.getResource(resourcePath) ?: return false
-                    JettyPrecompressingResourceHandler.handle(resourcePath, resource, ctx, pvt.compressionStrategy, handler.config)
-                }
-                false -> {
-                    // Use Jetty's native resource resolution and serving capabilities
-                    handler.handleResource(resourcePath, ctx)
-                }
+            return if (handler.config.precompress) {
+                val resource = handler.getResource(resourcePath) ?: return false
+                JettyPrecompressingResourceHandler.handle(resourcePath, resource, ctx, pvt.compressionStrategy, handler.config)
+            } else {
+                // Use Jetty's native resource resolution and serving capabilities
+                handler.handleResource(resourcePath, ctx)
             }
         } catch (e: EofException) {
             return false
@@ -107,41 +104,35 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         return try {
             if (baseResource == null) return null
             
-            // Use ResourceHandler's native resource resolution
-            val resource = baseResource.resolve(path)
-            if (resource?.exists() == true && !resource.isDirectory) {
-                // Check for alias - by default, block aliases for security unless explicitly allowed
-                if (resource.isAlias && config.aliasCheck == null) {
-                    return null // No alias check configured - default is to block all aliases for security
+            // Try to resolve the direct resource first
+            baseResource.resolve(path)?.let { resource ->
+                if (resource.exists() && !resource.isDirectory && isValidResource(resource, path)) {
+                    return resource
                 }
-                if (resource.isAlias && config.aliasCheck != null) {
-                    // Apply the configured alias check
-                    if (!config.aliasCheck!!.checkAlias(path, resource)) {
-                        return null // Alias check failed, return null to trigger 404
-                    }
-                }
-                return resource
             }
             
             // Check for welcome file (index.html) using Jetty's native logic
-            val welcomeResource = baseResource.resolve("${path.removeSuffix("/")}/index.html")
-            if (welcomeResource?.exists() == true && !welcomeResource.isDirectory) {
-                // Also check alias for welcome file
-                if (welcomeResource.isAlias && config.aliasCheck == null) {
-                    return null
+            val welcomePath = "${path.removeSuffix("/")}/index.html"
+            baseResource.resolve(welcomePath)?.let { welcomeResource ->
+                if (welcomeResource.exists() && !welcomeResource.isDirectory && isValidResource(welcomeResource, welcomePath)) {
+                    return welcomeResource
                 }
-                if (welcomeResource.isAlias && config.aliasCheck != null) {
-                    if (!config.aliasCheck!!.checkAlias("${path.removeSuffix("/")}/index.html", welcomeResource)) {
-                        return null
-                    }
-                }
-                return welcomeResource
             }
             
             null
         } catch (e: Exception) {
             null
         }
+    }
+    
+    private fun isValidResource(resource: Resource, path: String): Boolean {
+        if (!resource.isAlias) return true
+        
+        // No alias check configured - default is to block all aliases for security
+        if (config.aliasCheck == null) return false
+        
+        // Apply the configured alias check
+        return config.aliasCheck!!.checkAlias(path, resource)
     }
 
     fun handleResource(resourcePath: String, ctx: Context): Boolean {
