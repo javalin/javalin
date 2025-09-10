@@ -150,15 +150,16 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     }
 
     private fun getResourceBase(config: StaticFileConfig): Resource {
-        val errorMsg = "Static resource directory with path: '${config.directory}' does not exist."
         return when (config.location) {
             Location.CLASSPATH -> {
+                val errorMsg = "Static resource directory with path: '${config.directory}' does not exist."
                 ResourceFactory.of(this).newClassLoaderResource(config.directory, false)
                     ?: throw JavalinException("$errorMsg Depending on your setup, empty folders might not get copied to classpath.")
             }
             else -> {
                 val absolutePath = Path(config.directory).absolute().normalize()
-                if (!Files.exists(absolutePath)) throw JavalinException("$errorMsg")
+                val errorMsg = "Static resource directory with path: '$absolutePath' does not exist."
+                if (!Files.exists(absolutePath)) throw JavalinException(errorMsg)
                 ResourceFactory.of(this).newResource(config.directory)
             }
         }
