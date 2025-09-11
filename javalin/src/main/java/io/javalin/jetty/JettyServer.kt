@@ -108,14 +108,14 @@ class JettyServer(private val cfg: JavalinConfig) {
         }
         if (cfg.showJavalinBanner) JavalinLogger.startup(
             """|
-               |       __                  ___           _____
-               |      / /___ __   ______ _/ (_)___      / ___/
-               | __  / / __ `/ | / / __ `/ / / __ \    / __ \
-               |/ /_/ / /_/ /| |/ / /_/ / / / / / /   / /_/ /
-               |\____/\__,_/ |___/\__,_/_/_/_/ /_/    \____/
+               |       __                  ___          _____
+               |      / /___ __   ______ _/ (_)___     /__  /
+               | __  / / __ `/ | / / __ `/ / / __ \      / /
+               |/ /_/ / /_/ /| |/ / /_/ / / / / / /     / /
+               |\____/\__,_/ |___/\__,_/_/_/_/ /_/     /_/
                |
                |       https://javalin.io/documentation
-               |""".trimMargin()
+               |""".trimMargin() // banner generated at https://patorjk.com/software/taag (slant)
         )
         JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/")
         (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // log resource handler info
