@@ -192,7 +192,7 @@ open class JavalinServletContext(
 
 // this header is semicolon separated, like: "text/html; charset=UTF-8"
 fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.let { value ->
-    value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
+    value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim().removeSurrounding("\"") }
 }
 
 fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> =
