@@ -17,8 +17,6 @@ enum class RenderingDependency(
     override val artifactId: String,
     override val version: String
 ) : OptionalDependency {
-    JTE("jte", "gg.jte.TemplateEngine", "gg.jte", "jte", "2.2.1"),
-    JTE_KOTLIN("jte-kotlin", "gg.jte.compiler.kotlin.KotlinClassCompiler", "gg.jte", "jte-kotlin", "2.2.1"),
     VELOCITY("Velocity", "org.apache.velocity.app.VelocityEngine", "org.apache.velocity", "velocity-engine-core", "2.3"),
     FREEMARKER("Freemarker", "freemarker.template.Configuration", "org.freemarker", "freemarker", "2.3.30"),
     THYMELEAF("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf", "thymeleaf", "3.0.12.RELEASE"),

@@ -11,7 +11,6 @@
 
     <properties>
         <copy-build-resources.skip>false</copy-build-resources.skip>
-        <jte.version>3.2.1</jte.version>
     </properties>
 
     <dependencies>
@@ -90,18 +89,7 @@
             <version>3.1.6</version>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>gg.jte</groupId>
-            <artifactId>jte</artifactId>
-            <version>${jte.version}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>gg.jte</groupId>
-            <artifactId>jte-kotlin</artifactId>
-            <version>${jte.version}</version>
-            <optional>true</optional>
-        </dependency>
+
         <dependency>
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>
