@@ -11,7 +11,7 @@
 
     <properties>
         <copy-build-resources.skip>false</copy-build-resources.skip>
-        <jte.version>3.2.1</jte.version>
+        <jte.version>2.3.2</jte.version>
     </properties>
 
     <dependencies>
