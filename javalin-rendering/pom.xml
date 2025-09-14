@@ -52,6 +52,12 @@
             <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- END TEST DEPENDENCIES -->
         <!-- BEGIN OPTIONAL TEMPLATE ENGINES -->
         <dependency>
