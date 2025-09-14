@@ -23,7 +23,7 @@ import kotlin.reflect.typeOf
  * It adds functionality similar to the API found in [io.javalin.http.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-abstract class WsContext(val upgradeCtx: JavalinWsServletContext) {
+abstract class WsContext(@JvmSynthetic internal val upgradeCtx: JavalinWsServletContext) {
 
     @JvmField val session: Session = upgradeCtx.extractedData.session
     @JvmField val sessionId: String = upgradeCtx.extractedData.sessionId

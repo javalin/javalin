@@ -19,8 +19,8 @@ class JavalinVueConfig {
     }
 
     //@formatter:off
-    @get:JvmSynthetic @set:JvmSynthetic internal var pathMaster = VuePathMaster(this)
-    @get:JvmSynthetic @set:JvmSynthetic internal var rootDirectory: Path? = null // is set on first request (if not configured)
+    @JvmSynthetic internal var pathMaster = VuePathMaster(this)
+    @JvmSynthetic internal var rootDirectory: Path? = null // is set on first request (if not configured)
     fun rootDirectory(path: Path) {
         this.rootDirectory = path
     }
@@ -30,7 +30,7 @@ class JavalinVueConfig {
 
     @JvmField var vueInstanceNameInJs: String? = null // only relevant for Vue 3 apps
 
-    @get:JvmSynthetic @set:JvmSynthetic internal var isDev: Boolean? = null // cached and easily accessible, is set on first request (can't be configured directly by end user)
+    @JvmSynthetic internal var isDev: Boolean? = null // cached and easily accessible, is set on first request (can't be configured directly by end user)
     @JvmField var isDevFunction: (Context) -> Boolean = { it.isLocalhost() } // used to set isDev, will be called once
 
     @JvmField var optimizeDependencies = true // only include required components for the route component
