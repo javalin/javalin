@@ -9,9 +9,6 @@ package io.javalin
 
 import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.loader.ClasspathLoader
-import gg.jte.ContentType
-import gg.jte.TemplateEngine
-import io.javalin.jte.JteTestPage
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.markdown.JavalinCommonmark
 import io.javalin.rendering.template.*
@@ -50,6 +47,7 @@ class TestTemplates {
         assertThat(http.get("/hello").body?.string()).isEqualTo("<h1>Hello Freemarker!</h1>")
     }
 
+    @Test
     fun `thymeleaf templates work`() = JavalinTest.test(app(JavalinThymeleaf())) { app, http ->
         app.get("/hello") { it.render("/templates/thymeleaf/test.html", mapOf("message" to "Hello Thymeleaf!")) }
         assertThat(http.get("/hello").body?.string()).isEqualTo("<h1>Hello Thymeleaf!</h1>")
