@@ -18,7 +18,7 @@ public class WsConfig {
     WsBinaryMessageHandler wsBinaryMessageHandler = null;
     WsCloseHandler wsCloseHandler = null;
     WsErrorHandler wsErrorHandler = null;
-    WsUpgradeLogger wsUpgradeLogger = null;
+    public WsUpgradeLogger wsUpgradeLogger = null;
 
     /**
      * Add a WsConnectHandler to the WsHandler.
@@ -68,17 +68,12 @@ public class WsConfig {
     /**
      * Add a WsUpgradeLogger to the WsHandler.
      * The handler is called when an HTTP request attempts to upgrade to WebSocket.
-     * This is invoked before the upgrade process begins, whether the upgrade succeeds or fails.
+     * This is invoked after the upgrade process completes, whether the upgrade succeeds or fails.
      */
     public void onUpgrade(@NotNull WsUpgradeLogger wsUpgradeLogger) {
         this.wsUpgradeLogger = wsUpgradeLogger;
     }
 
-    /**
-     * Get the WebSocket upgrade logger, if configured
-     */
-    public WsUpgradeLogger getWsUpgradeLogger() {
-        return wsUpgradeLogger;
-    }
+
 
 }

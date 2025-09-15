@@ -57,15 +57,8 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
         if (wsRouterHandlerEntry == null) {
             res.sendError(404, "WebSocket handler not found")
             // Still need to call upgrade logger for 404 cases
-            val upgradeContext = JavalinWsServletContext(
-                cfg = servletContextConfig,
-                req = req,
-                res = res,
-                matchedPath = requestUri,
-                pathParamMap = emptyMap(),
-                routeRoles = emptySet(),
-            )
-            val executionTimeMs = (System.nanoTime() - requestStartTime) / 1_000_000.0f
+            val upgradeContext = JavalinWsServletContext(servletContextConfig, req, res)
+            val executionTimeMs = calculateExecutionTimeMs(requestStartTime)
             cfg.pvt.wsLogger?.wsUpgradeLogger?.handle(upgradeContext, executionTimeMs)
             return
         }
@@ -74,9 +67,9 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
             cfg = servletContextConfig,
             req = req,
             res = res,
+            routeRoles = wsRouterHandlerEntry.roles,
             matchedPath = wsRouterHandlerEntry.path,
             pathParamMap = wsRouterHandlerEntry.extractPathParams(requestUri),
-            routeRoles = wsRouterHandlerEntry.roles,
         )
         req.setAttribute(upgradeContextKey, upgradeContext)
         res.setWsProtocolHeader(req)
@@ -101,7 +94,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
             }
         } finally {
             // Call the WebSocket upgrade logger whether successful or not
-            val executionTimeMs = (System.nanoTime() - requestStartTime) / 1_000_000.0f
+            val executionTimeMs = calculateExecutionTimeMs(requestStartTime)
             cfg.pvt.wsLogger?.wsUpgradeLogger?.handle(upgradeContext, executionTimeMs)
         }
     }
@@ -111,5 +104,8 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
         val firstProtocol = wsProtocolHeader.split(',').map { it.trim() }.find { it.isNotBlank() } ?: return
         this.setHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, firstProtocol)
     }
+
+    private fun calculateExecutionTimeMs(startTimeNanos: Long): Float = 
+        (System.nanoTime() - startTimeNanos) / 1_000_000.0f
 
 }
