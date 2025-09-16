@@ -51,16 +51,25 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
     }
 
     private fun serviceWebSocketRequest(req: HttpServletRequest, res: HttpServletResponse) {
+        val requestStartTime = System.nanoTime()
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val wsRouterHandlerEntry = cfg.pvt.wsRouter.wsPathMatcher.findEndpointHandlerEntry(requestUri)
-            ?: return res.sendError(404, "WebSocket handler not found")
+        if (wsRouterHandlerEntry == null) {
+            res.sendError(404, "WebSocket handler not found")
+            // Still need to call upgrade logger for 404 cases
+            val upgradeContext = JavalinWsServletContext(servletContextConfig, req, res)
+            val executionTimeMs = calculateExecutionTimeMs(requestStartTime)
+            cfg.pvt.wsLogger?.wsUpgradeLogger?.handle(upgradeContext, executionTimeMs)
+            return
+        }
+        
         val upgradeContext = JavalinWsServletContext(
             cfg = servletContextConfig,
             req = req,
             res = res,
+            routeRoles = wsRouterHandlerEntry.roles,
             matchedPath = wsRouterHandlerEntry.path,
             pathParamMap = wsRouterHandlerEntry.extractPathParams(requestUri),
-            routeRoles = wsRouterHandlerEntry.roles,
         )
         req.setAttribute(upgradeContextKey, upgradeContext)
         res.setWsProtocolHeader(req)
@@ -72,14 +81,21 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
         // add after handlers
         cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
             .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
-        while (upgradeContext.tasks.isNotEmpty()) { // execute all tasks in order
-            try {
-                val task = upgradeContext.tasks.poll()
-                task.handler.handle()
-            } catch (e: Exception) {
-                cfg.pvt.internalRouter.handleHttpException(upgradeContext, e)
-                break
+        
+        try {
+            while (upgradeContext.tasks.isNotEmpty()) { // execute all tasks in order
+                try {
+                    val task = upgradeContext.tasks.poll()
+                    task.handler.handle()
+                } catch (e: Exception) {
+                    cfg.pvt.internalRouter.handleHttpException(upgradeContext, e)
+                    break
+                }
             }
+        } finally {
+            // Call the WebSocket upgrade logger whether successful or not
+            val executionTimeMs = calculateExecutionTimeMs(requestStartTime)
+            cfg.pvt.wsLogger?.wsUpgradeLogger?.handle(upgradeContext, executionTimeMs)
         }
     }
 
@@ -88,5 +104,8 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
         val firstProtocol = wsProtocolHeader.split(',').map { it.trim() }.find { it.isNotBlank() } ?: return
         this.setHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, firstProtocol)
     }
+
+    private fun calculateExecutionTimeMs(startTimeNanos: Long): Float = 
+        (System.nanoTime() - startTimeNanos) / 1_000_000.0f
 
 }

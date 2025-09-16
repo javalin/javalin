@@ -10,9 +10,9 @@ class JavalinWsServletContext(
     cfg: JavalinServletContextConfig,
     req: HttpServletRequest,
     res: HttpServletResponse,
-    routeRoles: Set<RouteRole>,
-    matchedPath: String,
-    pathParamMap: Map<String, String>,
+    routeRoles: Set<RouteRole> = emptySet(),
+    matchedPath: String = "",
+    pathParamMap: Map<String, String> = emptyMap(),
 ) : JavalinServletContext(
     cfg = cfg,
     req = req,
