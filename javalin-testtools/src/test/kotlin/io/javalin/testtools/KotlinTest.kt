@@ -13,6 +13,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
 import java.net.http.HttpClient
+import java.net.http.HttpRequest
 import java.time.Duration
 
 class KotlinTest {
@@ -191,12 +192,8 @@ class KotlinTest {
         }
         
         val response = client.get("/headers")
-        val customHeaders = response.headers().get("Custom-Header")
-        assertThat(customHeaders).isNotNull().containsExactly("custom-value")
-        
-        val anotherHeaders = response.headers().get("Another-Header")
-        assertThat(anotherHeaders).isNotNull().containsExactly("another-value")
-        
+        assertThat(response.headers().get("Custom-Header")).isNotNull().containsExactly("custom-value")
+        assertThat(response.headers().get("Another-Header")).isNotNull().containsExactly("another-value")
         assertThat(response.headers().get("Non-Existent")).isNull()
     }
     
@@ -212,14 +209,11 @@ class KotlinTest {
     @Test
     fun `request builder with multiple headers works`() = JavalinTest.test { server, client ->
         server.post("/multi-headers") { ctx ->
-            val result = "Auth: ${ctx.header("Authorization")}, " +
-                        "Accept: ${ctx.header("Accept")}, " +
-                        "Custom: ${ctx.header("X-Custom")}"
-            ctx.result(result)
+            ctx.result("Auth: ${ctx.header("Authorization")}, Accept: ${ctx.header("Accept")}, Custom: ${ctx.header("X-Custom")}")
         }
         
         val response = client.request("/multi-headers") { builder ->
-            builder.post(java.net.http.HttpRequest.BodyPublishers.ofString("test-body"))
+            builder.post(HttpRequest.BodyPublishers.ofString("test-body"))
                    .header("Authorization", "Bearer token123")
                    .header("Accept", "application/json")
                    .header("X-Custom", "test-value")
@@ -234,24 +228,9 @@ class KotlinTest {
         server.patch("/text") { ctx -> ctx.result("PATCH: ${ctx.body()}") }
         server.delete("/text") { ctx -> ctx.result("DELETE: ${ctx.body()}") }
         
-        // Test with custom string bodies (not JSON)
-        val putResponse = client.request("/text") { builder ->
-            builder.put(java.net.http.HttpRequest.BodyPublishers.ofString("plain text"))
-                   .header("Content-Type", "text/plain")
-        }
-        assertThat(putResponse.body?.string()).isEqualTo("PUT: plain text")
-        
-        val patchResponse = client.request("/text") { builder ->
-            builder.patch(java.net.http.HttpRequest.BodyPublishers.ofString("patch data"))
-                   .header("Content-Type", "text/plain")
-        }
-        assertThat(patchResponse.body?.string()).isEqualTo("PATCH: patch data")
-        
-        val deleteResponse = client.request("/text") { builder ->
-            builder.delete(java.net.http.HttpRequest.BodyPublishers.ofString("delete data"))
-                   .header("Content-Type", "text/plain")
-        }
-        assertThat(deleteResponse.body?.string()).isEqualTo("DELETE: delete data")
+        assertThat(client.request("/text") { it.put(HttpRequest.BodyPublishers.ofString("plain text")).header("Content-Type", "text/plain") }.body?.string()).isEqualTo("PUT: plain text")
+        assertThat(client.request("/text") { it.patch(HttpRequest.BodyPublishers.ofString("patch data")).header("Content-Type", "text/plain") }.body?.string()).isEqualTo("PATCH: patch data")
+        assertThat(client.request("/text") { it.delete(HttpRequest.BodyPublishers.ofString("delete data")).header("Content-Type", "text/plain") }.body?.string()).isEqualTo("DELETE: delete data")
     }
 
 }

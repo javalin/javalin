@@ -17,9 +17,9 @@ import java.util.Map;
 import static io.javalin.http.HttpStatus.OK;
 import static io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static io.javalin.testtools.TestTool.TestLogsKey;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class JavaTest {
 
@@ -206,12 +206,8 @@ public class JavaTest {
             });
             
             Response response = client.get("/headers");
-            List<String> customHeaders = response.headers().get("Custom-Header");
-            org.assertj.core.api.Assertions.assertThat(customHeaders).isNotNull().containsExactly("custom-value");
-            
-            List<String> anotherHeaders = response.headers().get("Another-Header");
-            org.assertj.core.api.Assertions.assertThat(anotherHeaders).isNotNull().containsExactly("another-value");
-            
+            assertThat(response.headers().get("Custom-Header")).isNotNull().containsExactly("custom-value");
+            assertThat(response.headers().get("Another-Header")).isNotNull().containsExactly("another-value");
             assertThat(response.headers().get("Non-Existent")).isNull();
         });
     }
@@ -230,19 +226,14 @@ public class JavaTest {
     @Test
     public void request_builder_with_multiple_headers_works() {
         JavalinTest.test((server, client) -> {
-            server.post("/multi-headers", ctx -> {
-                String result = "Auth: " + ctx.header("Authorization") + 
-                               ", Accept: " + ctx.header("Accept") +
-                               ", Custom: " + ctx.header("X-Custom");
-                ctx.result(result);
-            });
+            server.post("/multi-headers", ctx -> ctx.result(
+                "Auth: " + ctx.header("Authorization") + ", Accept: " + ctx.header("Accept") + ", Custom: " + ctx.header("X-Custom")));
             
-            Response response = client.request("/multi-headers", builder -> {
+            Response response = client.request("/multi-headers", builder -> 
                 builder.post(HttpRequest.BodyPublishers.ofString("test-body"))
                        .header("Authorization", "Bearer token123")
                        .header("Accept", "application/json")
-                       .header("X-Custom", "test-value");
-            });
+                       .header("X-Custom", "test-value"));
             
             assertThat(response.body().string()).isEqualTo("Auth: Bearer token123, Accept: application/json, Custom: test-value");
         });
@@ -255,21 +246,9 @@ public class JavaTest {
             server.patch("/text", ctx -> ctx.result("PATCH: " + ctx.body()));
             server.delete("/text", ctx -> ctx.result("DELETE: " + ctx.body()));
             
-            // Test with custom string bodies (not JSON)
-            Response putResponse = client.request("/text", builder -> 
-                builder.put(HttpRequest.BodyPublishers.ofString("plain text"))
-                       .header("Content-Type", "text/plain"));
-            assertThat(putResponse.body().string()).isEqualTo("PUT: plain text");
-            
-            Response patchResponse = client.request("/text", builder -> 
-                builder.patch(HttpRequest.BodyPublishers.ofString("patch data"))
-                       .header("Content-Type", "text/plain"));
-            assertThat(patchResponse.body().string()).isEqualTo("PATCH: patch data");
-            
-            Response deleteResponse = client.request("/text", builder -> 
-                builder.delete(HttpRequest.BodyPublishers.ofString("delete data"))
-                       .header("Content-Type", "text/plain"));
-            assertThat(deleteResponse.body().string()).isEqualTo("DELETE: delete data");
+            assertThat(client.request("/text", builder -> builder.put(HttpRequest.BodyPublishers.ofString("plain text")).header("Content-Type", "text/plain")).body().string()).isEqualTo("PUT: plain text");
+            assertThat(client.request("/text", builder -> builder.patch(HttpRequest.BodyPublishers.ofString("patch data")).header("Content-Type", "text/plain")).body().string()).isEqualTo("PATCH: patch data");
+            assertThat(client.request("/text", builder -> builder.delete(HttpRequest.BodyPublishers.ofString("delete data")).header("Content-Type", "text/plain")).body().string()).isEqualTo("DELETE: delete data");
         });
     }
 }
