@@ -75,22 +75,41 @@ class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
 
     private fun findHandler(ctx: Context): Pair<NativeConfigurableHandler, String>? {
         val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
-        return handlers.asSequence()
-            .filter { !it.config.skipFileFunction(ctx.req()) }
-            .mapNotNull { handler ->
+        
+        // Search in active handlers first
+        for (handler in handlers) {
+            if (!handler.config.skipFileFunction(ctx.req())) {
                 val hostedPath = handler.config.hostedPath
-                when {
-                    hostedPath == "/" -> handler to target
-                    target.startsWith(hostedPath) -> {
-                        val resourcePath = target.removePrefix(hostedPath).removePrefix("/")
-                        handler to resourcePath
-                    }
+                val resourcePath = when {
+                    hostedPath == "/" -> target
+                    target.startsWith(hostedPath) -> target.removePrefix(hostedPath).removePrefix("/")
                     else -> null
                 }
+                if (resourcePath != null && handler.getResource(resourcePath) != null) {
+                    return handler to resourcePath
+                }
             }
-            .firstOrNull { (handler, resourcePath) ->
-                handler.getResource(resourcePath) != null
+        }
+        
+        // Search in late init configs if no handler found
+        for (config in lateInitConfigs) {
+            if (!config.skipFileFunction(ctx.req())) {
+                val hostedPath = config.hostedPath
+                val resourcePath = when {
+                    hostedPath == "/" -> target
+                    target.startsWith(hostedPath) -> target.removePrefix(hostedPath).removePrefix("/")
+                    else -> null
+                }
+                if (resourcePath != null) {
+                    val tempHandler = NativeConfigurableHandler(config)
+                    if (tempHandler.getResource(resourcePath) != null) {
+                        return tempHandler to resourcePath
+                    }
+                }
             }
+        }
+        
+        return null
     }
 
     override fun getResourceRouteRoles(ctx: Context): Set<RouteRole> =
