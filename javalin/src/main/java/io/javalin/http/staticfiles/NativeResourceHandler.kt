@@ -146,11 +146,17 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
                 }
             }
             
-            // Check for welcome file (index.html)
-            val welcomePath = "${path.removeSuffix("/")}/index.html"
-            resolveResource(welcomePath)?.let { welcomeResource ->
-                if (welcomeResource.exists && !welcomeResource.isDirectory && isValidResource(welcomeResource, welcomePath)) {
-                    return welcomeResource
+            // Check for welcome file (index.html) - try multiple variations
+            val welcomePaths = listOf(
+                "${path.removeSuffix("/")}/index.html",
+                "${path}/index.html".removePrefix("//")
+            ).distinct()
+            
+            for (welcomePath in welcomePaths) {
+                resolveResource(welcomePath)?.let { welcomeResource ->
+                    if (welcomeResource.exists && !welcomeResource.isDirectory && isValidResource(welcomeResource, welcomePath)) {
+                        return welcomeResource
+                    }
                 }
             }
             
@@ -173,13 +179,20 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
         
         return try {
             val connection = url.openConnection()
+            
+            // Check if URL points to a directory by examining the URL path
+            val isDirectory = url.path.endsWith("/") || 
+                              java.io.File(url.path).isDirectory() ||
+                              // Try to access it as a directory by checking if we can find index.html inside
+                              (this::class.java.classLoader.getResource("$fullPath/index.html") != null)
+            
             NativeResource(
                 path = fullPath,
                 location = Location.CLASSPATH,
-                inputStreamProvider = { url.openStream() },
+                inputStreamProvider = { if (!isDirectory) url.openStream() else null },
                 exists = true,
-                isDirectory = false, // Classpath resources are always files when accessible
-                length = connection.contentLengthLong.let { if (it == -1L) 0L else it },
+                isDirectory = isDirectory,
+                length = if (!isDirectory) connection.contentLengthLong.let { if (it == -1L) 0L else it } else 0L,
                 lastModified = connection.lastModified,
                 isAlias = false // Classpath resources don't have aliases
             )
