@@ -315,7 +315,7 @@ class TestBeforeAfterMatched {
         config.staticFiles.add {
             it.directory = "public"
             it.location = Location.CLASSPATH
-            it.nativeAliasCheck = AllowAllAliasCheck
+            it.aliasCheck = AllowAllAliasCheck
         }
     }) { app, http ->
         app.afterMatched { it.header("X-After", "true") }
@@ -337,7 +337,7 @@ class TestBeforeAfterMatched {
             config.staticFiles.add {
                 it.directory = "public"
                 it.location = Location.CLASSPATH
-                it.nativeAliasCheck = AllowAllAliasCheck
+                it.aliasCheck = AllowAllAliasCheck
             }
             config.pvt.servletRequestLifecycle = mutableListOf(BEFORE, HTTP, AFTER_MATCHED, ERROR, AFTER)
         }) { app, http ->

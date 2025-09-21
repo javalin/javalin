@@ -23,14 +23,14 @@ import java.util.*
  * Native implementation of ResourceHandler that doesn't depend on Jetty or Jakarta servlet APIs.
  * Provides static file serving functionality using only standard Java libraries.
  */
-class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
+class JavalinResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
 
     private val lateInitConfigs = mutableListOf<StaticFileConfig>()
-    private val handlers = mutableListOf<NativeConfigurableHandler>()
+    private val handlers = mutableListOf<ConfigurableHandler>()
     private var initialized = false
 
     fun init() {
-        handlers.addAll(lateInitConfigs.map { NativeConfigurableHandler(it) })
+        handlers.addAll(lateInitConfigs.map { ConfigurableHandler(it) })
         lateInitConfigs.clear()
         initialized = true
     }
@@ -40,7 +40,7 @@ class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
             false
         } else {
             if (initialized) {
-                handlers.add(NativeConfigurableHandler(config))
+                handlers.add(ConfigurableHandler(config))
             } else {
                 lateInitConfigs.add(config)
             }
@@ -60,7 +60,7 @@ class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
             return if (handler.config.precompress) {
                 val resource = handler.getResource(resourcePath)
                 if (resource != null) {
-                    NativePrecompressingResourceHandler.handle(resourcePath, resource, ctx, pvt.compressionStrategy, handler.config)
+                    PrecompressingResourceHandler.handle(resourcePath, resource, ctx, pvt.compressionStrategy, handler.config)
                 } else {
                     false
                 }
@@ -73,7 +73,7 @@ class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
         }
     }
 
-    private fun findHandler(ctx: Context): Pair<NativeConfigurableHandler, String>? {
+    private fun findHandler(ctx: Context): Pair<ConfigurableHandler, String>? {
         val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
         
         // Search in active handlers first
@@ -104,7 +104,7 @@ class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
                     else -> null
                 }
                 if (resourcePath != null) {
-                    val tempHandler = NativeConfigurableHandler(config)
+                    val tempHandler = ConfigurableHandler(config)
                     if (tempHandler.getResource(resourcePath) != null) {
                         return tempHandler to resourcePath
                     }
@@ -122,7 +122,7 @@ class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
 /**
  * Native resource abstraction that doesn't depend on Jetty's Resource class
  */
-class NativeResource(
+class JavalinResource(
     val path: String,
     val location: Location,
     val inputStreamProvider: () -> InputStream?,
@@ -153,17 +153,17 @@ class NativeResource(
 /**
  * Native configurable handler that doesn't extend Jetty's ResourceHandler
  */
-class NativeConfigurableHandler(val config: StaticFileConfig) {
+class ConfigurableHandler(val config: StaticFileConfig) {
 
     private val mimeTypeMap = createMimeTypeMap()
-    private val baseResource: NativeResource?
+    private val baseResource: JavalinResource?
 
     init {
         JavalinLogger.info("Static file handler added: ${config.refinedToString()}. File system location: '${getResourceBasePath(config)}'")
         baseResource = getResourceBase(config)
     }
 
-    fun getResource(path: String): NativeResource? {
+    fun getResource(path: String): JavalinResource? {
         return try {
             baseResource ?: return null
             
@@ -175,7 +175,7 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
             }
             
             // If path ends with /, try without the trailing slash only if alias check allows it
-            if (path.endsWith("/") && config.nativeAliasCheck != null) {
+            if (path.endsWith("/") && config.aliasCheck != null) {
                 val pathWithoutSlash = path.removeSuffix("/")
                 resolveResource(pathWithoutSlash)?.let { resource ->
                     if (resource.exists && !resource.isDirectory && isValidResource(resource, pathWithoutSlash)) {
@@ -204,14 +204,14 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
         }
     }
     
-    private fun resolveResource(path: String): NativeResource? {
+    private fun resolveResource(path: String): JavalinResource? {
         return when (config.location) {
             Location.CLASSPATH -> resolveClasspathResource(path)
             Location.EXTERNAL -> resolveExternalResource(path)
         }
     }
     
-    private fun resolveClasspathResource(path: String): NativeResource? {
+    private fun resolveClasspathResource(path: String): JavalinResource? {
         val fullPath = "${config.directory.removeSuffix("/")}/$path".removePrefix("/")
         val url = this::class.java.classLoader.getResource(fullPath) ?: return null
         
@@ -224,7 +224,7 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
                               // Try to access it as a directory by checking if we can find index.html inside
                               (this::class.java.classLoader.getResource("$fullPath/index.html") != null)
             
-            NativeResource(
+            JavalinResource(
                 path = fullPath,
                 location = Location.CLASSPATH,
                 inputStreamProvider = { if (!isDirectory) url.openStream() else null },
@@ -239,7 +239,7 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
         }
     }
     
-    private fun resolveExternalResource(path: String): NativeResource? {
+    private fun resolveExternalResource(path: String): JavalinResource? {
         val basePath = Paths.get(config.directory).toAbsolutePath().normalize()
         val resourcePath = basePath.resolve(path).normalize()
         
@@ -255,7 +255,7 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
             val lastModified = if (exists) Files.getLastModifiedTime(resourcePath).toMillis() else 0L
             val isAlias = Files.isSymbolicLink(resourcePath)
             
-            NativeResource(
+            JavalinResource(
                 path = path,
                 location = Location.EXTERNAL,
                 inputStreamProvider = { if (exists && !isDirectory) Files.newInputStream(resourcePath) else null },
@@ -270,14 +270,14 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
         }
     }
     
-    private fun isValidResource(resource: NativeResource, path: String): Boolean {
+    private fun isValidResource(resource: JavalinResource, path: String): Boolean {
         if (!resource.isAlias) return true
         
         // No alias check configured - default is to block all aliases for security
-        if (config.nativeAliasCheck == null) return false
+        if (config.aliasCheck == null) return false
         
         // Apply the configured alias check
-        return config.nativeAliasCheck!!.checkAlias(path, resource)
+        return config.aliasCheck!!.checkAlias(path, resource)
     }
 
     fun handleResource(resourcePath: String, ctx: Context): Boolean {
@@ -331,7 +331,7 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
         }
     }
 
-    private fun getResourceBase(config: StaticFileConfig): NativeResource? {
+    private fun getResourceBase(config: StaticFileConfig): JavalinResource? {
         val noSuchDirMessageBuilder: (String) -> String = { "Static resource directory with path: '$it' does not exist." }
         val classpathHint = "Depending on your setup, empty folders might not get copied to classpath."
         
@@ -342,7 +342,7 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
                     throw JavalinException("${noSuchDirMessageBuilder(config.directory)} $classpathHint")
                 }
                 
-                NativeResource(
+                JavalinResource(
                     path = config.directory,
                     location = Location.CLASSPATH,
                     inputStreamProvider = { null }, // Directory, no stream
@@ -359,7 +359,7 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
                     throw JavalinException(noSuchDirMessageBuilder(absoluteDirectoryPath.toString()))
                 }
                 
-                NativeResource(
+                JavalinResource(
                     path = absoluteDirectoryPath.toString(),
                     location = Location.EXTERNAL,
                     inputStreamProvider = { null }, // Directory, no stream

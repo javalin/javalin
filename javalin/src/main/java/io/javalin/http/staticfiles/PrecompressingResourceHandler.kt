@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap
  * Native implementation of precompressing resource handler that doesn't depend on Jetty.
  * Provides static file precompression and caching functionality using only standard Java libraries.
  */
-object NativePrecompressingResourceHandler {
+object PrecompressingResourceHandler {
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
 
@@ -30,7 +30,7 @@ object NativePrecompressingResourceHandler {
     @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
-    fun handle(target: String, resource: NativeResource, ctx: Context, compStrat: CompressionStrategy, config: StaticFileConfig): Boolean {
+    fun handle(target: String, resource: JavalinResource, ctx: Context, compStrat: CompressionStrategy, config: StaticFileConfig): Boolean {
         val acceptEncoding = ctx.header(Header.ACCEPT_ENCODING) ?: ""
         var compressor = findMatchingCompressor(acceptEncoding, compStrat)
         
@@ -68,12 +68,12 @@ object NativePrecompressingResourceHandler {
         return true
     }
 
-    private fun getStaticResourceByteArray(resource: NativeResource, target: String, compressor: Compressor?): ByteArray? {
+    private fun getStaticResourceByteArray(resource: JavalinResource, target: String, compressor: Compressor?): ByteArray? {
         if (resource.length > resourceMaxSize) {
             JavalinLogger.warn(
                 """
                 Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).
-                You can configure this with `NativePrecompressingResourceHandler.resourceMaxSize = newMaxSize`.
+                You can configure this with `PrecompressingResourceHandler.resourceMaxSize = newMaxSize`.
                 Alternatively, you can set `precompress = false` to serve files without compression.
                 """
             )

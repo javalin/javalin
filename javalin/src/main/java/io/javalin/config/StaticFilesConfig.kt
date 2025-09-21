@@ -3,7 +3,7 @@ package io.javalin.config
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
-import io.javalin.http.staticfiles.NativeResourceHandler
+import io.javalin.http.staticfiles.JavalinResourceHandler
 import io.javalin.security.RouteRole
 import java.util.function.Consumer
 
@@ -44,7 +44,7 @@ class StaticFilesConfig(private val cfg: JavalinConfig) {
      */
     fun add(userConfig: Consumer<StaticFileConfig>) {
         if (cfg.pvt.resourceHandler == null) {
-            cfg.pvt.resourceHandler = NativeResourceHandler(cfg.pvt)
+            cfg.pvt.resourceHandler = JavalinResourceHandler(cfg.pvt)
         }
         val finalConfig = StaticFileConfig()
         userConfig.accept(finalConfig)

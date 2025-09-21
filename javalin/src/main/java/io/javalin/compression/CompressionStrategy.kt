@@ -9,10 +9,10 @@ import io.javalin.util.Util
 /**
  * This class is a settings container for Javalin's content compression.
  *
- * It is used by the CompressedOutputStream and NativePrecompressingResourceHandler to determine the encoding and parameters that should be used when compressing a response.
+ * It is used by the CompressedOutputStream and PrecompressingResourceHandler to determine the encoding and parameters that should be used when compressing a response.
  *
  * @see io.javalin.compression.CompressedOutputStream
- * @see io.javalin.http.staticfiles.NativePrecompressingResourceHandler
+ * @see io.javalin.http.staticfiles.PrecompressingResourceHandler
  *
  * @param brotli instance of Brotli config, default = null
  * @param gzip   instance of Gzip config, default = null

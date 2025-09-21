@@ -5,8 +5,7 @@ import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.security.RouteRole
 import jakarta.servlet.http.HttpServletRequest
-import io.javalin.http.staticfiles.AliasCheck as NativeAliasCheck
-import org.eclipse.jetty.server.AliasCheck
+import io.javalin.http.staticfiles.AliasCheck
 
 /** The static files location. */
 enum class Location {
@@ -25,8 +24,7 @@ enum class Location {
  * @param directory the directory where your files are located
  * @param location Location.CLASSPATH (jar) or Location.EXTERNAL (file system) (default: CLASSPATH)
  * @param precompress if the files should be pre-compressed and cached in memory (default: false)
- * @param aliasCheck can be used to configure SymLinks (legacy Jetty-based)
- * @param nativeAliasCheck can be used to configure SymLinks (new native implementation)
+ * @param aliasCheck can be used to configure SymLinks
  * @param headers headers that will be set for the static files
  * @param skipFileFunction lambda to skip certain files in the dir, based on the HttpServletRequest
  * @param mimeTypes configuration for file extension based Mime Types
@@ -38,7 +36,6 @@ data class StaticFileConfig(
     @JvmField var location: Location = Location.CLASSPATH,
     @JvmField var precompress: Boolean = false,
     @JvmField var aliasCheck: AliasCheck? = null,
-    @JvmField var nativeAliasCheck: NativeAliasCheck? = null,
     @JvmField var headers: Map<String, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
     @JvmField var skipFileFunction: (HttpServletRequest) -> Boolean = { false },
     @JvmField val mimeTypes: MimeTypesConfig = MimeTypesConfig(),

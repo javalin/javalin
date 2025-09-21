@@ -118,7 +118,7 @@ class JettyServer(private val cfg: JavalinConfig) {
                |""".trimMargin() // banner generated at https://patorjk.com/software/taag (slant)
         )
         JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/")
-        (cfg.pvt.resourceHandler as? io.javalin.http.staticfiles.NativeResourceHandler)?.init() // log resource handler info
+        (cfg.pvt.resourceHandler as? io.javalin.http.staticfiles.JavalinResourceHandler)?.init() // log resource handler info
         server().connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.baseUrl}")
         }

@@ -95,16 +95,16 @@ class TestStaticFiles {
         val staticWithAliasResourceApp = Javalin.create { config ->
             // block aliases for txt files
             val aliasCheck = object : AliasCheck {
-                override fun checkAlias(path: String, resource: io.javalin.http.staticfiles.NativeResource): Boolean = !path.endsWith(".txt")
+                override fun checkAlias(path: String, resource: io.javalin.http.staticfiles.JavalinResource): Boolean = !path.endsWith(".txt")
             }
             config.staticFiles.add {
-                it.nativeAliasCheck = aliasCheck
+                it.aliasCheck = aliasCheck
                 it.directory = workingDirectory.absolutePath
                 it.location = Location.EXTERNAL
             }
             config.staticFiles.add {
                 it.hostedPath = "/url-prefix"
-                it.nativeAliasCheck = aliasCheck
+                it.aliasCheck = aliasCheck
             }
         }
 
