@@ -5,7 +5,7 @@ import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.security.RouteRole
 import jakarta.servlet.http.HttpServletRequest
-import org.eclipse.jetty.server.AliasCheck
+import io.javalin.http.staticfiles.AliasCheck
 
 /** The static files location. */
 enum class Location {
