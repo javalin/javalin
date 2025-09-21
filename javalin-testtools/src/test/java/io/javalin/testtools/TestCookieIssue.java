@@ -24,7 +24,9 @@ public class TestCookieIssue {
             server.get("/get-cookie", ctx -> ctx.result(ctx.cookie("test-cookie") != null ? ctx.cookie("test-cookie") : "no-cookie"));
             
             // Verify cookie is set in response
-            assertThat(client.get("/set-cookie").headers().get("Set-Cookie")).contains("test-cookie=cookie-value");
+            var setCookieHeaders = client.get("/set-cookie").headers().get("Set-Cookie");
+            assertThat(setCookieHeaders).isNotNull();
+            assertThat(setCookieHeaders.get(0)).contains("test-cookie=cookie-value");
             
             // Verify cookie is automatically sent in subsequent request
             assertThat(client.get("/get-cookie").body().string()).isEqualTo("cookie-value");

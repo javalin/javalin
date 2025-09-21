@@ -3,36 +3,28 @@ package io.javalin.testtools
 import io.javalin.Javalin
 import io.javalin.config.Key
 import io.javalin.util.JavalinLogger
-import okhttp3.Cookie
-import okhttp3.CookieJar
-import okhttp3.HttpUrl
-import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.net.CookieManager
+import java.net.CookiePolicy
+import java.net.http.HttpClient as JdkHttpClient
+import java.time.Duration
 import java.util.*
 
 object DefaultTestConfig {
     @JvmStatic var clearCookies: Boolean = true
     @JvmStatic var captureLogs: Boolean = true
-    @JvmStatic var okHttpClient: OkHttpClient = OkHttpClient.Builder()
-        .cookieJar(object : CookieJar {
-            private val cookieStore = mutableMapOf<String, List<Cookie>>()
-            
-            override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-                cookieStore[url.host] = cookies
-            }
-            
-            override fun loadForRequest(url: HttpUrl): List<Cookie> {
-                return cookieStore[url.host] ?: emptyList()
-            }
-        })
+    @JvmStatic var httpClient: JdkHttpClient = JdkHttpClient.newBuilder()
+        .cookieHandler(CookieManager(null, CookiePolicy.ACCEPT_ALL))
+        .connectTimeout(Duration.ofSeconds(10))
         .build()
 }
 
 data class TestConfig @JvmOverloads constructor(
     val clearCookies: Boolean = DefaultTestConfig.clearCookies,
     val captureLogs: Boolean = DefaultTestConfig.captureLogs,
-    val okHttpClient: OkHttpClient = DefaultTestConfig.okHttpClient
+    val httpClient: JdkHttpClient = DefaultTestConfig.httpClient,
+    val defaultHeaders: Map<String, String> = emptyMap()
 )
 
 class TestTool(private val testConfig: TestConfig = TestConfig()) {
@@ -47,7 +39,7 @@ class TestTool(private val testConfig: TestConfig = TestConfig()) {
     fun test(app: Javalin = Javalin.create(), config: TestConfig = this.testConfig, testCase: TestCase) {
         val result: RunResult = runAndCaptureLogs(config) {
             app.start(0)
-            val http = HttpClient(app, config.okHttpClient)
+            val http = HttpClient(app, config.httpClient, config.defaultHeaders)
             testCase.accept(app, http) // this is where the user's test happens
             if (config.clearCookies) {
                 val endpointUrl = "/clear-cookies-${UUID.randomUUID()}"

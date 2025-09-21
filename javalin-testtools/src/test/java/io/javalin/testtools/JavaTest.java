@@ -2,13 +2,16 @@ package io.javalin.testtools;
 
 import io.javalin.Javalin;
 import io.javalin.http.Header;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import io.javalin.testtools.FormBody;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.Map;
 
 import static io.javalin.http.HttpStatus.OK;
 import static io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -126,20 +129,16 @@ public class JavaTest {
     }
 
     @Test
-    void custom_okHttpClient_is_used() {
+    void custom_httpClient_is_used() {
         Javalin app = Javalin.create()
             .get("/hello", ctx -> ctx.result("Hello, " + ctx.header("X-Welcome") + "!"));
 
-        OkHttpClient okHttpClientAddingHeader = new OkHttpClient.Builder()
-            .addInterceptor(chain -> {
-                Request userRequest = chain.request();
-                return chain.proceed(userRequest.newBuilder()
-                    .addHeader("X-Welcome", "Javalin")
-                    .build());
-            })
+        HttpClient customHttpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
             .build();
 
-        TestConfig config = new TestConfig(true, true, okHttpClientAddingHeader);
+        Map<String, String> defaultHeaders = Map.of("X-Welcome", "Javalin");
+        TestConfig config = new TestConfig(true, true, customHttpClient, defaultHeaders);
 
         JavalinTest.test(app, config, (server, client) -> {
             assertThat(client.get("/hello").body().string()).isEqualTo("Hello, Javalin!");

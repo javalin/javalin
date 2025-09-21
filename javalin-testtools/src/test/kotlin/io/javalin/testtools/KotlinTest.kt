@@ -6,14 +6,14 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
 import io.javalin.testtools.TestTool.Companion.TestLogsKey
-import okhttp3.FormBody
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
+import io.javalin.testtools.FormBody
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
+import java.net.http.HttpClient
+import java.time.Duration
 
 class KotlinTest {
 
@@ -112,22 +112,17 @@ class KotlinTest {
     }
 
     @Test
-    fun `custom OkHttpClient is used`() {
+    fun `custom HttpClient is used`() {
         val app = Javalin.create()
             .get("/hello") { ctx -> ctx.result("Hello, ${ctx.header("X-Welcome")}!") }
 
-        val okHttpClientAddingHeader = OkHttpClient.Builder()
-            .addInterceptor(Interceptor { chain: Interceptor.Chain ->
-                val userRequest = chain.request()
-                chain.proceed(
-                    userRequest.newBuilder()
-                        .addHeader("X-Welcome", "Javalin")
-                        .build()
-                )
-            })
+        val customHttpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
             .build()
+        
+        val defaultHeaders = mapOf("X-Welcome" to "Javalin")
 
-        JavalinTest.test(app, TestConfig(okHttpClient = okHttpClientAddingHeader)) { server, client ->
+        JavalinTest.test(app, TestConfig(httpClient = customHttpClient, defaultHeaders = defaultHeaders)) { server, client ->
             assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, Javalin!")
         }
     }
