@@ -290,6 +290,14 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
         
         contentType?.let { ctx.contentType(it) }
         
+        // Disable compression for already-compressed files
+        if (resourcePath.endsWith(".gz", ignoreCase = true) || 
+            resourcePath.endsWith(".br", ignoreCase = true) ||
+            resourcePath.endsWith(".bz2", ignoreCase = true) ||
+            resourcePath.endsWith(".xz", ignoreCase = true)) {
+            ctx.disableCompression()
+        }
+        
         // Use native ETag support
         val etag = resource.weakETag
         if (etag != null) {
