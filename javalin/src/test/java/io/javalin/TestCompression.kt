@@ -11,6 +11,7 @@ import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Compressor
 import io.javalin.compression.Gzip
+import io.javalin.compression.Zstd
 import io.javalin.http.ContentType
 import io.javalin.http.Handler
 import io.javalin.http.Header
@@ -32,6 +33,7 @@ import java.io.OutputStream
 import java.util.zip.GZIPInputStream
 import kotlin.streams.asStream
 import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
+import com.github.luben.zstd.ZstdInputStream
 
 class TestCompression {
 
@@ -55,6 +57,11 @@ class TestCompression {
 
     private fun brotliDisabledApp() = Javalin.create {
         it.http.customCompression(CompressionStrategy(null, Gzip()).apply { defaultMinSizeForCompression = testDocument.length })
+        it.staticFiles.add("/public", Location.CLASSPATH)
+    }.addTestEndpoints()
+
+    private fun zstdOnlyApp() = Javalin.create {
+        it.http.customCompression(CompressionStrategy(null, null, Zstd()).apply { defaultMinSizeForCompression = 1 })
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
@@ -86,6 +93,8 @@ class TestCompression {
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { Gzip(10) }
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { Brotli(-1) }
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { Brotli(12) }
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { Zstd(-1) }
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { Zstd(23) }
     }
 
     @Test
@@ -256,6 +265,17 @@ class TestCompression {
     }
 
     @Test
+    @EnabledIf("zstdAvailable")
+    fun `all compression formats work together`() = TestUtil.test(Javalin.create {
+        it.staticFiles.add("/public", Location.CLASSPATH)
+        it.http.customCompression(CompressionStrategy(Brotli(), Gzip(), Zstd()).apply { defaultMinSizeForCompression = 1 })
+    }) { _, http ->
+        assertValidGzipResponse(http.origin, "/svg.svg")
+        assertValidBrotliResponse(http.origin, "/svg.svg")
+        assertValidZstdResponse(http.origin, "/svg.svg")
+    }
+
+    @Test
     fun `svg compression can be disabled`() = TestUtil.test(Javalin.create {
         it.staticFiles.add("/public", Location.CLASSPATH)
         it.http.customCompression(CompressionStrategy(Brotli(), Gzip()).apply { allowedMimeTypes = listOf() })
@@ -284,6 +304,40 @@ class TestCompression {
         listOf(10, 100, 1000, 10_000).forEach { size ->
             app.get("/$size") { it.result(testDocument.repeat(size)) }
             assertValidBrotliResponse(http.origin, "/$size")
+        }
+    }
+
+    @Test
+    @EnabledIf("zstdAvailable")
+    fun `does zstd when Accept-Encoding header is set and size is big enough`() = TestUtil.test(zstdOnlyApp()) { _, http ->
+        getResponse(http.origin, "/huge", "zstd").let { response -> // dynamic
+            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("zstd")
+            assertThat(response.body!!.contentLength()).isLessThan(10000L) // should be compressed
+        }
+        getResponse(http.origin, "/html.html", "zstd").let { response -> // static
+            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("zstd")
+        }
+    }
+
+    @Test
+    @EnabledIf("zstdAvailable")
+    fun `zstd works for large static files`() {
+        val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
+        val compressedWebjars = Javalin.create {
+            it.http.customCompression(CompressionStrategy(null, null, Zstd()))
+            it.staticFiles.enableWebjars()
+        }
+        TestUtil.test(compressedWebjars) { _, http ->
+            assertValidZstdResponse(http.origin, path)
+        }
+    }
+
+    @Test
+    @EnabledIf("zstdAvailable")
+    fun `zstd works for dynamic responses of different sizes`() = TestUtil.test(zstdOnlyApp()) { app, http ->
+        listOf(10, 100, 1000, 10_000).forEach { size ->
+            app.get("/$size") { it.result(testDocument.repeat(size)) }
+            assertValidZstdResponse(http.origin, "/$size")
         }
     }
 
@@ -450,7 +504,7 @@ class TestCompression {
     }
 
     private fun assertUncompressedResponse(origin: String, url: String) {
-        val response = getResponse(origin, url, "br, gzip")
+        val response = getResponse(origin, url, "br, gzip, zstd")
         assertThat(response.code).isLessThan(400)
         assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
         val uncompressedResponse = getResponse(origin, url, "null").body!!.string()
@@ -478,6 +532,15 @@ class TestCompression {
         assertThat(decompressed).isEqualTo(uncompressedResponse)
     }
 
+    private fun assertValidZstdResponse(origin: String, url: String) {
+        val response = getResponse(origin, url, "zstd")
+        assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("zstd")
+        val zstdInputStream = ZstdInputStream(response.body!!.byteStream())
+        val decompressed = String(zstdInputStream.readBytes())
+        val uncompressedResponse = getResponse(origin, url, "null").body!!.string()
+        assertThat(decompressed).isEqualTo(uncompressedResponse)
+    }
+
     // we need to use okhttp, because unirest omits the content-encoding header
     private fun getResponse(origin: String, url: String, encoding: String) = OkHttpClient()
         .newCall(
@@ -497,5 +560,7 @@ class TestCompression {
     ).execute()
 
     private fun brotliAvailable() = CompressionStrategy.brotliImplAvailable()
+
+    private fun zstdAvailable() = CompressionStrategy.zstdImplAvailable()
 
 }

@@ -36,6 +36,7 @@ module io.javalin {
     requires static org.jetbrains.annotations;
     requires static com.aayushatharva.brotli4j;
     requires static com.aayushatharva.brotli4j.service;
+    requires static com.github.luben.zstdjni;
     requires static com.fasterxml.jackson.databind;
     requires static com.fasterxml.jackson.kotlin;
     requires static com.google.gson;
