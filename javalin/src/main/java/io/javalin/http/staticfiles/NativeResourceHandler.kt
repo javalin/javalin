@@ -174,6 +174,16 @@ class NativeConfigurableHandler(val config: StaticFileConfig) {
                 }
             }
             
+            // If path ends with /, try without the trailing slash only if alias check allows it
+            if (path.endsWith("/") && config.nativeAliasCheck != null) {
+                val pathWithoutSlash = path.removeSuffix("/")
+                resolveResource(pathWithoutSlash)?.let { resource ->
+                    if (resource.exists && !resource.isDirectory && isValidResource(resource, pathWithoutSlash)) {
+                        return resource
+                    }
+                }
+            }
+            
             // Check for welcome file (index.html) - try multiple variations
             val welcomePaths = listOf(
                 "${path.removeSuffix("/")}/index.html",
