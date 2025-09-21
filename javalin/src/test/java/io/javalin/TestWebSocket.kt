@@ -338,6 +338,57 @@ class TestWebSocket {
     }
 
     @Test
+    fun `web socket upgrade logging works`() = TestUtil.test(Javalin.create().apply {
+        this.unsafeConfig().requestLogger.ws { ws ->
+            ws.onUpgrade { ctx, executionTimeMs ->
+                this.logger().log.add("${ctx.path()} upgrade attempted (${ctx.status()})")
+            }
+        }
+    }) { app, _ ->
+        app.ws("/upgrade-test") {}
+        // Test successful upgrade
+        TestClient(app, "/upgrade-test").connectAndDisconnect()
+        // Test failed upgrade (404)
+        val response = Unirest.get("http://localhost:${app.port()}/non-existent-ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "test-key")
+            .header(Header.UPGRADE, "websocket")
+            .header(Header.CONNECTION, "upgrade")
+            .asString()
+        assertThat(response.status).isEqualTo(404)
+        
+        // Verify that both successful and failed upgrades are logged
+        assertThat(app.logger().log).containsExactlyInAnyOrder(
+            "/upgrade-test upgrade attempted (101 Switching Protocols)",
+            "/non-existent-ws upgrade attempted (404 Not Found)"
+        )
+    }
+
+    @Test
+    fun `web socket upgrade logging works for wsBeforeUpgrade errors`() = TestUtil.test(Javalin.create().apply {
+        this.unsafeConfig().requestLogger.ws { ws ->
+            ws.onUpgrade { ctx, executionTimeMs ->
+                this.logger().log.add("${ctx.path()} upgrade attempted (${ctx.status()})")
+            }
+        }
+    }) { app, _ ->
+        app.wsBeforeUpgrade("/auth-ws") { ctx ->
+            throw UnauthorizedResponse()
+        }
+        app.ws("/auth-ws") {}
+        
+        // Test failed upgrade due to authentication
+        val response = Unirest.get("http://localhost:${app.port()}/auth-ws")
+            .header(Header.SEC_WEBSOCKET_KEY, "test-key")
+            .header(Header.UPGRADE, "websocket")
+            .header(Header.CONNECTION, "upgrade")
+            .asString()
+        assertThat(response.status).isEqualTo(401)
+        
+        // Verify that the failed upgrade due to authentication error is logged
+        assertThat(app.logger().log).containsExactly("/auth-ws upgrade attempted (401 Unauthorized)")
+    }
+
+    @Test
     fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
         app.ws("/path/{param}") {}
         TestClient(app, "/path/0").connectAndDisconnect()
