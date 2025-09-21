@@ -4,7 +4,9 @@ import io.javalin.Javalin
 import io.javalin.http.ContentType
 import io.javalin.json.toJsonString
 import java.net.URI
+import java.net.URLEncoder
 import java.net.http.HttpClient as JdkHttpClient
+import java.net.http.HttpHeaders as JdkHttpHeaders
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
@@ -27,7 +29,7 @@ class FormBody private constructor(private val formData: String) {
         
         fun build(): FormBody {
             val formData = params.joinToString("&") { (name, value) ->
-                "${java.net.URLEncoder.encode(name, StandardCharsets.UTF_8)}=${java.net.URLEncoder.encode(value, StandardCharsets.UTF_8)}"
+                "${URLEncoder.encode(name, StandardCharsets.UTF_8)}=${URLEncoder.encode(value, StandardCharsets.UTF_8)}"
             }
             return FormBody(formData)
         }
@@ -44,7 +46,7 @@ class Response(private val response: HttpResponse<String>) {
     fun headers(): HttpHeaders = HttpHeaders(response.headers())
 }
 
-class HttpHeaders(private val headers: java.net.http.HttpHeaders) {
+class HttpHeaders(private val headers: JdkHttpHeaders) {
     fun get(name: String): List<String>? = headers.allValues(name).takeIf { it.isNotEmpty() }
 }
 
