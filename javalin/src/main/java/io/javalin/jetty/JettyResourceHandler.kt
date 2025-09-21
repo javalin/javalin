@@ -104,6 +104,9 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         return try {
             if (baseResource == null) return null
             
+            // Validate path before resolving to prevent InvalidPathException on Windows
+            if (!isValidPath(path)) return null
+            
             // Try to resolve the direct resource first
             baseResource.resolve(path)?.let { resource ->
                 if (resource.exists() && !resource.isDirectory && isValidResource(resource, path)) {
@@ -113,6 +116,8 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
             
             // Check for welcome file (index.html) using Jetty's native logic
             val welcomePath = "${path.removeSuffix("/")}/index.html"
+            if (!isValidPath(welcomePath)) return null
+            
             baseResource.resolve(welcomePath)?.let { welcomeResource ->
                 if (welcomeResource.exists() && !welcomeResource.isDirectory && isValidResource(welcomeResource, welcomePath)) {
                     return welcomeResource
@@ -133,6 +138,37 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         
         // Apply the configured alias check
         return config.aliasCheck!!.checkAlias(path, resource)
+    }
+    
+    /**
+     * Validates if a path is safe to use with the file system.
+     * Prevents InvalidPathException on Windows by checking for invalid characters.
+     */
+    private fun isValidPath(path: String): Boolean {
+        // Characters that are invalid in Windows file paths
+        val invalidChars = charArrayOf('<', '>', ':', '"', '|', '?', '*')
+        
+        // Check for invalid characters
+        for (char in invalidChars) {
+            if (path.contains(char)) {
+                return false
+            }
+        }
+        
+        // Additional checks for reserved names on Windows (though less likely in web paths)
+        val pathSegments = path.split('/')
+        val reservedNames = setOf("CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", 
+                                 "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", 
+                                 "LPT5", "LPT6", "LPT7", "LPT8", "LPT9")
+        
+        for (segment in pathSegments) {
+            val trimmedSegment = segment.substringBefore('.').uppercase()
+            if (trimmedSegment in reservedNames) {
+                return false
+            }
+        }
+        
+        return true
     }
 
     fun handleResource(resourcePath: String, ctx: Context): Boolean {
