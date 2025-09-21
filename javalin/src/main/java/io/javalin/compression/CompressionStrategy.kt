@@ -1,7 +1,6 @@
 package io.javalin.compression
 
 import com.aayushatharva.brotli4j.Brotli4jLoader
-import com.github.luben.zstd.util.Native
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
@@ -20,6 +19,11 @@ import io.javalin.util.Util
  * @param zstd   instance of Zstd config, default = null
  */
 class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null, zstd: Zstd? = null) {
+
+    /** 
+     * Backward compatibility constructor for existing code 
+     */
+    constructor(brotli: Brotli?, gzip: Gzip?) : this(brotli, gzip, null)
 
     companion object {
         @JvmField
@@ -47,7 +51,9 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null, zstd: Zstd
 
         // Check if the zstd native libraries are available
         fun zstdJniAvailable() = try {
-            Native.isLoaded()
+            // Attempt to access Zstd class which triggers native library loading
+            com.github.luben.zstd.Zstd.defaultCompressionLevel()
+            true
         } catch (t: Throwable) {
             false
         }
