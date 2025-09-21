@@ -81,12 +81,15 @@ class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
             if (!handler.config.skipFileFunction(ctx.req())) {
                 val hostedPath = handler.config.hostedPath
                 val resourcePath = when {
-                    hostedPath == "/" -> target
+                    hostedPath == "/" -> target.removePrefix("/")
                     target.startsWith(hostedPath) -> target.removePrefix(hostedPath).removePrefix("/")
                     else -> null
                 }
-                if (resourcePath != null && handler.getResource(resourcePath) != null) {
-                    return handler to resourcePath
+                if (resourcePath != null) {
+                    val resource = handler.getResource(resourcePath)
+                    if (resource != null) {
+                        return handler to resourcePath
+                    }
                 }
             }
         }
@@ -96,7 +99,7 @@ class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
             if (!config.skipFileFunction(ctx.req())) {
                 val hostedPath = config.hostedPath
                 val resourcePath = when {
-                    hostedPath == "/" -> target
+                    hostedPath == "/" -> target.removePrefix("/")
                     target.startsWith(hostedPath) -> target.removePrefix(hostedPath).removePrefix("/")
                     else -> null
                 }
