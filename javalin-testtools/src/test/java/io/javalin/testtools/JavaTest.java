@@ -2,20 +2,24 @@ package io.javalin.testtools;
 
 import io.javalin.Javalin;
 import io.javalin.http.Header;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import io.javalin.testtools.FormBody;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+
 import static io.javalin.http.HttpStatus.OK;
 import static io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static io.javalin.testtools.TestTool.TestLogsKey;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class JavaTest {
 
@@ -126,20 +130,16 @@ public class JavaTest {
     }
 
     @Test
-    void custom_okHttpClient_is_used() {
+    void custom_httpClient_is_used() {
         Javalin app = Javalin.create()
             .get("/hello", ctx -> ctx.result("Hello, " + ctx.header("X-Welcome") + "!"));
 
-        OkHttpClient okHttpClientAddingHeader = new OkHttpClient.Builder()
-            .addInterceptor(chain -> {
-                Request userRequest = chain.request();
-                return chain.proceed(userRequest.newBuilder()
-                    .addHeader("X-Welcome", "Javalin")
-                    .build());
-            })
+        HttpClient customHttpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
             .build();
 
-        TestConfig config = new TestConfig(true, true, okHttpClientAddingHeader);
+        Map<String, String> defaultHeaders = Map.of("X-Welcome", "Javalin");
+        TestConfig config = new TestConfig(true, true, customHttpClient, defaultHeaders);
 
         JavalinTest.test(app, config, (server, client) -> {
             assertThat(client.get("/hello").body().string()).isEqualTo("Hello, Javalin!");
@@ -194,5 +194,61 @@ public class JavaTest {
         }
 
         assertThat(app.unsafeConfig().pvt.appDataManager.get(TestLogsKey)).contains("Error in handler code");
+    }
+    
+    @Test
+    public void response_headers_are_accessible() {
+        JavalinTest.test((server, client) -> {
+            server.get("/headers", ctx -> {
+                ctx.header("Custom-Header", "custom-value");
+                ctx.header("Another-Header", "another-value");
+                ctx.result("Response with headers");
+            });
+            
+            Response response = client.get("/headers");
+            assertThat(response.headers().get("Custom-Header")).isNotNull().containsExactly("custom-value");
+            assertThat(response.headers().get("Another-Header")).isNotNull().containsExactly("another-value");
+            assertThat(response.headers().get("Non-Existent")).isNull();
+        });
+    }
+    
+    @Test
+    public void empty_and_null_response_bodies_work() {
+        JavalinTest.test((server, client) -> {
+            server.get("/empty", ctx -> ctx.result(""));
+            server.get("/null", ctx -> {}); // No result set
+            
+            assertThat(client.get("/empty").body().string()).isEqualTo("");
+            assertThat(client.get("/null").body().string()).isEqualTo("");
+        });
+    }
+    
+    @Test
+    public void request_builder_with_multiple_headers_works() {
+        JavalinTest.test((server, client) -> {
+            server.post("/multi-headers", ctx -> ctx.result(
+                "Auth: " + ctx.header("Authorization") + ", Accept: " + ctx.header("Accept") + ", Custom: " + ctx.header("X-Custom")));
+            
+            Response response = client.request("/multi-headers", builder -> 
+                builder.post(HttpRequest.BodyPublishers.ofString("test-body"))
+                       .header("Authorization", "Bearer token123")
+                       .header("Accept", "application/json")
+                       .header("X-Custom", "test-value"));
+            
+            assertThat(response.body().string()).isEqualTo("Auth: Bearer token123, Accept: application/json, Custom: test-value");
+        });
+    }
+    
+    @Test
+    public void different_http_methods_with_custom_bodies_work() {
+        JavalinTest.test((server, client) -> {
+            server.put("/text", ctx -> ctx.result("PUT: " + ctx.body()));
+            server.patch("/text", ctx -> ctx.result("PATCH: " + ctx.body()));
+            server.delete("/text", ctx -> ctx.result("DELETE: " + ctx.body()));
+            
+            assertThat(client.request("/text", builder -> builder.put(HttpRequest.BodyPublishers.ofString("plain text")).header("Content-Type", "text/plain")).body().string()).isEqualTo("PUT: plain text");
+            assertThat(client.request("/text", builder -> builder.patch(HttpRequest.BodyPublishers.ofString("patch data")).header("Content-Type", "text/plain")).body().string()).isEqualTo("PATCH: patch data");
+            assertThat(client.request("/text", builder -> builder.delete(HttpRequest.BodyPublishers.ofString("delete data")).header("Content-Type", "text/plain")).body().string()).isEqualTo("DELETE: delete data");
+        });
     }
 }

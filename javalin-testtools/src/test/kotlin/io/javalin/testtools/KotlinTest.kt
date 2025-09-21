@@ -6,14 +6,15 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
 import io.javalin.testtools.TestTool.Companion.TestLogsKey
-import okhttp3.FormBody
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
+import io.javalin.testtools.FormBody
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.time.Duration
 
 class KotlinTest {
 
@@ -112,22 +113,17 @@ class KotlinTest {
     }
 
     @Test
-    fun `custom OkHttpClient is used`() {
+    fun `custom HttpClient is used`() {
         val app = Javalin.create()
             .get("/hello") { ctx -> ctx.result("Hello, ${ctx.header("X-Welcome")}!") }
 
-        val okHttpClientAddingHeader = OkHttpClient.Builder()
-            .addInterceptor(Interceptor { chain: Interceptor.Chain ->
-                val userRequest = chain.request()
-                chain.proceed(
-                    userRequest.newBuilder()
-                        .addHeader("X-Welcome", "Javalin")
-                        .build()
-                )
-            })
+        val customHttpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
             .build()
+        
+        val defaultHeaders = mapOf("X-Welcome" to "Javalin")
 
-        JavalinTest.test(app, TestConfig(okHttpClient = okHttpClientAddingHeader)) { server, client ->
+        JavalinTest.test(app, TestConfig(httpClient = customHttpClient, defaultHeaders = defaultHeaders)) { server, client ->
             assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, Javalin!")
         }
     }
@@ -185,6 +181,56 @@ class KotlinTest {
             throwingTest(app)
         }
         assertThat(exception.stackTrace.any { it.toString().contains("io.javalin.testtools.KotlinTest.throwingTest") }).isTrue
+    }
+    
+    @Test
+    fun `response headers are accessible`() = JavalinTest.test { server, client ->
+        server.get("/headers") { ctx ->
+            ctx.header("Custom-Header", "custom-value")
+            ctx.header("Another-Header", "another-value") 
+            ctx.result("Response with headers")
+        }
+        
+        val response = client.get("/headers")
+        assertThat(response.headers().get("Custom-Header")).isNotNull().containsExactly("custom-value")
+        assertThat(response.headers().get("Another-Header")).isNotNull().containsExactly("another-value")
+        assertThat(response.headers().get("Non-Existent")).isNull()
+    }
+    
+    @Test
+    fun `empty and null response bodies work`() = JavalinTest.test { server, client ->
+        server.get("/empty") { ctx -> ctx.result("") }
+        server.get("/null") { } // No result set
+        
+        assertThat(client.get("/empty").body?.string()).isEqualTo("")
+        assertThat(client.get("/null").body?.string()).isEqualTo("")
+    }
+    
+    @Test
+    fun `request builder with multiple headers works`() = JavalinTest.test { server, client ->
+        server.post("/multi-headers") { ctx ->
+            ctx.result("Auth: ${ctx.header("Authorization")}, Accept: ${ctx.header("Accept")}, Custom: ${ctx.header("X-Custom")}")
+        }
+        
+        val response = client.request("/multi-headers") { builder ->
+            builder.post(HttpRequest.BodyPublishers.ofString("test-body"))
+                   .header("Authorization", "Bearer token123")
+                   .header("Accept", "application/json")
+                   .header("X-Custom", "test-value")
+        }
+        
+        assertThat(response.body?.string()).isEqualTo("Auth: Bearer token123, Accept: application/json, Custom: test-value")
+    }
+    
+    @Test
+    fun `different http methods with custom bodies work`() = JavalinTest.test { server, client ->
+        server.put("/text") { ctx -> ctx.result("PUT: ${ctx.body()}") }
+        server.patch("/text") { ctx -> ctx.result("PATCH: ${ctx.body()}") }
+        server.delete("/text") { ctx -> ctx.result("DELETE: ${ctx.body()}") }
+        
+        assertThat(client.request("/text") { it.put(HttpRequest.BodyPublishers.ofString("plain text")).header("Content-Type", "text/plain") }.body?.string()).isEqualTo("PUT: plain text")
+        assertThat(client.request("/text") { it.patch(HttpRequest.BodyPublishers.ofString("patch data")).header("Content-Type", "text/plain") }.body?.string()).isEqualTo("PATCH: patch data")
+        assertThat(client.request("/text") { it.delete(HttpRequest.BodyPublishers.ofString("delete data")).header("Content-Type", "text/plain") }.body?.string()).isEqualTo("DELETE: delete data")
     }
 
 }
