@@ -119,6 +119,7 @@ class JettyServer(private val cfg: JavalinConfig) {
         )
         JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/")
         (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // log resource handler info
+        (cfg.pvt.resourceHandler as? io.javalin.http.staticfiles.NativeResourceHandler)?.init() // log resource handler info
         server().connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.baseUrl}")
         }
