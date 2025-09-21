@@ -11,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 import static io.javalin.http.HttpStatus.OK;
@@ -193,5 +194,82 @@ public class JavaTest {
         }
 
         assertThat(app.unsafeConfig().pvt.appDataManager.get(TestLogsKey)).contains("Error in handler code");
+    }
+    
+    @Test
+    public void response_headers_are_accessible() {
+        JavalinTest.test((server, client) -> {
+            server.get("/headers", ctx -> {
+                ctx.header("Custom-Header", "custom-value");
+                ctx.header("Another-Header", "another-value");
+                ctx.result("Response with headers");
+            });
+            
+            Response response = client.get("/headers");
+            List<String> customHeaders = response.headers().get("Custom-Header");
+            org.assertj.core.api.Assertions.assertThat(customHeaders).isNotNull().containsExactly("custom-value");
+            
+            List<String> anotherHeaders = response.headers().get("Another-Header");
+            org.assertj.core.api.Assertions.assertThat(anotherHeaders).isNotNull().containsExactly("another-value");
+            
+            assertThat(response.headers().get("Non-Existent")).isNull();
+        });
+    }
+    
+    @Test
+    public void empty_and_null_response_bodies_work() {
+        JavalinTest.test((server, client) -> {
+            server.get("/empty", ctx -> ctx.result(""));
+            server.get("/null", ctx -> {}); // No result set
+            
+            assertThat(client.get("/empty").body().string()).isEqualTo("");
+            assertThat(client.get("/null").body().string()).isEqualTo("");
+        });
+    }
+    
+    @Test
+    public void request_builder_with_multiple_headers_works() {
+        JavalinTest.test((server, client) -> {
+            server.post("/multi-headers", ctx -> {
+                String result = "Auth: " + ctx.header("Authorization") + 
+                               ", Accept: " + ctx.header("Accept") +
+                               ", Custom: " + ctx.header("X-Custom");
+                ctx.result(result);
+            });
+            
+            Response response = client.request("/multi-headers", builder -> {
+                builder.post(HttpRequest.BodyPublishers.ofString("test-body"))
+                       .header("Authorization", "Bearer token123")
+                       .header("Accept", "application/json")
+                       .header("X-Custom", "test-value");
+            });
+            
+            assertThat(response.body().string()).isEqualTo("Auth: Bearer token123, Accept: application/json, Custom: test-value");
+        });
+    }
+    
+    @Test
+    public void different_http_methods_with_custom_bodies_work() {
+        JavalinTest.test((server, client) -> {
+            server.put("/text", ctx -> ctx.result("PUT: " + ctx.body()));
+            server.patch("/text", ctx -> ctx.result("PATCH: " + ctx.body()));
+            server.delete("/text", ctx -> ctx.result("DELETE: " + ctx.body()));
+            
+            // Test with custom string bodies (not JSON)
+            Response putResponse = client.request("/text", builder -> 
+                builder.put(HttpRequest.BodyPublishers.ofString("plain text"))
+                       .header("Content-Type", "text/plain"));
+            assertThat(putResponse.body().string()).isEqualTo("PUT: plain text");
+            
+            Response patchResponse = client.request("/text", builder -> 
+                builder.patch(HttpRequest.BodyPublishers.ofString("patch data"))
+                       .header("Content-Type", "text/plain"));
+            assertThat(patchResponse.body().string()).isEqualTo("PATCH: patch data");
+            
+            Response deleteResponse = client.request("/text", builder -> 
+                builder.delete(HttpRequest.BodyPublishers.ofString("delete data"))
+                       .header("Content-Type", "text/plain"));
+            assertThat(deleteResponse.body().string()).isEqualTo("DELETE: delete data");
+        });
     }
 }

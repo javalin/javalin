@@ -181,5 +181,77 @@ class KotlinTest {
         }
         assertThat(exception.stackTrace.any { it.toString().contains("io.javalin.testtools.KotlinTest.throwingTest") }).isTrue
     }
+    
+    @Test
+    fun `response headers are accessible`() = JavalinTest.test { server, client ->
+        server.get("/headers") { ctx ->
+            ctx.header("Custom-Header", "custom-value")
+            ctx.header("Another-Header", "another-value") 
+            ctx.result("Response with headers")
+        }
+        
+        val response = client.get("/headers")
+        val customHeaders = response.headers().get("Custom-Header")
+        assertThat(customHeaders).isNotNull().containsExactly("custom-value")
+        
+        val anotherHeaders = response.headers().get("Another-Header")
+        assertThat(anotherHeaders).isNotNull().containsExactly("another-value")
+        
+        assertThat(response.headers().get("Non-Existent")).isNull()
+    }
+    
+    @Test
+    fun `empty and null response bodies work`() = JavalinTest.test { server, client ->
+        server.get("/empty") { ctx -> ctx.result("") }
+        server.get("/null") { } // No result set
+        
+        assertThat(client.get("/empty").body?.string()).isEqualTo("")
+        assertThat(client.get("/null").body?.string()).isEqualTo("")
+    }
+    
+    @Test
+    fun `request builder with multiple headers works`() = JavalinTest.test { server, client ->
+        server.post("/multi-headers") { ctx ->
+            val result = "Auth: ${ctx.header("Authorization")}, " +
+                        "Accept: ${ctx.header("Accept")}, " +
+                        "Custom: ${ctx.header("X-Custom")}"
+            ctx.result(result)
+        }
+        
+        val response = client.request("/multi-headers") { builder ->
+            builder.post(java.net.http.HttpRequest.BodyPublishers.ofString("test-body"))
+                   .header("Authorization", "Bearer token123")
+                   .header("Accept", "application/json")
+                   .header("X-Custom", "test-value")
+        }
+        
+        assertThat(response.body?.string()).isEqualTo("Auth: Bearer token123, Accept: application/json, Custom: test-value")
+    }
+    
+    @Test
+    fun `different http methods with custom bodies work`() = JavalinTest.test { server, client ->
+        server.put("/text") { ctx -> ctx.result("PUT: ${ctx.body()}") }
+        server.patch("/text") { ctx -> ctx.result("PATCH: ${ctx.body()}") }
+        server.delete("/text") { ctx -> ctx.result("DELETE: ${ctx.body()}") }
+        
+        // Test with custom string bodies (not JSON)
+        val putResponse = client.request("/text") { builder ->
+            builder.put(java.net.http.HttpRequest.BodyPublishers.ofString("plain text"))
+                   .header("Content-Type", "text/plain")
+        }
+        assertThat(putResponse.body?.string()).isEqualTo("PUT: plain text")
+        
+        val patchResponse = client.request("/text") { builder ->
+            builder.patch(java.net.http.HttpRequest.BodyPublishers.ofString("patch data"))
+                   .header("Content-Type", "text/plain")
+        }
+        assertThat(patchResponse.body?.string()).isEqualTo("PATCH: patch data")
+        
+        val deleteResponse = client.request("/text") { builder ->
+            builder.delete(java.net.http.HttpRequest.BodyPublishers.ofString("delete data"))
+                   .header("Content-Type", "text/plain")
+        }
+        assertThat(deleteResponse.body?.string()).isEqualTo("DELETE: delete data")
+    }
 
 }
