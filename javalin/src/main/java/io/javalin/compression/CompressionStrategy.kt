@@ -18,7 +18,7 @@ import io.javalin.util.Util
  * @param gzip   instance of Gzip config, default = null
  * @param bufferSize compression buffer size, default = null (uses system default)
  */
-class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null, bufferSize: Int? = null) {
+class CompressionStrategy @JvmOverloads constructor(brotli: Brotli? = null, gzip: Gzip? = null, bufferSize: Int? = null) {
 
     companion object {
         @JvmField
