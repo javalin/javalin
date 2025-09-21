@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Native implementation of precompressing resource handler that doesn't depend on Jetty.
- * Provides the same functionality as JettyPrecompressingResourceHandler but uses only standard Java libraries.
+ * Provides static file precompression and caching functionality using only standard Java libraries.
  */
 object NativePrecompressingResourceHandler {
 

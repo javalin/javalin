@@ -21,7 +21,7 @@ import java.util.*
 
 /**
  * Native implementation of ResourceHandler that doesn't depend on Jetty or Jakarta servlet APIs.
- * Provides the same functionality as JettyResourceHandler but uses only standard Java libraries.
+ * Provides static file serving functionality using only standard Java libraries.
  */
 class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
 
