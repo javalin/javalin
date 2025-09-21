@@ -30,7 +30,7 @@ import jakarta.servlet.ServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.ee10.servlet.ServletResponseHttpWrapper
 import org.eclipse.jetty.ee10.servlet.FilterHolder
-import org.eclipse.jetty.server.AliasCheck
+import io.javalin.http.staticfiles.AliasCheck
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -94,15 +94,17 @@ class TestStaticFiles {
     fun `alias checks for static files should work`() {
         val staticWithAliasResourceApp = Javalin.create { config ->
             // block aliases for txt files
-            val aliasCheck = AliasCheck { path, resource -> !path.endsWith(".txt") }
+            val aliasCheck = object : AliasCheck {
+                override fun checkAlias(path: String, resource: io.javalin.http.staticfiles.NativeResource): Boolean = !path.endsWith(".txt")
+            }
             config.staticFiles.add {
-                it.aliasCheck = aliasCheck
+                it.nativeAliasCheck = aliasCheck
                 it.directory = workingDirectory.absolutePath
                 it.location = Location.EXTERNAL
             }
             config.staticFiles.add {
                 it.hostedPath = "/url-prefix"
-                it.aliasCheck = aliasCheck
+                it.nativeAliasCheck = aliasCheck
             }
         }
 

@@ -27,17 +27,23 @@ class NativeResourceHandler(val pvt: PrivateConfig) : ResourceHandler {
 
     private val lateInitConfigs = mutableListOf<StaticFileConfig>()
     private val handlers = mutableListOf<NativeConfigurableHandler>()
+    private var initialized = false
 
     fun init() {
         handlers.addAll(lateInitConfigs.map { NativeConfigurableHandler(it) })
+        lateInitConfigs.clear()
+        initialized = true
     }
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean {
-        // Always add to handlers regardless of server state since we don't depend on Jetty lifecycle
-        return if (handlers.any { it.config == config }) {
+        return if (handlers.any { it.config == config } || lateInitConfigs.any { it == config }) {
             false
         } else {
-            handlers.add(NativeConfigurableHandler(config))
+            if (initialized) {
+                handlers.add(NativeConfigurableHandler(config))
+            } else {
+                lateInitConfigs.add(config)
+            }
             true
         }
     }
