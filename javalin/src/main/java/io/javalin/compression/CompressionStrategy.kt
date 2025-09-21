@@ -16,8 +16,9 @@ import io.javalin.util.Util
  *
  * @param brotli instance of Brotli config, default = null
  * @param gzip   instance of Gzip config, default = null
+ * @param bufferSize compression buffer size, default = null (uses system default)
  */
-class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
+class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null, bufferSize: Int? = null) {
 
     companion object {
         @JvmField
@@ -47,8 +48,8 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
     init {
         val comp: MutableList<Compressor> = mutableListOf()
         //Enabling brotli requires special handling since brotli is platform dependent
-        if (brotli != null) tryLoadBrotli(brotli)?.let { comp.add(it) }
-        if (gzip != null) comp.add(GzipCompressor(gzip.level))
+        if (brotli != null) tryLoadBrotli(brotli, bufferSize ?: brotli.bufferSize)?.let { comp.add(it) }
+        if (gzip != null) comp.add(GzipCompressor(gzip.level, bufferSize ?: gzip.bufferSize))
         compressors = comp.toList()
     }
 
@@ -78,12 +79,12 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
      * When enabling Brotli, we try loading the jvm-brotli native libraries first.
      * If this fails, we keep Brotli disabled and warn the user.
      */
-    private fun tryLoadBrotli(brotli: Brotli): Compressor? {
+    private fun tryLoadBrotli(brotli: Brotli, bufferSize: Int?): Compressor? {
         if (!brotli4jPresent()) {
             throw IllegalStateException(DependencyUtil.missingDependencyMessage(CoreDependency.BROTLI4J))
         }
         return when {
-            Brotli4jLoader.isAvailable() -> return Brotli4jCompressor(brotli.level)
+            Brotli4jLoader.isAvailable() -> return Brotli4jCompressor(brotli.level, bufferSize)
             else -> {
                 JavalinLogger.warn(
                     """|

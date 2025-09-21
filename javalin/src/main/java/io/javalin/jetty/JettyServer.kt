@@ -6,6 +6,8 @@
 
 package io.javalin.jetty
 
+import io.javalin.compression.CompressionStrategy
+import io.javalin.compression.Gzip
 import io.javalin.config.JavalinConfig
 import io.javalin.event.JavalinLifecycleEvent
 import io.javalin.http.ContentType
@@ -80,6 +82,10 @@ class JettyServer(private val cfg: JavalinConfig) {
             // use the jetty value, either the default or something the user has specified with the cfg.jetty.modifyHttpConfiguration option if there is no value set with the new api.
             if (cfg.http.responseBufferSize == null) {
                 cfg.http.responseBufferSize = httpConfiguration.outputBufferSize
+            }
+            // Set compression buffer size to Jetty output buffer size if not explicitly set
+            if (cfg.http.compressionBufferSize == null) {
+                cfg.http.compressionBufferSize = httpConfiguration.outputBufferSize
             }
             cfg.pvt.jetty.connectors.map { it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
             if (connectors.isEmpty()) { // add default connector if no connectors are specified

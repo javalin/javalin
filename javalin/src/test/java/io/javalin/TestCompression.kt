@@ -11,6 +11,7 @@ import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Compressor
 import io.javalin.compression.Gzip
+import io.javalin.compression.GzipCompressor
 import io.javalin.http.ContentType
 import io.javalin.http.Handler
 import io.javalin.http.Header
@@ -497,5 +498,67 @@ class TestCompression {
     ).execute()
 
     private fun brotliAvailable() = CompressionStrategy.brotliImplAvailable()
+
+    @Test
+    fun `compression buffer size can be configured`() {
+        val gzipBufferSizeApp = Javalin.create {
+            it.http.compressionBufferSize = 8192
+            it.http.gzipOnlyCompression()
+        }.addTestEndpoints()
+        
+        TestUtil.test(gzipBufferSizeApp) { app, http ->
+            // Test that the compressionBufferSize configuration is set
+            assertThat(app.unsafeConfig().http.compressionBufferSize).isEqualTo(8192)
+            // Test that compression still works with the custom buffer size
+            assertValidGzipResponse(http.origin, "/huge")
+        }
+    }
+
+    @Test
+    fun `compression buffer size defaults to jetty output buffer size`() {
+        val defaultApp = Javalin.create()
+        TestUtil.test(defaultApp) { app, http ->
+            // The compressionBufferSize should be set to Jetty's outputBufferSize during server start
+            assertThat(app.unsafeConfig().http.compressionBufferSize).isNotNull()
+            assertThat(app.unsafeConfig().http.compressionBufferSize).isPositive()
+            // It should match the responseBufferSize (both use Jetty outputBufferSize)
+            assertThat(app.unsafeConfig().http.compressionBufferSize).isEqualTo(app.unsafeConfig().http.responseBufferSize)
+        }
+    }
+
+    @Test
+    fun `gzip buffer size validation works`() {
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { 
+            Gzip(6, -1) 
+        }.withMessageContaining("Buffer size must be positive")
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { 
+            Gzip(6, 0) 
+        }.withMessageContaining("Buffer size must be positive")
+    }
+
+    @Test
+    fun `brotli buffer size validation works`() {
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { 
+            Brotli(4, -1) 
+        }.withMessageContaining("Buffer size must be positive")
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { 
+            Brotli(4, 0) 
+        }.withMessageContaining("Buffer size must be positive")
+    }
+
+    @Test
+    fun `compression with different buffer sizes works`() {
+        // Test that compression works with various buffer sizes
+        listOf(512, 1024, 4096, 8192, 16384).forEach { bufferSize ->
+            val app = Javalin.create {
+                it.http.compressionBufferSize = bufferSize
+                it.http.gzipOnlyCompression()
+            }.addTestEndpoints()
+            
+            TestUtil.test(app) { _, http ->
+                assertValidGzipResponse(http.origin, "/huge")
+            }
+        }
+    }
 
 }
