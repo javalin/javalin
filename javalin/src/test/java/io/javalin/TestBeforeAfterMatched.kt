@@ -13,7 +13,8 @@ import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.AliasCheck
+import io.javalin.http.staticfiles.AliasCheck
+import io.javalin.http.staticfiles.AllowAllAliasCheck
 import org.junit.jupiter.api.Test
 
 class TestBeforeAfterMatched {
@@ -314,7 +315,7 @@ class TestBeforeAfterMatched {
         config.staticFiles.add {
             it.directory = "public"
             it.location = Location.CLASSPATH
-            it.aliasCheck = AliasCheck { _, _ -> true }
+            it.nativeAliasCheck = AllowAllAliasCheck
         }
     }) { app, http ->
         app.afterMatched { it.header("X-After", "true") }
@@ -336,7 +337,7 @@ class TestBeforeAfterMatched {
             config.staticFiles.add {
                 it.directory = "public"
                 it.location = Location.CLASSPATH
-                it.aliasCheck = AliasCheck { _, _ -> true }
+                it.nativeAliasCheck = AllowAllAliasCheck
             }
             config.pvt.servletRequestLifecycle = mutableListOf(BEFORE, HTTP, AFTER_MATCHED, ERROR, AFTER)
         }) { app, http ->
