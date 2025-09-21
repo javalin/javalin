@@ -3,6 +3,9 @@ package io.javalin.testtools
 import io.javalin.Javalin
 import io.javalin.config.Key
 import io.javalin.util.JavalinLogger
+import okhttp3.Cookie
+import okhttp3.CookieJar
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
@@ -11,7 +14,19 @@ import java.util.*
 object DefaultTestConfig {
     @JvmStatic var clearCookies: Boolean = true
     @JvmStatic var captureLogs: Boolean = true
-    @JvmStatic var okHttpClient: OkHttpClient = OkHttpClient()
+    @JvmStatic var okHttpClient: OkHttpClient = OkHttpClient.Builder()
+        .cookieJar(object : CookieJar {
+            private val cookieStore = mutableMapOf<String, List<Cookie>>()
+            
+            override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+                cookieStore[url.host] = cookies
+            }
+            
+            override fun loadForRequest(url: HttpUrl): List<Cookie> {
+                return cookieStore[url.host] ?: emptyList()
+            }
+        })
+        .build()
 }
 
 data class TestConfig @JvmOverloads constructor(
