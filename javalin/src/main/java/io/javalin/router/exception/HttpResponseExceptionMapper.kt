@@ -30,9 +30,18 @@ import java.util.*
 object HttpResponseExceptionMapper {
 
     fun handle(e: HttpResponseException, ctx: Context) = when {
-        ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true || ctx.res().contentType == ContentType.HTML -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN)
-        ctx.header(Header.ACCEPT)?.contains(ContentType.JSON) == true || ctx.res().contentType == ContentType.JSON -> ctx.status(e.status).result(jsonResult(e)).contentType(APPLICATION_JSON)
-        else -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN)
+        ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true || ctx.res().contentType == ContentType.HTML -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN).also { setAllowHeaderIfApplicable(e, ctx) }
+        ctx.header(Header.ACCEPT)?.contains(ContentType.JSON) == true || ctx.res().contentType == ContentType.JSON -> ctx.status(e.status).result(jsonResult(e)).contentType(APPLICATION_JSON).also { setAllowHeaderIfApplicable(e, ctx) }
+        else -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN).also { setAllowHeaderIfApplicable(e, ctx) }
+    }
+
+    private fun setAllowHeaderIfApplicable(e: HttpResponseException, ctx: Context) {
+        if (e is MethodNotAllowedResponse) {
+            val allowedMethods = e.details["availableMethods"] ?: e.details["Available methods"]
+            if (allowedMethods != null) {
+                ctx.header(Header.ALLOW, allowedMethods)
+            }
+        }
     }
 
     internal fun jsonResult(e: HttpResponseException) =

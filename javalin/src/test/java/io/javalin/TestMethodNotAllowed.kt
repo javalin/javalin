@@ -38,4 +38,12 @@ class TestMethodNotAllowed {
         assertThat(http.jsonGet("/test").body).isEqualTo(expectedJson)
     }
 
+    @Test
+    fun `405 response includes Allow header`() = TestUtil.test(preferring405Javalin) { _, http ->
+        val response = http.get("/test")
+        assertThat(response.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
+        assertThat(response.headers["Allow"]).isNotNull()
+        assertThat(response.headers["Allow"]!!.first()).isEqualTo("POST, PUT, DELETE")
+    }
+
 }
