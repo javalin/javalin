@@ -46,7 +46,7 @@ class HttpUtil(port: Int) {
     }
 
     // Replace Unirest calls with JDK HTTP client calls but maintain exact same signatures
-    fun get(path: String): HttpResponseWrapper {
+    fun get(path: String): HttpResponse<String> {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .timeout(Duration.ofSeconds(30))
@@ -56,7 +56,7 @@ class HttpUtil(port: Int) {
         return HttpResponseWrapper(response)
     }
     
-    fun get(path: String, headers: Map<String, String>): HttpResponseWrapper {
+    fun get(path: String, headers: Map<String, String>): HttpResponse<String> {
         val requestBuilder = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .timeout(Duration.ofSeconds(30))
@@ -72,7 +72,7 @@ class HttpUtil(port: Int) {
     
     fun post(path: String) = RequestBuilder("POST", origin + path, client)
     
-    fun call(method: HttpMethod, pathname: String): HttpResponseWrapper {
+    fun call(method: HttpMethod, pathname: String): HttpResponse<String> {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + pathname))
             .timeout(Duration.ofSeconds(30))
@@ -82,10 +82,10 @@ class HttpUtil(port: Int) {
         return HttpResponseWrapper(response)
     }
     
-    fun htmlGet(path: String): HttpResponseWrapper = get(path, mapOf("Accept" to ContentType.HTML))
-    fun jsonGet(path: String): HttpResponseWrapper = get(path, mapOf("Accept" to ContentType.JSON))
+    fun htmlGet(path: String): HttpResponse<String> = get(path, mapOf("Accept" to ContentType.HTML))
+    fun jsonGet(path: String): HttpResponse<String> = get(path, mapOf("Accept" to ContentType.JSON))
     
-    fun sse(path: String): CompletableFuture<HttpResponseWrapper> {
+    fun sse(path: String): CompletableFuture<HttpResponse<String>> {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .timeout(Duration.ofSeconds(30))
@@ -98,7 +98,7 @@ class HttpUtil(port: Int) {
             .thenApply { HttpResponseWrapper(it) }
     }
     
-    fun wsUpgradeRequest(path: String): HttpResponseWrapper = 
+    fun wsUpgradeRequest(path: String): HttpResponse<String> = 
         get(path, mapOf(Header.SEC_WEBSOCKET_KEY to "not-null"))
 
     companion object {
@@ -106,36 +106,43 @@ class HttpUtil(port: Int) {
     }
 }
 
-// Duck-typed wrapper that provides Unirest HttpResponse compatibility without strict interface implementation
-class HttpResponseWrapper(private val response: JdkHttpResponse<String>) {
+// Wrapper that implements Unirest HttpResponse interface for compatibility
+class HttpResponseWrapper(private val response: JdkHttpResponse<String>) : HttpResponse<String> {
     
-    fun getStatus() = response.statusCode()
-    fun getStatusText() = ""
-    fun isSuccess() = response.statusCode() in 200..299
-    fun getBody(): String = response.body()
+    override fun getStatus() = response.statusCode()
+    override fun getStatusText() = ""
+    override fun isSuccess() = response.statusCode() in 200..299
+    override fun getBody(): String = response.body()
     
-    fun getHeaders() = object {
+    override fun getHeaders() = object : kong.unirest.Headers {
         private val headerMap = response.headers().map()
-        fun size() = headerMap.size
-        fun getFirst(name: String): String? = headerMap[name]?.firstOrNull()
-        operator fun get(name: String) = headerMap[name]?.toMutableList() ?: mutableListOf()
-        fun all() = mutableListOf<Any>()
-        fun containsKey(name: String) = headerMap.containsKey(name)
+        override fun size() = headerMap.size
+        override fun getFirst(name: String): String? = headerMap[name]?.firstOrNull()
+        override operator fun get(name: String) = headerMap[name]?.toMutableList() ?: mutableListOf()
+        override fun all() = mutableListOf<kong.unirest.Header>()
+        override fun containsKey(name: String) = headerMap.containsKey(name)
+        override fun replace(name: String, value: String) {}
+        override fun replace(name: String, value: MutableCollection<String>) {}
+        override fun add(name: String, value: String) {}
+        override fun add(name: String, value: MutableCollection<String>) {}
+        override fun remove(name: String) {}
+        override fun clear() {}
+        override fun putAll(headers: MutableMap<out String, out MutableList<String>>) {}
     }
     
-    fun getCookies() = object {
-        fun size() = 0
-        fun getNamed(name: String) = null
-        fun getFirst() = null  
-        fun iterator() = mutableListOf<Any>().iterator()
+    override fun getCookies() = object : kong.unirest.Cookies {
+        override fun size() = 0
+        override fun getNamed(name: String) = null
+        override fun getFirst() = null  
+        override fun iterator() = mutableListOf<kong.unirest.Cookie>().iterator()
     }
     
-    fun getParsingError() = null
-    fun ifSuccess(action: java.util.function.Consumer<HttpResponseWrapper>) = 
-        if (isSuccess()) { action.accept(this); this } else this
-    fun ifFailure(action: java.util.function.Consumer<HttpResponseWrapper>) =
-        if (!isSuccess()) { action.accept(this); this } else this
-    fun ifFailure(statusCode: Int, action: java.util.function.Consumer<HttpResponseWrapper>) =
+    override fun getParsingError() = null
+    override fun ifSuccess(action: java.util.function.Consumer<HttpResponse<String>>) = 
+        if (isSuccess) { action.accept(this); this } else this
+    override fun ifFailure(action: java.util.function.Consumer<HttpResponse<String>>) =
+        if (!isSuccess) { action.accept(this); this } else this
+    override fun ifFailure(statusCode: Int, action: java.util.function.Consumer<HttpResponse<String>>) =
         if (status == statusCode) { action.accept(this); this } else this
     
     // Properties for compatibility (these match the original Unirest behavior)
@@ -214,7 +221,7 @@ class RequestBuilder(private val method: String, private val url: String, privat
         return field(name, file.name)
     }
     
-    fun asString(): HttpResponseWrapper {
+    fun asString(): HttpResponse<String> {
         val requestBuilder = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .timeout(Duration.ofSeconds(30))
@@ -236,19 +243,30 @@ class RequestBuilder(private val method: String, private val url: String, privat
 fun HttpResponse<*>.httpCode(): HttpStatus =
     HttpStatus.forStatus(this.status)
 
-// Extension functions for HttpResponseWrapper compatibility
-fun HttpResponseWrapper.assertStatusAndBodyMatch(status: Int, body: String) {
+// Extension functions for HttpResponse<String> compatibility
+fun HttpResponse<String>.assertStatusAndBodyMatch(status: Int, body: String) {
     org.assertj.core.api.Assertions.assertThat(this.status).isEqualTo(status)
     org.assertj.core.api.Assertions.assertThat(this.body).isNotNull.isEqualTo(body)
 }
 
-fun HttpResponseWrapper.assertStatusAndBodyMatch(status: HttpStatus, body: String) {
+fun HttpResponse<String>.assertStatusAndBodyMatch(status: HttpStatus, body: String) {
+    org.assertj.core.api.Assertions.assertThat(this.httpCode()).isEqualTo(status)
+    org.assertj.core.api.Assertions.assertThat(this.body).isNotNull.isEqualTo(body)
+}
+
+// Extension functions for nullable types to handle TestRedirectToLowercasePathPlugin expectations
+fun HttpResponse<String?>.assertStatusAndBodyMatch(status: Int, body: String) {
+    org.assertj.core.api.Assertions.assertThat(this.status).isEqualTo(status)
+    org.assertj.core.api.Assertions.assertThat(this.body).isNotNull.isEqualTo(body)
+}
+
+fun HttpResponse<String?>.assertStatusAndBodyMatch(status: HttpStatus, body: String) {
     org.assertj.core.api.Assertions.assertThat(this.httpCode()).isEqualTo(status)
     org.assertj.core.api.Assertions.assertThat(this.body).isNotNull.isEqualTo(body)
 }
 
 // Extension functions for compatibility with TestCors and similar files that expect header() method
-fun HttpResponseWrapper.header(name: String): String? = this.headers.getFirst(name)
+fun HttpResponse<String>.header(name: String): String? = this.headers.getFirst(name)
 
 // Extension functions for AssertJ compatibility - add describedAs and isEqualTo for common patterns
 fun String?.describedAs(description: String): org.assertj.core.api.AbstractStringAssert<*> = 
