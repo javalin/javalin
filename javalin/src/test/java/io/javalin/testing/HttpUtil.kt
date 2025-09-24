@@ -46,7 +46,7 @@ class HttpUtil(port: Int) {
     }
 
     // Replace Unirest calls with JDK HTTP client calls but maintain exact same signatures
-    fun get(path: String): HttpResponse<String?> {
+    fun get(path: String): HttpResponse<String> {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .timeout(Duration.ofSeconds(30))
@@ -56,7 +56,7 @@ class HttpUtil(port: Int) {
         return HttpResponseWrapper(response)
     }
     
-    fun get(path: String, headers: Map<String, String>): HttpResponse<String?> {
+    fun get(path: String, headers: Map<String, String>): HttpResponse<String> {
         val requestBuilder = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .timeout(Duration.ofSeconds(30))
@@ -72,7 +72,7 @@ class HttpUtil(port: Int) {
     
     fun post(path: String) = RequestBuilder("POST", origin + path, client)
     
-    fun call(method: HttpMethod, pathname: String): HttpResponse<String?> {
+    fun call(method: HttpMethod, pathname: String): HttpResponse<String> {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + pathname))
             .timeout(Duration.ofSeconds(30))
@@ -82,10 +82,10 @@ class HttpUtil(port: Int) {
         return HttpResponseWrapper(response)
     }
     
-    fun htmlGet(path: String): HttpResponse<String?> = get(path, mapOf("Accept" to ContentType.HTML))
-    fun jsonGet(path: String): HttpResponse<String?> = get(path, mapOf("Accept" to ContentType.JSON))
+    fun htmlGet(path: String): HttpResponse<String> = get(path, mapOf("Accept" to ContentType.HTML))
+    fun jsonGet(path: String): HttpResponse<String> = get(path, mapOf("Accept" to ContentType.JSON))
     
-    fun sse(path: String): CompletableFuture<HttpResponse<String?>> {
+    fun sse(path: String): CompletableFuture<HttpResponse<String>> {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .timeout(Duration.ofSeconds(30))
@@ -98,7 +98,7 @@ class HttpUtil(port: Int) {
             .thenApply { HttpResponseWrapper(it) }
     }
     
-    fun wsUpgradeRequest(path: String): HttpResponse<String?> = 
+    fun wsUpgradeRequest(path: String): HttpResponse<String> = 
         get(path, mapOf(Header.SEC_WEBSOCKET_KEY to "not-null"))
 
     companion object {
@@ -107,12 +107,12 @@ class HttpUtil(port: Int) {
 }
 
 // Wrapper that implements Unirest HttpResponse interface for compatibility
-class HttpResponseWrapper(private val response: JdkHttpResponse<String>) : HttpResponse<String?> {
+class HttpResponseWrapper(private val response: JdkHttpResponse<String>) : HttpResponse<String> {
     
     override fun getStatus() = response.statusCode()
     override fun getStatusText() = ""
     override fun isSuccess() = response.statusCode() in 200..299
-    override fun getBody(): String? = response.body()
+    override fun getBody(): String = response.body()
     
     override fun getHeaders() = object : kong.unirest.Headers {
         private val headerMap = response.headers().map()
@@ -139,21 +139,21 @@ class HttpResponseWrapper(private val response: JdkHttpResponse<String>) : HttpR
     }
     
     override fun getParsingError() = null
-    override fun ifSuccess(action: java.util.function.Consumer<HttpResponse<String?>>) = 
+    override fun ifSuccess(action: java.util.function.Consumer<HttpResponse<String>>) = 
         if (isSuccess) { action.accept(this); this } else this
-    override fun ifFailure(action: java.util.function.Consumer<HttpResponse<String?>>) =
+    override fun ifFailure(action: java.util.function.Consumer<HttpResponse<String>>) =
         if (!isSuccess) { action.accept(this); this } else this
-    override fun ifFailure(statusCode: Int, action: java.util.function.Consumer<HttpResponse<String?>>) =
+    override fun ifFailure(statusCode: Int, action: java.util.function.Consumer<HttpResponse<String>>) =
         if (status == statusCode) { action.accept(this); this } else this
     
     // Properties for compatibility (these match the original Unirest behavior)
     val status: Int get() = response.statusCode()
-    val body: String? get() = response.body()
+    val body: String get() = response.body()
     val contentType: String get() = response.headers().firstValue("Content-Type").orElse("")
     val headers = getHeaders()
     
     fun status(): Int = response.statusCode()
-    fun body(): String? = response.body()
+    fun body(): String = response.body()
     fun contentType(): String = response.headers().firstValue("Content-Type").orElse("")
 }
 
@@ -221,7 +221,7 @@ class RequestBuilder(private val method: String, private val url: String, privat
         return field(name, file.name)
     }
     
-    fun asString(): HttpResponse<String?> {
+    fun asString(): HttpResponse<String> {
         val requestBuilder = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .timeout(Duration.ofSeconds(30))
