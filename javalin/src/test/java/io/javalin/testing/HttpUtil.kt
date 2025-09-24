@@ -107,6 +107,7 @@ class HttpUtil(port: Int) {
 }
 
 // Wrapper that implements Unirest HttpResponse interface for compatibility
+// Use a simpler approach - implement the most commonly used methods and provide duck-typing compatibility
 class HttpResponseWrapper(private val response: JdkHttpResponse<String>) : HttpResponse<String> {
     
     override fun getStatus() = response.statusCode()
@@ -114,36 +115,55 @@ class HttpResponseWrapper(private val response: JdkHttpResponse<String>) : HttpR
     override fun isSuccess() = response.statusCode() in 200..299
     override fun getBody(): String = response.body()
     
-    override fun getHeaders() = object : kong.unirest.Headers {
-        private val headerMap = response.headers().map()
-        override fun size() = headerMap.size
-        override fun getFirst(name: String): String? = headerMap[name]?.firstOrNull()
-        override operator fun get(name: String) = headerMap[name]?.toMutableList() ?: mutableListOf()
-        override fun all() = mutableListOf<kong.unirest.Header>()
-        override fun containsKey(name: String) = headerMap.containsKey(name)
-        override fun replace(name: String, value: String) {}
-        override fun replace(name: String, value: MutableCollection<String>) {}
-        override fun add(name: String, value: String) {}
-        override fun add(name: String, value: MutableCollection<String>) {}
-        override fun remove(name: String) {}
-        override fun clear() {}
-        override fun putAll(headers: MutableMap<out String, out MutableList<String>>) {}
+    private val headerMap = response.headers().map()
+    
+    override fun getHeaders(): kong.unirest.Headers {
+        return object : kong.unirest.Headers {
+            override fun size() = headerMap.size
+            override fun getFirst(name: String): String? = headerMap[name]?.firstOrNull()
+            override fun get(name: String) = headerMap[name]?.toMutableList() ?: mutableListOf()
+            override fun all(): MutableList<kong.unirest.Header> {
+                val headers = mutableListOf<kong.unirest.Header>()
+                headerMap.forEach { (name, values) ->
+                    values.forEach { value ->
+                        headers.add(object : kong.unirest.Header {
+                            override fun getName() = name
+                            override fun getValue() = value
+                        })
+                    }
+                }
+                return headers
+            }
+            override fun containsKey(name: String) = headerMap.containsKey(name)
+            override fun replace(name: String, value: String) {}
+            override fun replace(name: String, value: MutableCollection<String>) {}
+            override fun add(name: String, value: String) {}
+            override fun add(name: String, value: MutableCollection<String>) {}
+            override fun remove(name: String) {}
+            override fun clear() {}
+            override fun putAll(headers: MutableMap<out String, out MutableList<String>>) {}
+        }
     }
     
-    override fun getCookies() = object : kong.unirest.Cookies {
-        override fun size() = 0
-        override fun getNamed(name: String) = null
-        override fun getFirst() = null  
-        override fun iterator() = mutableListOf<kong.unirest.Cookie>().iterator()
+    override fun getCookies(): kong.unirest.Cookies {
+        return object : kong.unirest.Cookies {
+            override fun size() = 0
+            override fun getNamed(name: String): kong.unirest.Cookie? = null
+            override fun getFirst(): kong.unirest.Cookie? = null
+            override fun iterator() = mutableListOf<kong.unirest.Cookie>().iterator()
+        }
     }
     
-    override fun getParsingError() = null
-    override fun ifSuccess(action: java.util.function.Consumer<HttpResponse<String>>) = 
+    override fun getParsingError(): java.util.Optional<kong.unirest.UnirestParsingException>? = null
+    
+    override fun ifSuccess(action: java.util.function.Consumer<HttpResponse<String>>): HttpResponse<String> = 
         if (isSuccess) { action.accept(this); this } else this
-    override fun ifFailure(action: java.util.function.Consumer<HttpResponse<String>>) =
+        
+    override fun ifFailure(action: java.util.function.Consumer<HttpResponse<String>>): HttpResponse<String> =
         if (!isSuccess) { action.accept(this); this } else this
-    override fun ifFailure(statusCode: Int, action: java.util.function.Consumer<HttpResponse<String>>) =
-        if (status == statusCode) { action.accept(this); this } else this
+        
+    override fun ifFailure(statusCode: Int, action: java.util.function.Consumer<HttpResponse<String>>): HttpResponse<String> =
+        if (getStatus() == statusCode) { action.accept(this); this } else this
     
     // Properties for compatibility (these match the original Unirest behavior)
     val status: Int get() = response.statusCode()
