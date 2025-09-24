@@ -114,13 +114,15 @@ class HttpResponseWrapper(private val response: JdkHttpResponse<String>) {
     fun isSuccess() = response.statusCode() in 200..299
     fun getBody() = response.body()
     
-    fun getHeaders() = object {
+    val headers = object {
         private val headerMap = response.headers().map()
         fun size() = headerMap.size
         fun getFirst(name: String) = headerMap[name]?.firstOrNull()
         fun get(name: String) = headerMap[name]?.toMutableList() ?: mutableListOf()
         fun containsKey(name: String) = headerMap.containsKey(name)
     }
+    
+    fun getHeaders() = headers
     
     fun getCookies() = object {
         fun size() = 0
@@ -141,7 +143,6 @@ class HttpResponseWrapper(private val response: JdkHttpResponse<String>) {
     val status: Int get() = response.statusCode()
     val body: String get() = response.body()
     val contentType: String get() = response.headers().firstValue("Content-Type").orElse("")
-    val headers = getHeaders()
     fun status(): Int = response.statusCode()
     fun body(): String = response.body()
     fun contentType(): String = response.headers().firstValue("Content-Type").orElse("")
