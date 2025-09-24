@@ -46,7 +46,7 @@ class HttpUtil(port: Int) {
     }
 
     // Replace Unirest calls with JDK HTTP client calls but maintain exact same signatures
-    fun get(path: String): HttpResponse<String> {
+    fun get(path: String): HttpResponseWrapper {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .timeout(Duration.ofSeconds(30))
@@ -56,7 +56,7 @@ class HttpUtil(port: Int) {
         return HttpResponseWrapper(response)
     }
     
-    fun get(path: String, headers: Map<String, String>): HttpResponse<String> {
+    fun get(path: String, headers: Map<String, String>): HttpResponseWrapper {
         val requestBuilder = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .timeout(Duration.ofSeconds(30))
@@ -72,7 +72,7 @@ class HttpUtil(port: Int) {
     
     fun post(path: String) = RequestBuilder("POST", origin + path, client)
     
-    fun call(method: HttpMethod, pathname: String): HttpResponse<String> {
+    fun call(method: HttpMethod, pathname: String): HttpResponseWrapper {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + pathname))
             .timeout(Duration.ofSeconds(30))
@@ -82,10 +82,10 @@ class HttpUtil(port: Int) {
         return HttpResponseWrapper(response)
     }
     
-    fun htmlGet(path: String): HttpResponse<String> = get(path, mapOf("Accept" to ContentType.HTML))
-    fun jsonGet(path: String): HttpResponse<String> = get(path, mapOf("Accept" to ContentType.JSON))
+    fun htmlGet(path: String): HttpResponseWrapper = get(path, mapOf("Accept" to ContentType.HTML))
+    fun jsonGet(path: String): HttpResponseWrapper = get(path, mapOf("Accept" to ContentType.JSON))
     
-    fun sse(path: String): CompletableFuture<HttpResponse<String>> {
+    fun sse(path: String): CompletableFuture<HttpResponseWrapper> {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .timeout(Duration.ofSeconds(30))
@@ -98,7 +98,7 @@ class HttpUtil(port: Int) {
             .thenApply { HttpResponseWrapper(it) }
     }
     
-    fun wsUpgradeRequest(path: String): HttpResponse<String> = 
+    fun wsUpgradeRequest(path: String): HttpResponseWrapper = 
         get(path, mapOf(Header.SEC_WEBSOCKET_KEY to "not-null"))
 
     companion object {
@@ -106,75 +106,44 @@ class HttpUtil(port: Int) {
     }
 }
 
-// Wrapper that implements Unirest HttpResponse interface for compatibility
-// Use a simpler approach - implement the most commonly used methods and provide duck-typing compatibility
-class HttpResponseWrapper(private val response: JdkHttpResponse<String>) : HttpResponse<String> {
+// Temporary workaround - use duck typing instead of interface implementation
+// This approach focuses on making the tests work rather than perfect interface compliance
+class HttpResponseWrapper(private val response: JdkHttpResponse<String>) {
     
-    override fun getStatus() = response.statusCode()
-    override fun getStatusText() = ""
-    override fun isSuccess() = response.statusCode() in 200..299
-    override fun getBody(): String = response.body()
-    
-    private val headerMap = response.headers().map()
-    
-    override fun getHeaders(): kong.unirest.Headers {
-        return object : kong.unirest.Headers {
-            override fun size() = headerMap.size
-            override fun getFirst(name: String): String? = headerMap[name]?.firstOrNull()
-            override fun get(name: String) = headerMap[name]?.toMutableList() ?: mutableListOf()
-            override fun all(): MutableList<kong.unirest.Header> {
-                val headers = mutableListOf<kong.unirest.Header>()
-                headerMap.forEach { (name, values) ->
-                    values.forEach { value ->
-                        headers.add(object : kong.unirest.Header {
-                            override fun getName() = name
-                            override fun getValue() = value
-                        })
-                    }
-                }
-                return headers
-            }
-            override fun containsKey(name: String) = headerMap.containsKey(name)
-            override fun replace(name: String, value: String) {}
-            override fun replace(name: String, value: MutableCollection<String>) {}
-            override fun add(name: String, value: String) {}
-            override fun add(name: String, value: MutableCollection<String>) {}
-            override fun remove(name: String) {}
-            override fun clear() {}
-            override fun putAll(headers: MutableMap<out String, out MutableList<String>>) {}
-        }
-    }
-    
-    override fun getCookies(): kong.unirest.Cookies {
-        return object : kong.unirest.Cookies {
-            override fun size() = 0
-            override fun getNamed(name: String): kong.unirest.Cookie? = null
-            override fun getFirst(): kong.unirest.Cookie? = null
-            override fun iterator() = mutableListOf<kong.unirest.Cookie>().iterator()
-        }
-    }
-    
-    override fun getParsingError(): java.util.Optional<kong.unirest.UnirestParsingException>? = null
-    
-    override fun ifSuccess(action: java.util.function.Consumer<HttpResponse<String>>): HttpResponse<String> = 
-        if (isSuccess) { action.accept(this); this } else this
-        
-    override fun ifFailure(action: java.util.function.Consumer<HttpResponse<String>>): HttpResponse<String> =
-        if (!isSuccess) { action.accept(this); this } else this
-        
-    override fun ifFailure(statusCode: Int, action: java.util.function.Consumer<HttpResponse<String>>): HttpResponse<String> =
-        if (getStatus() == statusCode) { action.accept(this); this } else this
-    
-    // Properties for compatibility (these match the original Unirest behavior)
+    // Core properties that tests expect
     val status: Int get() = response.statusCode()
     val body: String get() = response.body()
     val contentType: String get() = response.headers().firstValue("Content-Type").orElse("")
-    val headers = getHeaders()
+    
+    // Headers object that provides the most commonly used methods
+    val headers = object {
+        private val headerMap = response.headers().map()
+        fun getFirst(name: String): String? = headerMap[name]?.firstOrNull()
+        fun size() = headerMap.size
+        fun containsKey(name: String) = headerMap.containsKey(name)
+        fun get(name: String) = headerMap[name]?.toMutableList() ?: mutableListOf()
+    }
+    
+    // Methods that tests call
+    fun getStatus() = response.statusCode()
+    fun getStatusText() = ""
+    fun isSuccess() = response.statusCode() in 200..299
+    fun getBody(): String = response.body()
+    fun getHeaders() = headers
+    fun getParsingError() = null
     
     fun status(): Int = response.statusCode()
     fun body(): String = response.body()
     fun contentType(): String = response.headers().firstValue("Content-Type").orElse("")
     fun httpCode(): HttpStatus = HttpStatus.forStatus(this.status)
+    
+    // For tests that expect these methods
+    fun ifSuccess(action: java.util.function.Consumer<HttpResponseWrapper>): HttpResponseWrapper = 
+        if (isSuccess()) { action.accept(this); this } else this
+    fun ifFailure(action: java.util.function.Consumer<HttpResponseWrapper>): HttpResponseWrapper =
+        if (!isSuccess()) { action.accept(this); this } else this
+    fun ifFailure(statusCode: Int, action: java.util.function.Consumer<HttpResponseWrapper>): HttpResponseWrapper =
+        if (getStatus() == statusCode) { action.accept(this); this } else this
 }
 
 // Request builder that mimics Unirest RequestBuilder
@@ -241,7 +210,7 @@ class RequestBuilder(private val method: String, private val url: String, privat
         return field(name, file.name)
     }
     
-    fun asString(): HttpResponse<String> {
+    fun asString(): HttpResponseWrapper {
         val requestBuilder = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .timeout(Duration.ofSeconds(30))
@@ -263,13 +232,13 @@ class RequestBuilder(private val method: String, private val url: String, privat
 fun HttpResponse<*>.httpCode(): HttpStatus =
     HttpStatus.forStatus(this.status)
 
-// Extension functions for HttpResponse<String> compatibility
-fun HttpResponse<String>.assertStatusAndBodyMatch(status: Int, body: String) {
+// Extension functions for HttpResponseWrapper compatibility
+fun HttpResponseWrapper.assertStatusAndBodyMatch(status: Int, body: String) {
     org.assertj.core.api.Assertions.assertThat(this.status).isEqualTo(status)
     org.assertj.core.api.Assertions.assertThat(this.body).isNotNull.isEqualTo(body)
 }
 
-fun HttpResponse<String>.assertStatusAndBodyMatch(status: HttpStatus, body: String) {
+fun HttpResponseWrapper.assertStatusAndBodyMatch(status: HttpStatus, body: String) {
     org.assertj.core.api.Assertions.assertThat(this.httpCode()).isEqualTo(status)
     org.assertj.core.api.Assertions.assertThat(this.body).isNotNull.isEqualTo(body)
 }
@@ -286,7 +255,7 @@ fun HttpResponse<String?>.assertStatusAndBodyMatch(status: HttpStatus, body: Str
 }
 
 // Extension functions for compatibility with TestCors and similar files that expect header() method
-fun HttpResponse<String>.header(name: String): String? = this.headers.getFirst(name)
+fun HttpResponseWrapper.header(name: String): String? = this.headers.getFirst(name)
 
 // Extension functions for AssertJ compatibility - add describedAs and isEqualTo for common patterns
 fun String?.describedAs(description: String): org.assertj.core.api.AbstractStringAssert<*> = 
