@@ -18,7 +18,6 @@ import io.javalin.http.servlet.SESSION_CACHE_KEY_PREFIX
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
@@ -284,7 +283,7 @@ class TestRequest {
             val basicAuthCredentials = ctx.basicAuthCredentials()
             ctx.result(basicAuthCredentials?.username + "|" + basicAuthCredentials?.password)
         }
-        val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-password").asString()
+        val response = http.basicAuth("some-username", "some-password").get("/")
         assertThat(response.body).isEqualTo("some-username|some-password")
     }
 
@@ -294,7 +293,7 @@ class TestRequest {
             val basicAuthCredentials = ctx.basicAuthCredentials()
             ctx.result(basicAuthCredentials?.username + "|" + basicAuthCredentials?.password)
         }
-        val response = Unirest.get("${http.origin}/").header(Header.AUTHORIZATION, "BAZIK 123").asString()
+        val response = http.get("/", mapOf(Header.AUTHORIZATION to "BAZIK 123"))
         assertThat(response.body).isEqualTo("null|null")
     }
 
@@ -304,7 +303,7 @@ class TestRequest {
             val basicAuthCredentials = ctx.basicAuthCredentials()
             ctx.result(basicAuthCredentials?.username + "|" + basicAuthCredentials?.password)
         }
-        val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-pass:::word").asString()
+        val response = http.basicAuth("some-username", "some-pass:::word").get("/")
         assertThat(response.body).isEqualTo("some-username|some-pass:::word")
     }
 
@@ -320,8 +319,8 @@ class TestRequest {
         TestUtil.test(basicAuthApp) { _, http ->
             assertThat(http.getBody("/hellopath")).isEqualTo("Unauthorized")
             assertThat(http.getBody("/html.html")).contains("Unauthorized")
-            Unirest.get("${http.origin}/hellopath").basicAuth("u", "p").asString().let { assertThat(it.body).isEqualTo("Hello") }
-            Unirest.get("${http.origin}/html.html").basicAuth("u", "p").asString().let { assertThat(it.body).contains("HTML works") }
+            http.basicAuth("u", "p").get("/hellopath").let { assertThat(it.body).isEqualTo("Hello") }
+            http.basicAuth("u", "p").get("/html.html").let { assertThat(it.body).contains("HTML works") }
         }
     }
 

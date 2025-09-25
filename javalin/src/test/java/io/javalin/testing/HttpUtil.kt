@@ -16,6 +16,7 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
+import java.util.Base64
 
 class HttpUtil(port: Int) {
 
@@ -90,6 +91,11 @@ class HttpUtil(port: Int) {
         
         val response = createClient().send(request, java.net.http.HttpResponse.BodyHandlers.ofString())  
         return JavalinHttpResponse(response)
+    }
+
+    fun basicAuth(username: String, password: String): BasicAuthRequestBuilder {
+        val authString = Base64.getEncoder().encodeToString("$username:$password".toByteArray())
+        return BasicAuthRequestBuilder(this, "Basic $authString")
     }
 
     fun htmlGet(path: String): JavalinHttpResponse = get(path, mapOf("Accept" to ContentType.HTML))
@@ -204,6 +210,19 @@ class PostRequestBuilder(
         
         val response = client.send(requestBuilder.build(), java.net.http.HttpResponse.BodyHandlers.ofString())
         return JavalinHttpResponse(response)
+    }
+}
+
+class BasicAuthRequestBuilder(
+    private val httpUtil: HttpUtil,
+    private val authHeader: String
+) {
+    fun get(path: String): JavalinHttpResponse {
+        return httpUtil.get(path, mapOf(Header.AUTHORIZATION to authHeader))
+    }
+    
+    fun asString(): JavalinHttpResponse {
+        return httpUtil.get("/", mapOf(Header.AUTHORIZATION to authHeader))
     }
 }
 
