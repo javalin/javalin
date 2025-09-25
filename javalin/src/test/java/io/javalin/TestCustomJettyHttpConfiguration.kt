@@ -7,7 +7,7 @@
 package io.javalin
 
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
+import io.javalin.testing.HttpUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.HttpConnectionFactory
@@ -71,7 +71,8 @@ class TestCustomJettyHttpConfiguration {
 
         TestUtil.test(app) { server, _ ->
             server.get("*") { it.result("PORT WORKS") }
-            val response = Unirest.get("http://localhost:$port/").asString()
+            val http = HttpUtil(port)
+            val response = http.get("/")
             assertThat(response.body).isEqualTo("PORT WORKS")
             assertThat(response.headers.getFirst("X-Powered-By")).isNotBlank()
 
