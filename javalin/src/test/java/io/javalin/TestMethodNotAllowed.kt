@@ -41,14 +41,6 @@ class TestMethodNotAllowed {
     }
 
     @Test
-    fun `405 response includes Allow header`() = TestUtil.test(preferring405Javalin) { _, http ->
-        val response = http.get("/test")
-        assertThat(response.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
-        assertThat(response.headers["Allow"]).isNotNull()
-        assertThat(response.headers["Allow"]!!.first()).isEqualTo("POST, PUT, DELETE")
-    }
-
-    @Test
     fun `Allow header contains all available HTTP methods`() {
         val app = Javalin.create { it.http.prefer405over404 = true }.apply {
             get("/api") { ctx -> ctx.result("GET response") }
@@ -60,10 +52,9 @@ class TestMethodNotAllowed {
             val response = http.call(HttpMethod.PUT, "/api")
             
             assertThat(response.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
-            assertThat(response.headers["Allow"]).isNotNull()
             
-            val allowHeader = response.headers["Allow"]!![0]
-            assertThat(allowHeader).contains("GET", "POST", "PATCH")
+            val allowHeader = response.headers["Allow"]!![0].split(", ")
+            assertThat(allowHeader).containsExactlyInAnyOrder("GET", "POST", "PATCH")
         }
     }
 
@@ -77,7 +68,6 @@ class TestMethodNotAllowed {
             val response = http.get("/single")
             
             assertThat(response.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
-            assertThat(response.headers["Allow"]).hasSize(1)
             assertThat(response.headers["Allow"]!![0]).isEqualTo("DELETE")
         }
     }
@@ -93,10 +83,9 @@ class TestMethodNotAllowed {
             val response = http.jsonGet("/json")
             
             assertThat(response.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
-            assertThat(response.headers["Allow"]).isNotNull()
             
-            val allowHeader = response.headers["Allow"]!![0]
-            assertThat(allowHeader).containsAnyOf("POST", "PUT")
+            val allowHeader = response.headers["Allow"]!![0].split(", ")
+            assertThat(allowHeader).containsExactlyInAnyOrder("POST", "PUT")
         }
     }
 

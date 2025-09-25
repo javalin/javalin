@@ -30,16 +30,25 @@ import java.util.*
 object HttpResponseExceptionMapper {
 
     fun handle(e: HttpResponseException, ctx: Context) = when {
-        ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true || ctx.res().contentType == ContentType.HTML -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN).also { setAllowHeaderIfApplicable(e, ctx) }
-        ctx.header(Header.ACCEPT)?.contains(ContentType.JSON) == true || ctx.res().contentType == ContentType.JSON -> ctx.status(e.status).result(jsonResult(e)).contentType(APPLICATION_JSON).also { setAllowHeaderIfApplicable(e, ctx) }
-        else -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN).also { setAllowHeaderIfApplicable(e, ctx) }
+        ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true || ctx.res().contentType == ContentType.HTML -> ctx.htmlResponse(e)
+        ctx.header(Header.ACCEPT)?.contains(ContentType.JSON) == true || ctx.res().contentType == ContentType.JSON -> ctx.jsonResponse(e)
+        else -> ctx.plainResponse(e)
     }
 
-    private fun setAllowHeaderIfApplicable(e: HttpResponseException, ctx: Context) {
+    private fun Context.htmlResponse(e: HttpResponseException) = 
+        status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN).setAllowHeaderIfApplicable(e)
+
+    private fun Context.jsonResponse(e: HttpResponseException) = 
+        status(e.status).result(jsonResult(e)).contentType(APPLICATION_JSON).setAllowHeaderIfApplicable(e)
+
+    private fun Context.plainResponse(e: HttpResponseException) = 
+        status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN).setAllowHeaderIfApplicable(e)
+
+    private fun Context.setAllowHeaderIfApplicable(e: HttpResponseException) = also {
         if (e is MethodNotAllowedResponse) {
             val allowedMethods = e.details["availableMethods"] ?: e.details["Available methods"]
             if (allowedMethods != null) {
-                ctx.header(Header.ALLOW, allowedMethods)
+                header(Header.ALLOW, allowedMethods)
             }
         }
     }
