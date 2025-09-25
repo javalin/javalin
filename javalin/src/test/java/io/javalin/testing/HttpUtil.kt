@@ -131,6 +131,7 @@ class PostRequestBuilder(
     private val headers = mutableMapOf<String, String>()
     private var bodyContent: String? = null
     private val queryParams = mutableListOf<Pair<String, String>>()
+    private val formFields = mutableListOf<Pair<String, String>>()
 
     fun header(name: String, value: String): PostRequestBuilder {
         headers[name] = value
@@ -157,6 +158,11 @@ class PostRequestBuilder(
         return this
     }
 
+    fun field(name: String, value: String): PostRequestBuilder {
+        formFields.add(name to value)
+        return this
+    }
+
     fun asString(): JavalinHttpResponse {
         val finalUrl = if (queryParams.isNotEmpty()) {
             val queryString = queryParams.joinToString("&") { (name, value) ->
@@ -167,9 +173,23 @@ class PostRequestBuilder(
             url
         }
         
+        // Determine body content
+        val finalBodyContent = when {
+            formFields.isNotEmpty() -> {
+                // Set form content type if not already set
+                if (!headers.containsKey("Content-Type")) {
+                    headers["Content-Type"] = "application/x-www-form-urlencoded"
+                }
+                formFields.joinToString("&") { (name, value) ->
+                    "${java.net.URLEncoder.encode(name, "UTF-8")}=${java.net.URLEncoder.encode(value, "UTF-8")}"
+                }
+            }
+            else -> bodyContent ?: ""
+        }
+        
         val requestBuilder = HttpRequest.newBuilder()
             .uri(URI.create(finalUrl))
-            .POST(HttpRequest.BodyPublishers.ofString(bodyContent ?: ""))
+            .POST(HttpRequest.BodyPublishers.ofString(finalBodyContent))
         
         // Add default headers first
         HttpUtil.addDefaultHeaders(requestBuilder)

@@ -11,7 +11,6 @@ import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.net.URLEncoder
@@ -48,7 +47,7 @@ class TestEncoding {
     fun `URLEncoded query-params work ISO-8859-1`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.queryParam("qp")!!) }
         val encoded = URLEncoder.encode("æøå", "ISO-8859-1")
-        val response = Unirest.get(http.origin + "/?qp=$encoded").header("Content-Type", "text/plain; charset=ISO-8859-1").asString()
+        val response = http.call("GET", "/?qp=$encoded", mapOf("Content-Type" to "text/plain; charset=ISO-8859-1"))
         assertThat(response.body).isEqualTo("æøå")
     }
 
@@ -94,7 +93,7 @@ class TestEncoding {
     @Test
     fun `URLEncoded form-params work Windows-1252`() = TestUtil.test { app, http ->
         app.post("/") { it.result(it.formParam("fp")!!) }
-        val response = Unirest.post(http.origin)
+        val response = http.post("/")
             .header(Header.CONTENT_TYPE, "text/plain; charset=Windows-1252")
             .body("fp=${URLEncoder.encode("æøå", "Windows-1252")}")
             .asString()
@@ -104,7 +103,7 @@ class TestEncoding {
     @Test
     fun `URLEncoded form-params work Windows-1252 alt`() = TestUtil.test { app, http ->
         app.post("/") { it.result(it.formParam("fp")!!) }
-        val response = Unirest.post(http.origin)
+        val response = http.post("/")
             .header(Header.CONTENT_ENCODING, "text/plain; charset=Windows-1252")
             .field("fp", "æøå")
             .asString()

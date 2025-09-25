@@ -22,7 +22,7 @@ import io.javalin.testing.fasterJacksonMapper
 import io.javalin.websocket.WsCloseStatus
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.pingFutures
-import kong.unirest.Unirest
+import io.javalin.testing.HttpUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.util.BufferUtil
 
@@ -233,9 +233,8 @@ class TestWebSocket {
 
     @Test
     fun `websocket 404 works`() = TestUtil.test { app, _ ->
-        val response = Unirest.get("http://localhost:" + app.port() + "/invalid-path")
-            .header("Connection", "Upgrade")
-            .header("Upgrade", "websocket")
+        val http = HttpUtil(app.port())
+        val response = http.wsUpgradeRequest("/invalid-path")
             .header("Host", "localhost:" + app.port())
             .header("Sec-WebSocket-Key", "SGVsbG8sIHdvcmxkIQ==")
             .header("Sec-WebSocket-Version", "13")
@@ -349,11 +348,8 @@ class TestWebSocket {
         // Test successful upgrade
         TestClient(app, "/upgrade-test").connectAndDisconnect()
         // Test failed upgrade (404)
-        val response = Unirest.get("http://localhost:${app.port()}/non-existent-ws")
-            .header(Header.SEC_WEBSOCKET_KEY, "test-key")
-            .header(Header.UPGRADE, "websocket")
-            .header(Header.CONNECTION, "upgrade")
-            .asString()
+        val http = HttpUtil(app.port())
+        val response = http.wsUpgradeRequest("/non-existent-ws")
         assertThat(response.status).isEqualTo(404)
         
         // Verify that both successful and failed upgrades are logged
@@ -377,11 +373,8 @@ class TestWebSocket {
         app.ws("/auth-ws") {}
         
         // Test failed upgrade due to authentication
-        val response = Unirest.get("http://localhost:${app.port()}/auth-ws")
-            .header(Header.SEC_WEBSOCKET_KEY, "test-key")
-            .header(Header.UPGRADE, "websocket")
-            .header(Header.CONNECTION, "upgrade")
-            .asString()
+        val http = HttpUtil(app.port())
+        val response = http.wsUpgradeRequest("/auth-ws")
         assertThat(response.status).isEqualTo(401)
         
         // Verify that the failed upgrade due to authentication error is logged
@@ -606,10 +599,11 @@ class TestWebSocket {
     @Test
     fun `websocket subprotocol is set if included`() = TestUtil.test { app, http ->
         app.ws("/ws") {}
-        val response = Unirest.get("http://localhost:${app.port()}/ws")
-            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
-            .header(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, "mqtt")
-            .asString()
+        val httpClient = HttpUtil(app.port())
+        val response = httpClient.call("GET", "/ws", mapOf(
+            Header.SEC_WEBSOCKET_KEY to "not-null",
+            WebSocketConstants.SEC_WEBSOCKET_PROTOCOL to "mqtt"
+        ))
         assertThat(response.headers.getFirst(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)).isEqualTo("mqtt")
     }
 
