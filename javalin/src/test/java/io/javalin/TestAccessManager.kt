@@ -17,7 +17,6 @@ import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -73,7 +72,9 @@ class TestAccessManager {
         assertThat(callWithRole(http.origin, "/users/3", "ROLE_THREE")).isEqualTo(UNAUTHORIZED.message)
     }
 
-    private fun callWithRole(origin: String, path: String, role: String) =
-        Unirest.get(origin + path).queryString("role", role).asString().body
+    private fun callWithRole(origin: String, path: String, role: String): String {
+        val http = io.javalin.testing.HttpUtil(java.net.URI.create(origin).port)
+        return http.get(path, mapOf("role" to role)).body
+    }
 
 }

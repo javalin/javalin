@@ -31,8 +31,6 @@ import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.okHandler
 import io.javalin.testing.httpCode
-import kong.unirest.HttpMethod
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
@@ -74,7 +72,7 @@ class TestApiBuilder {
             }
         }
     ) { app, http ->
-        val httpMethods = arrayOf(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH)
+        val httpMethods = arrayOf("GET", "POST", "PUT", "DELETE", "PATCH")
         for (httpMethod in httpMethods) {
             assertThat(http.call(httpMethod, "/api").httpCode()).isEqualTo(OK)
             assertThat(http.call(httpMethod, "/api/user").httpCode()).isEqualTo(OK)
