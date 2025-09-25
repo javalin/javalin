@@ -183,8 +183,8 @@ class TestCustomJetty {
         }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { it.result("Hello Javalin World!") }
-            assertThat(http.getBody("/api")).contains("Hello Javalin World!")
-            assertThat(http.getBody("/other-servlet")).contains("Hello Servlet World!")
+            assertThat(http.getBody("/api/")).contains("Hello Javalin World!")
+            assertThat(http.getBody("/other-servlet/")).contains("Hello Servlet World!")
         }
     }
 

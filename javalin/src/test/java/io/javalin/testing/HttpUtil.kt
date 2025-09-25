@@ -9,7 +9,6 @@ package io.javalin.testing
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
-import kong.unirest.HttpMethod
 import java.net.CookieManager
 import java.net.CookiePolicy
 import java.net.URI
@@ -24,7 +23,7 @@ class HttpUtil(port: Int) {
     val origin: String = "http://localhost:$port"
 
     // Use a separate client for redirects to allow toggling
-    private var followRedirects = false
+    private var followRedirects = true
     private val cookieManager = CookieManager().apply { setCookiePolicy(CookiePolicy.ACCEPT_ALL) }
 
     private fun createClient() = HttpClient.newBuilder()
@@ -32,6 +31,16 @@ class HttpUtil(port: Int) {
         .cookieHandler(cookieManager)
         .followRedirects(if (followRedirects) HttpClient.Redirect.NORMAL else HttpClient.Redirect.NEVER)
         .build()
+
+    private fun addDefaultHeaders(requestBuilder: HttpRequest.Builder) {
+        requestBuilder.header("User-Agent", "unirest-java/3.1.00")
+    }
+
+    companion object {
+        fun addDefaultHeaders(requestBuilder: HttpRequest.Builder) {
+            requestBuilder.header("User-Agent", "unirest-java/3.1.00")
+        }
+    }
 
     fun enableUnirestRedirects() { followRedirects = true }
     fun disableUnirestRedirects() { followRedirects = false }
@@ -42,7 +51,10 @@ class HttpUtil(port: Int) {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .GET()
-            .apply { headers.forEach { (name, value) -> header(name, value) } }
+            .apply { 
+                addDefaultHeaders(this)
+                headers.forEach { (name, value) -> header(name, value) } 
+            }
             .build()
         
         val response = createClient().send(request, java.net.http.HttpResponse.BodyHandlers.ofString())
@@ -55,20 +67,11 @@ class HttpUtil(port: Int) {
 
     fun post(path: String) = PostRequestBuilder(origin + path, cookieManager, followRedirects)
 
-    fun call(method: HttpMethod, pathname: String): JavalinHttpResponse {
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(origin + pathname))
-            .method(method.name(), HttpRequest.BodyPublishers.noBody())
-            .build()
-        
-        val response = createClient().send(request, java.net.http.HttpResponse.BodyHandlers.ofString())
-        return JavalinHttpResponse(response)
-    }
-
     fun call(methodName: String, pathname: String): JavalinHttpResponse {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + pathname))
             .method(methodName, HttpRequest.BodyPublishers.noBody())
+            .apply { addDefaultHeaders(this) }
             .build()
         
         val response = createClient().send(request, java.net.http.HttpResponse.BodyHandlers.ofString())  
@@ -84,6 +87,7 @@ class HttpUtil(port: Int) {
             .header("Accept", "text/event-stream")
             .header("Cache-Control", "no-cache")
             .GET()
+            .apply { addDefaultHeaders(this) }
             .build()
         
         return createClient().sendAsync(request, java.net.http.HttpResponse.BodyHandlers.ofString())
@@ -101,7 +105,7 @@ class JavalinHttpResponse(private val response: java.net.http.HttpResponse<Strin
 }
 
 class HttpHeaders(private val headers: java.net.http.HttpHeaders) {
-    fun getFirst(name: String): String? = headers.firstValue(name).orElse(null)
+    fun getFirst(name: String): String = headers.firstValue(name).orElse("")
     operator fun get(name: String): List<String>? = headers.allValues(name).takeIf { it.isNotEmpty() }
 }
 
@@ -153,6 +157,9 @@ class PostRequestBuilder(
             .uri(URI.create(finalUrl))
             .POST(HttpRequest.BodyPublishers.ofString(bodyContent ?: ""))
         
+        // Add default headers first
+        HttpUtil.addDefaultHeaders(requestBuilder)
+        
         headers.forEach { (name, value) -> requestBuilder.header(name, value) }
         
         val client = HttpClient.newBuilder()
@@ -167,8 +174,3 @@ class PostRequestBuilder(
 }
 
 fun JavalinHttpResponse.httpCode(): HttpStatus = HttpStatus.forStatus(this.status)
-
-// Compatibility with kong.unirest.HttpResponse 
-fun kong.unirest.HttpResponse<*>.httpCode(): HttpStatus = HttpStatus.forStatus(this.status)
-fun kong.unirest.HttpResponse<String>.header(name: String): String = this.headers.getFirst(name) ?: ""
-val kong.unirest.HttpResponse<*>.allowHeader: String get() = this.headers[io.javalin.http.Header.ALLOW]!![0]

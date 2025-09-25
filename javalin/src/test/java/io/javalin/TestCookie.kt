@@ -60,7 +60,7 @@ class TestCookie {
     @Test
     fun `single cookie works`() = TestUtil.test { app, http ->
         app.get("/read-cookie-2") { it.result(it.cookie("my-cookie")!!) }
-        val response = Unirest.get("${http.origin}/read-cookie-2").header(Header.COOKIE, "my-cookie=my-cookie-value").asString()
+        val response = http.get("/read-cookie-2", mapOf(Header.COOKIE to "my-cookie=my-cookie-value"))
         assertThat(response.body).isEqualTo("my-cookie-value")
     }
 
@@ -74,7 +74,7 @@ class TestCookie {
     @Test
     fun `cookie-map returns all cookies if cookies are set`() = TestUtil.test { app, http ->
         app.get("/read-cookie-4") { it.result(it.cookieMap().toString()) }
-        val response = Unirest.get("${http.origin}/read-cookie-4").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString()
+        val response = http.get("/read-cookie-4", mapOf(Header.COOKIE to "k1=v1;k2=v2;k3=v3"))
         assertThat(response.body).isEqualTo("{k1=v1, k2=v2, k3=v3}")
     }
 

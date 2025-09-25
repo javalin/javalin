@@ -8,10 +8,11 @@
 
 package io.javalin;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
+import io.javalin.testing.HttpUtil;
+import io.javalin.testing.JavalinHttpResponse;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.junit.jupiter.api.Disabled;
@@ -55,9 +56,9 @@ public class TestGracefulShutdown {
 
     private void testIfShutdownIsGraceful(Javalin app) throws Exception {
         performBlockingRequest(app);
-        Future<HttpResponse<String>> asyncResponse = performAsyncRequest(app);
+        Future<JavalinHttpResponse> asyncResponse = performAsyncRequest(app);
         app.stop(); // request has not completed yet
-        assertEquals(asyncResponse.get().getStatus(), OK.getCode());
+        assertEquals(asyncResponse.get().status, OK.getCode());
     }
 
     private void addEndpoints(Javalin app) {
@@ -66,13 +67,13 @@ public class TestGracefulShutdown {
     }
 
     private void performBlockingRequest(Javalin app) throws Exception {
-        String requestUri = String.format("http://localhost:%d/%s", app.port(), "immediate-response");
-        Unirest.get(requestUri).asString();
+        HttpUtil http = new HttpUtil(app.port());
+        http.get("/immediate-response");
     }
 
-    private Future<HttpResponse<String>> performAsyncRequest(Javalin app) throws Exception {
-        String requestUri = String.format("http://localhost:%d/%s", app.port(), "delayed-response");
-        Future<HttpResponse<String>> responseFuture = Unirest.get(requestUri).asStringAsync();
+    private Future<JavalinHttpResponse> performAsyncRequest(Javalin app) throws Exception {
+        HttpUtil http = new HttpUtil(app.port());
+        CompletableFuture<JavalinHttpResponse> responseFuture = http.sse("/delayed-response");
         Thread.sleep(CONNECT_WAIT_TIME_IN_MSECS);
         return responseFuture;
     }
