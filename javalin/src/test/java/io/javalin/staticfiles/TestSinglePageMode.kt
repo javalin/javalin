@@ -17,7 +17,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import io.javalin.testing.UnirestReplacement as Unirest
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test

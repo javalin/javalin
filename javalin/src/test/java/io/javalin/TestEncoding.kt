@@ -11,7 +11,7 @@ import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.testing.TestUtil
-import io.javalin.testing.UnirestReplacement as Unirest
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.net.URLEncoder

@@ -27,7 +27,7 @@ import io.javalin.router.matcher.WildcardBracketAdjacentException
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import io.javalin.websocket.WsHandlerType
-import io.javalin.testing.HttpMethod
+import kong.unirest.HttpMethod
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
