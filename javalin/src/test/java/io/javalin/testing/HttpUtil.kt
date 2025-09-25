@@ -10,42 +10,152 @@ import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import kong.unirest.HttpMethod
-import kong.unirest.HttpResponse
-import kong.unirest.Unirest
+import java.net.CookieManager
+import java.net.CookiePolicy
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse as JdkHttpResponse
+import java.time.Duration
+import java.util.concurrent.CompletableFuture
 
 class HttpUtil(port: Int) {
-
-    init {
-        if (!standardCookieHandlingSet) {
-            Unirest.config().cookieSpec("standard") // handles cookies according to RFC 6265
-            standardCookieHandlingSet = true
-        }
-    }
 
     @JvmField
     val origin: String = "http://localhost:$port"
 
-    fun enableUnirestRedirects() = Unirest.config().reset().followRedirects(true)
-    fun disableUnirestRedirects() = Unirest.config().reset().followRedirects(false)
+    // Use a separate client for redirects to allow toggling
+    private var followRedirects = false
+    private val cookieManager = CookieManager().apply { setCookiePolicy(CookiePolicy.ACCEPT_ALL) }
 
-    // Unirest
-    fun get(path: String) = Unirest.get(origin + path).asString()
-    fun get(path: String, headers: Map<String, String>) = Unirest.get(origin + path).headers(headers).asString()
+    private fun createClient() = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(30))
+        .cookieHandler(cookieManager)
+        .followRedirects(if (followRedirects) HttpClient.Redirect.NORMAL else HttpClient.Redirect.NEVER)
+        .build()
+
+    fun enableUnirestRedirects() { followRedirects = true }
+    fun disableUnirestRedirects() { followRedirects = false }
+
+    // Basic HTTP methods
+    fun get(path: String): HttpResponse = get(path, emptyMap())
+    fun get(path: String, headers: Map<String, String>): HttpResponse {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(origin + path))
+            .GET()
+            .apply { headers.forEach { (name, value) -> header(name, value) } }
+            .build()
+        
+        val response = createClient().send(request, JdkHttpResponse.BodyHandlers.ofString())
+        return HttpResponse(response)
+    }
 
     fun getStatus(path: String) = HttpStatus.forStatus(get(path).status)
-    fun getBody(path: String) = Unirest.get(origin + path).asString().body
-    fun getBody(path: String, headers: Map<String, String>) = Unirest.get(origin + path).headers(headers).asString().body
-    fun post(path: String) = Unirest.post(origin + path)
-    fun call(method: HttpMethod, pathname: String) = Unirest.request(method.name(), origin + pathname).asString()
-    fun htmlGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.HTML).asString()
-    fun jsonGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.JSON).asString()
-    fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Connection", "keep-alive").header("Cache-Control", "no-cache").asStringAsync()
-    fun wsUpgradeRequest(path: String) =Unirest.get(origin + path).header(Header.SEC_WEBSOCKET_KEY, "not-null").asString()
+    fun getBody(path: String) = get(path).body
+    fun getBody(path: String, headers: Map<String, String>) = get(path, headers).body
 
-    companion object {
-        var standardCookieHandlingSet = false
+    fun post(path: String) = PostRequestBuilder(origin + path, cookieManager, followRedirects)
+
+    fun call(method: HttpMethod, pathname: String): HttpResponse {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(origin + pathname))
+            .method(method.name(), HttpRequest.BodyPublishers.noBody())
+            .build()
+        
+        val response = createClient().send(request, JdkHttpResponse.BodyHandlers.ofString())
+        return HttpResponse(response)
+    }
+
+    fun call(methodName: String, pathname: String): HttpResponse {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(origin + pathname))
+            .method(methodName, HttpRequest.BodyPublishers.noBody())
+            .build()
+        
+        val response = createClient().send(request, JdkHttpResponse.BodyHandlers.ofString())  
+        return HttpResponse(response)
+    }
+
+    fun htmlGet(path: String): HttpResponse = get(path, mapOf("Accept" to ContentType.HTML))
+    fun jsonGet(path: String): HttpResponse = get(path, mapOf("Accept" to ContentType.JSON))
+
+    fun sse(path: String): CompletableFuture<HttpResponse> {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(origin + path))
+            .header("Accept", "text/event-stream")
+            .header("Connection", "keep-alive")
+            .header("Cache-Control", "no-cache")
+            .GET()
+            .build()
+        
+        return createClient().sendAsync(request, JdkHttpResponse.BodyHandlers.ofString())
+            .thenApply { HttpResponse(it) }
+    }
+
+    fun wsUpgradeRequest(path: String): HttpResponse = get(path, mapOf(Header.SEC_WEBSOCKET_KEY to "not-null"))
+}
+
+// Wrapper classes to maintain API compatibility
+class HttpResponse(private val response: JdkHttpResponse<String>) {
+    val status: Int get() = response.statusCode()
+    val body: String get() = response.body()
+    val headers: HttpHeaders get() = HttpHeaders(response.headers())
+}
+
+class HttpHeaders(private val headers: java.net.http.HttpHeaders) {
+    fun getFirst(name: String): String? = headers.firstValue(name).orElse(null)
+    operator fun get(name: String): List<String>? = headers.allValues(name).takeIf { it.isNotEmpty() }
+}
+
+class PostRequestBuilder(
+    private val url: String,
+    private val cookieManager: CookieManager,
+    private val followRedirects: Boolean
+) {
+    private val headers = mutableMapOf<String, String>()
+    private var bodyContent: String? = null
+
+    fun header(name: String, value: String): PostRequestBuilder {
+        headers[name] = value
+        return this
+    }
+
+    fun contentType(contentType: String): PostRequestBuilder {
+        headers["Content-Type"] = contentType
+        return this
+    }
+
+    fun body(content: String): PostRequestBuilder {
+        bodyContent = content
+        return this
+    }
+
+    fun body(content: ByteArray): PostRequestBuilder {
+        bodyContent = String(content)
+        return this
+    }
+
+    fun asString(): HttpResponse {
+        val requestBuilder = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .POST(HttpRequest.BodyPublishers.ofString(bodyContent ?: ""))
+        
+        headers.forEach { (name, value) -> requestBuilder.header(name, value) }
+        
+        val client = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(30))
+            .cookieHandler(cookieManager)
+            .followRedirects(if (followRedirects) HttpClient.Redirect.NORMAL else HttpClient.Redirect.NEVER)
+            .build()
+        
+        val response = client.send(requestBuilder.build(), JdkHttpResponse.BodyHandlers.ofString())
+        return HttpResponse(response)
     }
 }
 
-fun HttpResponse<*>.httpCode(): HttpStatus =
-    HttpStatus.forStatus(this.status)
+fun HttpResponse.httpCode(): HttpStatus = HttpStatus.forStatus(this.status)
+
+// Compatibility with kong.unirest.HttpResponse 
+fun kong.unirest.HttpResponse<*>.httpCode(): HttpStatus = HttpStatus.forStatus(this.status)
+fun kong.unirest.HttpResponse<String>.header(name: String): String = this.headers.getFirst(name) ?: ""
+val kong.unirest.HttpResponse<*>.allowHeader: String get() = this.headers[io.javalin.http.Header.ALLOW]!![0]
