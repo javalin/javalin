@@ -15,7 +15,6 @@ import java.net.CookiePolicy
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
-import java.net.http.HttpResponse as JdkHttpResponse
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
 
@@ -38,16 +37,16 @@ class HttpUtil(port: Int) {
     fun disableUnirestRedirects() { followRedirects = false }
 
     // Basic HTTP methods
-    fun get(path: String): HttpResponse = get(path, emptyMap())
-    fun get(path: String, headers: Map<String, String>): HttpResponse {
+    fun get(path: String): JavalinHttpResponse = get(path, emptyMap())
+    fun get(path: String, headers: Map<String, String>): JavalinHttpResponse {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .GET()
             .apply { headers.forEach { (name, value) -> header(name, value) } }
             .build()
         
-        val response = createClient().send(request, JdkHttpResponse.BodyHandlers.ofString())
-        return HttpResponse(response)
+        val response = createClient().send(request, java.net.http.HttpResponse.BodyHandlers.ofString())
+        return JavalinHttpResponse(response)
     }
 
     fun getStatus(path: String) = HttpStatus.forStatus(get(path).status)
@@ -56,30 +55,30 @@ class HttpUtil(port: Int) {
 
     fun post(path: String) = PostRequestBuilder(origin + path, cookieManager, followRedirects)
 
-    fun call(method: HttpMethod, pathname: String): HttpResponse {
+    fun call(method: HttpMethod, pathname: String): JavalinHttpResponse {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + pathname))
             .method(method.name(), HttpRequest.BodyPublishers.noBody())
             .build()
         
-        val response = createClient().send(request, JdkHttpResponse.BodyHandlers.ofString())
-        return HttpResponse(response)
+        val response = createClient().send(request, java.net.http.HttpResponse.BodyHandlers.ofString())
+        return JavalinHttpResponse(response)
     }
 
-    fun call(methodName: String, pathname: String): HttpResponse {
+    fun call(methodName: String, pathname: String): JavalinHttpResponse {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + pathname))
             .method(methodName, HttpRequest.BodyPublishers.noBody())
             .build()
         
-        val response = createClient().send(request, JdkHttpResponse.BodyHandlers.ofString())  
-        return HttpResponse(response)
+        val response = createClient().send(request, java.net.http.HttpResponse.BodyHandlers.ofString())  
+        return JavalinHttpResponse(response)
     }
 
-    fun htmlGet(path: String): HttpResponse = get(path, mapOf("Accept" to ContentType.HTML))
-    fun jsonGet(path: String): HttpResponse = get(path, mapOf("Accept" to ContentType.JSON))
+    fun htmlGet(path: String): JavalinHttpResponse = get(path, mapOf("Accept" to ContentType.HTML))
+    fun jsonGet(path: String): JavalinHttpResponse = get(path, mapOf("Accept" to ContentType.JSON))
 
-    fun sse(path: String): CompletableFuture<HttpResponse> {
+    fun sse(path: String): CompletableFuture<JavalinHttpResponse> {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .header("Accept", "text/event-stream")
@@ -88,15 +87,15 @@ class HttpUtil(port: Int) {
             .GET()
             .build()
         
-        return createClient().sendAsync(request, JdkHttpResponse.BodyHandlers.ofString())
-            .thenApply { HttpResponse(it) }
+        return createClient().sendAsync(request, java.net.http.HttpResponse.BodyHandlers.ofString())
+            .thenApply { JavalinHttpResponse(it) }
     }
 
-    fun wsUpgradeRequest(path: String): HttpResponse = get(path, mapOf(Header.SEC_WEBSOCKET_KEY to "not-null"))
+    fun wsUpgradeRequest(path: String): JavalinHttpResponse = get(path, mapOf(Header.SEC_WEBSOCKET_KEY to "not-null"))
 }
 
 // Wrapper classes to maintain API compatibility
-class HttpResponse(private val response: JdkHttpResponse<String>) {
+class JavalinHttpResponse(private val response: java.net.http.HttpResponse<String>) {
     val status: Int get() = response.statusCode()
     val body: String get() = response.body()
     val headers: HttpHeaders get() = HttpHeaders(response.headers())
@@ -135,7 +134,7 @@ class PostRequestBuilder(
         return this
     }
 
-    fun asString(): HttpResponse {
+    fun asString(): JavalinHttpResponse {
         val requestBuilder = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .POST(HttpRequest.BodyPublishers.ofString(bodyContent ?: ""))
@@ -148,12 +147,12 @@ class PostRequestBuilder(
             .followRedirects(if (followRedirects) HttpClient.Redirect.NORMAL else HttpClient.Redirect.NEVER)
             .build()
         
-        val response = client.send(requestBuilder.build(), JdkHttpResponse.BodyHandlers.ofString())
-        return HttpResponse(response)
+        val response = client.send(requestBuilder.build(), java.net.http.HttpResponse.BodyHandlers.ofString())
+        return JavalinHttpResponse(response)
     }
 }
 
-fun HttpResponse.httpCode(): HttpStatus = HttpStatus.forStatus(this.status)
+fun JavalinHttpResponse.httpCode(): HttpStatus = HttpStatus.forStatus(this.status)
 
 // Compatibility with kong.unirest.HttpResponse 
 fun kong.unirest.HttpResponse<*>.httpCode(): HttpStatus = HttpStatus.forStatus(this.status)

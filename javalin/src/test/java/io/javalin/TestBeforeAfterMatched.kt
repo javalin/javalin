@@ -11,7 +11,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
-import kong.unirest.HttpResponse
+import io.javalin.testing.JavalinHttpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.AliasCheck
 import org.junit.jupiter.api.Test
@@ -156,7 +156,7 @@ class TestBeforeAfterMatched {
     }
 
     private fun assertResponse(
-        res: HttpResponse<String>, path: String,
+        res: JavalinHttpResponse, path: String,
         statusCode: Int, body: String?,
         beforeStar: String?, beforeSubCurly: String?,
         beforeAngle: String?
