@@ -113,6 +113,7 @@ class PostRequestBuilder(
 ) {
     private val headers = mutableMapOf<String, String>()
     private var bodyContent: String? = null
+    private val queryParams = mutableListOf<Pair<String, String>>()
 
     fun header(name: String, value: String): PostRequestBuilder {
         headers[name] = value
@@ -121,6 +122,11 @@ class PostRequestBuilder(
 
     fun contentType(contentType: String): PostRequestBuilder {
         headers["Content-Type"] = contentType
+        return this
+    }
+
+    fun queryString(name: String, value: String): PostRequestBuilder {
+        queryParams.add(name to value)
         return this
     }
 
@@ -135,8 +141,17 @@ class PostRequestBuilder(
     }
 
     fun asString(): JavalinHttpResponse {
+        val finalUrl = if (queryParams.isNotEmpty()) {
+            val queryString = queryParams.joinToString("&") { (name, value) ->
+                "${java.net.URLEncoder.encode(name, "UTF-8")}=${java.net.URLEncoder.encode(value, "UTF-8")}"
+            }
+            "$url?$queryString"
+        } else {
+            url
+        }
+        
         val requestBuilder = HttpRequest.newBuilder()
-            .uri(URI.create(url))
+            .uri(URI.create(finalUrl))
             .POST(HttpRequest.BodyPublishers.ofString(bodyContent ?: ""))
         
         headers.forEach { (name, value) -> requestBuilder.header(name, value) }
