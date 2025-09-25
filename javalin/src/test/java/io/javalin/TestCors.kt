@@ -22,7 +22,7 @@ import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse
 import kong.unirest.HttpStatus
-import kong.unirest.Unirest
+import io.javalin.testing.UnirestReplacement as Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Nested

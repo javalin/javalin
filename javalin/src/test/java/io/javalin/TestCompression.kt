@@ -22,10 +22,10 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import io.javalin.util.FileUtil
-import kong.unirest.Unirest
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import io.javalin.testing.UnirestReplacement as Unirest
+import io.javalin.testing.OkHttpClient
+import io.javalin.testing.Request
+import io.javalin.testing.Response
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType

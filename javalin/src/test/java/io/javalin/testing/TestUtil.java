@@ -12,7 +12,7 @@ import io.javalin.http.Handler;
 import io.javalin.util.JavalinLogger;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import kong.unirest.HttpMethod;
+import io.javalin.testing.HttpMethod;
 
 public class TestUtil {
 

@@ -19,7 +19,7 @@ import jakarta.servlet.DispatcherType
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import kong.unirest.Unirest
+import io.javalin.testing.UnirestReplacement as Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.Handler

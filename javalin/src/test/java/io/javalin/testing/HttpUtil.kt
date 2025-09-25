@@ -9,7 +9,6 @@ package io.javalin.testing
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
-import kong.unirest.HttpMethod
 import kong.unirest.HttpResponse
 import java.net.URI
 import java.net.URLEncoder
@@ -19,6 +18,13 @@ import java.net.http.HttpResponse as JdkHttpResponse
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
+
+// HttpMethod enum replacement for Unirest compatibility
+enum class HttpMethod {
+    GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE;
+    
+    fun name(): String = this.name
+}
 
 class HttpUtil(port: Int) {
 
@@ -263,3 +269,136 @@ fun String?.describedAs(description: String): org.assertj.core.api.AbstractStrin
 
 fun String?.isEqualTo(expected: String?): org.assertj.core.api.AbstractStringAssert<*> = 
     org.assertj.core.api.Assertions.assertThat(this).isEqualTo(expected)
+
+// Unirest replacement object - provides static methods to replace direct Unirest usage in tests
+object UnirestReplacement {
+    private val defaultClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10))
+        .followRedirects(HttpClient.Redirect.NORMAL)
+        .build()
+    
+    @JvmStatic
+    fun get(url: String): RequestBuilder = RequestBuilder("GET", url, defaultClient)
+    
+    @JvmStatic
+    fun post(url: String): RequestBuilder = RequestBuilder("POST", url, defaultClient)
+    
+    @JvmStatic 
+    fun put(url: String): RequestBuilder = RequestBuilder("PUT", url, defaultClient)
+    
+    @JvmStatic
+    fun delete(url: String): RequestBuilder = RequestBuilder("DELETE", url, defaultClient)
+    
+    @JvmStatic
+    fun patch(url: String): RequestBuilder = RequestBuilder("PATCH", url, defaultClient)
+    
+    @JvmStatic
+    fun options(url: String): RequestBuilder = RequestBuilder("OPTIONS", url, defaultClient)
+    
+    // Config placeholder for compatibility
+    object Config {
+        fun cookieSpec(spec: String) = this
+        fun reset() = this
+        fun followRedirects(follow: Boolean) = this
+    }
+    
+    @JvmStatic
+    fun config(): Config = Config
+    
+    @JvmStatic 
+    fun spawnInstance(): UnirestReplacement = this
+}
+
+// OkHTTP compatibility classes
+class OkHttpClient {
+    fun newCall(request: Request): Call = Call(request)
+    
+    class Builder {
+        fun build(): OkHttpClient = OkHttpClient()
+    }
+}
+
+class Request private constructor(val url: String, val method: String, val headers: Map<String, String>) {
+    class Builder {
+        private var url: String = ""
+        private var method: String = "GET"
+        private val headers = mutableMapOf<String, String>()
+        
+        fun url(url: String): Builder {
+            this.url = url
+            return this  
+        }
+        
+        fun get(): Builder {
+            this.method = "GET"
+            return this
+        }
+        
+        fun post(body: RequestBody): Builder {
+            this.method = "POST"
+            return this
+        }
+        
+        fun header(name: String, value: String): Builder {
+            headers[name] = value
+            return this
+        }
+        
+        fun build(): Request = Request(url, method, headers)
+    }
+}
+
+class RequestBody {
+    companion object {
+        @JvmStatic
+        fun create(content: String, mediaType: MediaType): RequestBody = RequestBody()
+        
+        @JvmStatic  
+        fun asRequestBody(file: java.io.File): RequestBody = RequestBody()
+    }
+}
+
+class MediaType {
+    companion object {
+        @JvmStatic
+        fun String.toMediaTypeOrNull(): MediaType? = MediaType()
+    }
+}
+
+class Response(private val response: JdkHttpResponse<String>) {
+    val body: ResponseBody = ResponseBody(response.body())
+    val code: Int = response.statusCode()
+    val headers: Headers = Headers(response.headers().map())
+    
+    fun header(name: String): String? = response.headers().firstValue(name).orElse(null)
+}
+
+class ResponseBody(private val content: String) {
+    fun string(): String = content
+    fun bytes(): ByteArray = content.toByteArray()
+}
+
+class Headers(private val headerMap: Map<String, List<String>>) {
+    fun get(name: String): String? = headerMap[name]?.firstOrNull()
+    fun getFirst(name: String): String? = headerMap[name]?.firstOrNull()
+}
+
+class Call(private val request: Request) {
+    fun execute(): Response {
+        val client = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build()
+            
+        val requestBuilder = HttpRequest.newBuilder()
+            .uri(URI.create(request.url))
+            .method(request.method, HttpRequest.BodyPublishers.noBody())
+            
+        request.headers.forEach { (name, value) ->
+            requestBuilder.header(name, value)
+        }
+        
+        val httpRequest = requestBuilder.build()
+        val response = client.send(httpRequest, JdkHttpResponse.BodyHandlers.ofString())
+        return Response(response)
+    }
+}

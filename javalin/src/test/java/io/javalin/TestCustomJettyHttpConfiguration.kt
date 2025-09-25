@@ -7,7 +7,7 @@
 package io.javalin
 
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
+import io.javalin.testing.UnirestReplacement as Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.HttpConnectionFactory

@@ -12,7 +12,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import kong.unirest.Unirest
+import io.javalin.testing.UnirestReplacement as Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File

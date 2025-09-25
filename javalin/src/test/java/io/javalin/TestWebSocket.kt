@@ -22,7 +22,7 @@ import io.javalin.testing.fasterJacksonMapper
 import io.javalin.websocket.WsCloseStatus
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.pingFutures
-import kong.unirest.Unirest
+import io.javalin.testing.UnirestReplacement as Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.util.BufferUtil
 

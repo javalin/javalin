@@ -31,8 +31,8 @@ import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.okHandler
 import io.javalin.testing.httpCode
-import kong.unirest.HttpMethod
-import kong.unirest.Unirest
+import io.javalin.testing.HttpMethod
+import io.javalin.testing.UnirestReplacement as Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
