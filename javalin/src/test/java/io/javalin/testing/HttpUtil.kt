@@ -82,7 +82,6 @@ class HttpUtil(port: Int) {
         val request = HttpRequest.newBuilder()
             .uri(URI.create(origin + path))
             .header("Accept", "text/event-stream")
-            .header("Connection", "keep-alive")
             .header("Cache-Control", "no-cache")
             .GET()
             .build()
