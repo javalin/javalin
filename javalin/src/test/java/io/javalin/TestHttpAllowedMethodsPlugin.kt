@@ -14,7 +14,6 @@ import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.http.HttpStatus.OK
 import io.javalin.plugin.bundled.HttpAllowedMethodsPlugin
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -30,18 +29,17 @@ class TestHttpAllowedMethodsPlugin {
         javalin.patch("/users") { it.status(NOT_MODIFIED) }
 
         TestUtil.test(javalin) { app, http ->
-            val response = Unirest.options(http.origin)
-                .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
-                .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
-                .asString()
+            val response = http.call("OPTIONS", "/", mapOf(
+                ACCESS_CONTROL_REQUEST_HEADERS to "123",
+                ACCESS_CONTROL_REQUEST_METHOD to "TEST"
+            ))
 
-            assertThat(response.headers[ACCESS_CONTROL_ALLOW_METHODS].first())
+            assertThat(response.headers.getFirst(ACCESS_CONTROL_ALLOW_METHODS))
                 .isEqualTo("GET,DELETE,OPTIONS")
 
-            val usersResponse = Unirest.options(http.origin + "/users")
-                .asString()
+            val usersResponse = http.call("OPTIONS", "/users")
 
-            assertThat(usersResponse.headers[ACCESS_CONTROL_ALLOW_METHODS].first())
+            assertThat(usersResponse.headers.getFirst(ACCESS_CONTROL_ALLOW_METHODS))
                 .isEqualTo("GET,POST,PATCH,OPTIONS")
         }
     }

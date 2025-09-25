@@ -78,6 +78,20 @@ class HttpUtil(port: Int) {
         return JavalinHttpResponse(response)
     }
 
+    fun call(methodName: String, pathname: String, headers: Map<String, String>): JavalinHttpResponse {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(origin + pathname))
+            .method(methodName, HttpRequest.BodyPublishers.noBody())
+            .apply { 
+                addDefaultHeaders(this)
+                headers.forEach { (name, value) -> header(name, value) }
+            }
+            .build()
+        
+        val response = createClient().send(request, java.net.http.HttpResponse.BodyHandlers.ofString())  
+        return JavalinHttpResponse(response)
+    }
+
     fun htmlGet(path: String): JavalinHttpResponse = get(path, mapOf("Accept" to ContentType.HTML))
     fun jsonGet(path: String): JavalinHttpResponse = get(path, mapOf("Accept" to ContentType.JSON))
 

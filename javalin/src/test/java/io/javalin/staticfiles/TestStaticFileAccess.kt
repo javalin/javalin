@@ -11,8 +11,8 @@ import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
+import io.javalin.testing.HttpUtil
 import io.javalin.testing.httpCode
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -118,6 +118,8 @@ class TestStaticFileAccess {
         assertThat(http.get("/library-1.0.0.min.js?role=ROLE_TWO").httpCode()).isEqualTo(HttpStatus.OK)
     }
 
-    private fun callWithRole(origin: String, path: String, role: String) =
-        Unirest.get(origin + path).queryString("role", role).asString().body
+    private fun callWithRole(origin: String, path: String, role: String): String {
+        val http = HttpUtil(java.net.URI.create(origin).port)
+        return http.get(path, mapOf("role" to role)).body
+    }
 }
