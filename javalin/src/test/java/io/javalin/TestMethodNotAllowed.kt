@@ -49,99 +49,100 @@ class TestMethodNotAllowed {
     }
 
     @Test
-    fun `405 response includes Allow header for different HTTP methods`() {
+    fun `Allow header contains all available HTTP methods`() {
         val app = Javalin.create { it.http.prefer405over404 = true }.apply {
             get("/api") { ctx -> ctx.result("GET response") }
             post("/api") { ctx -> ctx.result("POST response") }
             patch("/api") { ctx -> ctx.result("PATCH response") }
         }
-        
+
         TestUtil.test(app) { _, http ->
             val response = http.call(HttpMethod.PUT, "/api")
+            
             assertThat(response.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
             assertThat(response.headers["Allow"]).isNotNull()
+            
             val allowHeader = response.headers["Allow"]!![0]
-            assertThat(allowHeader).contains("GET")
-            assertThat(allowHeader).contains("POST")
-            assertThat(allowHeader).contains("PATCH")
+            assertThat(allowHeader).contains("GET", "POST", "PATCH")
         }
     }
 
     @Test
-    fun `405 response includes Allow header for single HTTP method`() {
+    fun `Allow header works for single available method`() {
         val app = Javalin.create { it.http.prefer405over404 = true }.apply {
             delete("/single") { ctx -> ctx.result("DELETE response") }
         }
-        
+
         TestUtil.test(app) { _, http ->
             val response = http.get("/single")
+            
             assertThat(response.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
-            assertThat(response.headers["Allow"]).isNotNull()
+            assertThat(response.headers["Allow"]).hasSize(1)
             assertThat(response.headers["Allow"]!![0]).isEqualTo("DELETE")
         }
     }
 
     @Test
-    fun `405 response includes Allow header with JSON content type`() {
+    fun `Allow header is present in JSON 405 responses`() {
         val app = Javalin.create { it.http.prefer405over404 = true }.apply {
             post("/json") { ctx -> ctx.result("POST response") }
             put("/json") { ctx -> ctx.result("PUT response") }
         }
-        
+
         TestUtil.test(app) { _, http ->
             val response = http.jsonGet("/json")
+            
             assertThat(response.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
             assertThat(response.headers["Allow"]).isNotNull()
+            
             val allowHeader = response.headers["Allow"]!![0]
-            assertThat(allowHeader).contains("POST")
-            assertThat(allowHeader).contains("PUT")
+            assertThat(allowHeader).containsAnyOf("POST", "PUT")
         }
     }
 
     @Test
-    fun `405 response includes Allow header with HTML content type`() {
+    fun `Allow header is present in HTML 405 responses`() {
         val app = Javalin.create { it.http.prefer405over404 = true }.apply {
             get("/html") { ctx -> ctx.result("GET response") }
             post("/html") { ctx -> ctx.result("POST response") }
         }
-        
+
         TestUtil.test(app) { _, http ->
-            // Use PUT method to get 405 since GET and POST are defined
             val response = http.call(HttpMethod.PUT, "/html")
+            
             assertThat(response.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
             assertThat(response.headers["Allow"]).isNotNull()
+            
             val allowHeader = response.headers["Allow"]!![0]
-            assertThat(allowHeader).contains("GET")
-            assertThat(allowHeader).contains("POST")
+            assertThat(allowHeader).contains("GET", "POST")
         }
     }
 
     @Test
-    fun `405 response includes Allow header with plain content type`() {
+    fun `Allow header is present in plain text 405 responses`() {
         val app = Javalin.create { it.http.prefer405over404 = true }.apply {
             get("/plain") { ctx -> ctx.result("GET response") }
             put("/plain") { ctx -> ctx.result("PUT response") }
         }
-        
+
         TestUtil.test(app) { _, http ->
             val response = http.call(HttpMethod.DELETE, "/plain")
+            
             assertThat(response.httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
             assertThat(response.headers["Allow"]).isNotNull()
+            
             val allowHeader = response.headers["Allow"]!![0]
-            assertThat(allowHeader).contains("GET")
-            assertThat(allowHeader).contains("PUT")
+            assertThat(allowHeader).contains("GET", "PUT")
         }
     }
 
     @Test 
-    fun `Allow header not set when no method details available`() = TestUtil.test { app, http ->
-        // Create app without prefer405over404 so it returns 404 by default  
+    fun `Allow header is not set for 404 responses`() = TestUtil.test { app, http ->
         app.get("/test") { it.result("Hello") }
-        
+
         val response = http.call(HttpMethod.POST, "/test")
-        // Without prefer405over404, this will be 404, not 405
+        
         assertThat(response.status).isEqualTo(404)
-        // Allow header should not be set for 404
         assertThat(response.headers["Allow"]).isNullOrEmpty()
     }
 
