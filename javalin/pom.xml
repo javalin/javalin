@@ -132,11 +132,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.squareup.moshi</groupId>
             <artifactId>moshi</artifactId>
             <version>${moshi.version}</version>
