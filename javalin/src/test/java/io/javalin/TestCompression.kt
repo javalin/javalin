@@ -198,12 +198,12 @@ class TestCompression {
     @Test
     fun `does gzip when Accept-Encoding header is set and size is big enough`() = TestUtil.test(superCompressingApp()) { _, http ->
         getResponse(http.origin, "/huge", "gzip").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-            assertThat(response.body.length).isEqualTo(7740L) // hardcoded because lazy
+            assertThat(response.headers().firstValue("Content-Encoding").orElse("")).isEqualTo("gzip")
+            assertThat(response.body().length).isEqualTo(7740L) // hardcoded because lazy
         }
         getResponse(http.origin, "/html.html", "gzip").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-            assertThat(response.body.length).isBetween(170, 180) // hardcoded because lazy
+            assertThat(response.headers().firstValue("Content-Encoding").orElse("")).isEqualTo("gzip")
+            assertThat(response.body().length).isBetween(170, 180) // hardcoded because lazy
         }
     }
 
@@ -706,12 +706,31 @@ class TestCompression {
         assertThat(decompressed).isEqualTo(uncompressedResponse)
     }
 
-    // we need to use okhttp, because unirest omits the content-encoding header
-    private fun getResponse(origin: String, url: String, encoding: String) =
-        Unirest.get(origin + url).header(Header.ACCEPT_ENCODING, encoding).asString()
+    // Using native JDK HttpClient to properly handle compression headers
+    private val httpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10))
+        .build()
 
-    private fun getResponseWithEtag(origin: String, url: String, encoding: String, etag: String) =
-        Unirest.get(origin + url).header(Header.ACCEPT_ENCODING, encoding).header(Header.IF_NONE_MATCH, etag).asString()
+    private fun getResponse(origin: String, url: String, encoding: String): HttpResponse<String> {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(origin + url))
+            .header("Accept-Encoding", encoding)
+            .GET()
+            .build()
+        
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+    }
+
+    private fun getResponseWithEtag(origin: String, url: String, encoding: String, etag: String): HttpResponse<String> {
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(origin + url))
+            .header("Accept-Encoding", encoding)
+            .header("If-None-Match", etag)
+            .GET()
+            .build()
+        
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+    }
 
     private fun brotliAvailable() = CompressionStrategy.brotliImplAvailable()
 
