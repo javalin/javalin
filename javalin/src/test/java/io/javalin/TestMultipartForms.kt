@@ -16,11 +16,7 @@ import io.javalin.testing.UploadInfo
 import io.javalin.testing.fasterJacksonMapper
 import io.javalin.util.FileUtil
 import jakarta.servlet.MultipartConfigElement
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.asRequestBody
+
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -32,8 +28,7 @@ class TestMultipartForms {
     private val TEXT_FILE_CONTENT_LF = "This is my content." + LF + "It's two lines." + LF
     private val TEXT_FILE_CONTENT_CRLF = "This is my content." + CRLF + "It's two lines." + CRLF
 
-    // Using OkHttp because Unirest doesn't allow to send non-files as form-data
-    private val okHttp = OkHttpClient()
+    // Using Unirest for multipart forms (OkHTTP was only needed for specific multipart handling)
 
     @Test
     fun `text is uploaded correctly`() = TestUtil.test { app, http ->
@@ -213,16 +208,12 @@ class TestMultipartForms {
                     + "baz: " + baz
             )
         }
-        val responseAsString = okHttp.newCall(
-            Request.Builder().url(http.origin + "/test-multipart-text-fields").post(
-                MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("foo", "foo-1")
-                    .addFormDataPart("bar", "bar-1")
-                    .addFormDataPart("foo", "foo-2")
-                    .build()
-            ).build()
-        ).execute().body!!.string()
+        val response = http.post("/test-multipart-text-fields")
+            .field("foo", "foo-1")
+            .field("bar", "bar-1")
+            .field("foo", "foo-2")
+            .asString()
+        val responseAsString = response.body
         val expectedContent = ("foos match: true" + "\n"
             + "foo: foo-1, foo-2" + "\n"
             + "bar: bar-1" + "\n"
@@ -238,15 +229,11 @@ class TestMultipartForms {
             val fileContent = ctx.uploadedFile("upload")!!.contentAndClose { it.readBytes().toString(Charsets.UTF_8) }
             ctx.result(ctx.formParam("prefix")!! + fileContent)
         }
-        val responseAsString = okHttp.newCall(
-            Request.Builder().url(http.origin + "/test-multipart-file-and-text").post(
-                MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("prefix", prefix)
-                    .addFormDataPart("upload", tempFile.name, tempFile.asRequestBody(ContentType.PLAIN.toMediaTypeOrNull()))
-                    .build()
-            ).build()
-        ).execute().body!!.string()
+        val response = http.post("/test-multipart-file-and-text")
+            .field("prefix", prefix)
+            .field("upload", tempFile)
+            .asString()
+        val responseAsString = response.body
 
         if (CRLF in responseAsString) {
             assertThat(responseAsString).isEqualTo(prefix + TEXT_FILE_CONTENT_CRLF)
