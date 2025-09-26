@@ -129,7 +129,7 @@ class TestCompression {
         if (CompressionStrategy.zstdImplAvailable()) {
             assertThat(compressors.forType("zstd")).isNotNull()
         }
-        assertThat(compressors.forType("unknown")).isEmpty()
+        assertThat(compressors.forType("unknown")).isNull()
     }
 
     @Test
@@ -429,8 +429,8 @@ class TestCompression {
         
         // Test that unknown compression types return null
         val gzipOnlyStrategy = CompressionStrategy(null, Gzip(), null)
-        assertThat(gzipOnlyStrategy.compressors.forType("unknown")).isEmpty()
-        assertThat(gzipOnlyStrategy.compressors.forType("")).isEmpty()
+        assertThat(gzipOnlyStrategy.compressors.forType("unknown")).isNull()
+        assertThat(gzipOnlyStrategy.compressors.forType("")).isNull()
         
         // Test case insensitive compression type matching
         assertThat(gzipOnlyStrategy.compressors.forType("GZIP")).isNotNull()

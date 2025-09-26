@@ -59,7 +59,8 @@ class TestCustomJetty {
     fun `setting host works`() = TestUtil.runLogLess {
         val port = (2000..9999).random()
         val app = Javalin.create().start("127.0.0.1", port).get("/") { it.result("HOST WORKS") }
-        assertThat(http.get("http://127.0.0.1:$port/").body).isEqualTo("HOST WORKS")
+        val httpUtil = io.javalin.testing.HttpUtil(app.port())
+        assertThat(httpUtil.get("http://127.0.0.1:${app.port()}/").body).isEqualTo("HOST WORKS")
         app.stop()
     }
 
