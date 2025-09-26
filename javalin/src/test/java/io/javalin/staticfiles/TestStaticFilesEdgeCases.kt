@@ -12,7 +12,6 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
 import io.javalin.util.FileUtil
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory
@@ -27,10 +26,16 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.net.ServerSocket
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLParameters
 import javax.net.ssl.SSLSession
+import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import kotlin.io.path.Path
 
@@ -95,12 +100,13 @@ class TestStaticFilesEdgeCases {
                 }
             }
         }.start().also {
-            val http2client = listOf(H2_PRIOR_KNOWLEDGE).let { OkHttpClient.Builder().protocols(it).build() }
+            val client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build()
             val path = "http://localhost:$port/styles.css"
-            val response = http2client.newCall(Request.Builder().url(path).build()).execute()
-            assertThat(response.code).isEqualTo(200)
-            assertThat(response.protocol).isEqualTo(H2_PRIOR_KNOWLEDGE)
-            assertThat(response.body?.string()).contains("CSS works")
+            val request = HttpRequest.newBuilder().uri(URI.create(path)).build()
+            val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+            assertThat(response.statusCode()).isEqualTo(200)
+            assertThat(response.version()).isEqualTo(HttpClient.Version.HTTP_2)
+            assertThat(response.body()).contains("CSS works")
         }.stop()
     }
 
@@ -123,10 +129,10 @@ class TestStaticFilesEdgeCases {
                 ServerConnector(server, tlsHttp2, alpn, http2, http11).apply { this.port = port }
             }
         }.start().also {
-            assertThat(untrustedHttpsCall(port, "/idontexist.css").code).isEqualTo(404)
+            assertThat(untrustedHttpsCall(port, "/idontexist.css").statusCode()).isEqualTo(404)
             val response = untrustedHttpsCall(port, "/styles.css")
-            assertThat(response.code).isEqualTo(200)
-            assertThat(response.body?.string()).contains("CSS works")
+            assertThat(response.statusCode()).isEqualTo(200)
+            assertThat(response.body()).contains("CSS works")
         }.stop()
     }
 
@@ -147,28 +153,34 @@ class TestStaticFilesEdgeCases {
             }
         }.start().also {
             val response = untrustedHttpsCall(port, "/styles.css")
-            assertThat(response.code).isEqualTo(200)
-            assertThat(response.body?.string()).contains("CSS works")
+            assertThat(response.statusCode()).isEqualTo(200)
+            assertThat(response.body()).contains("CSS works")
         }.stop()
     }
 
-    private fun untrustedHttpsCall(port: Int, path: String) = untrustedClient().newCall(
-        Request.Builder().url("https://localhost:$port$path").build()
-    ).execute()
+    private fun untrustedHttpsCall(port: Int, path: String): HttpResponse<String> =
+        untrustedClient().send(
+            HttpRequest.newBuilder()
+                .uri(URI.create("https://localhost:$port$path"))
+                .build(),
+            HttpResponse.BodyHandlers.ofString()
+        )
 
-    /** Needed to accept self-signed certificates in okhttp... */
-    private fun untrustedClient(): OkHttpClient {
-        val trustAllCerts = arrayOf<X509TrustManager>(object : X509TrustManager {
-            override fun checkClientTrusted(a: Array<X509Certificate>, b: String) {}
-            override fun checkServerTrusted(a: Array<X509Certificate>, b: String) {}
-            override fun getAcceptedIssuers() = arrayOf<X509Certificate>()
+    /** Needed to accept self-signed certificates in JDK HttpClient... */
+    private fun untrustedClient(): HttpClient {
+        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
         })
-        val sslContext = SSLContext.getInstance("SSL")
-            .also { it.init(null, trustAllCerts, SecureRandom()) }
-        return OkHttpClient.Builder().apply {
-            sslSocketFactory(sslContext.socketFactory, trustAllCerts[0])
-            hostnameVerifier { _: String?, _: SSLSession? -> true }
-        }.build()
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(null, trustAllCerts, SecureRandom())
+        }
+        return HttpClient.newBuilder()
+            .sslContext(sslContext)
+            .sslParameters(SSLParameters().apply { endpointIdentificationAlgorithm = "" }) // disable hostname verification
+            .version(HttpClient.Version.HTTP_2)
+            .build()
     }
 
 }
