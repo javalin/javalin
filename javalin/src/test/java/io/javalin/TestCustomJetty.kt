@@ -70,8 +70,8 @@ class TestCustomJetty {
         val app = Javalin.create { it.pvt.jetty.server =  newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 5
         for (i in 0 until requests) {
-            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
+            assertThat(http.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
+            assertThat(http.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(statisticsHandler.handleTotal).isEqualTo(requests * 2)
@@ -91,8 +91,8 @@ class TestCustomJetty {
         val app = Javalin.create { it.pvt.jetty.server = newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
         for (i in 0 until requests) {
-            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
+            assertThat(http.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
+            assertThat(http.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(handlerChain.handleTotal).`as`("dispatched").isEqualTo(requests * 2)
@@ -109,8 +109,8 @@ class TestCustomJetty {
         val app = Javalin.create { it.pvt.jetty.server = newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
         for (i in 0 until requests) {
-            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
+            assertThat(http.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
+            assertThat(http.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(handlerChain.handleTotal).isEqualTo(requests * 2)

@@ -267,14 +267,14 @@ class TestApiBuilder {
         assertThat(http.get(http.origin + "/foo/bar/users").body).isEqualTo("All my users")
         assertThat(http.post(http.origin + "/foo/bar/users").asString().httpCode()).isEqualTo(CREATED)
         assertThat(http.get(http.origin + "/foo/bar/users/myUser").body).isEqualTo("My single user: myUser")
-        assertThat(HttpUtilInstance.patch(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
-        assertThat(HttpUtilInstance.delete(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.call("PATCH", http.origin + "/foo/bar/users/myUser").httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.call("DELETE", http.origin + "/foo/bar/users/myUser").httpCode()).isEqualTo(NO_CONTENT)
 
         assertThat(http.get(http.origin + "/foo/baz/users").body).isEqualTo("All my users")
         assertThat(http.post(http.origin + "/foo/baz/users").asString().httpCode()).isEqualTo(CREATED)
         assertThat(http.get(http.origin + "/foo/baz/users/myUser").body).isEqualTo("My single user: myUser")
-        assertThat(HttpUtilInstance.patch(http.origin + "/foo/baz/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
-        assertThat(HttpUtilInstance.delete(http.origin + "/foo/baz/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.call("PATCH", http.origin + "/foo/baz/users/myUser").httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.call("DELETE", http.origin + "/foo/baz/users/myUser").httpCode()).isEqualTo(NO_CONTENT)
     }
 
     @Test
@@ -290,8 +290,8 @@ class TestApiBuilder {
         assertThat(http.get(http.origin + "/foo/bar/users").body).isEqualTo("All my users")
         assertThat(http.post(http.origin + "/foo/bar/users").asString().httpCode()).isEqualTo(CREATED)
         assertThat(http.get(http.origin + "/foo/bar/users/myUser").body).isEqualTo("My single user: myUser")
-        assertThat(HttpUtilInstance.patch(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
-        assertThat(HttpUtilInstance.delete(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.call("PATCH", http.origin + "/foo/bar/users/myUser").httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.call("DELETE", http.origin + "/foo/bar/users/myUser").httpCode()).isEqualTo(NO_CONTENT)
     }
 
     @Test
@@ -336,14 +336,14 @@ class TestApiBuilder {
         assertThat(http.get(http.origin + "/users").body).isEqualTo("All my users")
         assertThat(http.post(http.origin + "/users").asString().httpCode()).isEqualTo(CREATED)
         assertThat(http.get(http.origin + "/users/myUser").body).isEqualTo("My single user: myUser")
-        assertThat(HttpUtilInstance.patch(http.origin + "/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
-        assertThat(HttpUtilInstance.delete(http.origin + "/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.call("PATCH", http.origin + "/users/myUser").httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.call("DELETE", http.origin + "/users/myUser").httpCode()).isEqualTo(NO_CONTENT)
 
         assertThat(http.get(http.origin + "/s/users").body).isEqualTo("All my users")
         assertThat(http.post(http.origin + "/s/users").asString().httpCode()).isEqualTo(CREATED)
         assertThat(http.get(http.origin + "/s/users/myUser").body).isEqualTo("My single user: myUser")
-        assertThat(HttpUtilInstance.patch(http.origin + "/s/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
-        assertThat(HttpUtilInstance.delete(http.origin + "/s/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.call("PATCH", http.origin + "/s/users/myUser").httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.call("DELETE", http.origin + "/s/users/myUser").httpCode()).isEqualTo(NO_CONTENT)
     }
 
     class UserController : CrudHandler {
