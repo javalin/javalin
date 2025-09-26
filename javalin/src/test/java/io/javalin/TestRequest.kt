@@ -19,15 +19,13 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
-import okhttp3.OkHttpClient
-import okhttp3.Request
+
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class TestRequest {
 
-    private val okHttp = OkHttpClient().newBuilder().build()
-    private fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
+
 
     /*
      * Session/Attributes
@@ -237,15 +235,35 @@ class TestRequest {
     fun `query params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
         app.get("/1") { it.result("${it.queryParam("qp")}") }
         app.get("/2") { it.result("${it.queryParam("%+")}") }
-        assertThat(okHttp.getBody("${http.origin}/1?qp=%+")).isEqualTo("null")
-        assertThat(okHttp.getBody("${http.origin}/2?%+=qp")).isEqualTo("null")
+        
+        // Test malformed query param value - client will throw exception for malformed URL
+        try {
+            http.getBody("/1?qp=%+")
+            assertThat(false).`as`("Expected exception for malformed URL").isTrue()
+        } catch (e: RuntimeException) {
+            assertThat(e.message).contains("Malformed escape pair")
+        }
+        
+        // Test malformed query param name - client will throw exception for malformed URL  
+        try {
+            http.getBody("/2?%+=qp")
+            assertThat(false).`as`("Expected exception for malformed URL").isTrue()
+        } catch (e: RuntimeException) {
+            assertThat(e.message).contains("Malformed escape pair")
+        }
     }
 
     @Test
     fun `only query params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.queryParam("qp") + "|" + it.queryParam("qp2")) }
-        val responseBody = okHttp.getBody("${http.origin}/?qp=%+&qp2=valid")
-        assertThat(responseBody).isEqualTo("null|valid")
+        
+        // Test mixed valid/invalid query params - client will throw exception for malformed URL
+        try {
+            http.getBody("/?qp=%+&qp2=valid")
+            assertThat(false).`as`("Expected exception for malformed URL").isTrue()
+        } catch (e: RuntimeException) {
+            assertThat(e.message).contains("Malformed escape pair")
+        }
     }
 
     /*

@@ -11,8 +11,7 @@ import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestUtil
-import okhttp3.OkHttpClient
-import okhttp3.Request
+
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -20,8 +19,7 @@ import java.net.URLEncoder
 
 internal class TestTrailingSlashes {
 
-    private val okHttp = OkHttpClient().newBuilder().build()
-    private fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
+
     private val javalin = Javalin.create { it.router.ignoreTrailingSlashes = false; }
 
     @Test
@@ -104,8 +102,8 @@ internal class TestTrailingSlashes {
     fun `utf-8 encoded path-params work`() = TestUtil.test(javalin) { app, http ->
         app.get("/{path-param}") { it.result(it.pathParam("path-param")) }
         app.get("/{path-param}/") { it.result(it.pathParam("path-param") + "/") }
-        assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode("TE/ST", "UTF-8"))).isEqualTo("TE/ST")
-        assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode("TE/ST/", "UTF-8"))).isEqualTo("TE/ST/")
+        assertThat(http.getBody("/" + URLEncoder.encode("TE/ST", "UTF-8"))).isEqualTo("TE/ST")
+        assertThat(http.getBody("/" + URLEncoder.encode("TE/ST/", "UTF-8"))).isEqualTo("TE/ST/")
     }
 
     @Test
