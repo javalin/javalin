@@ -32,7 +32,12 @@ import java.util.zip.GZIPInputStream
 import kotlin.streams.asStream
 import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
 import com.github.luben.zstd.ZstdInputStream
-import io.javalin.testing.httpCode
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
+import kotlin.jvm.optionals.getOrElse
 
 class TestCompression {
 
@@ -211,12 +216,12 @@ class TestCompression {
     @EnabledIf("brotliAvailable")
     fun `does brotli when Accept-Encoding header is set and size is big enough`() = TestUtil.test(superCompressingApp()) { _, http ->
         getResponse(http.origin, "/huge", "br").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
-            assertThat(response.body.length).isEqualTo(2235L) // hardcoded because lazy
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.body().length).isEqualTo(2235L) // hardcoded because lazy
         }
         getResponse(http.origin, "/html.html", "br").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
-            assertThat(response.body.length).isBetween(130, 150) // hardcoded because lazy
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.body().length).isBetween(130, 150) // hardcoded because lazy
         }
     }
 
@@ -246,65 +251,65 @@ class TestCompression {
     @EnabledIf("brotliAvailable")
     fun `chooses brotli when both enabled and supported`() = TestUtil.test(superCompressingApp()) { _, http ->
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
-            assertThat(response.body.length).isEqualTo(2235L) // hardcoded because lazy
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.body().length).isEqualTo(2235L) // hardcoded because lazy
         }
     }
 
     @Test
     fun `does gzip when brotli disabled, but both requested`() = TestUtil.test(brotliDisabledApp()) { _, http ->
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-            assertThat(response.body.length).isEqualTo(7740L) // hardcoded because lazy
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.body().length).isEqualTo(7740L) // hardcoded because lazy
         }
     }
 
     @Test
     fun `does gzip when CompressionStrategy not set`() = TestUtil.test(Javalin.create().addTestEndpoints()) { _, http ->
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-            assertThat(response.body.length).isEqualTo(7740L) // hardcoded because lazy
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.body().length).isEqualTo(7740L) // hardcoded because lazy
         }
     }
 
     @Test
     fun `writes ETag when uncompressed`() = TestUtil.test(etagApp()) { _, http ->
         getResponse(http.origin, "/huge", "null").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
-            assertThat(response.headers[Header.ETAG]).isNotNull()
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.headers().firstValue(Header.ETAG)).isNotNull()
         }
         getResponse(http.origin, "/html.html", "null").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
-            assertThat(response.headers[Header.ETAG]).isNotNull()
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.headers().firstValue(Header.ETAG)).isNotNull()
         }
     }
 
     @Test
     fun `writes ETag when compressed`() = TestUtil.test(etagApp()) { _, http ->
         getResponse(http.origin, "/huge", "gzip").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-            assertThat(response.headers[Header.ETAG]).isNotNull()
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.headers().firstValue(Header.ETAG)).isNotNull()
         }
         getResponse(http.origin, "/html.html", "gzip").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-            assertThat(response.headers[Header.ETAG]).isNotNull()
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.headers().firstValue(Header.ETAG)).isNotNull()
         }
     }
 
     @Test
     fun `dynamic handler responds with 304 when ETag is set`() = TestUtil.test(etagApp()) { _, http ->
         val firstRes = getResponse(http.origin, "/huge", "br, gzip")
-        val etag = firstRes.headers.getFirst(Header.ETAG) ?: ""
+        val etag = firstRes.headers().firstValue(Header.ETAG).getOrElse { "" }
         val secondRes = getResponseWithEtag(http.origin, "/huge", "gzip", etag)
-        assertThat(secondRes.status).isEqualTo(304)
+        assertThat(secondRes.statusCode()).isEqualTo(304)
     }
 
     @Test
     fun `static handler responds with 304 when ETag is set`() = TestUtil.test(etagApp()) { _, http ->
         val firstRes = getResponse(http.origin, "/html.html", "br, gzip")
-        val etag = firstRes.headers.getFirst(Header.ETAG) ?: ""
+        val etag = firstRes.headers().firstValue(Header.ETAG).getOrElse { "" }
         val secondRes = getResponseWithEtag(http.origin, "/html.html", "gzip", etag)
-        assertThat(secondRes.status).isEqualTo(304)
+        assertThat(secondRes.statusCode()).isEqualTo(304)
     }
 
     @Test
@@ -334,7 +339,7 @@ class TestCompression {
         it.http.customCompression(CompressionStrategy(Brotli(), Gzip()).apply { allowedMimeTypes = listOf() })
     }) { _, http ->
         getResponse(http.origin, "/svg.svg", "gzip").let { response ->
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isNull()
         }
     }
 
@@ -373,13 +378,13 @@ class TestCompression {
 
             // Test large dynamic response
             getResponse(http.origin, "/huge", "zstd").let { response ->
-                assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("zstd")
-                assertThat(response.body.length).isLessThan(10000) // should be compressed
+                assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("zstd")
+                assertThat(response.body().length).isLessThan(10000) // should be compressed
             }
 
             // Test static file compression
             getResponse(http.origin, "/html.html", "zstd").let { response ->
-                assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("zstd")
+                assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("zstd")
             }
         }
 
@@ -409,7 +414,7 @@ class TestCompression {
             // Test preference order - browser usually sends multiple encodings
             getResponse(http.origin, "/svg.svg", "gzip, deflate, br, zstd").let { response ->
                 // Should choose one of the available formats
-                assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isIn("gzip", "br", "zstd")
+                assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isIn("gzip", "br", "zstd")
             }
         }
     }
@@ -601,7 +606,7 @@ class TestCompression {
 
         val response = getResponse(http.origin, "/disabled-compression", "br, gzip")
 
-        assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+        assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isNull()
     }
 
     @Test
@@ -620,24 +625,24 @@ class TestCompression {
         CompressionType.BR, CompressionType.GZIP
     ))) { app, http ->
         getResponse(http.origin, "/huge", "gzip, br").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("br")
         }
         getResponse(http.origin, "/svg.svg", "gzip, br").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("br")
         }
 
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("br")
         }
         getResponse(http.origin, "/svg.svg", "br, gzip").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("br")
         }
 
         getResponse(http.origin, "/huge", "").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isNull()
         }
         getResponse(http.origin, "/svg.svg", "").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isNull()
         }
     }
 
@@ -647,62 +652,62 @@ class TestCompression {
         CompressionType.GZIP, CompressionType.BR
     ))) { app, http ->
         getResponse(http.origin, "/huge", "gzip, br").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("gzip")
         }
         getResponse(http.origin, "/svg.svg", "gzip, br").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("gzip")
         }
 
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("gzip")
         }
         getResponse(http.origin, "/svg.svg", "br, gzip").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("gzip")
         }
 
         getResponse(http.origin, "/huge", "").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isNull()
         }
         getResponse(http.origin, "/svg.svg", "").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isNull()
         }
     }
 
     private fun assertUncompressedResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "br, gzip, zstd")
-        assertThat(response.status).isLessThan(400)
-        assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
-        val uncompressedResponse = getResponse(origin, url, "null").body
-        assertThat(response.body).isEqualTo(uncompressedResponse)
+        assertThat(response.statusCode()).isLessThan(400)
+        assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isNull()
+        val uncompressedResponse = getResponse(origin, url, "null").body()
+        assertThat(response.body()).isEqualTo(uncompressedResponse)
     }
 
     private fun assertValidBrotliResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "br")
-        assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
+        assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("br")
         val brotliInputStream = when {
-            CompressionStrategy.brotli4jAvailable() -> Brotli4jInputStream(response.body.toByteArray().inputStream())
+            CompressionStrategy.brotli4jAvailable() -> Brotli4jInputStream(response.body().toByteArray().inputStream())
             else -> throw RuntimeException("No brotli implementation found")
         }
         val decompressed = String(brotliInputStream.readBytes())
-        val uncompressedResponse = getResponse(origin, url, "null").body
+        val uncompressedResponse = getResponse(origin, url, "null").body()
         assertThat(decompressed).isEqualTo(uncompressedResponse)
     }
 
     private fun assertValidGzipResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "gzip")
-        assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-        val gzipInputStream = GZIPInputStream(response.body.toByteArray().inputStream())
+        assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+        val gzipInputStream = GZIPInputStream(response.body().toByteArray().inputStream())
         val decompressed = String(gzipInputStream.readBytes())
-        val uncompressedResponse = getResponse(origin, url, "null").body
+        val uncompressedResponse = getResponse(origin, url, "null").body()
         assertThat(decompressed).isEqualTo(uncompressedResponse)
     }
 
     private fun assertValidZstdResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "zstd")
-        assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("zstd")
-        val zstdInputStream = ZstdInputStream(response.body.toByteArray().inputStream())
+        assertThat(response.headers().firstValue(Header.CONTENT_ENCODING)).isEqualTo("zstd")
+        val zstdInputStream = ZstdInputStream(response.body().toByteArray().inputStream())
         val decompressed = String(zstdInputStream.readBytes())
-        val uncompressedResponse = getResponse(origin, url, "null").body
+        val uncompressedResponse = getResponse(origin, url, "null").body()
         assertThat(decompressed).isEqualTo(uncompressedResponse)
     }
 
@@ -717,7 +722,7 @@ class TestCompression {
             .header("Accept-Encoding", encoding)
             .GET()
             .build()
-        
+
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString())
     }
 
@@ -728,7 +733,7 @@ class TestCompression {
             .header("If-None-Match", etag)
             .GET()
             .build()
-        
+
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString())
     }
 
