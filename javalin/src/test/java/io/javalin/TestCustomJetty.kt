@@ -51,7 +51,8 @@ class TestCustomJetty {
     fun `setting port works`() = TestUtil.runLogLess {
         val port = (2000..9999).random()
         val app = Javalin.create().start(port).get("/") { it.result("PORT WORKS") }
-        assertThat(http.get("http://localhost:$port/").body).isEqualTo("PORT WORKS")
+        val httpUtil = io.javalin.testing.HttpUtil(app.port())
+        assertThat(httpUtil.get("http://localhost:$port/").body).isEqualTo("PORT WORKS")
         app.stop()
     }
 
@@ -70,9 +71,10 @@ class TestCustomJetty {
         val newServer = Server().apply { handler = statisticsHandler }
         val app = Javalin.create { it.pvt.jetty.server =  newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 5
+        val httpUtil = io.javalin.testing.HttpUtil(app.port())
         for (i in 0 until requests) {
-            assertThat(http.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(http.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
+            assertThat(httpUtil.get("/").body).isEqualTo("Hello World")
+            assertThat(httpUtil.get("/not-there").httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(statisticsHandler.handleTotal).isEqualTo(requests * 2)
@@ -91,9 +93,10 @@ class TestCustomJetty {
         }
         val app = Javalin.create { it.pvt.jetty.server = newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
+        val httpUtil = io.javalin.testing.HttpUtil(app.port())
         for (i in 0 until requests) {
-            assertThat(http.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(http.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
+            assertThat(httpUtil.get("/").body).isEqualTo("Hello World")
+            assertThat(httpUtil.get("/not-there").httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(handlerChain.handleTotal).`as`("dispatched").isEqualTo(requests * 2)
@@ -217,7 +220,7 @@ class TestCustomJetty {
                 connector
             }
         }
-        TestUtil.test(app) { server, _ ->
+        TestUtil.test(app) { server, http ->
             server.get("/") { it.result("PORT WORKS") }
             assertThat(http.get("http://localhost:$port/").body).isEqualTo("PORT WORKS")
         }
