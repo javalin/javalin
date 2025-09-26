@@ -19,7 +19,6 @@ import jakarta.servlet.DispatcherType
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.Handler
@@ -52,7 +51,7 @@ class TestCustomJetty {
     fun `setting port works`() = TestUtil.runLogLess {
         val port = (2000..9999).random()
         val app = Javalin.create().start(port).get("/") { it.result("PORT WORKS") }
-        assertThat(Unirest.get("http://localhost:$port/").asString().body).isEqualTo("PORT WORKS")
+        assertThat(http.get("http://localhost:$port/").body).isEqualTo("PORT WORKS")
         app.stop()
     }
 
@@ -60,7 +59,7 @@ class TestCustomJetty {
     fun `setting host works`() = TestUtil.runLogLess {
         val port = (2000..9999).random()
         val app = Javalin.create().start("127.0.0.1", port).get("/") { it.result("HOST WORKS") }
-        assertThat(Unirest.get("http://127.0.0.1:$port/").asString().body).isEqualTo("HOST WORKS")
+        assertThat(http.get("http://127.0.0.1:$port/").body).isEqualTo("HOST WORKS")
         app.stop()
     }
 
@@ -71,8 +70,8 @@ class TestCustomJetty {
         val app = Javalin.create { it.pvt.jetty.server =  newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 5
         for (i in 0 until requests) {
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
+            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
+            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(statisticsHandler.handleTotal).isEqualTo(requests * 2)
@@ -92,8 +91,8 @@ class TestCustomJetty {
         val app = Javalin.create { it.pvt.jetty.server = newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
         for (i in 0 until requests) {
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
+            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
+            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(handlerChain.handleTotal).`as`("dispatched").isEqualTo(requests * 2)
@@ -110,8 +109,8 @@ class TestCustomJetty {
         val app = Javalin.create { it.pvt.jetty.server = newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
         for (i in 0 until requests) {
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
+            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
+            assertThat(HttpUtilInstance.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(handlerChain.handleTotal).isEqualTo(requests * 2)
@@ -219,7 +218,7 @@ class TestCustomJetty {
         }
         TestUtil.test(app) { server, _ ->
             server.get("/") { it.result("PORT WORKS") }
-            assertThat(Unirest.get("http://localhost:$port/").asString().body).isEqualTo("PORT WORKS")
+            assertThat(http.get("http://localhost:$port/").body).isEqualTo("PORT WORKS")
         }
     }
 

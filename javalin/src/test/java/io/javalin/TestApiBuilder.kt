@@ -210,8 +210,9 @@ class TestApiBuilder {
                     }
                     .start(0)
                     .also { app2 ->
-                        assertThat(Unirest.get("http://localhost:${app2.port()}/hello-2").asString().body).isEqualTo("Hello-2")
-                        assertThat(Unirest.get("http://localhost:${app2.port()}/hello-3").asString().body).isEqualTo("Hello-3")
+                        val http2 = io.javalin.testing.HttpUtil(app2.port())
+                        assertThat(http2.getBody("/hello-2")).isEqualTo("Hello-2")
+                        assertThat(http2.getBody("/hello-3")).isEqualTo("Hello-3")
                         app2.stop()
                     }
 
@@ -221,8 +222,9 @@ class TestApiBuilder {
             }
             .start(0)
             .also { app1 ->
-                assertThat(Unirest.get("http://localhost:${app1.port()}/hello-1").asString().body).isEqualTo("Hello-1")
-                assertThat(Unirest.get("http://localhost:${app1.port()}/hello-4").asString().body).isEqualTo("Hello-4")
+                val http1 = io.javalin.testing.HttpUtil(app1.port())
+                assertThat(http1.getBody("/hello-1")).isEqualTo("Hello-1")
+                assertThat(http1.getBody("/hello-4")).isEqualTo("Hello-4")
                 app1.stop()
             }
     }
@@ -262,17 +264,17 @@ class TestApiBuilder {
             }
         }
     ) { app, http ->
-        assertThat(Unirest.get(http.origin + "/foo/bar/users").asString().body).isEqualTo("All my users")
-        assertThat(Unirest.post(http.origin + "/foo/bar/users").asString().httpCode()).isEqualTo(CREATED)
-        assertThat(Unirest.get(http.origin + "/foo/bar/users/myUser").asString().body).isEqualTo("My single user: myUser")
-        assertThat(Unirest.patch(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
-        assertThat(Unirest.delete(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.get(http.origin + "/foo/bar/users").body).isEqualTo("All my users")
+        assertThat(http.post(http.origin + "/foo/bar/users").asString().httpCode()).isEqualTo(CREATED)
+        assertThat(http.get(http.origin + "/foo/bar/users/myUser").body).isEqualTo("My single user: myUser")
+        assertThat(HttpUtilInstance.patch(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(HttpUtilInstance.delete(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
 
-        assertThat(Unirest.get(http.origin + "/foo/baz/users").asString().body).isEqualTo("All my users")
-        assertThat(Unirest.post(http.origin + "/foo/baz/users").asString().httpCode()).isEqualTo(CREATED)
-        assertThat(Unirest.get(http.origin + "/foo/baz/users/myUser").asString().body).isEqualTo("My single user: myUser")
-        assertThat(Unirest.patch(http.origin + "/foo/baz/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
-        assertThat(Unirest.delete(http.origin + "/foo/baz/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.get(http.origin + "/foo/baz/users").body).isEqualTo("All my users")
+        assertThat(http.post(http.origin + "/foo/baz/users").asString().httpCode()).isEqualTo(CREATED)
+        assertThat(http.get(http.origin + "/foo/baz/users/myUser").body).isEqualTo("My single user: myUser")
+        assertThat(HttpUtilInstance.patch(http.origin + "/foo/baz/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(HttpUtilInstance.delete(http.origin + "/foo/baz/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
     }
 
     @Test
@@ -285,11 +287,11 @@ class TestApiBuilder {
             }
         }
     ) { app, http ->
-        assertThat(Unirest.get(http.origin + "/foo/bar/users").asString().body).isEqualTo("All my users")
-        assertThat(Unirest.post(http.origin + "/foo/bar/users").asString().httpCode()).isEqualTo(CREATED)
-        assertThat(Unirest.get(http.origin + "/foo/bar/users/myUser").asString().body).isEqualTo("My single user: myUser")
-        assertThat(Unirest.patch(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
-        assertThat(Unirest.delete(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.get(http.origin + "/foo/bar/users").body).isEqualTo("All my users")
+        assertThat(http.post(http.origin + "/foo/bar/users").asString().httpCode()).isEqualTo(CREATED)
+        assertThat(http.get(http.origin + "/foo/bar/users/myUser").body).isEqualTo("My single user: myUser")
+        assertThat(HttpUtilInstance.patch(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(HttpUtilInstance.delete(http.origin + "/foo/bar/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
     }
 
     @Test
@@ -331,17 +333,17 @@ class TestApiBuilder {
             }
         }
     ) { app, http ->
-        assertThat(Unirest.get(http.origin + "/users").asString().body).isEqualTo("All my users")
-        assertThat(Unirest.post(http.origin + "/users").asString().httpCode()).isEqualTo(CREATED)
-        assertThat(Unirest.get(http.origin + "/users/myUser").asString().body).isEqualTo("My single user: myUser")
-        assertThat(Unirest.patch(http.origin + "/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
-        assertThat(Unirest.delete(http.origin + "/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.get(http.origin + "/users").body).isEqualTo("All my users")
+        assertThat(http.post(http.origin + "/users").asString().httpCode()).isEqualTo(CREATED)
+        assertThat(http.get(http.origin + "/users/myUser").body).isEqualTo("My single user: myUser")
+        assertThat(HttpUtilInstance.patch(http.origin + "/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(HttpUtilInstance.delete(http.origin + "/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
 
-        assertThat(Unirest.get(http.origin + "/s/users").asString().body).isEqualTo("All my users")
-        assertThat(Unirest.post(http.origin + "/s/users").asString().httpCode()).isEqualTo(CREATED)
-        assertThat(Unirest.get(http.origin + "/s/users/myUser").asString().body).isEqualTo("My single user: myUser")
-        assertThat(Unirest.patch(http.origin + "/s/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
-        assertThat(Unirest.delete(http.origin + "/s/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(http.get(http.origin + "/s/users").body).isEqualTo("All my users")
+        assertThat(http.post(http.origin + "/s/users").asString().httpCode()).isEqualTo(CREATED)
+        assertThat(http.get(http.origin + "/s/users/myUser").body).isEqualTo("My single user: myUser")
+        assertThat(HttpUtilInstance.patch(http.origin + "/s/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
+        assertThat(HttpUtilInstance.delete(http.origin + "/s/users/myUser").asString().httpCode()).isEqualTo(NO_CONTENT)
     }
 
     class UserController : CrudHandler {

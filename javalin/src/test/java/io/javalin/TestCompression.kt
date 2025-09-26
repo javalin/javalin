@@ -22,10 +22,6 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import io.javalin.util.FileUtil
-import kong.unirest.Unirest
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
@@ -167,11 +163,11 @@ class TestCompression {
 
     @Test
     fun `doesn't compress when Accept-Encoding is not set`() = TestUtil.test(superCompressingApp()) { _, http ->
-        Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "null").asString().let { response -> // dynamic
+        HttpUtilInstance.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "null").asString().let { response -> // dynamic
             assertThat(response.body.length).isEqualTo(hugeLength)
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
         }
-        Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "null").asString().let { response -> // static
+        HttpUtilInstance.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "null").asString().let { response -> // static
             assertThat(response.body.length).isEqualTo(testDocument.length)
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
         }
@@ -179,11 +175,11 @@ class TestCompression {
 
     @Test
     fun `doesn't compress when response is too small`() = TestUtil.test(customCompressionApp(tinyLength + 1)) { _, http ->
-        Unirest.get(http.origin + "/tiny").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // dynamic
+        HttpUtilInstance.get(http.origin + "/tiny").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // dynamic
             assertThat(response.body.length).isEqualTo(tinyLength)
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
         }
-        Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // static
+        HttpUtilInstance.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // static
             assertThat(response.body.length).isEqualTo(testDocument.length)
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
         }
@@ -193,7 +189,7 @@ class TestCompression {
     fun `doesn't compress when compression is disabled`() = TestUtil.test(
         Javalin.create { it.http.disableCompression() }.addTestEndpoints()
     ) { _, http ->
-        Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // dynamic
+        HttpUtilInstance.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // dynamic
             assertThat(response.body.length).isEqualTo(hugeLength)
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
         }
@@ -231,7 +227,7 @@ class TestCompression {
             it.staticFiles.add("/public", Location.CLASSPATH)
         }.addTestEndpoints()
         TestUtil.test(gzipDisabledApp) { _, http ->
-            Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "gzip").asString().let { response -> // dynamic
+            HttpUtilInstance.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "gzip").asString().let { response -> // dynamic
                 assertThat(response.body.length).isEqualTo(hugeLength)
                 assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
             }
@@ -240,7 +236,7 @@ class TestCompression {
 
     @Test
     fun `doesn't brotli when brotli is disabled`() = TestUtil.test(brotliDisabledApp()) { _, http ->
-        Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "bz").asString().let { response -> // dynamic
+        HttpUtilInstance.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "bz").asString().let { response -> // dynamic
             assertThat(response.body.length).isEqualTo(hugeLength)
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
         }

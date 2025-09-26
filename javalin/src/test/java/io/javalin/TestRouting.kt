@@ -27,9 +27,6 @@ import io.javalin.router.matcher.WildcardBracketAdjacentException
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import io.javalin.websocket.WsHandlerType
-import kong.unirest.HttpMethod
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Disabled
@@ -39,8 +36,7 @@ import java.net.URLEncoder
 
 class TestRouting {
 
-    private val okHttp = OkHttpClient().newBuilder().build()
-    fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
+    // Removed OkHttp usage - now using HttpUtil directly
 
     @Test
     fun `basic hello world works`() = TestUtil.test { app, http ->
@@ -221,7 +217,7 @@ class TestRouting {
     @Test
     fun `utf-8 encoded path-params work`() = TestUtil.test { app, http ->
         app.get("/{path-param}") { it.result(it.pathParam("path-param")) }
-        assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode("TE/ST", "UTF-8"))).isEqualTo("TE/ST")
+        assertThat(http.getBody("/" + URLEncoder.encode("TE/ST", "UTF-8"))).isEqualTo("TE/ST")
     }
 
     @Test
@@ -438,7 +434,7 @@ class TestRouting {
     @Test
     fun `invalid path results in 400`() = TestUtil.test { app, http ->
         app.get("/{path}") { it.result("Hello World") }
-        assertThat(okHttp.getBody(http.origin + "/%+")).contains("Bad Request")
+        assertThat(http.getBody("/%+")).contains("Bad Request")
     }
 
 }

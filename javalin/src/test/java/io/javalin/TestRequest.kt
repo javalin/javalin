@@ -18,15 +18,12 @@ import io.javalin.http.servlet.SESSION_CACHE_KEY_PREFIX
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.testing.TestUtil
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class TestRequest {
 
-    private val okHttp = OkHttpClient().newBuilder().build()
-    private fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
+    // Removed OkHttp usage - now using HttpUtil directly
 
     /*
      * Session/Attributes
@@ -236,14 +233,14 @@ class TestRequest {
     fun `query params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
         app.get("/1") { it.result("${it.queryParam("qp")}") }
         app.get("/2") { it.result("${it.queryParam("%+")}") }
-        assertThat(okHttp.getBody("${http.origin}/1?qp=%+")).isEqualTo("null")
-        assertThat(okHttp.getBody("${http.origin}/2?%+=qp")).isEqualTo("null")
+        assertThat(http.getBody("/1?qp=%+")).isEqualTo("null")
+        assertThat(http.getBody("/2?%+=qp")).isEqualTo("null")
     }
 
     @Test
     fun `only query params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.queryParam("qp") + "|" + it.queryParam("qp2")) }
-        val responseBody = okHttp.getBody("${http.origin}/?qp=%+&qp2=valid")
+        val responseBody = http.getBody("/?qp=%+&qp2=valid")
         assertThat(responseBody).isEqualTo("null|valid")
     }
 

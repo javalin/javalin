@@ -17,8 +17,6 @@ import io.javalin.http.util.SeekableWriter
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import kong.unirest.HttpMethod
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIOException
 import org.junit.jupiter.api.Disabled
@@ -61,7 +59,7 @@ class TestResponse {
         }
 
         app.get("/hello") { it.result(bytes) }
-        val response = Unirest.get("${http.origin}/hello").asBytes()
+        val response = HttpUtilInstance.get("${http.origin}/hello").asBytes()
         assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body.size).isEqualTo(bytes.size)
         assertThat(bytes).isEqualTo(response.body)
@@ -72,7 +70,7 @@ class TestResponse {
         val buf = ByteArray(65537) // big and not on a page boundary
         Random().nextBytes(buf)
         app.get("/stream") { it.result(ByteArrayInputStream(buf)) }
-        val response = Unirest.get("${http.origin}/stream").asBytes()
+        val response = HttpUtilInstance.get("${http.origin}/stream").asBytes()
         assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body.size).isEqualTo(buf.size)
         assertThat(buf).isEqualTo(response.body)
@@ -217,7 +215,7 @@ class TestResponse {
     fun `seekable - non audio and video downloading from start works`() = TestUtil.test { app, http ->
         val input = getSeekableInput(1)
         app.get("/seekable-noaudiovideo") { it.writeSeekableStream(input, ContentType.APPLICATION_OCTET_STREAM.toString()) }
-        val response = Unirest.get(http.origin + "/seekable-noaudiovideo").asString()
+        val response = http.get(http.origin + "/seekable-noaudiovideo")
 
         assertThat(response.body).isEqualTo("abc")
         assertThat(input.closedLatch.await(2, TimeUnit.SECONDS)).isTrue()
@@ -230,7 +228,7 @@ class TestResponse {
         val avaliable = input.available()
 
         app.get("/seekable-noaudiovideo-2") { it.writeSeekableStream(input, ContentType.APPLICATION_OCTET_STREAM.toString()) }
-        val response = Unirest.get(http.origin + "/seekable-noaudiovideo-2")
+        val response = HttpUtilInstance.get(http.origin + "/seekable-noaudiovideo-2")
             .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-"))
             .asString()
 
@@ -244,7 +242,7 @@ class TestResponse {
     fun `seekable - audio, video range works and input stream closed`() = TestUtil.test { app, http ->
         val input = getSeekableInput()
         app.get("/seekable") { it.writeSeekableStream(input, ContentType.VIDEO_MPEG.toString()) }
-        val response = Unirest.get(http.origin + "/seekable")
+        val response = HttpUtilInstance.get(http.origin + "/seekable")
             .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
             .asString()
         assertThat(response.body).doesNotContain("a").contains("b").doesNotContain("c")
@@ -257,7 +255,7 @@ class TestResponse {
         val input = getSeekableInput()
         val available = input.available()
         app.get("/seekable-2") { it.writeSeekableStream(input, ContentType.PLAIN) }
-        val response = Unirest.get(http.origin + "/seekable-2").asString()
+        val response = http.get(http.origin + "/seekable-2")
         assertThat(response.body.length).isEqualTo(available)
         assertThat(input.closedLatch.await(2, TimeUnit.SECONDS)).isTrue()
         assertThat(response.headers).matches({ it.containsKey(Header.ACCEPT_RANGES) }, "contains accept-ranges header")
@@ -266,7 +264,7 @@ class TestResponse {
     @Test
     fun `seekable - audio, video overreaching range works`() = TestUtil.test { app, http ->
         app.get("/seekable-3") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
-        val response = Unirest.get(http.origin + "/seekable-3")
+        val response = HttpUtilInstance.get(http.origin + "/seekable-3")
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize * 4}"))
             .asBytes()
         assertThat(response.body.size).isEqualTo(SeekableWriter.chunkSize * 3)
@@ -275,7 +273,7 @@ class TestResponse {
     @Test
     fun `seekable - audio, video file smaller than chunksize works`() = TestUtil.test { app, http ->
         app.get("/seekable-4") { it.writeSeekableStream(getSeekableInput(repeats = 50), ContentType.PLAIN) }
-        val response = Unirest.get(http.origin + "/seekable-4")
+        val response = HttpUtilInstance.get(http.origin + "/seekable-4")
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize}"))
             .asString().body
         assertThat(response.length).isEqualTo(150)
@@ -286,7 +284,7 @@ class TestResponse {
         val prefixSize = 1L shl 31 //2GB
         val contentSize = 100L
         app.get("/seekable-5") { it.writeSeekableStream(LargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
-        val response = Unirest.get(http.origin + "/seekable-5")
+        val response = HttpUtilInstance.get(http.origin + "/seekable-5")
             .headers(mapOf(Header.RANGE to "bytes=${prefixSize}-${prefixSize + contentSize - 1}"))
             .asString()
 
@@ -299,7 +297,7 @@ class TestResponse {
     @Test
     fun `GH-1956 seekable request with no RANGE header contains Content-Length and Accept-Ranges`() = TestUtil.test { app, http ->
         app.get("/seekable-6") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
-        val response = Unirest.get(http.origin + "/seekable-6").asString()
+        val response = http.get(http.origin + "/seekable-6")
         assertThat(response.headers[Header.CONTENT_LENGTH]?.get(0)).isGreaterThan("0")
         assertThat(response.headers[Header.ACCEPT_RANGES]?.get(0)).isEqualTo("bytes")
     }
