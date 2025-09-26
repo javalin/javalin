@@ -17,9 +17,7 @@ import io.javalin.jetty.JettyPrecompressingResourceHandler
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
@@ -206,11 +204,5 @@ class TestStaticFilesPrecompressor {
     private fun Response.contentEncoding() = this.headers.get(Header.CONTENT_ENCODING)
 
     private fun HttpUtil.getFile(url: String, encoding: String) =
-        OkHttpClient().newCall(
-            Request.Builder()
-                .url(this.origin + url)
-                .header(Header.ACCEPT_ENCODING, encoding)
-                .build()
-        )
-            .execute()
+        Unirest.get(this.origin + url).header(Header.ACCEPT_ENCODING, encoding).asString()
 }

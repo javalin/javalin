@@ -23,9 +23,7 @@ import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import io.javalin.util.FileUtil
 import kong.unirest.Unirest
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
@@ -711,22 +709,11 @@ class TestCompression {
     }
 
     // we need to use okhttp, because unirest omits the content-encoding header
-    private fun getResponse(origin: String, url: String, encoding: String) = OkHttpClient()
-        .newCall(
-            Request.Builder()
-                .url(origin + url)
-                .header(Header.ACCEPT_ENCODING, encoding)
-                .build()
-        ).execute()
+    private fun getResponse(origin: String, url: String, encoding: String) = 
+        Unirest.get(origin + url).header(Header.ACCEPT_ENCODING, encoding).asString()
 
-    // allows passing of multiple headers via string pairs
-    private fun getResponseWithEtag(origin: String, url: String, encoding: String, etag: String): Response = OkHttpClient().newCall(
-        Request.Builder()
-            .url(origin + url)
-            .header(Header.ACCEPT_ENCODING, encoding)
-            .header(Header.IF_NONE_MATCH, etag)
-            .build()
-    ).execute()
+    private fun getResponseWithEtag(origin: String, url: String, encoding: String, etag: String) = 
+        Unirest.get(origin + url).header(Header.ACCEPT_ENCODING, encoding).header(Header.IF_NONE_MATCH, etag).asString()
 
     private fun brotliAvailable() = CompressionStrategy.brotliImplAvailable()
 

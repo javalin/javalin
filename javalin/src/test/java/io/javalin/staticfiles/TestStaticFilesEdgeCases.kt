@@ -12,9 +12,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
 import io.javalin.util.FileUtil
-import okhttp3.OkHttpClient
-import okhttp3.Protocol.H2_PRIOR_KNOWLEDGE
-import okhttp3.Request
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory
