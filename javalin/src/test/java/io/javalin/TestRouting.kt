@@ -28,15 +28,44 @@ import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import io.javalin.websocket.WsHandlerType
 import kong.unirest.HttpMethod
-
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.PrintWriter
+import java.net.Socket
 import java.net.URLEncoder
 
 class TestRouting {
+
+    // Helper function to make raw HTTP requests that can handle malformed URLs
+    private fun rawHttpGet(host: String, port: Int, path: String): String {
+        return Socket(host, port).use { socket ->
+            val writer = PrintWriter(socket.getOutputStream(), true)
+            val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
+            
+            writer.println("GET $path HTTP/1.1")
+            writer.println("Host: $host:$port")
+            writer.println("Connection: close")
+            writer.println()
+            
+            // Read response headers
+            var line: String?
+            do {
+                line = reader.readLine()
+            } while (line != null && line.isNotEmpty())
+            
+            // Read response body
+            val body = StringBuilder()
+            while (reader.readLine()?.also { line = it } != null) {
+                body.append(line).append("\n")
+            }
+            body.toString().trim()
+        }
+    }
 
 
 
@@ -436,13 +465,7 @@ class TestRouting {
     @Test
     fun `invalid path results in 400`() = TestUtil.test { app, http ->
         app.get("/{path}") { it.result("Hello World") }
-        try {
-            http.getBody("/%")
-            assertThat(false).`as`("Expected exception for malformed URL").isTrue()
-        } catch (e: RuntimeException) {
-            // Unirest throws client-side exception for malformed URLs, which is equivalent to 400 Bad Request
-            assertThat(e.message).contains("Malformed escape pair")
-        }
+        assertThat(rawHttpGet("localhost", app.port(), "/%+")).contains("Bad Request")
     }
 
 }
