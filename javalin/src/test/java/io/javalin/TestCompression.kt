@@ -603,7 +603,7 @@ class TestCompression {
 
         val response = getResponse(http.origin, "/disabled-compression", "br, gzip")
 
-        assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+        assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
     }
 
     @Test
@@ -622,24 +622,24 @@ class TestCompression {
         CompressionType.BR, CompressionType.GZIP
     ))) { app, http ->
         getResponse(http.origin, "/huge", "gzip, br").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
         }
         getResponse(http.origin, "/svg.svg", "gzip, br").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
         }
 
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
         }
         getResponse(http.origin, "/svg.svg", "br, gzip").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
         }
 
         getResponse(http.origin, "/huge", "").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
         }
         getResponse(http.origin, "/svg.svg", "").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
         }
     }
 
@@ -649,40 +649,40 @@ class TestCompression {
         CompressionType.GZIP, CompressionType.BR
     ))) { app, http ->
         getResponse(http.origin, "/huge", "gzip, br").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
         }
         getResponse(http.origin, "/svg.svg", "gzip, br").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
         }
 
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
         }
         getResponse(http.origin, "/svg.svg", "br, gzip").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
         }
 
         getResponse(http.origin, "/huge", "").let { response -> // dynamic
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
         }
         getResponse(http.origin, "/svg.svg", "").let { response -> // static
-            assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+            assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
         }
     }
 
     private fun assertUncompressedResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "br, gzip, zstd")
-        assertThat(response.status).isLessThan(400)
-        assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isNull()
+        assertThat(response.code).isLessThan(400)
+        assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
         val uncompressedResponse = getResponse(origin, url, "null").body!!.string()
         assertThat(response.body).isEqualTo(uncompressedResponse)
     }
 
     private fun assertValidBrotliResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "br")
-        assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("br")
+        assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
         val brotliInputStream = when {
-            CompressionStrategy.brotli4jAvailable() -> Brotli4jInputStream(response.body.byteInputStream())
+            CompressionStrategy.brotli4jAvailable() -> Brotli4jInputStream(response.body!!.byteStream())
             else -> throw RuntimeException("No brotli implementation found")
         }
         val decompressed = String(brotliInputStream.readBytes())
@@ -692,8 +692,8 @@ class TestCompression {
 
     private fun assertValidGzipResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "gzip")
-        assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-        val gzipInputStream = GZIPInputStream(response.body.byteInputStream())
+        assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+        val gzipInputStream = GZIPInputStream(response.body!!.byteStream())
         val decompressed = String(gzipInputStream.readBytes())
         val uncompressedResponse = getResponse(origin, url, "null").body!!.string()
         assertThat(decompressed).isEqualTo(uncompressedResponse)
@@ -701,18 +701,18 @@ class TestCompression {
 
     private fun assertValidZstdResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "zstd")
-        assertThat(response.headers.getFirst(Header.CONTENT_ENCODING)).isEqualTo("zstd")
-        val zstdInputStream = ZstdInputStream(response.body.byteInputStream())
+        assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("zstd")
+        val zstdInputStream = ZstdInputStream(response.body!!.byteStream())
         val decompressed = String(zstdInputStream.readBytes())
         val uncompressedResponse = getResponse(origin, url, "null").body!!.string()
         assertThat(decompressed).isEqualTo(uncompressedResponse)
     }
 
     // we need to use okhttp, because unirest omits the content-encoding header
-    private fun getResponse(origin: String, url: String, encoding: String) = 
+    private fun getResponse(origin: String, url: String, encoding: String) =
         Unirest.get(origin + url).header(Header.ACCEPT_ENCODING, encoding).asString()
 
-    private fun getResponseWithEtag(origin: String, url: String, encoding: String, etag: String) = 
+    private fun getResponseWithEtag(origin: String, url: String, encoding: String, etag: String) =
         Unirest.get(origin + url).header(Header.ACCEPT_ENCODING, encoding).header(Header.IF_NONE_MATCH, etag).asString()
 
     private fun brotliAvailable() = CompressionStrategy.brotliImplAvailable()

@@ -95,11 +95,12 @@ class TestStaticFilesEdgeCases {
                 }
             }
         }.start().also {
-            // Use Unirest for HTTP/2 testing (falls back to HTTP/1.1)
+            val http2client = listOf(H2_PRIOR_KNOWLEDGE).let { OkHttpClient.Builder().protocols(it).build() }
             val path = "http://localhost:$port/styles.css"
-            val response = Unirest.get(path).asString()
-            assertThat(response.status).isEqualTo(200)
-            assertThat(response.body).contains("CSS works")
+            val response = http2client.newCall(Request.Builder().url(path).build()).execute()
+            assertThat(response.code).isEqualTo(200)
+            assertThat(response.protocol).isEqualTo(H2_PRIOR_KNOWLEDGE)
+            assertThat(response.body?.string()).contains("CSS works")
         }.stop()
     }
 
@@ -122,10 +123,10 @@ class TestStaticFilesEdgeCases {
                 ServerConnector(server, tlsHttp2, alpn, http2, http11).apply { this.port = port }
             }
         }.start().also {
-            assertThat(Unirest.get("https://localhost:$port/idontexist.css").asString().status).isEqualTo(404)
-            val response = Unirest.get("https://localhost:$port/styles.css").asString()
-            assertThat(response.status).isEqualTo(200)
-            assertThat(response.body).contains("CSS works")
+            assertThat(untrustedHttpsCall(port, "/idontexist.css").code).isEqualTo(404)
+            val response = untrustedHttpsCall(port, "/styles.css")
+            assertThat(response.code).isEqualTo(200)
+            assertThat(response.body?.string()).contains("CSS works")
         }.stop()
     }
 
@@ -145,10 +146,29 @@ class TestStaticFilesEdgeCases {
                 ServerConnector(server).apply { this.port = 0 }
             }
         }.start().also {
-            val response = Unirest.get("https://localhost:$port/styles.css").asString()
-            assertThat(response.status).isEqualTo(200)
-            assertThat(response.body).contains("CSS works")
+            val response = untrustedHttpsCall(port, "/styles.css")
+            assertThat(response.code).isEqualTo(200)
+            assertThat(response.body?.string()).contains("CSS works")
         }.stop()
+    }
+
+    private fun untrustedHttpsCall(port: Int, path: String) = untrustedClient().newCall(
+        Request.Builder().url("https://localhost:$port$path").build()
+    ).execute()
+
+    /** Needed to accept self-signed certificates in okhttp... */
+    private fun untrustedClient(): OkHttpClient {
+        val trustAllCerts = arrayOf<X509TrustManager>(object : X509TrustManager {
+            override fun checkClientTrusted(a: Array<X509Certificate>, b: String) {}
+            override fun checkServerTrusted(a: Array<X509Certificate>, b: String) {}
+            override fun getAcceptedIssuers() = arrayOf<X509Certificate>()
+        })
+        val sslContext = SSLContext.getInstance("SSL")
+            .also { it.init(null, trustAllCerts, SecureRandom()) }
+        return OkHttpClient.Builder().apply {
+            sslSocketFactory(sslContext.socketFactory, trustAllCerts[0])
+            hostnameVerifier { _: String?, _: SSLSession? -> true }
+        }.build()
     }
 
 }

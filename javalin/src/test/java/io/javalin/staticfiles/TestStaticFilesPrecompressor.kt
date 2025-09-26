@@ -200,8 +200,8 @@ class TestStaticFilesPrecompressor {
     }
 
 
-    private fun kong.unirest.HttpResponse<String>.contentLength() = this.headers.getFirst(Header.CONTENT_LENGTH)
-    private fun kong.unirest.HttpResponse<String>.contentEncoding() = this.headers.getFirst(Header.CONTENT_ENCODING)
+    private fun Response.contentLength() = this.headers.get(Header.CONTENT_LENGTH)
+    private fun Response.contentEncoding() = this.headers.get(Header.CONTENT_ENCODING)
 
     private fun HttpUtil.getFile(url: String, encoding: String) =
         Unirest.get(this.origin + url).header(Header.ACCEPT_ENCODING, encoding).asString()
