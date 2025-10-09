@@ -17,8 +17,8 @@ import io.javalin.http.util.SeekableWriter
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import kong.unirest.HttpMethod
-import kong.unirest.Unirest
+import kong.unirest.core.HttpMethod
+import kong.unirest.core.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIOException
 import org.junit.jupiter.api.Disabled

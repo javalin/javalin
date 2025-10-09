@@ -17,7 +17,7 @@ import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

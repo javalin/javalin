@@ -22,7 +22,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import io.javalin.util.FileUtil
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response

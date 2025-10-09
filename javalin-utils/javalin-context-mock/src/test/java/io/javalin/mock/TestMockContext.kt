@@ -16,7 +16,7 @@ import io.javalin.security.BasicAuthCredentials
 import java.io.ByteArrayOutputStream
 import java.lang.IllegalStateException
 import java.util.Base64
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test

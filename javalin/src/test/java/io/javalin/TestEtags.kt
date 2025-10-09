@@ -11,7 +11,7 @@ import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

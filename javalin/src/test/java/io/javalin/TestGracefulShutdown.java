@@ -10,8 +10,8 @@ package io.javalin;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
+import kong.unirest.core.HttpResponse;
+import kong.unirest.core.Unirest;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.junit.jupiter.api.Disabled;
