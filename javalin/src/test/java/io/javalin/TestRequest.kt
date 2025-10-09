@@ -434,7 +434,7 @@ class TestRequest {
     fun `userAgent works`() = TestUtil.test { app, http ->
         app.get("/") { it.result(it.userAgent()!!) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
-        assertThat(http.getBody("/")).isEqualTo("unirest-java/3.1.00")
+        assertThat(http.getBody("/")).startsWith("Java-http-client/") // Unirest 4.x uses Java's HttpClient
     }
 
     @Test
