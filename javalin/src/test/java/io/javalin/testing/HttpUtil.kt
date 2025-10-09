@@ -9,9 +9,9 @@ package io.javalin.testing
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
-import kong.unirest.HttpMethod
-import kong.unirest.HttpResponse
-import kong.unirest.Unirest
+import kong.unirest.core.HttpMethod
+import kong.unirest.core.HttpResponse
+import kong.unirest.core.Unirest
 
 class HttpUtil(port: Int) {
 
@@ -39,7 +39,7 @@ class HttpUtil(port: Int) {
     fun call(method: HttpMethod, pathname: String) = Unirest.request(method.name(), origin + pathname).asString()
     fun htmlGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.HTML).asString()
     fun jsonGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.JSON).asString()
-    fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Connection", "keep-alive").header("Cache-Control", "no-cache").asStringAsync()
+    fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Cache-Control", "no-cache").asStringAsync()
     fun wsUpgradeRequest(path: String) =Unirest.get(origin + path).header(Header.SEC_WEBSOCKET_KEY, "not-null").asString()
 
     companion object {

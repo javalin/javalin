@@ -5,7 +5,7 @@ import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.http.SameSite
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
+import kong.unirest.core.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

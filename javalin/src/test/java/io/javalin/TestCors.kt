@@ -20,9 +20,9 @@ import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
-import kong.unirest.HttpResponse
-import kong.unirest.HttpStatus
-import kong.unirest.Unirest
+import kong.unirest.core.HttpResponse
+import kong.unirest.core.HttpStatus
+import kong.unirest.core.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Nested

@@ -5,8 +5,8 @@ import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
 import io.javalin.http.MethodNotAllowedResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import kong.unirest.HttpMethod
-import kong.unirest.HttpResponse
+import kong.unirest.core.HttpMethod
+import kong.unirest.core.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

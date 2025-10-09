@@ -121,7 +121,7 @@
         </dependency>
         <dependency>
             <groupId>com.konghq</groupId>
-            <artifactId>unirest-java</artifactId>
+            <artifactId>unirest-java-core</artifactId>
             <version>${unirest.version}</version>
             <scope>test</scope>
         </dependency>
