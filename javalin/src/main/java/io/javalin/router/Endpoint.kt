@@ -14,6 +14,12 @@ import io.javalin.security.RouteRole
 interface EndpointMetadata
 
 /**
+ * Metadata for custom HTTP methods (e.g., WebDAV methods like PROPFIND, MKCOL).
+ * This is used internally to store the custom method name for endpoints.
+ */
+data class CustomHttpMethod(val methodName: String) : EndpointMetadata
+
+/**
  * Represents an HTTP endpoint in the application.
  *
  * @param method The HTTP method of the endpoint

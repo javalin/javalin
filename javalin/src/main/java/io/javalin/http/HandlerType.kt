@@ -106,6 +106,31 @@ enum class HandlerType(val isHttpMethod: Boolean = true) {
     companion object {
 
         private val methodMap = values().associateBy { it.toString() }
+        private val customHttpMethods = mutableSetOf<String>()
+
+        /**
+         * Registers a custom HTTP method (e.g., WebDAV methods like PROPFIND, MKCOL).
+         * Once registered, the method can be used with [io.javalin.router.JavalinDefaultRoutingApi.addHttpHandler].
+         * 
+         * Note: This should be called before starting the Javalin server.
+         * 
+         * @param methodName the HTTP method name (e.g., "PROPFIND", "MKCOL")
+         */
+        @JvmStatic
+        fun registerCustomHttpMethod(methodName: String) {
+            customHttpMethods.add(methodName.uppercase())
+        }
+
+        /**
+         * Checks if a method name is a registered custom HTTP method.
+         * 
+         * @param methodName the HTTP method name to check
+         * @return true if the method is a registered custom HTTP method
+         */
+        @JvmStatic
+        fun isCustomHttpMethod(methodName: String): Boolean {
+            return customHttpMethods.contains(methodName.uppercase())
+        }
 
         fun findByName(name: String): HandlerType = methodMap[name.uppercase()] ?: INVALID
 
