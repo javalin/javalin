@@ -8,6 +8,7 @@ import io.javalin.security.RouteRole
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.concurrent.Executors
@@ -189,6 +190,50 @@ class TestSse {
             assertThat(body).contains("event: $event")
             assertThat(body).contains("data: $data")
         }
+    }
+
+    @Test
+    fun `sse works with Accept header containing text-event-stream and other types`() = TestUtil.test { app, http ->
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
+        val body = Unirest.get("${http.origin}/sse")
+            .header("Accept", "text/event-stream, text/html, application/json")
+            .asString()
+            .body
+        assertThat(body).contains("event: $event")
+        assertThat(body).contains("data: $data")
+    }
+
+    @Test
+    fun `sse works with Accept header containing text-event-stream at the end`() = TestUtil.test { app, http ->
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
+        val body = Unirest.get("${http.origin}/sse")
+            .header("Accept", "text/html, application/json, text/event-stream")
+            .asString()
+            .body
+        assertThat(body).contains("event: $event")
+        assertThat(body).contains("data: $data")
+    }
+
+    @Test
+    fun `sse works with Accept header containing only text-event-stream`() = TestUtil.test { app, http ->
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
+        val body = Unirest.get("${http.origin}/sse")
+            .header("Accept", "text/event-stream")
+            .asString()
+            .body
+        assertThat(body).contains("event: $event")
+        assertThat(body).contains("data: $data")
+    }
+
+    @Test
+    fun `sse does not work without text-event-stream in Accept header`() = TestUtil.test { app, http ->
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
+        val body = Unirest.get("${http.origin}/sse")
+            .header("Accept", "text/html, application/json")
+            .asString()
+            .body
+        assertThat(body).doesNotContain("event: $event")
+        assertThat(body).doesNotContain("data: $data")
     }
 
 }

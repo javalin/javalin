@@ -11,7 +11,7 @@ class SseHandler @JvmOverloads constructor(
 ) : Handler {
 
     override fun handle(ctx: Context) {
-        if (ctx.header(Header.ACCEPT) == "text/event-stream") {
+        if (ctx.header(Header.ACCEPT)?.contains("text/event-stream") == true) {
             ctx.res().apply {
                 status = 200
                 characterEncoding = "UTF-8"
