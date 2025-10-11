@@ -11,18 +11,42 @@ import java.util.function.Consumer
 
 /**
  * The DevReloadPlugin enables automatic server reload during development.
- * It watches specified directories for changes and triggers a server restart
+ * It watches specified directories for changes and can trigger custom reload logic
  * when modifications are detected.
  *
- * Note: This plugin is intended for development use only.
- * The server runs in the main thread while file watching runs in a background thread.
+ * **Important Notes:**
+ * - This plugin provides FILE WATCHING only - it detects changes but doesn't reload classes automatically
+ * - For actual hot reloading, you need to integrate with your build tool (Maven/Gradle/Bazel)
+ * - Consider using your build tool's watch/continuous build feature alongside this plugin
+ * - This is intended for development use only, not production
  *
- * Usage:
+ * **Recommended Setup:**
+ * 1. Use your build tool's continuous compilation (e.g., `mvn compile -DskipTests -Pdev`)
+ * 2. Use this plugin to detect the compiled changes
+ * 3. Implement custom `onReload` callback to restart your app or reload specific components
+ *
+ * **Example with Maven:**
+ * ```bash
+ * # Terminal 1: Continuous compilation
+ * mvn compile -DskipTests -Pdev
+ * 
+ * # Terminal 2: Run your app with DevReloadPlugin
+ * mvn exec:java -Dexec.mainClass="com.example.App"
  * ```
- * config.bundledPlugins.enableDevReload {
- *     it.watchPaths = listOf("src/main/kotlin", "src/main/java", "src/main/resources")
- * }
+ *
+ * **Example Usage:**
+ * ```java
+ * config.bundledPlugins.enableDevReload(plugin -> {
+ *     plugin.watchPaths = List.of("target/classes");  // Watch compiled output
+ *     plugin.debounceDelayMs = 500;
+ *     plugin.onReload = app -> {
+ *         // Custom reload logic here
+ *         System.out.println("Changes detected! Implement restart logic here.");
+ *     };
+ * });
  * ```
+ *
+ * @see <a href="https://quarkus.io/guides/getting-started#development-mode">Similar approach in Quarkus</a>
  */
 class DevReloadPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevReloadPlugin.Config>(userConfig, Config()) {
 
