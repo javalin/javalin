@@ -4,6 +4,7 @@ import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.plugin.bundled.CorsPluginConfig
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.plugin.bundled.DevLoggingPlugin
+import io.javalin.plugin.bundled.DevReloadPlugin
 import io.javalin.plugin.bundled.GlobalHeadersConfig
 import io.javalin.plugin.bundled.GlobalHeadersPlugin
 import io.javalin.plugin.bundled.HttpAllowedMethodsPlugin
@@ -59,6 +60,8 @@ class BundledPluginsConfig(private val cfg: JavalinConfig) {
     fun enableDevLogging() = cfg.registerPlugin(DevLoggingPlugin())
     /**  Enables the development debugging logger plugin with the specified config */
     fun enableDevLogging(userConfig: Consumer<DevLoggingPlugin.Config>) = cfg.registerPlugin(DevLoggingPlugin(userConfig))
+    /** Enables the dev reload plugin for automatic server reload during development. */
+    fun enableDevReload(userConfig: Consumer<DevReloadPlugin.Config>) = cfg.registerPlugin(DevReloadPlugin(userConfig))
     /** Enables the RedirectToLowercasePath plugin. */
     fun enableRedirectToLowercasePaths() = cfg.registerPlugin(RedirectToLowercasePathPlugin())
     /** Enables the SSL Redirects plugin, which redirect any http request to https. Note it must be the first plugin enabled to properly handle all requests.*/
