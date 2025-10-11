@@ -8,42 +8,100 @@ The Javalin Development Server watches your source files for changes, automatica
 
 ## Quick Start
 
-### 1. Build your project once
+### Just run the script!
 
 ```bash
-mvn package
+./dev-server.sh
 ```
 
-### 2. Run your app with the dev server
+That's it! The script will:
+1. Automatically find your main class (from pom.xml or by searching)
+2. Build your classpath
+3. Start your app with hot reload enabled
+4. Watch for changes and automatically restart
+
+### What you'll see
 
 ```bash
-java -cp "target/classes:target/dependency/*:path/to/javalin.jar" \
-  io.javalin.util.DevServer \
-  com.example.MyApp
+$ ./dev-server.sh
+======================================================================
+Javalin Development Server
+======================================================================
+
+Auto-detecting main class...
+Found main class: com.example.MyApp
+
+Main class: com.example.MyApp
+Building classpath...
+Starting dev server with hot reload...
+Edit your files and save - changes will auto-reload!
+Press Ctrl+C to stop
+======================================================================
 ```
 
-Or create a simple script:
+### First time setup
+
+Make sure you have a Maven project with Javalin:
 
 ```bash
-#!/bin/bash
-# dev.sh
-mvn dependency:build-classpath -Dmdep.outputFile=.classpath -q
-CP=$(cat .classpath)
-java -cp "target/classes:$CP" io.javalin.util.DevServer com.example.MyApp
+mvn compile  # First time only
 ```
 
-Then just run:
-```bash
-chmod +x dev.sh
-./dev.sh
-```
-
-### 3. Make changes and save
+### Make changes and save
 
 The dev server will automatically:
 1. Detect your changes
 2. Compile your code with `mvn compile`
 3. Restart your application
+
+No manual restart needed!
+
+## Advanced Usage
+
+### Specify main class manually (optional)
+
+If you have multiple main classes or want to specify which one to use:
+
+```bash
+./dev-server.sh com.example.MyApp
+```
+
+### Pass arguments to your application
+
+```bash
+./dev-server.sh com.example.MyApp arg1 arg2
+```
+
+### How main class detection works
+
+The script tries to find your main class in this order:
+
+1. **Command line argument** - If you provide it as first argument
+2. **pom.xml** - Looks for `<mainClass>` in exec-maven-plugin or maven-jar-plugin
+3. **Auto-scan** - Searches for classes with `public static void main` method
+
+If multiple main classes are found, the script will list them and ask you to choose.
+
+## Setting up main class in pom.xml (recommended)
+
+Add this to your `pom.xml` for automatic detection:
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.1.0</version>
+            <configuration>
+                <mainClass>com.example.MyApp</mainClass>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+Then just run `./dev-server.sh` with no arguments!
 
 ## How It Works
 
@@ -75,6 +133,8 @@ The dev server will automatically:
 
 ## Features
 
+✅ **One command to start** - Just run `./dev-server.sh` with no arguments  
+✅ **Auto-detects main class** - Finds your app automatically  
 ✅ **Zero code changes** - Your application code remains completely unchanged  
 ✅ **Automatic compilation** - Runs `mvn compile` when changes detected  
 ✅ **Full restart** - Kills and restarts the JVM process  
@@ -82,9 +142,9 @@ The dev server will automatically:
 ✅ **Smart debouncing** - Waits for you to finish editing before restarting  
 ✅ **Maven integration** - Uses Maven for compilation and classpath  
 
-## Usage
+## Manual Usage (Advanced)
 
-### Basic Usage
+If you want to bypass the script and run directly:
 
 ```bash
 java -cp <classpath> io.javalin.util.DevServer <MainClass> [app-args...]
@@ -94,7 +154,9 @@ java -cp <classpath> io.javalin.util.DevServer <MainClass> [app-args...]
 - `<MainClass>` - Your application's main class (e.g., `com.example.MyApp`)
 - `[app-args...]` - Optional arguments to pass to your application
 
-### Example Application
+## Example Application
+
+Your application needs no special code - just a regular Javalin app:
 
 ```java
 package com.example;
@@ -110,11 +172,12 @@ public class MyApp {
 }
 ```
 
-**No changes needed!** Just run it with DevServer:
-
+To run with dev server:
 ```bash
-java -cp "target/classes:..." io.javalin.util.DevServer com.example.MyApp
+./dev-server.sh
 ```
+
+That's it! Edit `MyApp.java`, save, and watch it automatically restart.
 
 ## What It Watches
 
@@ -133,52 +196,6 @@ The dev server watches these directories for changes:
 - Maven command (`mvn`) available in PATH
 - Java 17+ (same as Javalin)
 - Application must have a main class that starts a Javalin server
-
-## Helper Scripts
-
-### Bash Script (dev.sh)
-
-```bash
-#!/bin/bash
-# Get dependencies classpath
-mvn dependency:build-classpath -Dmdep.outputFile=.classpath -q
-
-# Read classpath
-CP=$(cat .classpath)
-
-# Find Javalin JAR in classpath
-JAVALIN_JAR=$(echo $CP | tr ':' '\n' | grep javalin | head -1)
-
-# Run dev server
-java -cp "target/classes:$CP" io.javalin.util.DevServer com.example.MyApp "$@"
-```
-
-### Maven Exec Plugin
-
-Add to your `pom.xml`:
-
-```xml
-<build>
-    <plugins>
-        <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>3.1.0</version>
-            <configuration>
-                <mainClass>io.javalin.util.DevServer</mainClass>
-                <arguments>
-                    <argument>com.example.MyApp</argument>
-                </arguments>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
-```
-
-Then run:
-```bash
-mvn exec:java
-```
 
 ## Comparison with Other Approaches
 
