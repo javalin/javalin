@@ -22,6 +22,13 @@ class TestSse {
 
     private fun SseClient.doAndClose(runnable: Runnable) = runnable.run().also { this.close() }
 
+    private fun getSseWithAcceptHeader(http: io.javalin.testing.HttpUtil, acceptHeader: String): String {
+        return Unirest.get("${http.origin}/sse")
+            .header("Accept", acceptHeader)
+            .asString()
+            .body
+    }
+
     @Test
     fun `sending events works`() = TestUtil.test { app, http ->
         app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
@@ -195,21 +202,7 @@ class TestSse {
     @Test
     fun `sse works with Accept header containing text-event-stream and other types`() = TestUtil.test { app, http ->
         app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
-        val body = Unirest.get("${http.origin}/sse")
-            .header("Accept", "text/event-stream, text/html, application/json")
-            .asString()
-            .body
-        assertThat(body).contains("event: $event")
-        assertThat(body).contains("data: $data")
-    }
-
-    @Test
-    fun `sse works with Accept header containing text-event-stream at the end`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
-        val body = Unirest.get("${http.origin}/sse")
-            .header("Accept", "text/html, application/json, text/event-stream")
-            .asString()
-            .body
+        val body = getSseWithAcceptHeader(http, "text/event-stream, text/html, application/json")
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: $data")
     }
@@ -217,10 +210,7 @@ class TestSse {
     @Test
     fun `sse works with Accept header containing only text-event-stream`() = TestUtil.test { app, http ->
         app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
-        val body = Unirest.get("${http.origin}/sse")
-            .header("Accept", "text/event-stream")
-            .asString()
-            .body
+        val body = getSseWithAcceptHeader(http, "text/event-stream")
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: $data")
     }
@@ -228,10 +218,7 @@ class TestSse {
     @Test
     fun `sse does not work without text-event-stream in Accept header`() = TestUtil.test { app, http ->
         app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
-        val body = Unirest.get("${http.origin}/sse")
-            .header("Accept", "text/html, application/json")
-            .asString()
-            .body
+        val body = getSseWithAcceptHeader(http, "text/html, application/json")
         assertThat(body).doesNotContain("event: $event")
         assertThat(body).doesNotContain("data: $data")
     }
