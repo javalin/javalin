@@ -60,28 +60,18 @@ open class InternalRouter(
 
     /**
      * Checks if the instance has a handler for the specified handlerType and path.
+     * For custom HTTP methods (INVALID), provide the customMethodName parameter.
      */
-    open fun hasHttpHandlerEntry(handlerType: HandlerType, requestUri: String): Boolean =
-        httpPathMatcher.hasEntries(handlerType, requestUri)
+    open fun hasHttpHandlerEntry(handlerType: HandlerType, requestUri: String, customMethodName: String? = null): Boolean =
+        httpPathMatcher.hasEntries(handlerType, requestUri, customMethodName)
 
     /**
      * Finds all matching handlers for the specified handlerType and path.
+     * For custom HTTP methods (INVALID), provide the customMethodName parameter.
      * @return a handler for the specified handlerType and path, or null if no handler is found
      */
-    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<ParsedEndpoint> =
-        httpPathMatcher.findEntries(handlerType, requestUri)
-
-    /**
-     * Finds all matching handlers for a custom HTTP method (e.g., WebDAV methods).
-     */
-    open fun findHttpHandlerEntriesByMethod(methodName: String, requestUri: String? = null): Stream<ParsedEndpoint> =
-        httpPathMatcher.findEntriesByMethod(methodName, requestUri)
-
-    /**
-     * Checks if the instance has a handler for a custom HTTP method.
-     */
-    open fun hasHttpHandlerEntryByMethod(methodName: String, requestUri: String): Boolean =
-        httpPathMatcher.hasEntriesByMethod(methodName, requestUri)
+    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null, customMethodName: String? = null): Stream<ParsedEndpoint> =
+        httpPathMatcher.findEntries(handlerType, requestUri, customMethodName)
 
     /**
      * Adds an error mapper for the specified content-type to the instance.

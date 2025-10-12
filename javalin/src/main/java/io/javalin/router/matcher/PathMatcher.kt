@@ -29,10 +29,15 @@ class PathMatcher {
         }
 
     /**
-     * Finds handlers for a custom HTTP method (stored under INVALID HandlerType with CustomHttpMethod metadata).
+     * Finds handlers for a custom HTTP method by checking entries under INVALID with matching CustomHttpMethod metadata.
      */
-    fun findEntriesByMethod(methodName: String, requestUri: String?): Stream<ParsedEndpoint> {
-        val methodUpper = methodName.uppercase()
+    fun findEntries(handlerType: HandlerType, requestUri: String?, customMethodName: String?): Stream<ParsedEndpoint> {
+        if (handlerType != HandlerType.INVALID || customMethodName == null) {
+            return findEntries(handlerType, requestUri)
+        }
+        
+        // For custom methods, filter by CustomHttpMethod metadata
+        val methodUpper = customMethodName.uppercase()
         val filtered = handlerEntries[HandlerType.INVALID]!!
             .filter { it.endpoint.metadata(CustomHttpMethod::class.java)?.methodName == methodUpper }
         
@@ -50,10 +55,16 @@ class PathMatcher {
     /**
      * Checks if there are handlers for a custom HTTP method.
      */
-    internal fun hasEntriesByMethod(methodName: String, requestUri: String): Boolean =
-        handlerEntries[HandlerType.INVALID]!!.any { entry ->
-            entry.endpoint.metadata(CustomHttpMethod::class.java)?.methodName == methodName.uppercase() && match(entry, requestUri)
+    internal fun hasEntries(handlerType: HandlerType, requestUri: String, customMethodName: String?): Boolean {
+        if (handlerType != HandlerType.INVALID || customMethodName == null) {
+            return hasEntries(handlerType, requestUri)
         }
+        
+        val methodUpper = customMethodName.uppercase()
+        return handlerEntries[HandlerType.INVALID]!!.any { entry ->
+            entry.endpoint.metadata(CustomHttpMethod::class.java)?.methodName == methodUpper && match(entry, requestUri)
+        }
+    }
 
     private fun match(entry: ParsedEndpoint, requestPath: String): Boolean = when (entry.endpoint.path) {
         "*" -> true
