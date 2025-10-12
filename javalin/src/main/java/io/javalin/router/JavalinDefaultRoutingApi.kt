@@ -115,6 +115,26 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
         )
 
     /**
+     * Adds a request handler for a custom HTTP method (e.g., WebDAV methods like PROPFIND, MKCOL).
+     * This allows handling of non-standard HTTP methods through the routing system.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun addHttpHandler(method: String, path: String, handler: Handler): API = addHttpHandler(method, path, handler, *emptyArray())
+
+    /**
+     * Adds a request handler with roles for a custom HTTP method (e.g., WebDAV methods like PROPFIND, MKCOL).
+     * This allows handling of non-standard HTTP methods through the routing system.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun addHttpHandler(method: String, path: String, handler: Handler, vararg roles: RouteRole): API =
+        addEndpoint(
+            Endpoint.create(HandlerType.INVALID, path)
+                .addMetadata(CustomHttpMethod(method.uppercase()))
+                .addMetadata(Roles(roles.toSet()))
+                .handler(handler)
+        )
+
+    /**
      * Adds a request handler for the specified handlerType and path to the instance.
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)

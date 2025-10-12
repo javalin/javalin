@@ -72,6 +72,18 @@ open class InternalRouter(
         httpPathMatcher.findEntries(handlerType, requestUri)
 
     /**
+     * Finds all matching handlers for a custom HTTP method (e.g., WebDAV methods).
+     */
+    open fun findHttpHandlerEntriesByMethod(methodName: String, requestUri: String? = null): Stream<ParsedEndpoint> =
+        httpPathMatcher.findEntriesByMethod(methodName, requestUri)
+
+    /**
+     * Checks if the instance has a handler for a custom HTTP method.
+     */
+    open fun hasHttpHandlerEntryByMethod(methodName: String, requestUri: String): Boolean =
+        httpPathMatcher.hasEntriesByMethod(methodName, requestUri)
+
+    /**
      * Adds an error mapper for the specified content-type to the instance.
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      * See: [Error mapping in docs](https://javalin.io/documentation.error-mapping)

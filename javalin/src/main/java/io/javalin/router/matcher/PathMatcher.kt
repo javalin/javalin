@@ -1,12 +1,7 @@
-/*
- * Javalin - https://javalin.io
- * Copyright 2017 David Åse
- * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
- */
-
 package io.javalin.router.matcher
 
 import io.javalin.http.HandlerType
+import io.javalin.router.CustomHttpMethod
 import io.javalin.router.ParsedEndpoint
 import java.util.*
 import java.util.stream.Stream
@@ -33,10 +28,32 @@ class PathMatcher {
             else -> handlerEntries[handlerType]!!.stream().filter { he -> match(he, requestUri) }
         }
 
+    /**
+     * Finds handlers for a custom HTTP method (stored under INVALID HandlerType with CustomHttpMethod metadata).
+     */
+    fun findEntriesByMethod(methodName: String, requestUri: String?): Stream<ParsedEndpoint> {
+        val methodUpper = methodName.uppercase()
+        val filtered = handlerEntries[HandlerType.INVALID]!!
+            .filter { it.endpoint.metadata(CustomHttpMethod::class.java)?.methodName == methodUpper }
+        
+        return when (requestUri) {
+            null -> filtered.stream()
+            else -> filtered.stream().filter { he -> match(he, requestUri) }
+        }
+    }
+
     fun allEntries() = handlerEntries.values.flatten()
 
     internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
         handlerEntries[handlerType]!!.any { entry -> match(entry, requestUri) }
+
+    /**
+     * Checks if there are handlers for a custom HTTP method.
+     */
+    internal fun hasEntriesByMethod(methodName: String, requestUri: String): Boolean =
+        handlerEntries[HandlerType.INVALID]!!.any { entry ->
+            entry.endpoint.metadata(CustomHttpMethod::class.java)?.methodName == methodName.uppercase() && match(entry, requestUri)
+        }
 
     private fun match(entry: ParsedEndpoint, requestPath: String): Boolean = when (entry.endpoint.path) {
         "*" -> true
