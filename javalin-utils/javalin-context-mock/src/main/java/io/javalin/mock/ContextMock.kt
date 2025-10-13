@@ -84,7 +84,7 @@ class ContextMock private constructor(
         body?.init(mockConfig)
         // apply defaults values
         mockConfig.req.also { req ->
-            req.method = endpoint.method.name
+            req.method = endpoint.method.value
             req.contextPath = mockConfig.javalinConfig.router.contextPath.takeIf { it != "/" } ?: ""
             req.requestURI = uri
             req.requestURL = "${req.scheme}://${req.serverName}:${req.serverPort}${req.contextPath}${req.requestURI}"

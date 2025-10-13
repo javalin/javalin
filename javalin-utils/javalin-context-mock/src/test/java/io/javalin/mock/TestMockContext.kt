@@ -2,8 +2,7 @@ package io.javalin.mock
 
 import io.javalin.Javalin
 import io.javalin.http.ContentType
-import io.javalin.http.HandlerType.GET
-import io.javalin.http.HandlerType.POST
+import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.http.Header.AUTHORIZATION
 import io.javalin.http.Header.HOST
@@ -25,10 +24,10 @@ import org.junit.jupiter.api.assertThrows
 internal class TestMockContext {
 
     object TestController {
-        val defaultApiEndpoint = Endpoint(GET, "/api/{simple}/<complex>") { it.result("Hello ${it.ip()}").status(IM_A_TEAPOT) }
-        val asyncApiEndpoint = Endpoint(GET, "/api/async") { it.async { it.result("Welcome to the future") } }
-        val consumeBodyEndpoint = Endpoint(POST, "/api/consume") { it.result(it.body()) }
-        val sessionEndpoint = Endpoint(GET, "/api/session") { it.sessionAttribute("a", "b") }
+        val defaultApiEndpoint = Endpoint(HandlerType.GET, "/api/{simple}/<complex>") { it.result("Hello ${it.ip()}").status(IM_A_TEAPOT) }
+        val asyncApiEndpoint = Endpoint(HandlerType.GET, "/api/async") { it.async { it.result("Welcome to the future") } }
+        val consumeBodyEndpoint = Endpoint(HandlerType.POST, "/api/consume") { it.result(it.body()) }
+        val sessionEndpoint = Endpoint(HandlerType.GET, "/api/session") { it.sessionAttribute("a", "b") }
     }
 
     data class PandaDto(val name: String)
@@ -55,7 +54,7 @@ internal class TestMockContext {
         assertThat(context.scheme()).isEqualTo("http")
         assertThat(context.protocol()).isEqualTo("HTTP/1.1")
         assertThat(context.host()).isEqualTo("localhost:80")
-        assertThat(context.method()).isEqualTo(GET)
+        assertThat(context.method()).isEqualTo(HandlerType.GET)
         assertThat(context.url()).isEqualTo("http://localhost:80/api/simple/comp/lex")
         assertThat(context.path()).isEqualTo("/api/simple/comp/lex")
         assertThat(context.matchedPath()).isEqualTo("/api/{simple}/<complex>")
@@ -66,7 +65,7 @@ internal class TestMockContext {
     @Test
     @Suppress("UastIncorrectHttpHeaderInspection")
     fun `should handle header related methods`() {
-        val context = Endpoint(GET, "/") { it.header("X-Key", "value") }.handle(contextMock.build {
+        val context = Endpoint(HandlerType.GET, "/") { it.header("X-Key", "value") }.handle(contextMock.build {
             req.addHeader("Test", "007")
             req.addHeader(AUTHORIZATION, "Basic ${Base64.getEncoder().encodeToString("user:pass".toByteArray())}")
         })
@@ -104,7 +103,7 @@ internal class TestMockContext {
     @Test
     fun `should handle output stream`() {
         val outputStream = ByteArrayOutputStream()
-        Endpoint(GET, "/") { ctx ->
+        Endpoint(HandlerType.GET, "/") { ctx ->
             ctx.res().writer.use { it.print("Panda") }
         }.handle(contextMock.build(Body.ofString("Panda")) {
             res.outputStream = outputStream
@@ -114,7 +113,7 @@ internal class TestMockContext {
 
     @Test
     fun `should handle multipart files`() {
-        val context = Endpoint(POST, "/") {}.handle(contextMock.build { req.addPart("file", "panda.txt", "Panda".toByteArray()) })
+        val context = Endpoint(HandlerType.POST, "/") {}.handle(contextMock.build { req.addPart("file", "panda.txt", "Panda".toByteArray()) })
         val file = context.uploadedFile("file")!!
         assertThat(file.filename()).isEqualTo("panda.txt")
         assertThat(file.extension()).isEqualTo(".txt")
@@ -169,7 +168,7 @@ internal class TestMockContext {
                 this.req.localPort = app.port()
                 this.req.addHeader(Header.USER_AGENT, userAgent)
             }
-            val mockedCtx = Endpoint(POST, endpointUrl) { it.result("Passed") }
+            val mockedCtx = Endpoint(HandlerType.POST, endpointUrl) { it.result("Passed") }
                 .handle(mock.build(requestedUrl, Body.ofObject(PandaDto("Kim"))))
 
             app.post(endpointUrl) { ctx ->
