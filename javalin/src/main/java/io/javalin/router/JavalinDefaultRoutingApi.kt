@@ -4,19 +4,6 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
-import io.javalin.http.HandlerType.AFTER
-import io.javalin.http.HandlerType.AFTER_MATCHED
-import io.javalin.http.HandlerType.BEFORE
-import io.javalin.http.HandlerType.BEFORE_MATCHED
-import io.javalin.http.HandlerType.DELETE
-import io.javalin.http.HandlerType.GET
-import io.javalin.http.HandlerType.HEAD
-import io.javalin.http.HandlerType.OPTIONS
-import io.javalin.http.HandlerType.PATCH
-import io.javalin.http.HandlerType.POST
-import io.javalin.http.HandlerType.PUT
-import io.javalin.http.HandlerType.WEBSOCKET_AFTER_UPGRADE
-import io.javalin.http.HandlerType.WEBSOCKET_BEFORE_UPGRADE
 import io.javalin.http.HttpStatus
 import io.javalin.http.sse.SseClient
 import io.javalin.http.sse.SseHandler
@@ -25,9 +12,6 @@ import io.javalin.security.RouteRole
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsExceptionHandler
 import io.javalin.websocket.WsHandlerType
-import io.javalin.websocket.WsHandlerType.WEBSOCKET
-import io.javalin.websocket.WsHandlerType.WEBSOCKET_AFTER
-import io.javalin.websocket.WsHandlerType.WEBSOCKET_BEFORE
 import java.util.function.Consumer
 
 class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRoutingApi<JavalinDefaultRouting> {
@@ -109,7 +93,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      */
     fun addHttpHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API =
         addEndpoint(
-            Endpoint.create(handlerType.name, path)
+            Endpoint.create(handlerType, path)
                 .addMetadata(Roles(roles.toSet()))
                 .handler(handler)
         )
@@ -144,85 +128,85 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds a GET request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun get(path: String, handler: Handler): API = addHttpHandler(GET, path, handler)
+    fun get(path: String, handler: Handler): API = addHttpHandler(HandlerType.GET, path, handler)
 
     /**
      * Adds a POST request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun post(path: String, handler: Handler): API = addHttpHandler(POST, path, handler)
+    fun post(path: String, handler: Handler): API = addHttpHandler(HandlerType.POST, path, handler)
 
     /**
      * Adds a PUT request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun put(path: String, handler: Handler): API = addHttpHandler(PUT, path, handler)
+    fun put(path: String, handler: Handler): API = addHttpHandler(HandlerType.PUT, path, handler)
 
     /**
      * Adds a PATCH request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun patch(path: String, handler: Handler): API = addHttpHandler(PATCH, path, handler)
+    fun patch(path: String, handler: Handler): API = addHttpHandler(HandlerType.PATCH, path, handler)
 
     /**
      * Adds a DELETE request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun delete(path: String, handler: Handler): API = addHttpHandler(DELETE, path, handler)
+    fun delete(path: String, handler: Handler): API = addHttpHandler(HandlerType.DELETE, path, handler)
 
     /**
      * Adds a HEAD request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun head(path: String, handler: Handler): API = addHttpHandler(HEAD, path, handler)
+    fun head(path: String, handler: Handler): API = addHttpHandler(HandlerType.HEAD, path, handler)
 
     /**
      * Adds a OPTIONS request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun options(path: String, handler: Handler): API = addHttpHandler(OPTIONS, path, handler)
+    fun options(path: String, handler: Handler): API = addHttpHandler(HandlerType.OPTIONS, path, handler)
 
     /**
      * Adds a GET request handler with the given roles for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun get(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(GET, path, handler, *roles)
+    fun get(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HandlerType.GET, path, handler, *roles)
 
     /**
      * Adds a POST request handler with the given roles for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun post(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(POST, path, handler, *roles)
+    fun post(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HandlerType.POST, path, handler, *roles)
 
     /**
      * Adds a PUT request handler with the given roles for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun put(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(PUT, path, handler, *roles)
+    fun put(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HandlerType.PUT, path, handler, *roles)
 
     /**
      * Adds a PATCH request handler with the given roles for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun patch(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(PATCH, path, handler, *roles)
+    fun patch(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HandlerType.PATCH, path, handler, *roles)
 
     /**
      * Adds a DELETE request handler with the given roles for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun delete(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(DELETE, path, handler, *roles)
+    fun delete(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HandlerType.DELETE, path, handler, *roles)
 
     /**
      * Adds a HEAD request handler with the given roles for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun head(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HEAD, path, handler, *roles)
+    fun head(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HandlerType.HEAD, path, handler, *roles)
 
     /**
      * Adds a OPTIONS request handler with the given roles for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
-    fun options(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(OPTIONS, path, handler, *roles)
+    fun options(path: String, handler: Handler, vararg roles: RouteRole): API = addHttpHandler(HandlerType.OPTIONS, path, handler, *roles)
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
@@ -243,7 +227,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds a BEFORE request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#before-handlers)
      */
-    fun before(path: String, handler: Handler): API = addHttpHandler(BEFORE, path, handler)
+    fun before(path: String, handler: Handler): API = addHttpHandler(HandlerType.BEFORE, path, handler)
 
     /**
      * Adds a BEFORE request handler for all routes in the instance.
@@ -255,7 +239,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds a BEFORE_MATCHED request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#before-handlers)
      */
-    fun beforeMatched(path: String, handler: Handler): API = addHttpHandler(BEFORE_MATCHED, path, handler)
+    fun beforeMatched(path: String, handler: Handler): API = addHttpHandler(HandlerType.BEFORE_MATCHED, path, handler)
 
     /**
      * Adds a BEFORE_MATCHED request handler for all routes in the instance.
@@ -267,7 +251,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds an AFTER request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#before-handlers)
      */
-    fun after(path: String, handler: Handler): API = addHttpHandler(AFTER, path, handler)
+    fun after(path: String, handler: Handler): API = addHttpHandler(HandlerType.AFTER, path, handler)
 
     /**
      * Adds an AFTER request handler for all routes in the instance.
@@ -279,7 +263,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds an AFTER_MATCHED request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#before-handlers)
      */
-    fun afterMatched(path: String, handler: Handler): API = addHttpHandler(AFTER_MATCHED, path, handler)
+    fun afterMatched(path: String, handler: Handler): API = addHttpHandler(HandlerType.AFTER_MATCHED, path, handler)
 
     /**
      * Adds an AFTER_MATCHED request handler for all routes in the instance.
@@ -309,12 +293,12 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
      * Adds a WebSocket handler on the specified path with the specified roles.
      * See: [WebSockets in docs](https://javalin.io/documentation#websockets)
      */
-    fun ws(path: String, ws: Consumer<WsConfig>, vararg roles: RouteRole): API = addWsHandler(WEBSOCKET, path, ws, *roles)
+    fun ws(path: String, ws: Consumer<WsConfig>, vararg roles: RouteRole): API = addWsHandler(WsHandlerType.WEBSOCKET, path, ws, *roles)
 
     /**
      * Adds a WebSocket before handler for the specified path to the instance.
      */
-    fun wsBefore(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WEBSOCKET_BEFORE, path, wsConfig)
+    fun wsBefore(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WsHandlerType.WEBSOCKET_BEFORE, path, wsConfig)
 
     /**
      * Adds a WebSocket before handler for all routes in the instance.
@@ -324,7 +308,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     /**
      * Adds a WebSocket before upgrade handler for the specified path to the instance.
      */
-    fun wsBeforeUpgrade(path: String, handler: Handler): API = addHttpHandler(WEBSOCKET_BEFORE_UPGRADE, path, handler)
+    fun wsBeforeUpgrade(path: String, handler: Handler): API = addHttpHandler(HandlerType.WEBSOCKET_BEFORE_UPGRADE, path, handler)
 
     /**
      * Adds a WebSocket before upgrade handler for all routes in the instance.
@@ -334,7 +318,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     /**
      * Adds a WebSocket after handler for the specified path to the instance.
      */
-    fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WEBSOCKET_AFTER, path, wsConfig)
+    fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): API = addWsHandler(WsHandlerType.WEBSOCKET_AFTER, path, wsConfig)
 
     /**
      * Adds a WebSocket after handler for all routes in the instance.
@@ -344,7 +328,7 @@ interface JavalinDefaultRoutingApi<API : RoutingApi> : RoutingApi {
     /**
      * Adds a WebSocket after upgrade handler for the specified path to the instance.
      */
-    fun wsAfterUpgrade(path: String, handler: Handler): API = addHttpHandler(WEBSOCKET_AFTER_UPGRADE, path, handler)
+    fun wsAfterUpgrade(path: String, handler: Handler): API = addHttpHandler(HandlerType.WEBSOCKET_AFTER_UPGRADE, path, handler)
 
     /**
      * Adds a WebSocket after upgrade handler for all routes in the instance.

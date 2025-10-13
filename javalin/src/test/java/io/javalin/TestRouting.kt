@@ -11,7 +11,7 @@ import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HandlerType
-import io.javalin.http.HandlerType.TRACE
+
 import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
@@ -64,10 +64,10 @@ class TestRouting {
         app.get("/1") { it.result("Hello World") }
         val handler1 = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/1" }!!
         assertThat(handler1.path).isEqualTo("/1")
-        assertThat(handler1.method).isEqualTo("GET")
+        assertThat(handler1.method).isEqualTo(HandlerType.GET)
         app.before("/2") { }
         val handler2 = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/2" }!!
-        assertThat(handler2.method).isEqualTo("BEFORE")
+        assertThat(handler2.method).isEqualTo(HandlerType.BEFORE)
     }
 
     private object TestMetadata : EndpointMetadata
@@ -118,7 +118,7 @@ class TestRouting {
         app.patch("/mapped", TestUtil.okHandler)
         app.head("/mapped", TestUtil.okHandler)
         app.options("/mapped", TestUtil.okHandler)
-        app.addHttpHandler(TRACE, "/mapped", TestUtil.okHandler)
+        app.addHttpHandler(HandlerType.TRACE, "/mapped", TestUtil.okHandler)
 
         for (httpMethod in HttpMethod.all()) {
             assertThat(http.call(httpMethod, "/mapped").httpCode()).isEqualTo(OK)

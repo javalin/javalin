@@ -1,7 +1,7 @@
 package io.javalin.http.util
 
 import io.javalin.http.Context
-import io.javalin.http.HandlerType.GET
+import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.util.Util
@@ -20,7 +20,7 @@ object ETagGenerator {
             return true
         }
 
-        if (serverEtag == null && generatorEnabled && ctx.method() == "GET" && resultStream is ByteArrayInputStream) {
+        if (serverEtag == null && generatorEnabled && ctx.method() == HandlerType.GET && resultStream is ByteArrayInputStream) {
             val generatedEtag = Util.getChecksumAndReset(resultStream)
             ctx.header(Header.ETAG, generatedEtag)
 

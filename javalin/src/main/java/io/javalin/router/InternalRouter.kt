@@ -44,7 +44,7 @@ open class InternalRouter(
         httpPathMatcher.add(ParsedEndpoint(endpoint, routerConfig))
         eventManager.fireHandlerAddedEvent(
             HandlerMetaInfo(
-                httpMethod = endpoint.method,
+                httpMethod = endpoint.method.value,
                 path = Util.prefixContextPath(routerConfig.contextPath, endpoint.path),
                 handler = endpoint.handler,
                 roles = endpoint.metadata(Roles::class.java)?.roles ?: emptySet()
@@ -68,7 +68,7 @@ open class InternalRouter(
      * Checks if the instance has a handler for the specified HTTP method (as string) and path.
      */
     open fun hasHttpHandlerEntry(method: String, requestUri: String): Boolean =
-        httpPathMatcher.hasEntries(method, requestUri)
+        httpPathMatcher.hasEntries(HandlerType.findByName(method), requestUri)
 
     /**
      * Finds all matching handlers for the specified handlerType and path.
@@ -82,7 +82,7 @@ open class InternalRouter(
      * @return a handler for the specified HTTP method and path, or null if no handler is found
      */
     open fun findHttpHandlerEntries(method: String, requestUri: String? = null): Stream<ParsedEndpoint> =
-        httpPathMatcher.findEntries(method, requestUri)
+        httpPathMatcher.findEntries(HandlerType.findByName(method), requestUri)
 
     /**
      * Adds an error mapper for the specified content-type to the instance.

@@ -22,8 +22,8 @@ import static io.javalin.apibuilder.ApiBuilder.ws;
 
 // @formatter:off
 public class TestPublicApi_Java {
-    static public class TestContextPlugin extends ContextPlugin<Void, String> {
-        public String createExtension(Context context) {
+    static public class TestContextPlugin extends ContextPlugin<Void, HandlerType> {
+        public HandlerType createExtension(Context context) {
             return context.method();
         }
     }

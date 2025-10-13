@@ -98,8 +98,8 @@ interface Context {
     /** Gets the request content type, or null. */
     fun contentType(): String? = req().contentType
 
-    /** Gets the request HTTP method as a string (e.g., "GET", "POST", "PROPFIND"). */
-    fun method(): String = header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method
+    /** Gets the request HTTP method. */
+    fun method(): HandlerType = HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
 
     /** Gets the request path. */
     fun path(): String = req().requestURI

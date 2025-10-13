@@ -1,8 +1,8 @@
 package io.javalin.http.servlet
 
 import io.javalin.http.HandlerType
-import io.javalin.http.HandlerType.GET
-import io.javalin.http.HandlerType.HEAD
+
+
 import io.javalin.http.MethodNotAllowedResponse
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
@@ -26,7 +26,7 @@ object DefaultTasks {
         val httpHandlerOrNull by javalinLazy {
             servlet.router.findHttpHandlerEntries(httpMethod, requestUri).firstOrNull()
         }
-        val isResourceHandler = httpHandlerOrNull == null && ctx.method() in listOf("HEAD", "GET")
+        val isResourceHandler = httpHandlerOrNull == null && (ctx.method() == HandlerType.HEAD || ctx.method() == HandlerType.GET)
         val matchedRouteRoles by javalinLazy { servlet.matchedRoles(ctx, requestUri) }
         val resourceRouteRoles by javalinLazy { servlet.cfg.pvt.resourceHandler?.getResourceRouteRoles(ctx) ?: emptySet() }
         val willMatch by javalinLazy {
@@ -63,10 +63,10 @@ object DefaultTasks {
         }
         
         submitTask(LAST, Task {
-            if (ctx.method() == "HEAD" && servlet.router.hasHttpHandlerEntry("GET", requestUri)) { // return 200, there is a get handler
+            if (ctx.method() == HandlerType.HEAD && servlet.router.hasHttpHandlerEntry(HandlerType.GET, requestUri)) { // return 200, there is a get handler
                 return@Task
             }
-            if (ctx.method() == "HEAD" || ctx.method() == "GET") { // check for static resources (will write response if found)
+            if (ctx.method() == HandlerType.HEAD || ctx.method() == HandlerType.GET) { // check for static resources (will write response if found)
                 if (servlet.cfg.pvt.resourceHandler?.handle(ctx) == true) return@Task
                 if (servlet.cfg.pvt.singlePageHandler.handle(ctx)) return@Task
             }
@@ -77,7 +77,7 @@ object DefaultTasks {
             if (servlet.cfg.http.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
                 throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
             }
-            throw EndpointNotFound(method = httpMethod, path = requestUri)
+            throw EndpointNotFound(method = httpMethod.value, path = requestUri)
         })
     }
 
@@ -101,7 +101,7 @@ object DefaultTasks {
     }
 
     private fun JavalinServlet.willMatch(ctx: JavalinServletContext, requestUri: String) = when {
-        ctx.method() == "HEAD" && this.router.hasHttpHandlerEntry("GET", requestUri) -> true
+        ctx.method() == HandlerType.HEAD && this.router.hasHttpHandlerEntry(HandlerType.GET, requestUri) -> true
         else -> {
             val httpMethod = ctx.method()
             this.router.findHttpHandlerEntries(httpMethod, requestUri).firstOrNull() != null

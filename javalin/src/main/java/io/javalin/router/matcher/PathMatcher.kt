@@ -8,43 +8,31 @@ import java.util.stream.Stream
 class PathMatcher {
 
     // Use LinkedHashMap to maintain insertion order (standard methods first, then custom methods)
-    private val handlerEntries: MutableMap<String, MutableList<ParsedEndpoint>> = LinkedHashMap()
+    private val handlerEntries: MutableMap<HandlerType, MutableList<ParsedEndpoint>> = LinkedHashMap()
 
     init {
-        // Pre-populate with standard HTTP methods and lifecycle handlers from enum in order
-        HandlerType.entries.forEach { handlerType ->
-            handlerEntries[handlerType.name] = mutableListOf()
+        // Pre-populate with standard HTTP methods and lifecycle handlers
+        HandlerType.values().forEach { handlerType ->
+            handlerEntries[handlerType] = mutableListOf()
         }
     }
 
     fun add(entry: ParsedEndpoint) {
-        val methodKey = entry.endpoint.method
+        val method = entry.endpoint.method
         val path = entry.endpoint.path
 
         // Check for duplicates for HTTP methods
-        val entries = handlerEntries.computeIfAbsent(methodKey) { mutableListOf() }
+        val entries = handlerEntries.computeIfAbsent(method) { mutableListOf() }
         // Only check duplicates for actual HTTP methods (not lifecycle handlers like BEFORE, AFTER)
-        val isHttpMethod = try { HandlerType.valueOf(methodKey).isHttpMethod } catch (e: IllegalArgumentException) { true }
-        if (isHttpMethod && entries.find { it.endpoint.path == path } != null) {
-            throw IllegalArgumentException("Handler with method='${methodKey}' and path='${path}' already exists.")
+        if (method.isHttpMethod && entries.find { it.endpoint.path == path } != null) {
+            throw IllegalArgumentException("Handler with method='${method}' and path='${path}' already exists.")
         }
 
         entries.add(entry)
     }
 
     fun findEntries(handlerType: HandlerType, requestUri: String?): Stream<ParsedEndpoint> {
-        val methodKey = handlerType.name
-        val entries = handlerEntries[methodKey] ?: return Stream.empty()
-        
-        return when (requestUri) {
-            null -> entries.stream()
-            else -> entries.stream().filter { he -> match(he, requestUri) }
-        }
-    }
-
-    fun findEntries(method: String, requestUri: String?): Stream<ParsedEndpoint> {
-        val methodKey = method.uppercase()
-        val entries = handlerEntries[methodKey] ?: return Stream.empty()
+        val entries = handlerEntries[handlerType] ?: return Stream.empty()
         
         return when (requestUri) {
             null -> entries.stream()
@@ -55,14 +43,7 @@ class PathMatcher {
     fun allEntries() = handlerEntries.values.flatten()
 
     internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean {
-        val methodKey = handlerType.name
-        val entries = handlerEntries[methodKey] ?: return false
-        return entries.any { entry -> match(entry, requestUri) }
-    }
-
-    internal fun hasEntries(method: String, requestUri: String): Boolean {
-        val methodKey = method.uppercase()
-        val entries = handlerEntries[methodKey] ?: return false
+        val entries = handlerEntries[handlerType] ?: return false
         return entries.any { entry -> match(entry, requestUri) }
     }
 

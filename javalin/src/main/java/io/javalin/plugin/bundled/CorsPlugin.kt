@@ -2,7 +2,7 @@ package io.javalin.plugin.bundled
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
-import io.javalin.http.HandlerType.OPTIONS
+import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_HEADERS
@@ -110,7 +110,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
                     handleCors(ctx, corsRule)
                 }
                 it.after(corsRule.path) { ctx ->
-                    if (ctx.method() == "OPTIONS" && ctx.status() in validOptionStatusCodes) {
+                    if (ctx.method() == HandlerType.OPTIONS && ctx.status() in validOptionStatusCodes) {
                         ctx.result("").status(200) // CORS is enabled, so we return 200 for OPTIONS
                     }
                 }
@@ -125,7 +125,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
             return
         }
 
-        if (ctx.method() == "OPTIONS") {
+        if (ctx.method() == HandlerType.OPTIONS) {
             var requestedHeader = false // max-age is only needed if a header is requested
 
             ctx.header(ACCESS_CONTROL_REQUEST_HEADERS)?.also { headerValue ->

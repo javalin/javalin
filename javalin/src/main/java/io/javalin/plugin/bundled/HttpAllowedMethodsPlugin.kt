@@ -8,7 +8,6 @@ package io.javalin.plugin.bundled
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.HandlerType
-import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
 import io.javalin.plugin.Plugin
 import io.javalin.router.Endpoint
@@ -28,14 +27,9 @@ open class HttpAllowedMethodsPlugin : Plugin<Void>() {
             config.pvt.internalRouter.allHttpHandlers()
                 .asSequence()
                 .map { it.endpoint }
-                .filter { method ->
+                .filter { endpoint ->
                     // Filter to only HTTP methods (not lifecycle handlers like BEFORE, AFTER)
-                    try {
-                        HandlerType.valueOf(method.method).isHttpMethod
-                    } catch (e: IllegalArgumentException) {
-                        // Custom method not in enum, so it's an HTTP method
-                        true
-                    }
+                    endpoint.method.isHttpMethod
                 }
                 .groupBy({ it.path }, { it.method })
                 .mapValues { (_, handlers) -> (handlers + "OPTIONS").toSet() }
@@ -44,7 +38,7 @@ open class HttpAllowedMethodsPlugin : Plugin<Void>() {
 
                     config.pvt.internalRouter.addHttpEndpoint(
                         Endpoint(
-                            method = OPTIONS,
+                            method = HandlerType.OPTIONS,
                             path = path,
                             handler = { it.header(ACCESS_CONTROL_ALLOW_METHODS, allowedMethods) }
                         )

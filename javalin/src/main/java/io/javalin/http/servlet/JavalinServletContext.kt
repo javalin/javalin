@@ -14,7 +14,7 @@ import io.javalin.config.Key
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
-import io.javalin.http.HandlerType.AFTER
+// import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
@@ -89,19 +89,14 @@ open class JavalinServletContext(
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
 
     fun update(parsedEndpoint: ParsedEndpoint, requestUri: String) = also {
-        // Try to convert method string to HandlerType for backward compatibility
-        handlerType = try {
-            HandlerType.valueOf(parsedEndpoint.endpoint.method)
-        } catch (e: IllegalArgumentException) {
-            HandlerType.INVALID // fallback for custom methods
-        }
+        handlerType = parsedEndpoint.endpoint.method
         if (matchedPath != parsedEndpoint.endpoint.path) { // if the path has changed, we have to extract path params
             matchedPath = parsedEndpoint.endpoint.path
             if (parsedEndpoint.endpoint.hasPathParams()) {
                 pathParamMap = parsedEndpoint.extractPathParams(requestUri)
             }
         }
-        if (handlerType != AFTER) {
+        if (handlerType != HandlerType.AFTER) {
             endpointHandlerPath = parsedEndpoint.endpoint.path
         }
     }
@@ -127,7 +122,7 @@ open class JavalinServletContext(
     override fun cookieStore() = cookieStore
 
     private val method by javalinLazy { super.method() }
-    override fun method(): String = method
+    override fun method(): HandlerType = method
 
     override fun handlerType(): HandlerType = handlerType
     override fun matchedPath(): String = matchedPath

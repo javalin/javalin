@@ -2,7 +2,7 @@ package io.javalin.performance;
 
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.RouterConfig;
-import static io.javalin.http.HandlerType.GET;
+
 
 import io.javalin.http.HandlerType;
 import io.javalin.router.Endpoint;
@@ -19,7 +19,8 @@ import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,37 +47,37 @@ public class PathMatcherBenchmark {
         this.pathMatcher = new PathMatcher();
         var routingConfig = new RouterConfig(new JavalinConfig());
         for (int i = 0; i < 50; i++) {
-            this.pathMatcher.add(new ParsedEndpoint(new Endpoint("GET", "/hello" + i, (ctx) -> {}), routingConfig));
-            this.oldPathMatcher.add(new ParsedEndpoint(new Endpoint("GET", "/hello" + i, (ctx) -> {}), routingConfig));
+            this.pathMatcher.add(new ParsedEndpoint(new Endpoint(HandlerType.GET, "/hello" + i, (ctx) -> {}), routingConfig));
+            this.oldPathMatcher.add(new ParsedEndpoint(new Endpoint(HandlerType.GET, "/hello" + i, (ctx) -> {}), routingConfig));
         }
     }
 
     @Benchmark
     public void matchFirstStream(Blackhole blackhole) {
-        blackhole.consume(pathMatcher.findEntries(GET, "/hello0").findFirst().get());
+        blackhole.consume(pathMatcher.findEntries(HandlerType.GET, "/hello0").findFirst().get());
     }
 
     @Benchmark
     public void matchLastStream(Blackhole blackhole) {
-        blackhole.consume(pathMatcher.findEntries(GET, "/hello49").findFirst().get());
+        blackhole.consume(pathMatcher.findEntries(HandlerType.GET, "/hello49").findFirst().get());
     }
 
     @Benchmark
     public void matchFirstList(Blackhole blackhole) {
-        blackhole.consume(oldPathMatcher.findEntries(GET, "/hello0").iterator().next());
+        blackhole.consume(oldPathMatcher.findEntries(HandlerType.GET, "/hello0").iterator().next());
     }
 
     @Benchmark
     public void matchLastList(Blackhole blackhole) {
-        blackhole.consume(oldPathMatcher.findEntries(GET, "/hello49").iterator().next());
+        blackhole.consume(oldPathMatcher.findEntries(HandlerType.GET, "/hello49").iterator().next());
     }
 
 }
 
 final class OldPathMatcher {
     @SuppressWarnings("Convert2Diamond")
-    private final EnumMap<HandlerType, ArrayList<ParsedEndpoint>> handlerEntries = new EnumMap<HandlerType, ArrayList<ParsedEndpoint>>(
-        HandlerType.getEntries().stream().collect(Collectors.toMap((handler) -> handler, (handler) -> new ArrayList<>()))
+    private final Map<HandlerType, ArrayList<ParsedEndpoint>> handlerEntries = new LinkedHashMap<>(
+        HandlerType.values().stream().collect(Collectors.toMap((handler) -> handler, (handler) -> new ArrayList<>()))
     );
 
     public void add(ParsedEndpoint entry) {

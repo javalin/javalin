@@ -16,13 +16,13 @@ interface EndpointMetadata
 /**
  * Represents an HTTP endpoint in the application.
  *
- * @param method The HTTP method of the endpoint as a string (e.g., "GET", "POST", "PROPFIND")
+ * @param method The HTTP method of the endpoint (e.g., HandlerType.GET, HandlerType.POST, or any custom method)
  * @param path The path of the endpoint
  * @param metadata The metadata of the endpoint
  * @param handler The handler of the endpoint
  */
 open class Endpoint @JvmOverloads constructor(
-    val method: String,
+    val method: HandlerType,
     val path: String,
     metadata: Set<EndpointMetadata> = emptySet(),
     val handler: Handler
@@ -35,7 +35,7 @@ open class Endpoint @JvmOverloads constructor(
         vararg roles: RouteRole,
         handler: Handler
     ) : this(
-        method = method.name,
+        method = method,
         path = path,
         metadata = setOf(Roles(roles.toSet())),
         handler = handler
@@ -61,7 +61,7 @@ open class Endpoint @JvmOverloads constructor(
 
     companion object {
 
-        class EndpointBuilder internal constructor(val method: String, val path: String) {
+        class EndpointBuilder internal constructor(val method: HandlerType, val path: String) {
 
             private val metadata = mutableSetOf<EndpointMetadata>()
 
@@ -73,12 +73,18 @@ open class Endpoint @JvmOverloads constructor(
 
         }
 
-        @Deprecated("Experimental feature - use create(String, String) for custom HTTP methods")
         @JvmStatic
-        fun create(method: HandlerType, path: String): EndpointBuilder = EndpointBuilder(method.name, path)
+        fun create(method: HandlerType, path: String): EndpointBuilder = EndpointBuilder(method, path)
         
+        /**
+         * Creates an endpoint builder for a custom HTTP method (e.g., "PROPFIND" for WebDAV).
+         * 
+         * @param method the HTTP method name as a string
+         * @param path the endpoint path
+         * @return an endpoint builder for the custom method
+         */
         @JvmStatic
-        fun create(method: String, path: String): EndpointBuilder = EndpointBuilder(method.uppercase(), path)
+        fun create(method: String, path: String): EndpointBuilder = EndpointBuilder(HandlerType.findByName(method), path)
     }
 
 }
