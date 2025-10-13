@@ -44,7 +44,7 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
                         router.findHttpHandlerEntries(HandlerType.AFTER, requestUri)
                     )
                     .flatMap { it }
-                    .map { it.endpoint.method.name + "=" + it.endpoint.path }
+                    .map { it.endpoint.method + "=" + it.endpoint.path }
                 val resHeaders = res().headerNames.asSequence().map { it to res().getHeader(it) }.toMap()
                 JavalinLogger.info(
                     """|JAVALIN REQUEST DEBUG LOG:
@@ -85,7 +85,7 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
         val hasExtension = ctx.path().contains(".")
         val hasNoPathParams = ctx.pathParamMap().isEmpty()
         val hasEtag = ctx.header(Header.IF_NONE_MATCH) != null
-        val isGetOrHead = ctx.method() == HandlerType.GET || ctx.method() == HandlerType.HEAD
+        val isGetOrHead = ctx.method() == "GET" || ctx.method() == "HEAD"
         return hasPopularExtension || hasExtension && hasNoPathParams && hasEtag && isGetOrHead
     }
 

@@ -89,7 +89,12 @@ open class JavalinServletContext(
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
 
     fun update(parsedEndpoint: ParsedEndpoint, requestUri: String) = also {
-        handlerType = parsedEndpoint.endpoint.method
+        // Try to convert method string to HandlerType for backward compatibility
+        handlerType = try {
+            HandlerType.valueOf(parsedEndpoint.endpoint.method)
+        } catch (e: IllegalArgumentException) {
+            HandlerType.INVALID // fallback for custom methods
+        }
         if (matchedPath != parsedEndpoint.endpoint.path) { // if the path has changed, we have to extract path params
             matchedPath = parsedEndpoint.endpoint.path
             if (parsedEndpoint.endpoint.hasPathParams()) {
@@ -122,7 +127,7 @@ open class JavalinServletContext(
     override fun cookieStore() = cookieStore
 
     private val method by javalinLazy { super.method() }
-    override fun method(): HandlerType = method
+    override fun method(): String = method
 
     override fun handlerType(): HandlerType = handlerType
     override fun matchedPath(): String = matchedPath

@@ -64,10 +64,10 @@ class TestRouting {
         app.get("/1") { it.result("Hello World") }
         val handler1 = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/1" }!!
         assertThat(handler1.path).isEqualTo("/1")
-        assertThat(handler1.method).isEqualTo(HandlerType.GET)
+        assertThat(handler1.method).isEqualTo("GET")
         app.before("/2") { }
         val handler2 = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/2" }!!
-        assertThat(handler2.method).isEqualTo(HandlerType.BEFORE)
+        assertThat(handler2.method).isEqualTo("BEFORE")
     }
 
     private object TestMetadata : EndpointMetadata

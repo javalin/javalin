@@ -61,7 +61,7 @@ enum class JavalinLifecycleEvent {
  * @param roles the authorization roles
  */
 data class HandlerMetaInfo(
-    val httpMethod: HandlerType,
+    val httpMethod: String,
     val path: String,
     val handler: Handler,
     val roles: Set<RouteRole>

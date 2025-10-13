@@ -439,7 +439,7 @@ class TestApiBuilder {
 
     private fun assertEndpoint(endpoint: Endpoint, expectedPath: String, expectedMethod: HandlerType, vararg expectedRoles: Role) {
         assertThat(endpoint.path).isEqualTo(expectedPath)
-        assertThat(endpoint.method).isEqualTo(expectedMethod)
+        assertThat(endpoint.method).isEqualTo(expectedMethod.name)
         assertThat(endpoint.roles).containsExactly(*expectedRoles)
     }
 

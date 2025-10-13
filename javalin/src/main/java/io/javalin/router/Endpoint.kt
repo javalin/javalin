@@ -14,21 +14,15 @@ import io.javalin.security.RouteRole
 interface EndpointMetadata
 
 /**
- * Metadata for custom HTTP methods (e.g., WebDAV methods like PROPFIND, MKCOL).
- * This is used internally to store the custom method name for endpoints.
- */
-data class CustomHttpMethod(val methodName: String) : EndpointMetadata
-
-/**
  * Represents an HTTP endpoint in the application.
  *
- * @param method The HTTP method of the endpoint
+ * @param method The HTTP method of the endpoint as a string (e.g., "GET", "POST", "PROPFIND")
  * @param path The path of the endpoint
  * @param metadata The metadata of the endpoint
  * @param handler The handler of the endpoint
  */
 open class Endpoint @JvmOverloads constructor(
-    val method: HandlerType,
+    val method: String,
     val path: String,
     metadata: Set<EndpointMetadata> = emptySet(),
     val handler: Handler
@@ -41,7 +35,7 @@ open class Endpoint @JvmOverloads constructor(
         vararg roles: RouteRole,
         handler: Handler
     ) : this(
-        method = method,
+        method = method.name,
         path = path,
         metadata = setOf(Roles(roles.toSet())),
         handler = handler
@@ -67,7 +61,7 @@ open class Endpoint @JvmOverloads constructor(
 
     companion object {
 
-        class EndpointBuilder internal constructor(val method: HandlerType, val path: String) {
+        class EndpointBuilder internal constructor(val method: String, val path: String) {
 
             private val metadata = mutableSetOf<EndpointMetadata>()
 
@@ -79,9 +73,12 @@ open class Endpoint @JvmOverloads constructor(
 
         }
 
-        @Deprecated("Experimental feature")
+        @Deprecated("Experimental feature - use create(String, String) for custom HTTP methods")
         @JvmStatic
-        fun create(method: HandlerType, path: String): EndpointBuilder = EndpointBuilder(method, path)
+        fun create(method: HandlerType, path: String): EndpointBuilder = EndpointBuilder(method.name, path)
+        
+        @JvmStatic
+        fun create(method: String, path: String): EndpointBuilder = EndpointBuilder(method.uppercase(), path)
     }
 
 }
@@ -95,7 +92,6 @@ fun interface EndpointExecutor {
 }
 
 class EndpointNotFound(
-    method: HandlerType,
-    path: String,
-    customMethodName: String? = null
-) : NotFoundResponse("Endpoint ${customMethodName ?: method.name} $path not found")
+    method: String,
+    path: String
+) : NotFoundResponse("Endpoint $method $path not found")

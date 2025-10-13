@@ -110,7 +110,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
                     handleCors(ctx, corsRule)
                 }
                 it.after(corsRule.path) { ctx ->
-                    if (ctx.method() == OPTIONS && ctx.status() in validOptionStatusCodes) {
+                    if (ctx.method() == "OPTIONS" && ctx.status() in validOptionStatusCodes) {
                         ctx.result("").status(200) // CORS is enabled, so we return 200 for OPTIONS
                     }
                 }
@@ -125,7 +125,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
             return
         }
 
-        if (ctx.method() == OPTIONS) {
+        if (ctx.method() == "OPTIONS") {
             var requestedHeader = false // max-age is only needed if a header is requested
 
             ctx.header(ACCESS_CONTROL_REQUEST_HEADERS)?.also { headerValue ->
