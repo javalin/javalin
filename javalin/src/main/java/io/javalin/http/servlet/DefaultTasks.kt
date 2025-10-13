@@ -1,8 +1,6 @@
 package io.javalin.http.servlet
 
 import io.javalin.http.HandlerType
-
-
 import io.javalin.http.MethodNotAllowedResponse
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
@@ -26,7 +24,7 @@ object DefaultTasks {
         val httpHandlerOrNull by javalinLazy {
             servlet.router.findHttpHandlerEntries(httpMethod, requestUri).firstOrNull()
         }
-        val isResourceHandler = httpHandlerOrNull == null && (ctx.method() == HandlerType.HEAD || ctx.method() == HandlerType.GET)
+        val isResourceHandler = httpHandlerOrNull == null && ctx.method() in setOf(HandlerType.HEAD, HandlerType.GET)
         val matchedRouteRoles by javalinLazy { servlet.matchedRoles(ctx, requestUri) }
         val resourceRouteRoles by javalinLazy { servlet.cfg.pvt.resourceHandler?.getResourceRouteRoles(ctx) ?: emptySet() }
         val willMatch by javalinLazy {
