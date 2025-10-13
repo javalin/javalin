@@ -77,7 +77,8 @@ object DefaultTasks {
             if (servlet.cfg.http.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
                 throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
             }
-            throw EndpointNotFound(method = ctx.method(), path = requestUri)
+            val customMethod = if (ctx.method() == HandlerType.INVALID) ctx.req().method else null
+            throw EndpointNotFound(method = ctx.method(), path = requestUri, customMethodName = customMethod)
         })
     }
 

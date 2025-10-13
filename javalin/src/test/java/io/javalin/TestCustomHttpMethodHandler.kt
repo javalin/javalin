@@ -60,4 +60,15 @@ class TestCustomHttpMethodHandler {
         assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body).isEqualTo("PROPFIND response")
     }
+
+    @Test
+    fun `multiple custom methods on same path work correctly`() = TestUtil.test { app, http ->
+        app.addHttpHandler("PROPFIND", "/dav/*") { ctx -> ctx.result("PROPFIND") }
+        app.addHttpHandler("MKCOL", "/dav/*") { ctx -> ctx.result("MKCOL") }
+        app.addHttpHandler("COPY", "/dav/*") { ctx -> ctx.result("COPY") }
+        
+        assertThat(Unirest.request("PROPFIND", http.origin + "/dav/test").asString().body).isEqualTo("PROPFIND")
+        assertThat(Unirest.request("MKCOL", http.origin + "/dav/test").asString().body).isEqualTo("MKCOL")
+        assertThat(Unirest.request("COPY", http.origin + "/dav/test").asString().body).isEqualTo("COPY")
+    }
 }

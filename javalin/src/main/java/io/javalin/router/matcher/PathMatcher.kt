@@ -8,62 +8,67 @@ import java.util.stream.Stream
 
 class PathMatcher {
 
-    private val handlerEntries: Map<HandlerType, MutableList<ParsedEndpoint>> =
-        HandlerType.entries.associateWithTo(EnumMap(HandlerType::class.java)) { arrayListOf() }
+    // Use LinkedHashMap to maintain insertion order (enum order for standard methods, then custom methods)
+    private val handlerEntries: MutableMap<String, MutableList<ParsedEndpoint>> = LinkedHashMap()
 
-    fun add(entry: ParsedEndpoint) {
-        val type = entry.endpoint.method
-        val path = entry.endpoint.path
-
-        if (type.isHttpMethod && handlerEntries[type]!!.find { it.endpoint.method == type && it.endpoint.path == path } != null) {
-            throw IllegalArgumentException("Handler with type='${type}' and path='${path}' already exists.")
+    init {
+        // Pre-populate with standard HTTP methods from enum in order
+        HandlerType.entries.forEach { handlerType ->
+            handlerEntries[handlerType.name] = mutableListOf()
         }
-
-        handlerEntries[type]!!.add(entry)
     }
 
-    fun findEntries(handlerType: HandlerType, requestUri: String?): Stream<ParsedEndpoint> =
-        when (requestUri) {
-            null -> handlerEntries[handlerType]!!.stream()
-            else -> handlerEntries[handlerType]!!.stream().filter { he -> match(he, requestUri) }
+    fun add(entry: ParsedEndpoint) {
+        val methodKey = getMethodKey(entry.endpoint.method, entry.endpoint.metadata(CustomHttpMethod::class.java))
+        val path = entry.endpoint.path
+
+        // Check for duplicates for HTTP methods
+        val entries = handlerEntries.computeIfAbsent(methodKey) { mutableListOf() }
+        val handlerType = entry.endpoint.method
+        if (handlerType.isHttpMethod && entries.find { it.endpoint.path == path } != null) {
+            throw IllegalArgumentException("Handler with method='${methodKey}' and path='${path}' already exists.")
         }
 
-    /**
-     * Finds handlers for a custom HTTP method by checking entries under INVALID with matching CustomHttpMethod metadata.
-     */
-    fun findEntries(handlerType: HandlerType, requestUri: String?, customMethodName: String?): Stream<ParsedEndpoint> {
-        if (handlerType != HandlerType.INVALID || customMethodName == null) {
-            return findEntries(handlerType, requestUri)
-        }
-        
-        // For custom methods, filter by CustomHttpMethod metadata
-        val methodUpper = customMethodName.uppercase()
-        val filtered = handlerEntries[HandlerType.INVALID]!!
-            .filter { it.endpoint.metadata(CustomHttpMethod::class.java)?.methodName == methodUpper }
+        entries.add(entry)
+    }
+
+    fun findEntries(handlerType: HandlerType, requestUri: String?): Stream<ParsedEndpoint> {
+        val methodKey = handlerType.name
+        val entries = handlerEntries[methodKey] ?: return Stream.empty()
         
         return when (requestUri) {
-            null -> filtered.stream()
-            else -> filtered.stream().filter { he -> match(he, requestUri) }
+            null -> entries.stream()
+            else -> entries.stream().filter { he -> match(he, requestUri) }
+        }
+    }
+
+    fun findEntries(handlerType: HandlerType, requestUri: String?, customMethodName: String?): Stream<ParsedEndpoint> {
+        // If custom method name is provided, use it; otherwise use handler type name
+        val methodKey = customMethodName?.uppercase() ?: handlerType.name
+        val entries = handlerEntries[methodKey] ?: return Stream.empty()
+        
+        return when (requestUri) {
+            null -> entries.stream()
+            else -> entries.stream().filter { he -> match(he, requestUri) }
         }
     }
 
     fun allEntries() = handlerEntries.values.flatten()
 
-    internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
-        handlerEntries[handlerType]!!.any { entry -> match(entry, requestUri) }
+    internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean {
+        val methodKey = handlerType.name
+        val entries = handlerEntries[methodKey] ?: return false
+        return entries.any { entry -> match(entry, requestUri) }
+    }
 
-    /**
-     * Checks if there are handlers for a custom HTTP method.
-     */
     internal fun hasEntries(handlerType: HandlerType, requestUri: String, customMethodName: String?): Boolean {
-        if (handlerType != HandlerType.INVALID || customMethodName == null) {
-            return hasEntries(handlerType, requestUri)
-        }
-        
-        val methodUpper = customMethodName.uppercase()
-        return handlerEntries[HandlerType.INVALID]!!.any { entry ->
-            entry.endpoint.metadata(CustomHttpMethod::class.java)?.methodName == methodUpper && match(entry, requestUri)
-        }
+        val methodKey = customMethodName?.uppercase() ?: handlerType.name
+        val entries = handlerEntries[methodKey] ?: return false
+        return entries.any { entry -> match(entry, requestUri) }
+    }
+
+    private fun getMethodKey(handlerType: HandlerType, customMethod: CustomHttpMethod?): String {
+        return customMethod?.methodName ?: handlerType.name
     }
 
     private fun match(entry: ParsedEndpoint, requestPath: String): Boolean = when (entry.endpoint.path) {
