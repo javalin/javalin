@@ -111,16 +111,9 @@ class TestRouting {
 
     @Test
     fun `all mapped verbs return 200`() = TestUtil.test { app, http ->
-        app.get("/mapped", TestUtil.okHandler)
-        app.post("/mapped", TestUtil.okHandler)
-        app.put("/mapped", TestUtil.okHandler)
-        app.delete("/mapped", TestUtil.okHandler)
-        app.patch("/mapped", TestUtil.okHandler)
-        app.head("/mapped", TestUtil.okHandler)
-        app.options("/mapped", TestUtil.okHandler)
-        app.addHttpHandler(TRACE, "/mapped", TestUtil.okHandler)
-
         for (httpMethod in HttpMethod.all()) {
+            val handlerType = HandlerType.findOrCreate(httpMethod.name())
+            app.addHttpHandler(handlerType, "/mapped", TestUtil.okHandler)
             assertThat(http.call(httpMethod, "/mapped").httpCode()).isEqualTo(OK)
         }
     }

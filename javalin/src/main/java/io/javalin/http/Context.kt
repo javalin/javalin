@@ -99,7 +99,7 @@ interface Context {
     fun contentType(): String? = req().contentType
 
     /** Gets the request method. */
-    fun method(): HandlerType = HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
+    fun method(): HandlerType = HandlerType.findOrCreate(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
 
     /** Gets the request path. */
     fun path(): String = req().requestURI
