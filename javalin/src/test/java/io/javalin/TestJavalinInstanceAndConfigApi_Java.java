@@ -6,7 +6,10 @@ import io.javalin.config.Key;
 import io.javalin.config.MultipartConfig;
 import io.javalin.json.JavalinJackson;
 import io.javalin.plugin.Plugin;
+import static io.javalin.testing.JavalinTestUtil.*;
 import org.eclipse.jetty.server.ServerConnector;
+import java.util.function.Consumer;
+import io.javalin.websocket.WsConfig;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 public class TestJavalinInstanceAndConfigApi_Java {
@@ -44,17 +47,15 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.router.caseInsensitiveRoutes = true;
             app.router.ignoreTrailingSlashes = true;
             app.router.treatMultipleSlashesAsSingleSlash = true;
-            app.router.mount(router -> {
-                router.before("/hello", ctx -> {});
-                router.get("/hello", ctx -> ctx.result("Hello, World!"));
-                router.post("/hello", ctx -> ctx.result("Hello, World!"));
-                router.exception(Exception.class, (e, ctx) -> {});
-                router.error(404, ctx -> ctx.result("Not found"));
-                router.after("/hello", ctx -> {});
-                router.sse("/sse", client -> {});
-                router.ws("/ws", ws -> {});
-            });
-            app.router.apiBuilder(() -> {
+            app.routes.before("/hello", ctx -> {});
+            app.routes.get("/hello", ctx -> ctx.result("Hello, World!"));
+            app.routes.post("/hello", ctx -> ctx.result("Hello, World!"));
+            app.routes.exception(Exception.class, (e, ctx) -> {});
+            app.routes.error(404, ctx -> ctx.result("Not found"));
+            app.routes.after("/hello", ctx -> {});
+            app.routes.sse("/sse", client -> {});
+            app.routes.ws("/ws", ws -> {});
+            app.routes.apiBuilder(() -> {
                 ApiBuilder.get("/hello", ctx -> ctx.result("Hello, World!"));
             });
             // Context resolver
@@ -80,7 +81,8 @@ public class TestJavalinInstanceAndConfigApi_Java {
             });
             // Request logger
             app.requestLogger.http((ctx, ms) -> {});
-            app.requestLogger.ws(ctx -> {});
+            Consumer<WsConfig> requestLogger = ws -> {};
+            app.routes.ws("/path", requestLogger);
             // Validation
             app.validation.register(Object.class, o -> new Object());
             // Vue
@@ -114,14 +116,14 @@ public class TestJavalinInstanceAndConfigApi_Java {
             event.handlerAdded(handlerMetaInfo -> {});
             event.wsHandlerAdded(wsHandlerMetaInfo -> {});
         });
-        javalin.before("/hello", ctx -> {});
-        javalin.get("/hello", ctx -> ctx.result("Hello, World!"));
-        javalin.post("/hello", ctx -> ctx.result("Hello, World!"));
-        javalin.exception(Exception.class, (e, ctx) -> {});
-        javalin.error(404, ctx -> ctx.result("Not found"));
-        javalin.after("/hello", ctx -> {});
-        javalin.sse("/sse", client -> {});
-        javalin.ws("/ws", ws -> {});
+        before(javalin, "/hello", ctx -> {});
+        get(javalin, "/hello", ctx -> ctx.result("Hello, World!"));
+        post(javalin, "/hello", ctx -> ctx.result("Hello, World!"));
+        exception(javalin, Exception.class, (e, ctx) -> {});
+        error(javalin, 404, ctx -> ctx.result("Not found"));
+        after(javalin, "/hello", ctx -> {});
+        sse(javalin, "/sse", client -> {});
+        ws(javalin, "/ws", ws -> {});
         javalin.start();
         javalin.javalinServlet();
         javalin.jettyServer();

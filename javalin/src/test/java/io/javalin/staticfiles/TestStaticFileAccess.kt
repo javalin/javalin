@@ -11,6 +11,7 @@ import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
 import io.javalin.testing.httpCode
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -23,13 +24,11 @@ class TestStaticFileAccess {
     enum class MyRole : RouteRole { ROLE_ONE, ROLE_TWO}
 
     private fun addAuthentication(config: JavalinConfig) {
-        config.router.mount {
-            it.beforeMatched { ctx ->
-                val role: RouteRole? = ctx.queryParam("role")?.let { role -> MyRole.valueOf(role) }
-                val routeRoles = ctx.routeRoles()
-                if (routeRoles != emptySet<RouteRole>() && role !in routeRoles) {
-                    throw UnauthorizedResponse()
-                }
+        config.routes.beforeMatched { ctx ->
+            val role: RouteRole? = ctx.queryParam("role")?.let { role -> MyRole.valueOf(role) }
+            val routeRoles = ctx.routeRoles()
+            if (routeRoles != emptySet<RouteRole>() && role !in routeRoles) {
+                throw UnauthorizedResponse()
             }
         }
     }

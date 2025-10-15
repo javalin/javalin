@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -22,6 +22,7 @@ import io.javalin.json.toJsonString
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.fasterJacksonMapper
+import io.javalin.testing.*
 import io.javalin.testing.httpCode
 import io.javalin.validation.Validation
 import io.javalin.validation.MissingConverterException

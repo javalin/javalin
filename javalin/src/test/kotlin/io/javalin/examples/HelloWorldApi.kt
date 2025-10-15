@@ -14,7 +14,7 @@ import io.javalin.http.HttpStatus
 
 fun main() {
     Javalin.create {
-        it.router.apiBuilder {
+        it.routes.apiBuilder {
             get("/hello") { it.result("Hello World") }
             path("/api") {
                 get("/test") { it.result("Hello World") }

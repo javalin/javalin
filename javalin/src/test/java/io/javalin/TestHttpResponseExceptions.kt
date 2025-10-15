@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -75,17 +75,15 @@ import io.javalin.http.UnsupportedMediaTypeResponse
 import io.javalin.http.UpgradeRequiredResponse
 import io.javalin.http.UriTooLongResponse
 import io.javalin.http.UseProxyResponse
-import io.javalin.router.exception.ExceptionMapper
 import io.javalin.router.exception.HttpResponseExceptionMapper
 import io.javalin.testing.TestUtil
+import io.javalin.testing.*
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import kotlin.reflect.full.createInstance
-import kotlin.reflect.full.isSubclassOf
 
 class TestHttpResponseExceptions {
 
@@ -245,7 +243,7 @@ class TestHttpResponseExceptions {
     @Test
     fun `default exceptions work well with custom content-typed errors`() = TestUtil.test { app, http ->
         app.get("/") { throw ForbiddenResponse("Off limits!") }
-        app.error(FORBIDDEN, "html") { it.result("Only mapped for HTML") }
+        app.error(FORBIDDEN.code, "html") { it.result("Only mapped for HTML") }
         assertThat(http.jsonGet("/").body).isEqualTo(
             """{
             |    "title": "Off limits!",

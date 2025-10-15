@@ -12,6 +12,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import static io.javalin.testing.JavalinTestUtil.*;
 
 public class HelloWorldServlet {
 
@@ -30,7 +31,7 @@ public class HelloWorldServlet {
 
             config.pvt.jetty.server = server;
         });
-        app.get("/", ctx -> ctx.result("Hello Javalin World!"));
+        get(app, "/", ctx -> ctx.result("Hello Javalin World!"));
         app.start(8000);
     }
 

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
+import static io.javalin.testing.JavalinTestUtil.*;
 
 public class SimpleAsyncTest {
 
@@ -36,8 +37,8 @@ public class SimpleAsyncTest {
         assertThat(((QueuedThreadPool) app.jettyServer().server().getThreadPool()).getName()).isEqualTo("poolname");
         HttpUtil http = new HttpUtil(app.port());
 
-        app.get("/test-async", ctx -> ctx.future(this::getFuture));
-        app.get("/test-sync", ctx -> ctx.result(getBlockingResult()));
+        get(app, "/test-async", ctx -> ctx.future(this::getFuture));
+        get(app, "/test-sync", ctx -> ctx.result(getBlockingResult()));
 
         timeCallable("Async result", () -> {
             return new ForkJoinPool(100).submit(() -> range(0, 50).parallel().forEach(i -> {

@@ -1,9 +1,10 @@
 package io.javalin.http
 
 import io.javalin.http.HandlerType.GET
-import io.javalin.http.HandlerType.POST
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
+import io.javalin.testing.addHttpHandler
+import io.javalin.testing.*
 import kong.unirest.HttpMethod
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.Test
 class TestCustomHttpMethods {
 
     val PROPFIND = HandlerType.findOrCreate("PROPFIND")
-
 
     @Test
     fun `custom HTTP methods work with full request lifecycle`() = TestUtil.test { app, http ->

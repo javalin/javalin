@@ -15,14 +15,14 @@ fun main() {
 
     val clients = ConcurrentLinkedQueue<SseClient>()
 
-    val app = Javalin.create().start(7000)
-    app.get("/") { it.html("<script>new EventSource('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));</script>") }
-
-    app.sse("/sse") { client ->
-        client.keepAlive()
-        clients.add(client) // save the sse to use outside of this context
-        client.onClose { clients.remove(client) }
-    }
+    val app = Javalin.create{
+        it.routes.get("/") { it.html("<script>new EventSource('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));</script>") }
+        it.routes.sse("/sse") { client ->
+            client.keepAlive()
+            clients.add(client) // save the sse to use outside of this context
+            client.onClose { clients.remove(client) }
+        }
+    }.start(7000)
 
     while (true) {
         for (client in clients) {

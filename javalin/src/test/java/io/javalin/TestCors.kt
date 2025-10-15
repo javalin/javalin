@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -16,10 +16,11 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.REFERER
-import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
+import io.javalin.testing.options
 import kong.unirest.HttpResponse
 import kong.unirest.HttpStatus
 import kong.unirest.Unirest
@@ -126,11 +127,11 @@ class TestCors {
     inner class HappyPath {
         @Test
         fun `can enable cors for specific origins`() = TestUtil.test(Javalin.create {
+            it.routes.get("/") { it.result("Hello") }
             it.registerPlugin(CorsPlugin { cors ->
                 cors.addRule { it.allowHost("https://origin-1", "https://referer-1") }
             })
-        }) { app, http ->
-            app.get("/") { it.result("Hello") }
+        }) { _, http ->
             assertThat(http.get("/").header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
             assertThat(
                 http.get("/", mapOf(ORIGIN to "https://origin-1")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
@@ -425,8 +426,8 @@ class TestCors {
                     it.allowHost("example.com")
                 }
             })
-        }) { app, http ->
-            app.post("/") { it.result("Hello") }
+            cfg.routes.post("/") { it.result("Hello") }
+        }) { _, http ->
             val optionsResponse = Unirest.options(http.origin)
                 .headers(mapOf(ORIGIN to "https://example.com"))
                 .asString()

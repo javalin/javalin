@@ -7,13 +7,14 @@ import io.javalin.vue.VueRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
+import static io.javalin.testing.JavalinTestUtil.*;
 
 public class TestJavalinVueHandler {
 
     @Test
     public void testDefaultPreAndPostRenderer() {
         VueTestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueHandler("test-component") {
+            get(server, "/no-state", new VueHandler("test-component") {
             });
             String body = httpUtil.getBody("/no-state");
             assertThat(body).contains("<body><test-component></test-component></body>");
@@ -25,7 +26,7 @@ public class TestJavalinVueHandler {
     @Test
     public void testPreRenderer() {
         VueTestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueHandler("test-component") {
+            get(server, "/no-state", new VueHandler("test-component") {
                 @NotNull
                 @Override
                 public String preRender(@NotNull String layout, @NotNull Context ctx) {
@@ -42,7 +43,7 @@ public class TestJavalinVueHandler {
     @Test
     public void testPostRenderer() {
         VueTestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueHandler("test-component") {
+            get(server, "/no-state", new VueHandler("test-component") {
                 @NotNull
                 @Override
                 public String postRender(@NotNull String layout, @NotNull Context ctx) {
@@ -59,7 +60,7 @@ public class TestJavalinVueHandler {
     @Test
     public void testVueRenderer() {
         VueTestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueComponent("test-component", null, new VueRenderer() {
+            get(server, "/no-state", new VueComponent("test-component", null, new VueRenderer() {
                 @NotNull
                 @Override
                 public String postRender(@NotNull String layout, @NotNull Context ctx) {

@@ -136,9 +136,7 @@ abstract class IntegrationTestClass {
             return Javalin.create { javalinConfig: JavalinConfig ->
                 javalinConfig.showJavalinBanner = false
                 javalinConfig.registerPlugin(SslPlugin(config))
-                javalinConfig.router.mount{
-                    it.get("/", { ctx: Context -> ctx.result(SUCCESS) })
-                }
+                javalinConfig.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }
         }
 

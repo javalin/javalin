@@ -6,9 +6,11 @@
 
 package io.javalin.javalinvue
 
+import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.staticfiles.Location
+import io.javalin.testing.*
 import io.javalin.vue.VueComponent
 import io.javalin.vue.VueRenderer
 import org.assertj.core.api.Assertions.assertThat
@@ -28,11 +30,12 @@ class TestJavalinVue {
         URIUtil.encodePath(this)
 
     @Test
-    fun `vue component with state`() = VueTestUtil.test({
-        it.vue.stateFunction = { state }
+    fun `vue component with state`() = TestUtil.test(Javalin.create { config ->
+        config.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+        config.vue.stateFunction = { state }
+        config.routes.get("/vue/{my-param}", VueComponent("test-component"))
     }) { app, http ->
         val encodedState = """{"pathParams":{"my-param":"test-path-param"},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
-        app.get("/vue/{my-param}", VueComponent("test-component"))
         val res = http.getBody("/vue/test-path-param")
         assertThat(res).contains(encodedState)
         assertThat(res).contains("""Vue.component("test-component", {template: "#test-component"});""")
@@ -41,9 +44,11 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `vue component without state`() = VueTestUtil.test { app, http ->
+    fun `vue component without state`() = TestUtil.test(Javalin.create { config ->
+        config.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+        config.routes.get("/no-state", VueComponent("test-component"))
+    }) { app, http ->
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-        app.get("/no-state", VueComponent("test-component"))
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
@@ -51,13 +56,15 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `vue component without state with pre renderer`() = VueTestUtil.test { app, http ->
-        val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-        app.get("/no-state", VueComponent("test-component", null, object : VueRenderer() {
+    fun `vue component without state with pre renderer`() = TestUtil.test(Javalin.create { config ->
+        config.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+        config.routes.get("/no-state", VueComponent("test-component", null, object : VueRenderer() {
             override fun preRender(layout: String, ctx: Context): String {
                 return layout.plus("PRE_RENDER");
             }
         }))
+    }) { app, http ->
+        val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
@@ -67,13 +74,15 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `vue component without state with post renderer`() = VueTestUtil.test { app, http ->
-        val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-        app.get("/no-state", VueComponent("test-component", null, object : VueRenderer() {
+    fun `vue component without state with post renderer`() = TestUtil.test(Javalin.create { config ->
+        config.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+        config.routes.get("/no-state", VueComponent("test-component", null, object : VueRenderer() {
             override fun postRender(layout: String, ctx: Context): String {
                 return layout + "POST_RENDER";
             }
         }))
+    }) { app, http ->
+        val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
@@ -83,9 +92,11 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `vue component without state with default renderer`() = VueTestUtil.test { app, http ->
+    fun `vue component without state with default renderer`() = TestUtil.test(Javalin.create { config ->
+        config.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+        config.routes.get("/no-state", VueComponent("test-component", VueRenderer()))
+    }) { app, http ->
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-        app.get("/no-state", VueComponent("test-component", VueRenderer()))
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
@@ -95,9 +106,9 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `vue component without state with pre and post renderer`() = VueTestUtil.test { app, http ->
-        val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-        app.get("/no-state", VueComponent("test-component", null, object : VueRenderer() {
+    fun `vue component without state with pre and post renderer`() = TestUtil.test(Javalin.create { config ->
+        config.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+        config.routes.get("/no-state", VueComponent("test-component", null, object : VueRenderer() {
             override fun postRender(layout: String, ctx: Context): String {
                 return layout + "POST_RENDER";
             }
@@ -106,6 +117,8 @@ class TestJavalinVue {
                 return layout + "PRE_RENDER";
             }
         }))
+    }) { app, http ->
+        val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
@@ -156,7 +169,7 @@ class TestJavalinVue {
     @Test
     fun `vue component works Javalin#error`() = VueTestUtil.test { app, http ->
         app.get("/") { it.status(NOT_FOUND) }
-        app.error(NOT_FOUND, "html", VueComponent("test-component"))
+        app.error(NOT_FOUND.code, "html", VueComponent("test-component"))
         assertThat(http.htmlGet("/").body).contains("<body><test-component></test-component></body>")
     }
 

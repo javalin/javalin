@@ -1,4 +1,4 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
@@ -8,6 +8,7 @@ import io.javalin.Role.B
 import io.javalin.Role.C
 import io.javalin.Role.D
 import io.javalin.http.Context
+import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 
 enum class Role : RouteRole { A, B, C, D }

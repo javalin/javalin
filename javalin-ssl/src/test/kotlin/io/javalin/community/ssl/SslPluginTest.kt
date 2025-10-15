@@ -58,9 +58,7 @@ class SslPluginTest : IntegrationTestClass() {
             Javalin.create { config: JavalinConfig ->
                 config.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
-                config.router.mount{
-                    it.get("/") { ctx: Context -> ctx.result(SUCCESS) }
-                }
+                config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
 
                 // Initial connection
@@ -149,9 +147,7 @@ class SslPluginTest : IntegrationTestClass() {
             Javalin.create { config: JavalinConfig ->
                 config.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
-                config.router.mount{
-                    it.get("/") { ctx: Context -> ctx.result(SUCCESS) }
-                }
+                config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
 
                 // Initial connection
@@ -210,9 +206,7 @@ class SslPluginTest : IntegrationTestClass() {
             Javalin.create { config: JavalinConfig ->
                 config.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
-                config.router.mount{
-                    it.get("/") { ctx: Context -> ctx.result(SUCCESS) }
-                }
+                config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
                 val res = OkHttpClient().newCall(Request.Builder().url(http).build()).execute()
                 Assertions.assertTrue(res.isSuccessful)

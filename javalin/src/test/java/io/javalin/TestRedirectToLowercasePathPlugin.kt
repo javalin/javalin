@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -11,6 +11,7 @@ import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
 import io.javalin.testing.httpCode
 import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat

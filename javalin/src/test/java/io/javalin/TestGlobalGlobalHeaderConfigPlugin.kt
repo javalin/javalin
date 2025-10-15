@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2021 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -18,6 +18,7 @@ import io.javalin.plugin.bundled.GlobalHeadersConfig.ReferrerPolicy
 import io.javalin.plugin.bundled.GlobalHeadersConfig.XFrameOptions
 import io.javalin.plugin.bundled.GlobalHeadersPlugin
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.Duration

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -16,6 +16,7 @@ import io.javalin.http.HttpStatus.SEE_OTHER
 import io.javalin.http.util.SeekableWriter
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.testing.TestUtil
+import io.javalin.testing.*
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
 import kong.unirest.Unirest

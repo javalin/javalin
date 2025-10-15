@@ -9,6 +9,7 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.http.sse.SseClient
 import io.javalin.http.staticfiles.Location
+import io.javalin.testing.*
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.util.concurrent.ConcurrentLinkedQueue

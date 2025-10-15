@@ -1,4 +1,4 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.apibuilder.ApiBuilder.sse
@@ -8,6 +8,7 @@ import io.javalin.http.sse.SseClient
 import io.javalin.security.RouteRole
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
+import io.javalin.testing.*
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -175,7 +176,7 @@ class TestSse {
     @Test
     fun `sse works from ApiBuilder`() {
         val app = Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("/sse") {
                     sse({ it.doAndClose { it.sendEvent(event, data) } }, MyRole.ROLE_ONE)
                 }

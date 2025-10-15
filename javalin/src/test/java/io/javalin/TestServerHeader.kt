@@ -1,7 +1,8 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
 import kong.unirest.HttpMethod
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

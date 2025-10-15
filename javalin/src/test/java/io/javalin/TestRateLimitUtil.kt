@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -7,10 +7,9 @@
 package io.javalin
 
 import io.javalin.http.HttpStatus.OK
-import io.javalin.http.HttpStatus.TOO_MANY_REQUESTS
 import io.javalin.http.util.NaiveRateLimit
-import io.javalin.http.util.RateLimitUtil
 import io.javalin.testing.TestUtil
+import io.javalin.testing.*
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -20,7 +19,9 @@ class TestRateLimitUtil {
 
     @Test
     fun `rate limiting kicks in when request limit is exceeded`() = TestUtil.test(
-        Javalin.create().get("/") { NaiveRateLimit.requestPerTimeUnit(it, 3, TimeUnit.HOURS) }
+        Javalin.create { config ->
+            config.routes.get("/") { NaiveRateLimit.requestPerTimeUnit(it, 3, TimeUnit.HOURS) }
+        }
     ) { _, http ->
         val responseCodes = mutableListOf<Int>()
         repeat(6) { responseCodes.add(http.get("/").httpCode().code) }
@@ -43,7 +44,9 @@ class TestRateLimitUtil {
 
     @Test
     fun `rate limiting works for dynamic paths`() = TestUtil.test(
-        Javalin.create().get("/users/{id}") { NaiveRateLimit.requestPerTimeUnit(it, 2, TimeUnit.HOURS) }
+        Javalin.create { config ->
+            config.routes.get("/users/{id}") { NaiveRateLimit.requestPerTimeUnit(it, 2, TimeUnit.HOURS) }
+        }
     ) { _, http ->
         val responseCodes = mutableListOf<Int>()
         for (i in 1..5) {
@@ -54,7 +57,9 @@ class TestRateLimitUtil {
 
     @Test
     fun `rate limiter is cleared correctly`() = TestUtil.test(
-        Javalin.create().get("/") { NaiveRateLimit.requestPerTimeUnit(it, 1, TimeUnit.MILLISECONDS) }
+        Javalin.create { config ->
+            config.routes.get("/") { NaiveRateLimit.requestPerTimeUnit(it, 1, TimeUnit.MILLISECONDS) }
+        }
     ) { _, http ->
         assertThat(http.get("/").httpCode()).isEqualTo(OK)
         Thread.sleep(50) // wait for rate limiter to clear, factor in garbage collection pauses etc

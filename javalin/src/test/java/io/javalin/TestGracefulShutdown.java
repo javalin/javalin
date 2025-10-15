@@ -21,6 +21,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import static io.javalin.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static io.javalin.testing.JavalinTestUtil.*;
 
 // TODO: Fix on Windows so @Disabled can be removed
 @Disabled("For running manually")
@@ -61,8 +62,8 @@ public class TestGracefulShutdown {
     }
 
     private void addEndpoints(Javalin app) {
-        app.get("/immediate-response", context -> context.status(OK));
-        app.get("/delayed-response", context -> Thread.sleep(LONG_WAIT_TIME_IN_MSECS));
+        get(app, "/immediate-response", context -> context.status(OK));
+        get(app, "/delayed-response", context -> Thread.sleep(LONG_WAIT_TIME_IN_MSECS));
     }
 
     private void performBlockingRequest(Javalin app) throws Exception {

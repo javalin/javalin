@@ -1,4 +1,4 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
@@ -9,6 +9,7 @@ import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.PluginPriority.EARLY
 import io.javalin.plugin.PluginPriority.LATE
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach

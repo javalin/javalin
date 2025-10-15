@@ -1,8 +1,9 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
+import io.javalin.testing.*
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -15,14 +16,10 @@ class TestMultipleSlashes {
     private val multipleSlashesWithSignificantTrailingSlashesApp = Javalin.create {
         it.router.treatMultipleSlashesAsSingleSlash = true
         it.router.ignoreTrailingSlashes = false
-    }.get("/a") {
-        it.result("a")
-    }.get("/a/") {
-        it.result("a/")
-    }.get("/a/b") {
-        it.result("b")
-    }.get("/a/b/") {
-        it.result("b/")
+        it.routes.get("/a") { ctx -> ctx.result("a") }
+        it.routes.get("/a/") { ctx -> ctx.result("a/") }
+        it.routes.get("/a/b") { ctx -> ctx.result("b") }
+        it.routes.get("/a/b/") { ctx -> ctx.result("b/") }
     }
 
     @Test

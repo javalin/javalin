@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
@@ -45,10 +46,11 @@ class TestCustomJettyHttpConfiguration {
     }
 
     @Test
-    fun `X-Fowarded-Proto Does Not Work Without Customizer`() = TestUtil.test(Javalin.create()) { javalin, http ->
-        javalin.get("/") {
+    fun `X-Fowarded-Proto Does Not Work Without Customizer`() = TestUtil.test(Javalin.create { config ->
+        config.routes.get("/") {
             it.result(it.scheme())
         }
+    }) { javalin, http ->
 
         val response = http.get("/", mapOf("X-Forwarded-Proto" to "https")).body
 

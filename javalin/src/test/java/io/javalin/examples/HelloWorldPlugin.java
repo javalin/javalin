@@ -9,13 +9,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import static io.javalin.testing.JavalinTestUtil.*;
 
 public class HelloWorldPlugin {
     public static void main(String[] args) {
         var app = Javalin.create(config -> {
             config.registerPlugin(new JRate(it -> it.limit = 1)); // register plugin with config
         });
-        app.get("/", ctx -> {
+        get(app, "/", ctx -> {
             ctx.with(JRate.class).tryConsume(2);
             ctx.result("Hello World");
         });

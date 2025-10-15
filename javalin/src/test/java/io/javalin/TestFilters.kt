@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestUtil
+import io.javalin.testing.*
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
 import org.assertj.core.api.Assertions.assertThat

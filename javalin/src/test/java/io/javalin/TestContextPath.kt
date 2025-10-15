@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -9,6 +9,7 @@ package io.javalin
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
 import io.javalin.testing.httpCode
 import io.javalin.util.Util
 import org.assertj.core.api.Assertions.assertThat

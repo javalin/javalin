@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -9,8 +9,8 @@ package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
-import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
@@ -34,7 +34,7 @@ internal class TestTrailingSlashes {
     @Test
     fun `trailing slashes are ignored by default - ApiBuilder`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("a") {
                     get { it.result("a") }
                     get("/") { it.result("a-slash") }
@@ -145,7 +145,7 @@ internal class TestTrailingSlashes {
     fun `automatic slash prefixing works`() = TestUtil.test(
         Javalin.create {
             it.router.ignoreTrailingSlashes = false
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("test") {
                     path("{id}") { get { it.result(it.pathParam("id")) } }
                     path("{id}/") { get { it.result(it.pathParam("id") + "/") } }

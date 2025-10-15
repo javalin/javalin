@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -26,7 +26,6 @@ import kong.unirest.Unirest
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
@@ -37,6 +36,7 @@ import java.util.zip.GZIPInputStream
 import kotlin.streams.asStream
 import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
 import com.github.luben.zstd.ZstdInputStream
+import io.javalin.testing.get
 
 class TestCompression {
 
@@ -110,19 +110,19 @@ class TestCompression {
         // Test availability checking methods
         assertThat(CompressionStrategy.brotli4jPresent()).isTrue()
         assertThat(CompressionStrategy.zstdJniPresent()).isTrue()
-        
+
         // Test strategy creation with different combinations
         val allFormats = CompressionStrategy(Brotli(4), Gzip(6), Zstd(3))
         assertThat(allFormats.compressors).hasSizeGreaterThanOrEqualTo(2) // at least gzip + one other
-        
+
         val gzipOnly = CompressionStrategy(null, Gzip(6), null)
         assertThat(gzipOnly.compressors).hasSize(1)
         assertThat(gzipOnly.compressors[0].encoding()).isEqualTo("gzip")
-        
+
         // Test backward compatibility constructor
         val backwardCompat = CompressionStrategy(Brotli(4), Gzip(6))
         assertThat(backwardCompat.compressors).hasSizeGreaterThanOrEqualTo(1)
-        
+
         // Test compression type selection
         val compressors = allFormats.compressors
         assertThat(compressors.forType("gzip")).isNotNull()
@@ -144,21 +144,21 @@ class TestCompression {
         assertThat(compressor.level).isEqualTo(5)
         assertThat(compressor.encoding()).isEqualTo("zstd")
         assertThat(compressor.extension()).isEqualTo(".zst")
-        
+
         // Test level validation
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { ZstdCompressor(-1) }
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy { ZstdCompressor(23) }
-        
+
         // Test compression actually works
         val testData = "Hello World!".repeat(100)
         val outputStream = ByteArrayOutputStream()
         val compressedStream = compressor.compress(outputStream)
         compressedStream.write(testData.toByteArray())
         compressedStream.close()
-        
+
         assertThat(outputStream.size()).isGreaterThan(0)
         assertThat(outputStream.size()).isLessThan(testData.length) // should be compressed
-        
+
         // Test decompression to verify correctness
         val decompressedStream = ZstdInputStream(outputStream.toByteArray().inputStream())
         val decompressed = String(decompressedStream.readBytes())
@@ -374,19 +374,19 @@ class TestCompression {
                 app.get("/$size") { it.result(testDocument.repeat(size)) }
                 assertValidZstdResponse(http.origin, "/$size")
             }
-            
+
             // Test large dynamic response
             getResponse(http.origin, "/huge", "zstd").let { response ->
                 assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("zstd")
                 assertThat(response.body!!.contentLength()).isLessThan(10000L) // should be compressed
             }
-            
+
             // Test static file compression
             getResponse(http.origin, "/html.html", "zstd").let { response ->
                 assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("zstd")
             }
         }
-        
+
         // Test zstd with large static files (Webjars)
         val staticFileApp = Javalin.create {
             it.http.customCompression(CompressionStrategy(null, null, Zstd()))
@@ -396,12 +396,12 @@ class TestCompression {
             val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
             assertValidZstdResponse(http.origin, path)
         }
-        
+
         // Test priority when multiple formats available (zstd should be chosen over others)
         val multiFormatApp = Javalin.create {
             it.staticFiles.add("/public", Location.CLASSPATH)
-            it.http.customCompression(CompressionStrategy(Brotli(), Gzip(), Zstd()).apply { 
-                defaultMinSizeForCompression = 1 
+            it.http.customCompression(CompressionStrategy(Brotli(), Gzip(), Zstd()).apply {
+                defaultMinSizeForCompression = 1
             })
         }
         TestUtil.test(multiFormatApp) { _, http ->
@@ -409,7 +409,7 @@ class TestCompression {
             assertValidGzipResponse(http.origin, "/svg.svg")
             assertValidBrotliResponse(http.origin, "/svg.svg")
             assertValidZstdResponse(http.origin, "/svg.svg")
-            
+
             // Test preference order - browser usually sends multiple encodings
             getResponse(http.origin, "/svg.svg", "gzip, deflate, br, zstd").let { response ->
                 // Should choose one of the available formats
@@ -423,28 +423,28 @@ class TestCompression {
         // Test CompressionStrategy with null values
         val emptyStrategy = CompressionStrategy(null, null, null)
         assertThat(emptyStrategy.compressors).isEmpty()
-        
+
         // Test NONE strategy
         assertThat(CompressionStrategy.NONE.compressors).isEmpty()
-        
+
         // Test GZIP strategy
         assertThat(CompressionStrategy.GZIP.compressors).hasSize(1)
         assertThat(CompressionStrategy.GZIP.compressors[0].encoding()).isEqualTo("gzip")
-        
+
         // Test that unknown compression types return null
         val gzipOnlyStrategy = CompressionStrategy(null, Gzip(), null)
         assertThat(gzipOnlyStrategy.compressors.forType("unknown")).isNull()
         assertThat(gzipOnlyStrategy.compressors.forType("")).isNull()
-        
+
         // Test case insensitive compression type matching
         assertThat(gzipOnlyStrategy.compressors.forType("GZIP")).isNotNull()
         assertThat(gzipOnlyStrategy.compressors.forType("gzip")).isNotNull()
         assertThat(gzipOnlyStrategy.compressors.forType("GZip")).isNotNull()
-        
+
         // Test that Zstd configuration has sensible defaults
         val defaultZstd = Zstd()
         assertThat(defaultZstd.level).isEqualTo(3)
-        
+
         // Test CompressionType enum values
         assertThat(CompressionType.ZSTD.typeName).isEqualTo("zstd")
         assertThat(CompressionType.ZSTD.extension).isEqualTo(".zst")

@@ -28,16 +28,14 @@ public class HelloWorldAuth {
 
     public static void main(String[] args) {
         Javalin.create(config -> {
-            config.router.mount(router -> {
-                router.beforeMatched(ctx -> {
-                    Set<RouteRole> routeRoles = ctx.routeRoles();
-                    String userRole = ctx.queryParam("role");
-                    if (userRole == null || !routeRoles.contains(JRole.valueOf(userRole))) {
-                        throw new UnauthorizedResponse();
-                    }
-                });
+            config.routes.beforeMatched(ctx -> {
+                Set<RouteRole> routeRoles = ctx.routeRoles();
+                String userRole = ctx.queryParam("role");
+                if (userRole == null || !routeRoles.contains(JRole.valueOf(userRole))) {
+                    throw new UnauthorizedResponse();
+                }
             });
-            config.router.apiBuilder(() -> {
+            config.routes.apiBuilder(() -> {
                 get("/hello", ctx -> ctx.result("Hello World 1"), ROLE_ONE);
                 path("/api", () -> {
                     get("/test", ctx -> ctx.result("Hello World 2"), ROLE_TWO);

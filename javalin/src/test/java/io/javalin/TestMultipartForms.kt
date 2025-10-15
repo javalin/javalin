@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -14,6 +14,7 @@ import io.javalin.json.fromJsonString
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
 import io.javalin.testing.fasterJacksonMapper
+import io.javalin.testing.*
 import io.javalin.util.FileUtil
 import jakarta.servlet.MultipartConfigElement
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

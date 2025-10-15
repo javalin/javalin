@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -11,6 +11,7 @@ import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestUtil
+import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -59,15 +60,15 @@ class TestErrorMapper {
     @Test
     fun `error-mapper with content-type respects content-type`() = TestUtil.test { app, http ->
         app.get("/html") { it.status(INTERNAL_SERVER_ERROR).result("Error!") }
-        app.error(INTERNAL_SERVER_ERROR, "html") { it.result("HTML error page") }
+        app.error(INTERNAL_SERVER_ERROR.code, "html") { it.result("HTML error page") }
         assertThat(http.htmlGet("/html").body).isEqualTo("HTML error page")
         assertThat(http.jsonGet("/html").body).isEqualTo("Error!")
     }
 
     @Test
     fun `error mapper is not overwritten`() = TestUtil.test { app, http ->
-        app.error(INTERNAL_SERVER_ERROR, "html") { it.result("HTML error page") }
-        app.error(INTERNAL_SERVER_ERROR, "json") { it.result("JSON error") }
+        app.error(INTERNAL_SERVER_ERROR.code, "html") { it.result("HTML error page") }
+        app.error(INTERNAL_SERVER_ERROR.code, "json") { it.result("JSON error") }
         app.get("/html") { it.status(INTERNAL_SERVER_ERROR) }
         assertThat(http.htmlGet("/html").body).isEqualTo("HTML error page")
     }

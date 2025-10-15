@@ -12,37 +12,36 @@ import io.javalin.testing.TypedException
 
 fun main() {
 
-    Javalin.create().apply {
+    Javalin.create {
 
-        get("/users") { ctx ->
+        it.routes.get("/users") { ctx ->
             ctx.result("")
         }
 
-        post("/users/create") { ctx ->
+        it.routes.post("/users/create") { ctx ->
             ctx.status(HttpStatus.CREATED)
         }
 
-        patch("/users/update/:id") { ctx ->
+        it.routes.patch("/users/update/:id") { ctx ->
             ctx.status(HttpStatus.NO_CONTENT)
         }
 
-        delete("/users/delete/:id") { ctx ->
+        it.routes.delete("/users/delete/:id") { ctx ->
             ctx.status(HttpStatus.NO_CONTENT)
         }
 
-        exception(Exception::class.java) { e, ctx ->
+        it.routes.exception(Exception::class.java) { e, ctx ->
             e.printStackTrace()
         }
 
-        exception(TypedException::class.java) { e, ctx ->
+        it.routes.exception(TypedException::class.java) { e, ctx ->
             e.proofOfType()
         }
 
-        error(HttpStatus.NOT_FOUND) { ctx ->
+        it.routes.error(HttpStatus.NOT_FOUND) { ctx ->
             ctx.result("not found")
         }
 
     }.start(7070)
 
 }
-

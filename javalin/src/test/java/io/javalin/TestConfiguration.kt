@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -16,6 +16,7 @@ import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServerConnector
@@ -88,9 +89,9 @@ class TestConfiguration {
             Javalin.create {
                 it.contextResolver.ip = { "CUSTOM IP" }
                 it.contextResolver.host = { "CUSTOM HOST" }
+                it.routes.get("/ip") { it.result(it.ip()) }
+                it.routes.get("/host") { it.result("${it.host()}") }
             }
-                .get("/ip") { it.result(it.ip()) }
-                .get("/host") { it.result("${it.host()}") }
         ) { _, http ->
             assertThat(http.get("/ip").body).isEqualTo("CUSTOM IP")
             assertThat(http.get("/host").body).isEqualTo("CUSTOM HOST")
@@ -100,11 +101,12 @@ class TestConfiguration {
     @Test
     fun `contextResolvers config with default settings`() {
         TestUtil.test(
-            Javalin.create {}
-                .get("/ip") { it.result(it.ip()) }
-                .get("/remote-ip") { it.result(it.req().remoteAddr) }
-                .get("/host") { it.result("${it.host()}") }
-                .get("/remote-host") { it.result("${it.header(Header.HOST)}") }
+            Javalin.create {
+                it.routes.get("/ip") { it.result(it.ip()) }
+                it.routes.get("/remote-ip") { it.result(it.req().remoteAddr) }
+                it.routes.get("/host") { it.result("${it.host()}") }
+                it.routes.get("/remote-host") { it.result("${it.header(Header.HOST)}") }
+            }
         ) { _, http ->
             assertThat(http.get("/ip").body).isEqualTo(http.get("/remote-ip").body)
             assertThat(http.get("/host").body).isEqualTo(http.get("/remote-host").body)

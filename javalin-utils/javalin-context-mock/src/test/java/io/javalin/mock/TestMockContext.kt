@@ -157,7 +157,9 @@ internal class TestMockContext {
     @Test
     @Disabled // TODO: Fix whatever is broken with this test
     fun `should return same defaults as regular unirest request to jetty`() {
-        val app = Javalin.createAndStart { it.jetty.defaultPort = 0 }
+        val app = Javalin.createAndStart {
+            it.jetty.defaultPort = 0
+        }
 
         try {
             val endpointUrl = "/test/{test}/<tests>"
@@ -172,7 +174,7 @@ internal class TestMockContext {
             val mockedCtx = Endpoint(POST, endpointUrl) { it.result("Passed") }
                 .handle(mock.build(requestedUrl, Body.ofObject(PandaDto("Kim"))))
 
-            app.post(endpointUrl) { ctx ->
+            app.unsafeConfig().pvt.internalRouter.addHttpEndpoint(Endpoint(POST, endpointUrl) { ctx ->
                 // Jetty
 
                 assertThat(mockedCtx.req().remoteAddr).isEqualTo(ctx.req().remoteAddr)
@@ -224,7 +226,7 @@ internal class TestMockContext {
                 assertThat(mockedCtx.uploadedFileMap()).isEqualTo(ctx.uploadedFileMap())
 
                 ctx.result("Passed")
-            }
+            })
 
             val response = Unirest.post("http://localhost:${app.port()}$requestedUrl")
                 .body(PandaDto("Kim"))

@@ -11,6 +11,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
+import io.javalin.testing.*
 import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.AliasCheck
@@ -356,10 +357,8 @@ class TestBeforeAfterMatched {
     @Test
     fun `pathParams are extracted from endpoint if beforeMatched has no path-params`() =
         TestUtil.test(Javalin.create { config ->
-            config.router.mount {
-                it.beforeMatched { ctx -> ctx.result(ctx.pathParamMap().toString()) }
-                it.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
-            }
+            config.routes.beforeMatched { ctx -> ctx.result(ctx.pathParamMap().toString()) }
+            config.routes.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
         }) { _, http ->
             assertThat(http.getBody("/p")).isEqualTo("{endpoint=p}/{endpoint=p}")
         }
@@ -367,10 +366,8 @@ class TestBeforeAfterMatched {
     @Test
     fun `pathParams are extracted from beforeMatched if beforeMatched has path-params`() =
         TestUtil.test(Javalin.create { config ->
-            config.router.mount {
-                it.beforeMatched("/{before}") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
-                it.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
-            }
+            config.routes.beforeMatched("/{before}") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
+            config.routes.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
         }) { _, http ->
             assertThat(http.getBody("/p")).isEqualTo("{before=p}/{endpoint=p}")
         }

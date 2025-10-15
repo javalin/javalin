@@ -18,9 +18,9 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
+import io.javalin.testing.*
 import io.javalin.testing.TestUtil.TestLogsKey
 import io.javalin.testing.httpCode
-import io.javalin.util.JavalinLogger
 import jakarta.servlet.DispatcherType
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.IOException
-import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*

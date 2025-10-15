@@ -19,30 +19,28 @@ class SslRedirectPlugin(userConfig: Consumer<Config>? = null) : Plugin<SslRedire
     }
 
     override fun onStart(config: JavalinConfig) {
-        config.router.mount {
-            it.before { ctx ->
-                if (!pluginConfig.redirectOnLocalhost && ctx.isLocalhost()) {
-                    return@before
-                }
+        config.routes.before { ctx ->
+            if (!pluginConfig.redirectOnLocalhost && ctx.isLocalhost()) {
+                return@before
+            }
 
-                val xForwardedProto = ctx.header(X_FORWARDED_PROTO)
+            val xForwardedProto = ctx.header(X_FORWARDED_PROTO)
 
-                if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
-                    val urlWithHttps = ctx.fullUrl().replace("http", "https")
+            if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
+                val urlWithHttps = ctx.fullUrl().replace("http", "https")
 
-                    val urlWithHttpsAndPort = config.pvt.jetty.server
-                        ?.takeIf { pluginConfig.sslPort != null }
-                        ?.connectors
-                        ?.filterIsInstance<ServerConnector>()
-                        ?.firstOrNull { server -> urlWithHttps.contains(":${server.usedPort()}/") }
-                        ?.let { server -> urlWithHttps.replaceFirst(":${server.usedPort()}/", ":${pluginConfig.sslPort}/") }
-                        ?: urlWithHttps
+                val urlWithHttpsAndPort = config.pvt.jetty.server
+                    ?.takeIf { pluginConfig.sslPort != null }
+                    ?.connectors
+                    ?.filterIsInstance<ServerConnector>()
+                    ?.firstOrNull { server -> urlWithHttps.contains(":${server.usedPort()}/") }
+                    ?.let { server -> urlWithHttps.replaceFirst(":${server.usedPort()}/", ":${pluginConfig.sslPort}/") }
+                    ?: urlWithHttps
 
-                    ctx.redirect(
-                        location = urlWithHttpsAndPort,
-                        status = MOVED_PERMANENTLY
-                    )
-                }
+                ctx.redirect(
+                    location = urlWithHttpsAndPort,
+                    status = MOVED_PERMANENTLY
+                )
             }
         }
     }

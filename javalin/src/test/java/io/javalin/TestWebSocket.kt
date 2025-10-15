@@ -19,6 +19,7 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.testing.fasterJacksonMapper
+import io.javalin.testing.*
 import io.javalin.websocket.WsCloseStatus
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.pingFutures
@@ -72,13 +73,11 @@ class TestWebSocket {
         val logger = TestLogger()
 
         TestUtil.test(contextPathJavalin { cfg ->
-            cfg.router.mount {
-                it.ws("/test-websocket-1") { ws ->
-                    ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
-                    ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
-                }
+            cfg.routes.ws("/test-websocket-1") { ws ->
+                ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
+                ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
             }
-            cfg.router.apiBuilder {
+            cfg.routes.apiBuilder {
                 ws("/test-websocket-2") { ws ->
                     ws.onConnect { ctx -> logger.log.add(ctx.sessionId()) }
                     ws.onClose { ctx -> logger.log.add(ctx.sessionId()) }
@@ -102,8 +101,7 @@ class TestWebSocket {
         val atomicInteger = AtomicInteger()
 
         TestUtil.test(contextPathJavalin { cfg ->
-            cfg.router.mount {
-                it.ws("/test-websocket-1") { ws ->
+            cfg.routes.ws("/test-websocket-1") { ws ->
                     ws.onConnect { ctx ->
                         idMap[ctx] = atomicInteger.getAndIncrement()
                         logger.log.add("${idMap[ctx]} connected")
@@ -114,8 +112,7 @@ class TestWebSocket {
                     }
                     ws.onClose { ctx -> logger.log.add("${idMap[ctx]} disconnected") }
                 }
-            }
-            cfg.router.apiBuilder { // use .routes to test apibuilder
+            cfg.routes.apiBuilder { // use .routes to test apibuilder
                 ws("/test-websocket-2") { ws ->
                     ws.onConnect { logger.log.add("Connected to other endpoint") }
                     ws.onClose { logger.log.add("Disconnected from other endpoint") }
@@ -355,7 +352,7 @@ class TestWebSocket {
             .header(Header.CONNECTION, "upgrade")
             .asString()
         assertThat(response.status).isEqualTo(404)
-        
+
         // Verify that both successful and failed upgrades are logged
         assertThat(app.logger().log).containsExactlyInAnyOrder(
             "/upgrade-test upgrade attempted (101 Switching Protocols)",
@@ -375,7 +372,7 @@ class TestWebSocket {
             throw UnauthorizedResponse()
         }
         app.ws("/auth-ws") {}
-        
+
         // Test failed upgrade due to authentication
         val response = Unirest.get("http://localhost:${app.port()}/auth-ws")
             .header(Header.SEC_WEBSOCKET_KEY, "test-key")
@@ -383,7 +380,7 @@ class TestWebSocket {
             .header(Header.CONNECTION, "upgrade")
             .asString()
         assertThat(response.status).isEqualTo(401)
-        
+
         // Verify that the failed upgrade due to authentication error is logged
         assertThat(app.logger().log).containsExactly("/auth-ws upgrade attempted (401 Unauthorized)")
     }
@@ -753,12 +750,12 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("before-upgrade", "after-upgrade", "connect", "msg", "close")
     }
 
-    private enum class Role : RouteRole { A }
+    private enum class WsRole : RouteRole { A }
 
     @Test
     fun `routeRoles are available in wsBeforeUpgrade`() = TestUtil.test { app, http ->
         app.wsBeforeUpgrade { app.logger().log.add(it.routeRoles().toString()) }
-        app.ws("/ws", {}, Role.A)
+        app.ws("/ws", {}, WsRole.A)
         http.wsUpgradeRequest("/ws")
         assertThat(app.logger().log).containsExactly("[A]")
     }
@@ -775,7 +772,7 @@ class TestWebSocket {
     // Helpers
     // ********************************************************************************************
 
-    private open inner class TestClient(
+    private open class TestClient(
         var app: Javalin,
         path: String,
         headers: Map<String, String> = emptyMap(),
@@ -783,7 +780,13 @@ class TestWebSocket {
         var onMessage: ((String) -> Unit)? = null,
         var onPing: ((Framedata?) -> Unit)? = null,
         var onPong: ((Framedata?) -> Unit)? = null,
-        val logger: TestLogger = app.logger()
+        val logger: TestLogger = run {
+            val testLogger = TestLogger()
+            val componentManager = app.unsafeConfig().pvt.appDataManager
+            val key = Key<TestLogger>("test-logger")
+            componentManager.registerResolverIfAbsent(key, testLogger)
+            componentManager.get(key)
+        }
         ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
 
         override fun onOpen(serverHandshake: ServerHandshake) = onOpen(this)

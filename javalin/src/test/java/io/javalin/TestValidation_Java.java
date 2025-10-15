@@ -13,6 +13,7 @@ import io.javalin.validation.Validation;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
+import static io.javalin.testing.JavalinTestUtil.*;
 
 public class TestValidation_Java {
     private static class CustomException extends RuntimeException {
@@ -24,7 +25,7 @@ public class TestValidation_Java {
     @Test
     public void validation_on_context_works_from_java() {
         TestUtil.test((app, http) -> {
-            app.get("/validate", ctx -> ctx.queryParamAsClass("param", Integer.class).get());
+            get(app, "/validate", ctx -> ctx.queryParamAsClass("param", Integer.class).get());
             assertThat(http.getBody("/validate?param=hmm")).contains("TYPE_CONVERSION_FAILED");
         });
     }
@@ -32,7 +33,7 @@ public class TestValidation_Java {
     @Test
     public void default_values_work_from_java() {
         TestUtil.test((app, http) -> {
-            app.get("/validate", ctx -> ctx.result(ctx.queryParamAsClass("param", Integer.class).getOrDefault(250).toString()));
+            get(app, "/validate", ctx -> ctx.result(ctx.queryParamAsClass("param", Integer.class).getOrDefault(250).toString()));
             assertThat(http.getBody("/validate?param=hmm")).contains("TYPE_CONVERSION_FAILED");
             assertThat(http.getBody("/validate")).isEqualTo("250");
         });
@@ -41,12 +42,12 @@ public class TestValidation_Java {
     @Test
     public void get_or_throw_works_from_java() {
         TestUtil.test((app, http) -> {
-            app.get("/", ctx -> {
+            get(app, "/", ctx -> {
                 Integer myInt = ctx.queryParamAsClass("my-qp", Integer.class)
                     .getOrThrow(e -> new CustomException("'my-qp' is not a number"));
                 ctx.result(myInt.toString());
             });
-            app.exception(CustomException.class, (e, ctx) -> ctx.result(e.getMessage()));
+            exception(app, CustomException.class, (e, ctx) -> ctx.result(e.getMessage()));
             assertThat(http.getBody("/")).isEqualTo("'my-qp' is not a number");
         });
     }

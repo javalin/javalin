@@ -11,14 +11,11 @@ import io.javalin.websocket.WsConfig;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.concurrent.CompletableFuture;
 
-import static io.javalin.apibuilder.ApiBuilder.delete;
-import static io.javalin.apibuilder.ApiBuilder.get;
-import static io.javalin.apibuilder.ApiBuilder.patch;
-import static io.javalin.apibuilder.ApiBuilder.path;
-import static io.javalin.apibuilder.ApiBuilder.post;
-import static io.javalin.apibuilder.ApiBuilder.ws;
+import static io.javalin.testing.JavalinTestUtil.*;
+import io.javalin.apibuilder.ApiBuilder;
 
 // @formatter:off
 public class TestPublicApi_Java {
@@ -29,9 +26,9 @@ public class TestPublicApi_Java {
     }
 
     public static void main(String[] args) {
-        Javalin.create(/*config*/)
-            .get("/", ctx -> ctx.result("Hello World"))
-            .start(7070);
+        Javalin.create(config -> {
+            config.routes.get("/", ctx -> ctx.result("Hello World"));
+        }).start(7070);
         var testComponentkey = new Key<String>("test-component");
         var app = Javalin.create(config -> {
             config.appData(testComponentkey, "name");
@@ -44,26 +41,26 @@ public class TestPublicApi_Java {
             }));
             config.registerPlugin(new TestContextPlugin());
             config.http.asyncTimeout = 10_000L;
-            config.router.apiBuilder(() -> {
-                path("users", () -> {
-                    get(UserController::getAll);
-                    post(UserController::create);
-                    path("{userId}", () -> {
-                        get(UserController::getOne);
-                        patch(UserController::update);
-                        delete(UserController::delete);
+            config.routes.apiBuilder(() -> {
+                ApiBuilder.path("users", () -> {
+                    ApiBuilder.get(UserController::getAll);
+                    ApiBuilder.post(UserController::create);
+                    ApiBuilder.path("{userId}", () -> {
+                        ApiBuilder.get(UserController::getOne);
+                        ApiBuilder.patch(UserController::update);
+                        ApiBuilder.delete(UserController::delete);
                     });
-                    ws("events", UserController::webSocketEvents);
+                    ApiBuilder.ws("events", UserController::webSocketEvents);
                 });
             });
         });
-        app.before(ctx -> {});
-        app.before("/path/*", ctx -> {});
-        app.after(ctx -> {});
-        app.after("/path/*", ctx -> {});
+        before(app, ctx -> {});
+        before(app, "/path/*", ctx -> {});
+        after(app, ctx -> {});
+        after(app, "/path/*", ctx -> {});
 
         // validation
-        app.get("/", ctx -> {
+        get(app, "/", ctx -> {
             Integer myValue = ctx.queryParamAsClass("value", Integer.class).getOrDefault(788);
             ctx.result("" + myValue);
 
@@ -87,12 +84,12 @@ public class TestPublicApi_Java {
 
         });
 
-        app.exception(NullPointerException.class, (e, ctx) -> { /* ... */ });
-        app.exception(Exception.class, (e, ctx) -> { /* ... */ });
-        app.wsException(NullPointerException.class, (e, ctx) -> { /* ... */ });
-        app.wsException(Exception.class, (e, ctx) -> { /* ... */ });
+        exception(app, NullPointerException.class, (e, ctx) -> { /* ... */ });
+        exception(app, Exception.class, (e, ctx) -> { /* ... */ });
+        wsException(app, NullPointerException.class, (e, ctx) -> { /* ... */ });
+        wsException(app, Exception.class, (e, ctx) -> { /* ... */ });
 
-        app.sse("/sse", client -> {
+        sse(app, "/sse", client -> {
             client.sendEvent("connected", "Hello, SSE");
             client.onClose(() -> System.out.println("Client disconnected"));
             client.close(); // close the client
@@ -105,11 +102,8 @@ public class TestPublicApi_Java {
         });
 
         Javalin.create(config -> {
-            config.requestLogger.ws(ws -> {
-                ws.onMessage(ctx -> {
-                    System.out.println("Received: " + ctx.message());
-                });
-            });
+            Consumer<WsConfig> requestLogger = ws -> {};
+            config.routes.ws("/path", requestLogger);
         });
 
         Javalin.create().events(event -> {
@@ -122,7 +116,7 @@ public class TestPublicApi_Java {
             event.wsHandlerAdded(wsHandlerMetaInfo -> { });
         });
 
-        app.ws("/websocket/{path}", ws -> {
+        ws(app, "/websocket/{path}", ws -> {
             ws.onConnect(ctx -> System.out.println("Connected"));
             ws.onMessage(ctx -> {
                 User user = ctx.messageAsClass(User.class); // convert from json
@@ -133,11 +127,11 @@ public class TestPublicApi_Java {
             ws.onError(ctx -> System.out.println("Errored"));
         });
 
-        app.wsAfter(ws -> { });
-        app.wsAfter("/path/*", ws -> { });
+        wsAfter(app, ws -> { });
+        wsAfter(app, "/path/*", ws -> { });
 
         // context
-        app.get("/", ctx -> {
+        get(app, "/", ctx -> {
             ctx.body();
             ctx.bodyAsBytes();
             ctx.bodyAsClass(Integer.class);

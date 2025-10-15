@@ -36,9 +36,10 @@ public class HelloWorldCustomJsonMapper {
             }
         };
 
-        Javalin.create(config -> config.jsonMapper(rawJsonMapper))
-            .get("/", ctx -> ctx.json(Arrays.asList("a", "b", "c")))
-            .start(7070);
+        Javalin.create(config -> {
+            config.jsonMapper(rawJsonMapper);
+            config.routes.get("/", ctx -> ctx.json(Arrays.asList("a", "b", "c")));
+        }).start(7070);
     }
 
 }

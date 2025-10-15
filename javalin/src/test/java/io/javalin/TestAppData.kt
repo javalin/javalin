@@ -12,6 +12,7 @@ import io.javalin.config.KeyAlreadyExistsException
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
+import io.javalin.testing.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -54,17 +55,18 @@ internal class TestAppData {
     private val myJsonKey = Key<MyJson>("my-json")
 
     @Test
-    fun `app data can be accessed through the Context`() = TestUtil.test(Javalin.create {
-        it.appData(myJsonKey, MyJson())
+    fun `app data can be accessed through the Context`() = TestUtil.test(Javalin.create { config ->
+        config.appData(myJsonKey, MyJson())
+        config.routes.get("/") { it.result(it.appData(myJsonKey).render(SerializableObject())) }
     }) { app, http ->
         val gson = GsonBuilder().create()
-        app.get("/") { it.result(it.appData(myJsonKey).render(SerializableObject())) }
         assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
     }
 
     @Test
-    fun `Context#appData() throws if data does not exist`() = TestUtil.test(Javalin.create()) { app, http ->
-        app.get("/") { it.result(it.appData(myJsonKey).render(SerializableObject())) }
+    fun `Context#appData() throws if data does not exist`() = TestUtil.test(Javalin.create { config ->
+        config.routes.get("/") { it.result(it.appData(myJsonKey).render(SerializableObject())) }
+    }) { app, http ->
         assertThat(http.get("/").status).isEqualTo(INTERNAL_SERVER_ERROR.code)
     }
 
