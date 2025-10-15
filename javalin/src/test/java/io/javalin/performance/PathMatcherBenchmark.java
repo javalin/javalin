@@ -19,7 +19,7 @@ import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -75,8 +75,8 @@ public class PathMatcherBenchmark {
 
 final class OldPathMatcher {
     @SuppressWarnings("Convert2Diamond")
-    private final EnumMap<HandlerType, ArrayList<ParsedEndpoint>> handlerEntries = new EnumMap<HandlerType, ArrayList<ParsedEndpoint>>(
-        HandlerType.getEntries().stream().collect(Collectors.toMap((handler) -> handler, (handler) -> new ArrayList<>()))
+    private final HashMap<HandlerType, ArrayList<ParsedEndpoint>> handlerEntries = new HashMap<HandlerType, ArrayList<ParsedEndpoint>>(
+        HandlerType.values().stream().collect(Collectors.toMap((handler) -> handler, (handler) -> new ArrayList<>()))
     );
 
     public void add(ParsedEndpoint entry) {
