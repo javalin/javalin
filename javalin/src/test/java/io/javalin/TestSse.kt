@@ -1,4 +1,4 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.apibuilder.ApiBuilder.sse
@@ -8,6 +8,7 @@ import io.javalin.http.sse.SseClient
 import io.javalin.security.RouteRole
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
+
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -23,7 +24,7 @@ class TestSse {
 
     @Test
     fun `sending events works`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val body = http.sse("/sse").get().body
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: $data")
@@ -31,19 +32,19 @@ class TestSse {
 
     @Test
     fun `sending input stream works`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, "MY DATA".byteInputStream()) } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, "MY DATA".byteInputStream()) } }
         assertThat(http.sse("/sse").get().body).contains("data: MY DATA")
     }
 
     @Test
     fun `sending json works`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, SerializableObject()) } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, SerializableObject()) } }
         assertThat(http.sse("/sse").get().body).contains("""data: {"value1":"FirstValue","value2":"SecondValue"}""")
     }
 
     @Test
     fun `sending events with ID works`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data, id = "SOME_ID") } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, data, id = "SOME_ID") } }
         val body = http.sse("/sse").get().body
         assertThat(body).contains("id: SOME_ID")
         assertThat(body).contains("event: $event")
@@ -53,7 +54,7 @@ class TestSse {
     @Test
     fun `sending events to multiple clients works`() = TestUtil.test { app, http ->
         val eventSources: MutableList<SseClient> = ArrayList()
-        app.sse("/sse") {
+        app.unsafe.routes.sse("/sse") {
             eventSources.add(it)
             it.sendEvent(event, data + eventSources.size)
             it.close()
@@ -66,7 +67,7 @@ class TestSse {
 
     @Test
     fun `all headers are correctly configured`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val headers = http.sse("/sse").get().headers // Headers extends HashMap<String, List<String>>
         assertThat(headers.getFirst("Connection")).containsIgnoringCase("close")
         assertThat(headers.getFirst("Content-Type")).containsIgnoringCase("text/event-stream")
@@ -77,7 +78,7 @@ class TestSse {
     @Test
     fun `can check if SseClient has been terminated`() = TestUtil.test { app, http ->
         var terminated = false
-        app.sse("/sse") {
+        app.unsafe.routes.sse("/sse") {
             it.close()
             terminated = it.terminated()
         }
@@ -87,14 +88,14 @@ class TestSse {
 
     @Test
     fun `default http status is 200`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val status = http.sse("/sse").get().httpCode()
         assertThat(status).isEqualTo(OK)
     }
 
     @Test
     fun `getting queryParam in sse handler works`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, it.ctx().queryParam("qp")!!) } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, it.ctx().queryParam("qp")!!) } }
         val body = http.sse("/sse?qp=my-qp").get().body
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: " + "my-qp")
@@ -102,35 +103,35 @@ class TestSse {
 
     @Test
     fun `sending Comment works`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendComment("test comment works") } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendComment("test comment works") } }
         val body = http.sse("/sse?qp=my-qp").get().body
         assertThat(body).isEqualTo(": test comment works\n")
     }
 
     @Test
     fun `sending empty Comment works`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendComment("") } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendComment("") } }
         val body = http.sse("/sse?qp=my-qp").get().body
         assertThat(body).isEqualTo(": \n")
     }
 
     @Test
     fun `sending multi line Comment works`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendComment("a\nb") } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendComment("a\nb") } }
         val body = http.sse("/sse?qp=my-qp").get().body
         assertThat(body).isEqualTo(": a\n: b\n")
     }
 
     @Test
     fun `sending multi line data works`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent("a\nb") } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent("a\nb") } }
         val body = http.sse("/sse").get().body
         assertThat(body).isEqualTo("event: message\ndata: a\ndata: b\n\n")
     }
 
     @Test
     fun `sending async data is properly processed`() = TestUtil.test { app, http ->
-        app.sse("/sse") {
+        app.unsafe.routes.sse("/sse") {
             it.sendEvent("Sync event")
             it.ctx().async {
                 Thread.sleep(100)
@@ -162,7 +163,7 @@ class TestSse {
             }
         }, 50L, 50L, TimeUnit.MILLISECONDS)
 
-        app.sse("/sse") { client ->
+        app.unsafe.routes.sse("/sse") { client ->
             clients.add(client)
             client.keepAlive()
         }
@@ -175,7 +176,7 @@ class TestSse {
     @Test
     fun `sse works from ApiBuilder`() {
         val app = Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("/sse") {
                     sse({ it.doAndClose { it.sendEvent(event, data) } }, MyRole.ROLE_ONE)
                 }
@@ -193,7 +194,7 @@ class TestSse {
 
     @Test
     fun `sse works with Accept header containing text-event-stream and other types`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val body = http.getBody("/sse", mapOf(Header.ACCEPT to "text/event-stream, text/html, application/json"))
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: $data")
@@ -201,7 +202,7 @@ class TestSse {
 
     @Test
     fun `sse works with Accept header containing only text-event-stream`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val body = http.getBody("/sse", mapOf(Header.ACCEPT to "text/event-stream"))
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: $data")
@@ -209,7 +210,7 @@ class TestSse {
 
     @Test
     fun `sse does not work without text-event-stream in Accept header`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val body = http.getBody("/see", mapOf(Header.ACCEPT to "text/html, application/json"))
         assertThat(body).doesNotContain("event: $event")
         assertThat(body).doesNotContain("data: $data")

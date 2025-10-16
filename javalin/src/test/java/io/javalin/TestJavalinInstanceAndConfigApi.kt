@@ -44,17 +44,16 @@ class TestJavalinInstanceAndConfigApi {
             app.router.caseInsensitiveRoutes = true
             app.router.ignoreTrailingSlashes = true
             app.router.treatMultipleSlashesAsSingleSlash = true
-            app.router.mount { router ->
-                router.before("/hello") { ctx -> }
-                router.get("/hello") { ctx -> ctx.result("Hello, World!") }
-                router.post("/hello") { ctx -> ctx.result("Hello, World!") }
-                router.exception(Exception::class.java) { e, ctx -> }
-                router.error(404) { ctx -> ctx.result("Not found") }
-                router.after("/hello") { ctx -> }
-                router.sse("/sse") { client -> }
-                router.ws("/ws") { ws -> }
-            }
-            app.router.apiBuilder {
+            // Routes using new API
+            app.routes.before("/hello") { ctx -> }
+            app.routes.get("/hello") { ctx -> ctx.result("Hello, World!") }
+            app.routes.post("/hello") { ctx -> ctx.result("Hello, World!") }
+            app.routes.exception(Exception::class.java) { e, ctx -> }
+            app.routes.error(404) { ctx -> ctx.result("Not found") }
+            app.routes.after("/hello") { ctx -> }
+            app.routes.sse("/sse") { client -> }
+            app.routes.ws("/ws") { ws -> }
+            app.routes.apiBuilder {
                 get("/hello") { ctx -> ctx.result("Hello, World!") }
             }
             // Context resolver
@@ -115,19 +114,11 @@ class TestJavalinInstanceAndConfigApi {
             event.handlerAdded {}
             event.wsHandlerAdded {}
         }
-        app.before("/hello") { ctx -> }
-        app.get("/hello") { ctx -> ctx.result("Hello, World!") }
-        app.post("/hello") { ctx -> ctx.result("Hello, World!") }
-        app.exception(Exception::class.java) { e, ctx -> }
-        app.error(404) { ctx -> ctx.result("Not found") }
-        app.after("/hello") { ctx -> }
-        app.sse("/sse") { client -> }
-        app.ws("/ws") { ws -> }
         app.start()
         app.javalinServlet()
         app.jettyServer()
         app.port()
-        app.unsafeConfig()
+        app.unsafe
         app.stop()
 
     }

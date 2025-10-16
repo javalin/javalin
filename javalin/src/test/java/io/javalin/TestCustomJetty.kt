@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -12,7 +12,6 @@ import io.javalin.http.Header
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
-import io.javalin.testing.TestUtil.TestLogsKey
 import io.javalin.testing.httpCode
 import io.javalin.util.LoomUtil
 import jakarta.servlet.DispatcherType
@@ -21,6 +20,10 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.ee10.servlet.FilterHolder
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler
+import org.eclipse.jetty.ee10.servlet.ServletHolder
+import org.eclipse.jetty.ee10.servlet.SessionHandler
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.HttpConfiguration
@@ -28,10 +31,6 @@ import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.ee10.servlet.FilterHolder
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler
-import org.eclipse.jetty.ee10.servlet.ServletHolder
-import org.eclipse.jetty.ee10.servlet.SessionHandler
 import org.eclipse.jetty.server.handler.ContextHandlerCollection
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.session.DefaultSessionCache
@@ -51,7 +50,7 @@ class TestCustomJetty {
     @Test
     fun `setting port works`() = TestUtil.runLogLess {
         val port = (2000..9999).random()
-        val app = Javalin.create().start(port).get("/") { it.result("PORT WORKS") }
+        val app = Javalin.create { it.routes.get("/") { it.result("PORT WORKS") } }.start(port)
         assertThat(Unirest.get("http://localhost:$port/").asString().body).isEqualTo("PORT WORKS")
         app.stop()
     }
@@ -59,7 +58,7 @@ class TestCustomJetty {
     @Test
     fun `setting host works`() = TestUtil.runLogLess {
         val port = (2000..9999).random()
-        val app = Javalin.create().start("127.0.0.1", port).get("/") { it.result("HOST WORKS") }
+        val app = Javalin.create { it.routes.get("/") { it.result("HOST WORKS") } }.start("127.0.0.1", port)
         assertThat(Unirest.get("http://127.0.0.1:$port/").asString().body).isEqualTo("HOST WORKS")
         app.stop()
     }
@@ -68,7 +67,10 @@ class TestCustomJetty {
     fun `embedded server can have custom jetty Handler`() = TestUtil.runLogLess {
         val statisticsHandler = StatisticsHandler()
         val newServer = Server().apply { handler = statisticsHandler }
-        val app = Javalin.create { it.pvt.jetty.server =  newServer }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create {
+            it.pvt.jetty.server = newServer
+            it.routes.get("/") { it.result("Hello World") }
+        }.start(0)
         val requests = 5
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -89,7 +91,10 @@ class TestCustomJetty {
             handler = handlerChain
             requestLog = RequestLog { _, _ -> logCount.incrementAndGet() }
         }
-        val app = Javalin.create { it.pvt.jetty.server = newServer }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create {
+            it.pvt.jetty.server = newServer
+            it.routes.get("/") { it.result("Hello World") }
+        }.start(0)
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -107,7 +112,10 @@ class TestCustomJetty {
         val handlerCollection = Handler.Sequence()
         val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
         val newServer = Server().apply { handler = handlerChain }
-        val app = Javalin.create { it.pvt.jetty.server = newServer }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create {
+            it.pvt.jetty.server = newServer
+            it.routes.get("/") { it.result("Hello World") }
+        }.start(0)
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -158,9 +166,11 @@ class TestCustomJetty {
         }
         newServer.handler = handler
 
-        val javalin = Javalin.create { it.pvt.jetty.server = newServer }
+        val javalin = Javalin.create {
+            it.pvt.jetty.server = newServer
+            it.routes.get("/bar") { it.result("Hello") }
+        }
         TestUtil.test(javalin) { app, http ->
-            app.get("/bar") { it.result("Hello") }
             assertThat(http.getBody("/foo/foo")).isEqualTo("yo dude")
             assertThat(http.get("/foo/baz").httpCode()).isEqualTo(NOT_FOUND)
             assertThat(http.getBody("/bar")).isEqualTo("Hello")
@@ -180,9 +190,10 @@ class TestCustomJetty {
         val javalin = Javalin.create {
             it.pvt.jetty.server = newServer
             it.router.contextPath = "/api"
+            it.routes.get("/") { it.result("Hello Javalin World!") }
         }
         TestUtil.test(javalin) { app, http ->
-            app.get("/") { it.result("Hello Javalin World!") }
+
             assertThat(http.getBody("/api")).contains("Hello Javalin World!")
             assertThat(http.getBody("/other-servlet")).contains("Hello Servlet World!")
         }
@@ -191,13 +202,15 @@ class TestCustomJetty {
     @Test
     fun `default server uses loom (virtual threads) if enabled`() {
         if (!LoomUtil.loomAvailable) return
-        val defaultApp = Javalin.create { it.useVirtualThreads = true }
-        TestUtil.test(defaultApp) { app, http ->
-            val isVirtual = Thread::class.java.getMethod("isVirtual")
-            app.get("/") {
+        val isVirtual = Thread::class.java.getMethod("isVirtual")
+        val defaultApp = Javalin.create {
+            it.useVirtualThreads = true
+            it.routes.get("/") {
                 val thread = Thread.currentThread()
                 it.result("isVirtual:${isVirtual.invoke(thread)}|name:${thread.name}")
             }
+        }
+        TestUtil.test(defaultApp) { app, http ->
             val responseBody = http.get("/").body
             assertThat(responseBody).contains("isVirtual:true")
             assertThat(responseBody).contains("JettyServerThreadPool-Virtual")
@@ -216,9 +229,9 @@ class TestCustomJetty {
                 connector.port = port
                 connector
             }
+            config.routes.get("/") { it.result("PORT WORKS") }
         }
         TestUtil.test(app) { server, _ ->
-            server.get("/") { it.result("PORT WORKS") }
             assertThat(Unirest.get("http://localhost:$port/").asString().body).isEqualTo("PORT WORKS")
         }
     }
@@ -235,7 +248,8 @@ class TestCustomJetty {
                     }
                 }, "/*", EnumSet.allOf(DispatcherType::class.java))
             }
-        }.get("/allowed") { it.result("Allowed!") }
+            it.routes.get("/allowed") { it.result("Allowed!") }
+        }
         TestUtil.test(filterJavalin) { _, http ->
             assertThat(http.get("/allowed").body).isEqualTo("Allowed!")
             assertThat(http.get("/anything-else").body).isEqualTo("Not allowed")
@@ -260,7 +274,7 @@ class TestCustomJetty {
                     }
                 }, "/*", EnumSet.allOf(DispatcherType::class.java))
             }
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 get("/v1/test") { it.result("Version 1!") }
                 get("/v2/test") { it.result("Version 2!") }
             }

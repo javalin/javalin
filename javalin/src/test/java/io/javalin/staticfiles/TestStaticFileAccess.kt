@@ -23,13 +23,11 @@ class TestStaticFileAccess {
     enum class MyRole : RouteRole { ROLE_ONE, ROLE_TWO}
 
     private fun addAuthentication(config: JavalinConfig) {
-        config.router.mount {
-            it.beforeMatched { ctx ->
-                val role: RouteRole? = ctx.queryParam("role")?.let { role -> MyRole.valueOf(role) }
-                val routeRoles = ctx.routeRoles()
-                if (routeRoles != emptySet<RouteRole>() && role !in routeRoles) {
-                    throw UnauthorizedResponse()
-                }
+        config.routes.beforeMatched { ctx ->
+            val role: RouteRole? = ctx.queryParam("role")?.let { role -> MyRole.valueOf(role) }
+            val routeRoles = ctx.routeRoles()
+            if (routeRoles != emptySet<RouteRole>() && role !in routeRoles) {
+                throw UnauthorizedResponse()
             }
         }
     }
@@ -69,7 +67,7 @@ class TestStaticFileAccess {
 
     @Test
     fun `Authentication works for overlapping route and file name`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
-        app.get("/file") { it.result("Test Route") }
+        app.unsafe.routes.get("/file") { it.result("Test Route") }
         assertThat(callWithRole(http.origin, "/file", role = "ROLE_ONE")).isEqualTo("Test Route")
     }
 

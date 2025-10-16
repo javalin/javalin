@@ -17,7 +17,7 @@ public class HelloWorldApi {
 
     public static void main(String[] args) {
         Javalin.create(config -> {
-            config.router.apiBuilder(() -> {
+            config.routes.apiBuilder(() -> {
                 get("/hello", ctx -> ctx.result("Hello World"));
                 path("/api", () -> {
                     get("/test", ctx -> ctx.result("Hello World"));

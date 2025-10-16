@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -20,7 +20,7 @@ class TestEncoding {
 
     @Test
     fun `unicode path-params work`() = TestUtil.test { app, http ->
-        app.get("/{path-param}") { it.result(it.pathParam("path-param")) }
+        app.unsafe.routes.get("/{path-param}") { it.result(it.pathParam("path-param")) }
         assertThat(http.getStatus("/æøå")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/æøå")).isEqualTo("æøå")
         assertThat(http.getBody("/♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
@@ -29,7 +29,7 @@ class TestEncoding {
 
     @Test
     fun `unicode query-params work`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.queryParam("qp")!!) }
+        app.unsafe.routes.get("/") { it.result(it.queryParam("qp")!!) }
         assertThat(http.getStatus("/?qp=æøå")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/?qp=æøå")).isEqualTo("æøå")
         assertThat(http.getBody("/?qp=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
@@ -38,7 +38,7 @@ class TestEncoding {
 
     @Test
     fun `URLEncoded query-params work utf-8`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.queryParam("qp")!!) }
+        app.unsafe.routes.get("/") { it.result(it.queryParam("qp")!!) }
         assertThat(http.getBody("/?qp=" + "8%3A00+PM")).isEqualTo("8:00 PM")
         val encoded = URLEncoder.encode("!#$&'()*+,/:;=?@[]", "UTF-8")
         assertThat(http.getBody("/?qp=$encoded")).isEqualTo("!#$&'()*+,/:;=?@[]")
@@ -46,7 +46,7 @@ class TestEncoding {
 
     @Test
     fun `URLEncoded query-params work ISO-8859-1`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.queryParam("qp")!!) }
+        app.unsafe.routes.get("/") { it.result(it.queryParam("qp")!!) }
         val encoded = URLEncoder.encode("æøå", "ISO-8859-1")
         val response = Unirest.get(http.origin + "/?qp=$encoded").header("Content-Type", "text/plain; charset=ISO-8859-1").asString()
         assertThat(response.body).isEqualTo("æøå")
@@ -54,7 +54,7 @@ class TestEncoding {
 
     @Test
     fun `URLEncoded form-params work`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.formParam("qp")!!) }
+        app.unsafe.routes.post("/") { it.result(it.formParam("qp")!!) }
         val response = Unirest
             .post(http.origin)
             .body("qp=8%3A00+PM")
@@ -64,9 +64,9 @@ class TestEncoding {
 
     @Test
     fun `default charsets work`() = TestUtil.test { app, http ->
-        app.get("/text") { it.result("суп из капусты") }
-        app.get("/json") { it.json("白菜湯") }
-        app.get("/html") { it.html("kålsuppe") }
+        app.unsafe.routes.get("/text") { it.result("суп из капусты") }
+        app.unsafe.routes.get("/json") { it.json("白菜湯") }
+        app.unsafe.routes.get("/html") { it.html("kålsuppe") }
         assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
         assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
         assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.HTML)
@@ -77,13 +77,13 @@ class TestEncoding {
 
     @Test
     fun `setting a default content-type works`() = TestUtil.test(Javalin.create { it.http.defaultContentType = ContentType.JSON }) { app, http ->
-        app.get("/default") { it.result("not json") }
+        app.unsafe.routes.get("/default") { it.result("not json") }
         assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JSON)
     }
 
     @Test
     fun `content-type can be overridden in handler`() = TestUtil.test(Javalin.create { it.http.defaultContentType = ContentType.JSON }) { app, http ->
-        app.get("/override") { ctx ->
+        app.unsafe.routes.get("/override") { ctx ->
             ctx.res().characterEncoding = "utf-8"
             ctx.res().contentType = ContentType.HTML
         }
@@ -93,7 +93,7 @@ class TestEncoding {
 
     @Test
     fun `URLEncoded form-params work Windows-1252`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.formParam("fp")!!) }
+        app.unsafe.routes.post("/") { it.result(it.formParam("fp")!!) }
         val response = Unirest.post(http.origin)
             .header(Header.CONTENT_TYPE, "text/plain; charset=Windows-1252")
             .body("fp=${URLEncoder.encode("æøå", "Windows-1252")}")
@@ -103,7 +103,7 @@ class TestEncoding {
 
     @Test
     fun `URLEncoded form-params work Windows-1252 alt`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.formParam("fp")!!) }
+        app.unsafe.routes.post("/") { it.result(it.formParam("fp")!!) }
         val response = Unirest.post(http.origin)
             .header(Header.CONTENT_ENCODING, "text/plain; charset=Windows-1252")
             .field("fp", "æøå")

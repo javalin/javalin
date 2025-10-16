@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.testing.TestUtil
+
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

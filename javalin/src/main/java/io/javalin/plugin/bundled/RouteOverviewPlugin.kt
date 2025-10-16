@@ -20,9 +20,7 @@ class RouteOverviewPlugin(userConfig: Consumer<Config>? = null) : Plugin<RouteOv
     }
 
     override fun onStart(config: JavalinConfig) {
-        config.router.mount {
-            it.get(pluginConfig.path, { ctx -> handle(ctx, config.pvt.internalRouter) }, *pluginConfig.roles)
-        }
+        config.routes.get(pluginConfig.path, { ctx -> handle(ctx, config.pvt.internalRouter) }, *pluginConfig.roles)
     }
 
     private fun handle(ctx: Context, internalRouter: InternalRouter) {

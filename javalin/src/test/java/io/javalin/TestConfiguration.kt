@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -10,8 +10,8 @@ import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.CompressionType.BR
 import io.javalin.compression.CompressionType.GZIP
 import io.javalin.compression.Gzip
-import io.javalin.compression.forType
 import io.javalin.compression.GzipCompressor
+import io.javalin.compression.forType
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
@@ -63,7 +63,7 @@ class TestConfiguration {
     @Test
     fun `compression strategy is set to gzip by default`() {
         val app = Javalin.create()
-        assertThat(app.unsafeConfig().pvt.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
+        assertThat(app.unsafe.pvt.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
     }
 
     @Test
@@ -71,8 +71,8 @@ class TestConfiguration {
         val app = Javalin.create {
             it.http.customCompression(CompressionStrategy(null, Gzip(2)))
         }
-        assertThat((app.unsafeConfig().pvt.compressionStrategy.compressors.forType(GZIP.typeName) as GzipCompressor).level).isEqualTo(2)
-        assertThat(app.unsafeConfig().pvt.compressionStrategy.compressors.forType(BR.typeName)).isNull()
+        assertThat((app.unsafe.pvt.compressionStrategy.compressors.forType(GZIP.typeName) as GzipCompressor).level).isEqualTo(2)
+        assertThat(app.unsafe.pvt.compressionStrategy.compressors.forType(BR.typeName)).isNull()
     }
 
     @Test
@@ -88,9 +88,9 @@ class TestConfiguration {
             Javalin.create {
                 it.contextResolver.ip = { "CUSTOM IP" }
                 it.contextResolver.host = { "CUSTOM HOST" }
+                it.routes.get("/ip") { it.result(it.ip()) }
+                it.routes.get("/host") { it.result("${it.host()}") }
             }
-                .get("/ip") { it.result(it.ip()) }
-                .get("/host") { it.result("${it.host()}") }
         ) { _, http ->
             assertThat(http.get("/ip").body).isEqualTo("CUSTOM IP")
             assertThat(http.get("/host").body).isEqualTo("CUSTOM HOST")
@@ -100,11 +100,12 @@ class TestConfiguration {
     @Test
     fun `contextResolvers config with default settings`() {
         TestUtil.test(
-            Javalin.create {}
-                .get("/ip") { it.result(it.ip()) }
-                .get("/remote-ip") { it.result(it.req().remoteAddr) }
-                .get("/host") { it.result("${it.host()}") }
-                .get("/remote-host") { it.result("${it.header(Header.HOST)}") }
+            Javalin.create {
+                it.routes.get("/ip") { it.result(it.ip()) }
+                it.routes.get("/remote-ip") { it.result(it.req().remoteAddr) }
+                it.routes.get("/host") { it.result("${it.host()}") }
+                it.routes.get("/remote-host") { it.result("${it.header(Header.HOST)}") }
+            }
         ) { _, http ->
             assertThat(http.get("/ip").body).isEqualTo(http.get("/remote-ip").body)
             assertThat(http.get("/host").body).isEqualTo(http.get("/remote-host").body)

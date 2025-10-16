@@ -66,7 +66,7 @@ class ContentTypeTest {
     @MethodSource("contentTypes")
     fun `quoted charset parameter should be handled successfully`(contentType: String) {
         TestUtil.test { app, http ->
-            app.post("/foo") { ctx ->
+            app.unsafe.routes.post("/foo") { ctx ->
                 ctx.result(ctx.body())
             }
             val result = http.post("/foo")

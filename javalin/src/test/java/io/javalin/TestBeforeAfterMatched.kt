@@ -11,6 +11,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
+
 import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.AliasCheck
@@ -20,11 +21,11 @@ class TestBeforeAfterMatched {
 
     @Test
     fun `beforeMatched and afterMatched work`() = TestUtil.test { app, http ->
-        app.before { it.result("foo") }
-        app.beforeMatched { it.result("before-matched") }
-        app.get("/hello") { it.result(it.result() + "-hello") }
-        app.afterMatched { it.result(it.result() + "-after-matched") }
-        app.after { it.result(it.result() + "!") }
+        app.unsafe.routes.before { it.result("foo") }
+        app.unsafe.routes.beforeMatched { it.result("before-matched") }
+        app.unsafe.routes.get("/hello") { it.result(it.result() + "-hello") }
+        app.unsafe.routes.afterMatched { it.result(it.result() + "-after-matched") }
+        app.unsafe.routes.after { it.result(it.result() + "!") }
 
         assertThat(http.getStatus("/other-path")).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Endpoint GET /other-path not found!")
@@ -142,17 +143,17 @@ class TestBeforeAfterMatched {
 
 
     private fun setAppRoutes(app: Javalin) {
-        app.get("/root") { it.result("root") }
-        app.get("/sub/id/other/stuff") { it.result("id-other-stuff") }
-        app.get("/angle/i/see/slashes") { it.result("i-see-slashes") }
+        app.unsafe.routes.get("/root") { it.result("root") }
+        app.unsafe.routes.get("/sub/id/other/stuff") { it.result("id-other-stuff") }
+        app.unsafe.routes.get("/angle/i/see/slashes") { it.result("i-see-slashes") }
     }
 
     private fun setHeaders(app: Javalin) {
-        app.before { it.header("X-Always", "true") }
-        app.beforeMatched { it.header("X-Before-Star", "true") }
-        app.beforeMatched("/sub/{p}*") { it.header("X-Before-Sub-Curly", it.pathParam("p")) }
-        app.beforeMatched("/angle/<a>") { it.header("X-Before-Angle", it.pathParam("a")) }
-        app.afterMatched { it.header("X-After-Star", "true") }
+        app.unsafe.routes.before { it.header("X-Always", "true") }
+        app.unsafe.routes.beforeMatched { it.header("X-Before-Star", "true") }
+        app.unsafe.routes.beforeMatched("/sub/{p}*") { it.header("X-Before-Sub-Curly", it.pathParam("p")) }
+        app.unsafe.routes.beforeMatched("/angle/<a>") { it.header("X-Before-Angle", it.pathParam("a")) }
+        app.unsafe.routes.afterMatched { it.header("X-After-Star", "true") }
     }
 
     private fun assertResponse(
@@ -176,11 +177,11 @@ class TestBeforeAfterMatched {
 
     @Test
     fun `beforeMatched can skip remaining handlers`() = TestUtil.test { app, http ->
-        app.beforeMatched {
+        app.unsafe.routes.beforeMatched {
             it.result("static-before")
             it.skipRemainingHandlers()
         }
-        app.get("/hello") { it.result("hello") }
+        app.unsafe.routes.get("/hello") { it.result("hello") }
         assertThat(http.getStatus("/other-path")).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(http.getBody("/other-path")).isEqualToIgnoringCase("Endpoint GET /other-path not found")
         assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.OK)
@@ -193,8 +194,8 @@ class TestBeforeAfterMatched {
             ctx.result(ctx.attribute<String>("before") ?: "n/a")
         }
     }) { app, http ->
-        app.beforeMatched { it.attribute("before", "matched") }
-        app.afterMatched { it.result(it.result() + "!") }
+        app.unsafe.routes.beforeMatched { it.attribute("before", "matched") }
+        app.unsafe.routes.afterMatched { it.result(it.result() + "!") }
 
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("matched!")
@@ -203,9 +204,9 @@ class TestBeforeAfterMatched {
 
     @Test
     fun `beforeMatched fires for head request on get handler`() = TestUtil.test { app, http ->
-        app.beforeMatched { it.status(HttpStatus.IM_A_TEAPOT) }
-        app.get("/hello") { it.result("hello") }
-        app.afterMatched { it.result(it.result() + "!") }
+        app.unsafe.routes.beforeMatched { it.status(HttpStatus.IM_A_TEAPOT) }
+        app.unsafe.routes.get("/hello") { it.result("hello") }
+        app.unsafe.routes.afterMatched { it.result(it.result() + "!") }
 
         assertThat(http.call(kong.unirest.HttpMethod.HEAD, "/hello").status).isEqualTo(418)
         assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.IM_A_TEAPOT)
@@ -217,8 +218,8 @@ class TestBeforeAfterMatched {
     fun `beforeMatched runs for ResourceHandler`() = TestUtil.test(Javalin.create { config ->
         config.staticFiles.add("public", Location.CLASSPATH)
     }) { app, http ->
-        app.beforeMatched { it.header("X-Matched-Before", "true") }
-        app.afterMatched { it.header("X-Matched-After", "true") }
+        app.unsafe.routes.beforeMatched { it.header("X-Matched-Before", "true") }
+        app.unsafe.routes.afterMatched { it.header("X-Matched-After", "true") }
 
         val res = http.get("/html.html")
         assertThat(res.status).describedAs("status").isEqualTo(HttpStatus.OK.code)
@@ -232,8 +233,8 @@ class TestBeforeAfterMatched {
     fun `beforeMatched runs for webjars`() = TestUtil.test(Javalin.create { config ->
         config.staticFiles.enableWebjars()
     }) { app, http ->
-        app.beforeMatched { it.header("X-Matched-Before", "123") }
-        app.afterMatched { it.header("X-Matched-After", "456") }
+        app.unsafe.routes.beforeMatched { it.header("X-Matched-Before", "123") }
+        app.unsafe.routes.afterMatched { it.header("X-Matched-After", "456") }
         val res = http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css")
         assertThat(res.headers.getFirst("X-Matched-Before")).describedAs("before-header").isEqualTo("123")
         assertThat(res.headers.getFirst("X-Matched-After")).describedAs("after-header").isEqualTo("456")
@@ -245,8 +246,8 @@ class TestBeforeAfterMatched {
         config.staticFiles.add("/public/assets", Location.CLASSPATH)
         config.staticFiles.add("src/test/external/", Location.EXTERNAL)
     }) { app, http ->
-        app.beforeMatched { it.header("X-Matched-Before", "abc") }
-        app.afterMatched { it.header("X-Matched-After", "xyz") }
+        app.unsafe.routes.beforeMatched { it.header("X-Matched-Before", "abc") }
+        app.unsafe.routes.afterMatched { it.header("X-Matched-After", "xyz") }
         fun assertHeaders(path: String) {
             val res = http.get(path)
             assertThat(res.headers.getFirst("X-Matched-Before")).describedAs("before-header").isEqualTo("abc")
@@ -267,14 +268,14 @@ class TestBeforeAfterMatched {
     }) { app, http ->
         var afterMatchedRan = false
         var afterRan = false
-        app.beforeMatched { it.header("X-Matched-Before", "true") }
+        app.unsafe.routes.beforeMatched { it.header("X-Matched-Before", "true") }
 
-        app.afterMatched {
+        app.unsafe.routes.afterMatched {
             it.header("X-Matched-After", "true")
             afterMatchedRan = true
         }
 
-        app.after {
+        app.unsafe.routes.after {
             it.header("X-After", "true")
             afterRan = true
         }
@@ -298,7 +299,7 @@ class TestBeforeAfterMatched {
             it.location = Location.CLASSPATH
         }
     }) { app, http ->
-        app.afterMatched { it.header("X-After", "true") }
+        app.unsafe.routes.afterMatched { it.header("X-After", "true") }
 
         val slash = http.get("/file/")
         assertThat(slash.status).isEqualTo(HttpStatus.NOT_FOUND.code)
@@ -317,7 +318,7 @@ class TestBeforeAfterMatched {
             it.aliasCheck = AliasCheck { _, _ -> true }
         }
     }) { app, http ->
-        app.afterMatched { it.header("X-After", "true") }
+        app.unsafe.routes.afterMatched { it.header("X-After", "true") }
 
         val noSlash = http.get("/file")
         assertThat(noSlash.body).isEqualTo("TESTFILE")
@@ -340,7 +341,7 @@ class TestBeforeAfterMatched {
             }
             config.pvt.servletRequestLifecycle = mutableListOf(BEFORE, HTTP, AFTER_MATCHED, ERROR, AFTER)
         }) { app, http ->
-            app.afterMatched { it.header("X-After", "true") }
+            app.unsafe.routes.afterMatched { it.header("X-After", "true") }
 
             val noSlash = http.get("/file")
             assertThat(noSlash.body).isEqualTo("TESTFILE")
@@ -356,10 +357,8 @@ class TestBeforeAfterMatched {
     @Test
     fun `pathParams are extracted from endpoint if beforeMatched has no path-params`() =
         TestUtil.test(Javalin.create { config ->
-            config.router.mount {
-                it.beforeMatched { ctx -> ctx.result(ctx.pathParamMap().toString()) }
-                it.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
-            }
+            config.routes.beforeMatched { ctx -> ctx.result(ctx.pathParamMap().toString()) }
+            config.routes.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
         }) { _, http ->
             assertThat(http.getBody("/p")).isEqualTo("{endpoint=p}/{endpoint=p}")
         }
@@ -367,10 +366,8 @@ class TestBeforeAfterMatched {
     @Test
     fun `pathParams are extracted from beforeMatched if beforeMatched has path-params`() =
         TestUtil.test(Javalin.create { config ->
-            config.router.mount {
-                it.beforeMatched("/{before}") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
-                it.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
-            }
+            config.routes.beforeMatched("/{before}") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
+            config.routes.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
         }) { _, http ->
             assertThat(http.getBody("/p")).isEqualTo("{before=p}/{endpoint=p}")
         }
@@ -379,15 +376,15 @@ class TestBeforeAfterMatched {
 
     @Test
     fun `routeRoles are available in beforeMatched`() = TestUtil.test { app, http ->
-        app.beforeMatched { it.result(it.routeRoles().toString()) }
-        app.get("/test", {}, Role.A)
+        app.unsafe.routes.beforeMatched { it.result(it.routeRoles().toString()) }
+        app.unsafe.routes.get("/test", {}, Role.A)
         assertThat(http.getBody("/test")).isEqualTo("[A]")
     }
 
     @Test
     fun `routeRoles are available in afterMatched`() = TestUtil.test { app, http ->
-        app.get("/test", {}, Role.A)
-        app.afterMatched { it.result(it.routeRoles().toString()) }
+        app.unsafe.routes.get("/test", {}, Role.A)
+        app.unsafe.routes.afterMatched { it.result(it.routeRoles().toString()) }
         assertThat(http.getBody("/test")).isEqualTo("[A]")
     }
 

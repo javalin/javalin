@@ -35,6 +35,8 @@ class JavalinConfig {
     @JvmField val http = HttpConfig(this)
     /** The routing configuration: context path, slash treatment, etc */
     @JvmField val router = RouterConfig(this)
+    /** The routes configuration: HTTP verbs, handlers, websockets, etc */
+    @JvmField val routes = RoutesConfig(this)
     /** The embedded Jetty webserver configuration */
     @JvmField val jetty = JettyConfig(this)
     /** Static files and webjars configuration */

@@ -10,7 +10,7 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
 import io.javalin.plugin.Plugin
 import java.time.Duration
-import java.util.Locale
+import java.util.*
 import java.util.function.Consumer
 
 /**
@@ -20,11 +20,9 @@ import java.util.function.Consumer
 class GlobalHeadersPlugin(userConfig: Consumer<GlobalHeadersConfig>? = null) : Plugin<GlobalHeadersConfig>(userConfig, GlobalHeadersConfig()) {
 
     override fun onStart(config: JavalinConfig) {
-        config.router.mount {
-            it.before { ctx ->
-                pluginConfig.headers.forEach { (name, value) ->
-                    ctx.header(name, value)
-                }
+        config.routes.before { ctx ->
+            pluginConfig.headers.forEach { (name, value) ->
+                ctx.header(name, value)
             }
         }
     }

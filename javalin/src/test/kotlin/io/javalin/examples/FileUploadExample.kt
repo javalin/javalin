@@ -11,8 +11,8 @@ import io.javalin.util.FileUtil
 
 fun main() {
 
-    Javalin.create().apply {
-        get("/") { ctx ->
+    Javalin.create {
+        it.routes.get("/") { ctx ->
             ctx.html(
                 """
                     <form method='post' enctype='multipart/form-data'>
@@ -22,7 +22,7 @@ fun main() {
                 """
             )
         }
-        post("/") { ctx ->
+        it.routes.post("/") { ctx ->
             ctx.uploadedFiles("files").forEach {
                 FileUtil.streamToFile(it.content(), "upload/${it.filename()}")
             }

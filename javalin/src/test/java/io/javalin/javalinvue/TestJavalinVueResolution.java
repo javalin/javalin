@@ -17,6 +17,8 @@ package io.javalin.javalinvue;
 
 import io.javalin.vue.VueComponent;
 import org.junit.jupiter.api.Test;
+
+import static io.javalin.testing.JavalinTestUtil.get;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -29,7 +31,7 @@ public class TestJavalinVueResolution {
         VueTestUtil.test(config -> {
             config.vue.optimizeDependencies = false;
         }, (server, httpUtil) -> {
-            server.get("/non-optimized", new VueComponent("<test-component></test-component>"));
+            get(server, "/non-optimized", new VueComponent("<test-component></test-component>"));
             String body = httpUtil.getBody("/non-optimized");
             assertThat(body).contains("<body><test-component></test-component></body>");
             assertThat(body).contains("view-one");
@@ -48,7 +50,7 @@ public class TestJavalinVueResolution {
     @Test
     public void resolveSingleDependencyTest() {
         VueTestUtil.test((server, httpUtil) -> {
-            server.get("/single-view", new VueComponent("<view-one></view-one>"));
+            get(server, "/single-view", new VueComponent("<view-one></view-one>"));
             String body = httpUtil.getBody("/single-view");
             assertThat(body).contains("<body><view-one></view-one></body>");
             assertThat(body).doesNotContain("<view-two>");
@@ -67,7 +69,7 @@ public class TestJavalinVueResolution {
         VueTestUtil.test(config -> {
             config.vue.vueInstanceNameInJs = "app";
         }, (server, httpUtil) -> {
-            server.get("/single-view", new VueComponent("<view-one-3></view-one-3>"));
+            get(server, "/single-view", new VueComponent("<view-one-3></view-one-3>"));
             String body = httpUtil.getBody("/single-view");
             assertThat(body).contains("<body><view-one-3></view-one-3></body>");
             assertThat(body).doesNotContain("<view-two-3>");
@@ -94,7 +96,7 @@ public class TestJavalinVueResolution {
     @Test
     public void resolveNestedDependencyTest() {
         VueTestUtil.test((server, httpUtil) -> {
-            server.get("/nested-view", new VueComponent("<view-nested-dependency></view-nested-dependency>"));
+            get(server, "/nested-view", new VueComponent("<view-nested-dependency></view-nested-dependency>"));
             String body = httpUtil.getBody("/nested-view");
             assertThat(body).doesNotContain("<view-one>");
             assertThat(body).doesNotContain("<view-two>");
@@ -111,7 +113,7 @@ public class TestJavalinVueResolution {
     @Test
     public void resolveMultiComponentFileDependencyTest() {
         VueTestUtil.test((server, httpUtil) -> {
-            server.get("/multi-view-one", new VueComponent("<view-two></view-two>"));
+            get(server, "/multi-view-one", new VueComponent("<view-two></view-two>"));
             String body = httpUtil.getBody("/multi-view-one");
             assertThat(body).doesNotContain("<view-one>");
             assertThat(body).contains("<body><view-two></view-two></body>");
@@ -123,7 +125,7 @@ public class TestJavalinVueResolution {
             assertThat(body).contains("dependency-four");
             assertThat(body).doesNotContain("nested-dependency");
 
-            server.get("/multi-view-two", new VueComponent("<view-three></view-three>"));
+            get(server, "/multi-view-two", new VueComponent("<view-three></view-three>"));
             body = httpUtil.getBody("/multi-view-two");
             assertThat(body).doesNotContain("<view-one>");
             assertThat(body).doesNotContain("<view-two>");
@@ -140,7 +142,7 @@ public class TestJavalinVueResolution {
     @Test
     public void componentWithNumberTest() {
         VueTestUtil.test((server, httpUtil) -> {
-            server.get("/multi-view-number", new VueComponent("<view-number-dependency></view-number-dependency>"));
+            get(server, "/multi-view-number", new VueComponent("<view-number-dependency></view-number-dependency>"));
             String body = httpUtil.getBody("/multi-view-number");
             assertThat(body).contains("<dependency-1></dependency-1>");
             assertThat(body).contains("<dependency-1-foo></dependency-1-foo>");
@@ -155,7 +157,7 @@ public class TestJavalinVueResolution {
     @Test
     public void componentWithMultilineComponentsUsageTest() {
         VueTestUtil.test((server, httpUtil) -> {
-            server.get("/multiline-view-number", new VueComponent("<view-multiline-dependency></view-multiline-dependency>"));
+            get(server, "/multiline-view-number", new VueComponent("<view-multiline-dependency></view-multiline-dependency>"));
             String body = httpUtil.getBody("/multiline-view-number");
             assertThat(body).contains("Vue.component(\"view-multiline-dependency\",{template:\"#view-multiline-dependency\"})");
             assertThat(body).contains("Vue.component('dependency-1',{template:\"#dependency-1\"})");

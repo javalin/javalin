@@ -1,4 +1,4 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
@@ -14,7 +14,6 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import java.lang.NullPointerException
 import java.util.function.Consumer
 
 class TestPlugins {
@@ -222,13 +221,13 @@ class TestPlugins {
     fun `Context-extending plugins can be accessed through the Context by class`() = TestUtil.test(Javalin.create {
         it.registerPlugin(TestContextPlugin())
     }) { app, http ->
-        app.get("/abcd") { it.result(it.with(TestContextPlugin::class).fancyPath()) }
+        app.unsafe.routes.get("/abcd") { it.result(it.with(TestContextPlugin::class).fancyPath()) }
         assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
     }
 
     @Test
     fun `Context-extending plugins throw if they are not registered`() = TestUtil.test(Javalin.create {}) { app, http ->
-        app.get("/abcd") { it.result(it.with(TestContextPlugin::class).fancyPath()) }
+        app.unsafe.routes.get("/abcd") { it.result(it.with(TestContextPlugin::class).fancyPath()) }
         assertThat(http.get("/abcd").status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
     }
 
@@ -237,7 +236,7 @@ class TestPlugins {
         TestUtil.test(Javalin.create {
             it.registerPlugin(Rendy { it.directory = "src/test/resources" })
         }) { app, http ->
-            app.get("/") { it.with(Rendy::class).render("/template.tpl") }
+            app.unsafe.routes.get("/") { it.with(Rendy::class).render("/template.tpl") }
             assertThat(http.getBody("/")).isEqualTo("src/test/resources/template.tpl")
         }
     }

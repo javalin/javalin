@@ -122,9 +122,7 @@ class CertificateAuthorityTests : IntegrationTestClass() {
             Javalin.create { javalinConfig: JavalinConfig ->
                 javalinConfig.showJavalinBanner = false
                 javalinConfig.registerPlugin(sslPlugin)
-                javalinConfig.router.mount {
-                    it.get("/") { ctx: Context -> ctx.result(SUCCESS) }
-                }
+                javalinConfig.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
                 testSuccessfulEndpoint(url, client.get()) // works
                 sslPlugin.reload { config: SslConfig ->

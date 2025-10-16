@@ -1,4 +1,4 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.http.Header
 import io.javalin.plugin.bundled.SslRedirectPlugin
@@ -23,7 +23,7 @@ class TestSslRedirectPlugin {
             })
         }
     ) { app, http ->
-        app.get("/") { ctx -> ctx.result("Hello") }
+        app.unsafe.routes.get("/") { ctx -> ctx.result("Hello") }
 
         val response = httpWithoutAutoRedirects.get(http.origin).asEmpty()
         assertThat(response.status).isEqualTo(301)
@@ -39,7 +39,7 @@ class TestSslRedirectPlugin {
             })
         }
     ) { app, http ->
-        app.get("/") { ctx -> ctx.result("Hello") }
+        app.unsafe.routes.get("/") { ctx -> ctx.result("Hello") }
 
         val response = httpWithoutAutoRedirects.get(http.origin).asEmpty()
         assertThat(response.status).isEqualTo(301)

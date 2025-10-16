@@ -23,7 +23,8 @@ fun main() {
         }
     }
 
-    Javalin.create { it.jsonMapper(rawJsonMapper) }
-        .get("/") { it.json(listOf("a", "b", "c")) }
-        .start(7070)
+    Javalin.create {
+        it.jsonMapper(rawJsonMapper)
+        it.routes.get("/") { it.json(listOf("a", "b", "c")) }
+    }.start(7070)
 }

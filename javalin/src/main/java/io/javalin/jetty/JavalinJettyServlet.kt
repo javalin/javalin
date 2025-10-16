@@ -10,12 +10,11 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.http.servlet.JavalinServlet
-import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.JavalinServletContextConfig
 import io.javalin.http.servlet.JavalinWsServletContext
 import io.javalin.http.servlet.Task
 import io.javalin.util.javalinLazy
-import io.javalin.websocket.*
+import io.javalin.websocket.WsConnection
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketCreator
@@ -62,7 +61,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
             cfg.pvt.wsLogger?.wsUpgradeLogger?.handle(upgradeContext, executionTimeMs)
             return
         }
-        
+
         val upgradeContext = JavalinWsServletContext(
             cfg = servletContextConfig,
             req = req,
@@ -81,7 +80,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
         // add after handlers
         cfg.pvt.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
             .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
-        
+
         try {
             while (upgradeContext.tasks.isNotEmpty()) { // execute all tasks in order
                 try {
@@ -105,7 +104,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
         this.setHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, firstProtocol)
     }
 
-    private fun calculateExecutionTimeMs(startTimeNanos: Long): Float = 
+    private fun calculateExecutionTimeMs(startTimeNanos: Long): Float =
         (System.nanoTime() - startTimeNanos) / 1_000_000.0f
 
 }

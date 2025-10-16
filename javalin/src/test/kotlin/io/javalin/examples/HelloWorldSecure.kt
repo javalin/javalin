@@ -24,9 +24,8 @@ fun main() {
             httpConnector.port = 80
             httpConnector
         }
+        it.routes.get("/") { ctx -> ctx.result("Hello World") } // valid endpoint for both connectors
     }.start()
-
-    app.get("/") { it.result("Hello World") } // valid endpoint for both connectors
 }
 
 private fun sslContextFactory(): SslContextFactory.Server {

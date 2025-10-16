@@ -16,8 +16,8 @@ import io.javalin.security.Roles
 import io.javalin.security.RouteRole
 import io.javalin.util.Util
 import io.javalin.websocket.WsConfig
-import io.javalin.websocket.WsHandlerEntry
 import io.javalin.websocket.WsExceptionHandler
+import io.javalin.websocket.WsHandlerEntry
 import io.javalin.websocket.WsHandlerType
 import io.javalin.websocket.WsRouter
 import jakarta.servlet.http.HttpServletResponse

@@ -1,8 +1,7 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
-import io.javalin.http.MethodNotAllowedResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
@@ -12,10 +11,11 @@ import org.junit.jupiter.api.Test
 
 class TestMethodNotAllowed {
 
-    private val preferring405Javalin = Javalin.create { it.http.prefer405over404 = true }.apply {
-        post("/test") { it.result("Hello world") }
-        put("/test") { it.result("Hello world") }
-        delete("/test") { it.result("Hello world") }
+    private val preferring405Javalin = Javalin.create { config ->
+        config.http.prefer405over404 = true
+        config.routes.post("/test") { it.result("Hello world") }
+        config.routes.put("/test") { it.result("Hello world") }
+        config.routes.delete("/test") { it.result("Hello world") }
     }
 
     @Test
@@ -44,10 +44,11 @@ class TestMethodNotAllowed {
 
     @Test
     fun `Allow header contains all available HTTP methods`() {
-        val app = Javalin.create { it.http.prefer405over404 = true }.apply {
-            get("/api") { ctx -> ctx.result("GET response") }
-            post("/api") { ctx -> ctx.result("POST response") }
-            patch("/api") { ctx -> ctx.result("PATCH response") }
+        val app = Javalin.create { config ->
+            config.http.prefer405over404 = true
+            config.routes.get("/api") { ctx -> ctx.result("GET response") }
+            config.routes.post("/api") { ctx -> ctx.result("POST response") }
+            config.routes.patch("/api") { ctx -> ctx.result("PATCH response") }
         }
         TestUtil.test(app) { _, http ->
             val response = http.call(HttpMethod.PUT, "/api")
@@ -58,8 +59,9 @@ class TestMethodNotAllowed {
 
     @Test
     fun `Allow header works for single available method`() {
-        val app = Javalin.create { it.http.prefer405over404 = true }.apply {
-            delete("/single") { ctx -> ctx.result("DELETE response") }
+        val app = Javalin.create { config ->
+            config.http.prefer405over404 = true
+            config.routes.delete("/single") { ctx -> ctx.result("DELETE response") }
         }
         TestUtil.test(app) { _, http ->
             val response = http.get("/single")
@@ -70,9 +72,10 @@ class TestMethodNotAllowed {
 
     @Test
     fun `Allow header is present in JSON 405 responses`() {
-        val app = Javalin.create { it.http.prefer405over404 = true }.apply {
-            post("/json") { ctx -> ctx.result("POST response") }
-            put("/json") { ctx -> ctx.result("PUT response") }
+        val app = Javalin.create { config ->
+            config.http.prefer405over404 = true
+            config.routes.post("/json") { ctx -> ctx.result("POST response") }
+            config.routes.put("/json") { ctx -> ctx.result("PUT response") }
         }
         TestUtil.test(app) { _, http ->
             val response = http.jsonGet("/json")
@@ -83,9 +86,10 @@ class TestMethodNotAllowed {
 
     @Test
     fun `Allow header is present in HTML 405 responses`() {
-        val app = Javalin.create { it.http.prefer405over404 = true }.apply {
-            get("/html") { ctx -> ctx.result("GET response") }
-            post("/html") { ctx -> ctx.result("POST response") }
+        val app = Javalin.create { config ->
+            config.http.prefer405over404 = true
+            config.routes.get("/html") { ctx -> ctx.result("GET response") }
+            config.routes.post("/html") { ctx -> ctx.result("POST response") }
         }
         TestUtil.test(app) { _, http ->
             val response = http.call(HttpMethod.PUT, "/html")
@@ -96,9 +100,10 @@ class TestMethodNotAllowed {
 
     @Test
     fun `Allow header is present in plain text 405 responses`() {
-        val app = Javalin.create { it.http.prefer405over404 = true }.apply {
-            get("/plain") { ctx -> ctx.result("GET response") }
-            put("/plain") { ctx -> ctx.result("PUT response") }
+        val app = Javalin.create { config ->
+            config.http.prefer405over404 = true
+            config.routes.get("/plain") { ctx -> ctx.result("GET response") }
+            config.routes.put("/plain") { ctx -> ctx.result("PUT response") }
         }
         TestUtil.test(app) { _, http ->
             val response = http.call(HttpMethod.DELETE, "/plain")
@@ -109,7 +114,7 @@ class TestMethodNotAllowed {
 
     @Test
     fun `Allow header is not set for 404 responses`() = TestUtil.test { app, http ->
-        app.get("/test") { it.result("Hello") }
+        app.unsafe.routes.get("/test") { it.result("Hello") }
         val response = http.call(HttpMethod.POST, "/test")
         assertThat(response.status).isEqualTo(404)
         assertThat(response.headers["Allow"]).isNullOrEmpty()

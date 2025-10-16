@@ -18,76 +18,76 @@ class TestBodyReading {
 
     @Test
     fun `reading body as bytes works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.bodyAsBytes()) }
+        app.unsafe.routes.post("/") { it.result(it.bodyAsBytes()) }
         assertThat(http.post("/").body("body").asString().body).isEqualTo("body")
     }
 
     @Test
     fun `reading query-params then body works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.body() + "|" + it.queryParam("qp")) }
+        app.unsafe.routes.post("/") { it.result(it.body() + "|" + it.queryParam("qp")) }
         val response = http.post("/").queryString("qp", "param").body("body").asString()
         assertThat(response.body).isEqualTo("body|param")
     }
 
     @Test
     fun `reading body then query-params works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.queryParam("qp") + "|" + it.body()) }
+        app.unsafe.routes.post("/") { it.result(it.queryParam("qp") + "|" + it.body()) }
         val response = http.post("/").queryString("qp", "param").body("body").asString()
         assertThat(response.body).isEqualTo("param|body")
     }
 
     @Test
     fun `reading form-params then body works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.formParam("fp") + "|" + it.body()) }
+        app.unsafe.routes.post("/") { it.result(it.formParam("fp") + "|" + it.body()) }
         val response = http.post("/").body("fp=param").asString()
         assertThat(response.body).isEqualTo("param|fp=param")
     }
 
     @Test
     fun `reading body then form-params works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.body() + "|" + it.formParam("fp")) }
+        app.unsafe.routes.post("/") { it.result(it.body() + "|" + it.formParam("fp")) }
         val response = http.post("/").body("fp=param").asString()
         assertThat(response.body).isEqualTo("fp=param|param")
     }
 
     @Test
     fun `reading unicode form-params works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.formParam("fp")!!) }
+        app.unsafe.routes.post("/") { it.result(it.formParam("fp")!!) }
         val response = http.post("/").body("fp=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟").asString()
         assertThat(response.body).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
     }
 
     @Test
     fun `form params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
-        app.post("/") { it.result("${it.formParam("fp")}") }
+        app.unsafe.routes.post("/") { it.result("${it.formParam("fp")}") }
         val response = http.post("/").body("fp=%+").asString()
         assertThat(response.body).isEqualTo("null")
     }
 
     @Test
     fun `only form params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.formParam("fp") + "|" + it.formParam("fp2")) }
+        app.unsafe.routes.post("/") { it.result(it.formParam("fp") + "|" + it.formParam("fp2")) }
         val response = http.post("/").body("fp=%+&fp2=valid").asString()
         assertThat(response.body).isEqualTo("null|valid")
     }
 
     @Test
     fun `reading form-params with strictContentTypes and without contentType returns nothing`() = TestUtil.test(strictContentTypeJavalin) { app, http ->
-        app.post("/") { it.result((it.formParam("fp") == null).toString()) }
+        app.unsafe.routes.post("/") { it.result((it.formParam("fp") == null).toString()) }
         val response = http.post("/").body("fp=param").asString()
         assertThat(response.body).isEqualTo("true")
     }
 
     @Test
     fun `reading form-params with strictContentTypes and without contentType works`() = TestUtil.test(strictContentTypeJavalin) { app, http ->
-        app.post("/") { it.result((it.formParam("fp")).toString()) }
+        app.unsafe.routes.post("/") { it.result((it.formParam("fp")).toString()) }
         val response = http.post("/").contentType("application/x-www-form-urlencoded").body("fp=param").asString()
         assertThat(response.body).isEqualTo("param")
     }
 
     @Test // not sure why this does so much...
     fun `query-params and form-params behave the same`() = TestUtil.test { app, http ->
-        app.post("/") { ctx ->
+        app.unsafe.routes.post("/") { ctx ->
             val formParamString = ctx.formParamMap().map { it.key + ": " + ctx.formParam(it.key) + ", " + it.key + "s: " + ctx.formParams(it.key).toString() }.joinToString(". ")
             val queryParamString = ctx.queryParamMap().map { it.key + ": " + ctx.queryParam(it.key) + ", " + it.key + "s: " + ctx.queryParams(it.key).toString() }.joinToString(". ")
             val singleMissingSame = ctx.formParam("missing") == ctx.queryParam("missing")
@@ -110,20 +110,20 @@ class TestBodyReading {
 
     @Test
     fun `reading body as stream works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.bodyInputStream()) }
+        app.unsafe.routes.post("/") { it.result(it.bodyInputStream()) }
         assertThat(http.post("/").body("body").asString().body).isEqualTo("body")
     }
 
     @Test
     fun `reading body multiple times works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.body() + it.body()) }
+        app.unsafe.routes.post("/") { it.result(it.body() + it.body()) }
         assertThat(http.post("/").body("body").asString().body).isEqualTo("bodybody")
     }
 
     @Test
     fun `reading too large request body does not work`() {
         val result = TestUtil.testWithResult(Javalin.create { it.http.maxRequestSize = 1000 }) { app, http ->
-            app.post("/") { it.result(it.body() + it.body()) }
+            app.unsafe.routes.post("/") { it.result(it.body() + it.body()) }
             http.post("/").body("x".repeat(1001)).asString()
         }
         assertThat(result.logs).contains("Body greater than max size (1000 bytes)")

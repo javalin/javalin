@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -28,23 +28,23 @@ class TestRedirectToLowercasePathPlugin {
     @Test
     fun `exception is thrown when using non-lowercase paths with TestRedirectToLowercasePathPlugin`() = TestUtil.test(testApp) { app, _ ->
         assertThatIllegalArgumentException()
-            .isThrownBy { app.get("/TEST") { } }
+            .isThrownBy { app.unsafe.routes.get("/TEST") { } }
             .withMessage("Paths must be lowercase when using RedirectToLowercasePathPlugin")
 
         // complex segments are handled differently internally
         assertThatIllegalArgumentException()
-            .isThrownBy { app.get("/HI-{world}") { } }
+            .isThrownBy { app.unsafe.routes.get("/HI-{world}") { } }
             .withMessage("Paths must be lowercase when using RedirectToLowercasePathPlugin")
     }
 
     @Test
     fun `exception is NOT thrown when using uppercase path params with TestRedirectToLowercasePathPlugin`() = TestUtil.test(testApp) { app, _ ->
-        app.get("/{TEST}") { }
+        app.unsafe.routes.get("/{TEST}") { }
     }
 
     @Test
     fun `only wrong cased requests are redirected`() = TestUtil.test(testApp) { app, http ->
-        app.get("/my-endpoint") { it.status(IM_A_TEAPOT) }
+        app.unsafe.routes.get("/my-endpoint") { it.status(IM_A_TEAPOT) }
         http.disableUnirestRedirects()
         assertThat(http.get("/my-endpoint").httpCode()).isEqualTo(IM_A_TEAPOT)
         assertThat(http.get("/my-eNdPOinT").httpCode()).isEqualTo(MOVED_PERMANENTLY)
@@ -54,7 +54,7 @@ class TestRedirectToLowercasePathPlugin {
 
     @Test
     fun `only wrong cased requests are redirected complex segments edition`() = TestUtil.test(testApp) { app, http ->
-        app.get("/my-{endpoint}") { it.status(IM_A_TEAPOT).result(it.pathParam("endpoint")) }
+        app.unsafe.routes.get("/my-{endpoint}") { it.status(IM_A_TEAPOT).result(it.pathParam("endpoint")) }
         http.disableUnirestRedirects()
         http.get("/my-endpoint").assertStatusAndBodyMatch(IM_A_TEAPOT, "endpoint")
         http.get("/my-ENDPOINT").assertStatusAndBodyMatch(IM_A_TEAPOT, "ENDPOINT")
@@ -65,7 +65,7 @@ class TestRedirectToLowercasePathPlugin {
 
     @Test
     fun `non-lowercase path-params are not redirected`() = TestUtil.test(testApp) { app, http ->
-        app.get("/path/{param}") { it.status(IM_A_TEAPOT) }
+        app.unsafe.routes.get("/path/{param}") { it.status(IM_A_TEAPOT) }
         http.disableUnirestRedirects()
         assertThat(http.get("/path/OnE").httpCode()).isEqualTo(IM_A_TEAPOT)
         http.enableUnirestRedirects()
@@ -73,19 +73,19 @@ class TestRedirectToLowercasePathPlugin {
 
     @Test
     fun `query params are kept after redirect`() = TestUtil.test(testApp) { app, http ->
-        app.get("/lowercase") { it.result(it.queryParam("qp")!!) }
+        app.unsafe.routes.get("/lowercase") { it.result(it.queryParam("qp")!!) }
         assertThat(http.getBody("/LOWERCASE?qp=UPPERCASE")).isEqualTo("UPPERCASE")
     }
 
     @Test
     fun `path params and query params work as expected`() = TestUtil.test(testApp) { app, http ->
-        app.get("/user/{userId}") { it.result(it.pathParam("userId") + " " + it.queryParam("qp")!!) }
+        app.unsafe.routes.get("/user/{userId}") { it.result(it.pathParam("userId") + " " + it.queryParam("qp")!!) }
         assertThat(http.getBody("/UsEr/pkkummermo?qp=GladGutt")).isEqualTo("pkkummermo GladGutt")
     }
 
     @Test
     fun `path params follow by splat works`() = TestUtil.test(testApp) { app, http ->
-        app.get("/{param}/*") { it.result(it.path()) }
+        app.unsafe.routes.get("/{param}/*") { it.result(it.path()) }
         assertThat(http.getBody("/PaRaM/sPlAt")).isEqualTo("/PaRaM/sPlAt")
     }
 

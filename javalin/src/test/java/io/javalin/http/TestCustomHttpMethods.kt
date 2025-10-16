@@ -1,9 +1,9 @@
 package io.javalin.http
 
 import io.javalin.http.HandlerType.GET
-import io.javalin.http.HandlerType.POST
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
+
 import kong.unirest.HttpMethod
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -13,10 +13,9 @@ class TestCustomHttpMethods {
 
     val PROPFIND = HandlerType.findOrCreate("PROPFIND")
 
-
     @Test
     fun `custom HTTP methods work with full request lifecycle`() = TestUtil.test { app, http ->
-        app.addHttpHandler(PROPFIND, "/webdav") { ctx -> ctx.result("PROPFIND response") }
+        app.unsafe.routes.addHttpHandler(PROPFIND, "/webdav") { ctx -> ctx.result("PROPFIND response") }
         val response = http.call(HttpMethod.valueOf("PROPFIND"), "/webdav")
         assertThat(response.body).isEqualTo("PROPFIND response")
         assertThat(response.status).isEqualTo(200)
@@ -64,8 +63,8 @@ class TestCustomHttpMethods {
 
     @Test
     fun `standard HTTP methods still work`() = TestUtil.test { app, http ->
-        app.get("/test") { ctx -> ctx.result("GET works") }
-        app.post("/test") { ctx -> ctx.result("POST works") }
+        app.unsafe.routes.get("/test") { ctx -> ctx.result("GET works") }
+        app.unsafe.routes.post("/test") { ctx -> ctx.result("POST works") }
 
         assertThat(http.get("/test").body).isEqualTo("GET works")
         assertThat(http.post("/test").body("").asString().body).isEqualTo("POST works")
@@ -73,8 +72,8 @@ class TestCustomHttpMethods {
 
     @Test
     fun `custom methods work with middleware`() = TestUtil.test { app, http ->
-        app.before("/webdav/*") { ctx -> ctx.header("X-WebDAV", "true") }
-        app.addHttpHandler(PROPFIND, "/webdav/resource") { ctx ->
+        app.unsafe.routes.before("/webdav/*") { ctx -> ctx.header("X-WebDAV", "true") }
+        app.unsafe.routes.addHttpHandler(PROPFIND, "/webdav/resource") { ctx ->
             val headerValue = ctx.res().getHeader("X-WebDAV") ?: "null"
             ctx.result("PROPFIND with middleware: $headerValue")
         }
@@ -86,7 +85,7 @@ class TestCustomHttpMethods {
 
     @Test
     fun `custom methods work with path parameters`() = TestUtil.test { app, http ->
-        app.addHttpHandler(PROPFIND, "/webdav/{resource}") { ctx ->
+        app.unsafe.routes.addHttpHandler(PROPFIND, "/webdav/{resource}") { ctx ->
             ctx.result("PROPFIND resource: ${ctx.pathParam("resource")}")
         }
 
@@ -99,7 +98,7 @@ class TestCustomHttpMethods {
     @Test
     fun `custom methods work with roles`() = TestUtil.test { app, http ->
         val MKCOL = HandlerType.findOrCreate("MKCOL")
-        app.addHttpHandler(MKCOL, "/webdav/collections", { ctx ->
+        app.unsafe.routes.addHttpHandler(MKCOL, "/webdav/collections", { ctx ->
             ctx.result("Collection created with roles: ${ctx.routeRoles()}")
         }, TestRole.ADMIN, TestRole.USER)
 

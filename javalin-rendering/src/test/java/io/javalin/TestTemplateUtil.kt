@@ -9,8 +9,8 @@ package io.javalin
 
 import io.javalin.rendering.template.TemplateUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Test
 
 
 class TestTemplateUtil {

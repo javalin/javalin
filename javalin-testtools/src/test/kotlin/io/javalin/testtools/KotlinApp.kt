@@ -9,7 +9,7 @@ import io.javalin.http.Context
 object KotlinApp {
     var app = Javalin.create { javalin ->
         javalin.router.ignoreTrailingSlashes = false
-        javalin.router.apiBuilder {
+        javalin.routes.apiBuilder {
             get("/hello", HelloController::hello)
         }
     }

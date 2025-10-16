@@ -8,11 +8,11 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.eclipse.jetty.server.handler.ContextHandler;
 
 public class HelloWorldStaticFiles_linked {
 

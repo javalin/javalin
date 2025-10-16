@@ -2,7 +2,6 @@ package io.javalin.jetty
 
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Compressor
-import io.javalin.compression.forType
 import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.StaticFileConfig
@@ -12,8 +11,6 @@ import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
-import java.util.Locale
-import java.util.Locale.getDefault
 import java.util.concurrent.ConcurrentHashMap
 
 object JettyPrecompressingResourceHandler {

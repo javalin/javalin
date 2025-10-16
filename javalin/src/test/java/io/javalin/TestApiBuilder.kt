@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -29,7 +29,6 @@ import io.javalin.http.HttpStatus.OK
 import io.javalin.router.Endpoint
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
-import io.javalin.testing.TestUtil.okHandler
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
 import kong.unirest.Unirest
@@ -42,7 +41,7 @@ class TestApiBuilder {
     @Test
     fun `ApiBuilder prefixes paths with slash`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("level-1") {
                     get("hello", simpleAnswer("Hello from level 1"))
                 }
@@ -56,7 +55,7 @@ class TestApiBuilder {
     @Test
     fun `pathless routes are handled properly`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("api") {
                     get(okHandler)
                     post(okHandler)
@@ -84,7 +83,7 @@ class TestApiBuilder {
     @Test
     fun `multiple nested path-method calls works`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 get("/hello", simpleAnswer("Hello from level 0"))
                 path("/level-1") {
                     get("/hello", simpleAnswer("Hello from level 1"))
@@ -108,7 +107,7 @@ class TestApiBuilder {
     @Test
     fun `filters work as expected`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("level-1") {
                     before { it.result("1") }
                     path("level-2") {
@@ -125,7 +124,7 @@ class TestApiBuilder {
     @Test
     fun `slashes can be omitted for both path-method and verbs`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("level-1") {
                     get { it.result("level-1") }
                     get("hello") { it.result("Hello") }
@@ -140,7 +139,7 @@ class TestApiBuilder {
     @Test
     fun `pathless routes do not require a trailing slash`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("api") {
                     before { it.result("before") }
                     get(updateAnswer("get"))
@@ -156,7 +155,7 @@ class TestApiBuilder {
     @Test
     fun `star routes do not require a trailing slash`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("api") {
                     before("*") { it.result("before") }
                     get(updateAnswer("get"))
@@ -172,7 +171,7 @@ class TestApiBuilder {
     @Test
     fun `slash star routes do require a trailing slash`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("api") {
                     before("/*") { it.result("before") }
                     get { it.result((it.result() ?: "") + "get") }
@@ -187,6 +186,7 @@ class TestApiBuilder {
 
     private fun simpleAnswer(body: String) = Handler { it.result(body) }
     private fun updateAnswer(body: String) = Handler { it.result(it.result()!! + body) }
+    private val okHandler = Handler { it.result("OK") }
 
     @Test
     fun `ApiBuilder throws if used outside of routes{} call`() = TestUtil.test { _, _ ->
@@ -199,13 +199,13 @@ class TestApiBuilder {
     fun `ApiBuilder works with two services at once`() = TestUtil.runLogLess {
         val app = Javalin
             .create { cfg1 ->
-                cfg1.router.apiBuilder {
+                cfg1.routes.apiBuilder {
                     get("/hello-1") { it.result("Hello-1") }
                 }
 
                 val app2 = Javalin
                     .create { cfg2 ->
-                        cfg2.router.apiBuilder {
+                        cfg2.routes.apiBuilder {
                             get("/hello-2") { it.result("Hello-2") }
                             get("/hello-3") { it.result("Hello-3") }
                         }
@@ -217,7 +217,7 @@ class TestApiBuilder {
                         app2.stop()
                     }
 
-                cfg1.router.apiBuilder {
+                cfg1.routes.apiBuilder {
                     get("/hello-4") { it.result("Hello-4") }
                 }
             }
@@ -232,7 +232,7 @@ class TestApiBuilder {
     @Test
     fun `CrudHandler works`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 crud("users/{user-id}", UserController())
                 path("/s") {
                     crud("/users/{user-id}", UserController())
@@ -256,7 +256,7 @@ class TestApiBuilder {
     @Test
     fun `CrudHandler works with long nested resources`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 crud("/foo/bar/users/{user-id}", UserController())
                 path("/foo/baz") {
                     crud("/users/{user-id}", UserController())
@@ -280,7 +280,7 @@ class TestApiBuilder {
     @Test
     fun `pathless CrudHandler works`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("/foo/bar/users/{user-id}") {
                     crud(UserController())
                 }
@@ -297,35 +297,35 @@ class TestApiBuilder {
     @Test
     fun `CrudHandler rejects resource in the middle`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy { Javalin.create { it.router.apiBuilder { crud("/foo/bar/{user-id}/users", UserController()) } } }
+            .isThrownBy { Javalin.create { it.routes.apiBuilder { crud("/foo/bar/{user-id}/users", UserController()) } } }
             .withMessage("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
     fun `CrudHandler rejects missing resource`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy { Javalin.create { it.router.apiBuilder { crud("/foo/bar/users", UserController()) } } }
+            .isThrownBy { Javalin.create { it.routes.apiBuilder { crud("/foo/bar/users", UserController()) } } }
             .withMessage("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
     fun `CrudHandler rejects missing resource base`() = TestUtil.test { app, _ ->
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy { Javalin.create { it.router.apiBuilder { crud("/{user-id}", UserController()) } } }
+            .isThrownBy { Javalin.create { it.routes.apiBuilder { crud("/{user-id}", UserController()) } } }
             .withMessage("CrudHandler requires a path like '/resource/{resource-id}'")
     }
 
     @Test
     fun `CrudHandler rejects path-param as resource base`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy { Javalin.create { it.router.apiBuilder { crud("/{u}/{uid}", UserController()) } } }
+            .isThrownBy { Javalin.create { it.routes.apiBuilder { crud("/{u}/{uid}", UserController()) } } }
             .withMessage("CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
     fun `CrudHandler works with wildcards`() = TestUtil.test(
         Javalin.create {
-            it.router.apiBuilder {
+            it.routes.apiBuilder {
                 path("/s") {
                     crud("/*/{user-id}", UserController())
                 }
@@ -428,8 +428,8 @@ class TestApiBuilder {
     }
 
     private fun testInsertion(handlerType: HandlerType, runnable: Runnable) {
-        val app = Javalin.create { it.router.apiBuilder { runnable.run() } }
-        val endpoints = app.unsafeConfig().pvt.internalRouter.allHttpHandlers()
+        val app = Javalin.create { it.routes.apiBuilder { runnable.run() } }
+        val endpoints = app.unsafe.pvt.internalRouter.allHttpHandlers()
         assertThat(endpoints).hasSize(4)
         assertEndpoint(endpoints[0].endpoint, "/1", handlerType)
         assertEndpoint(endpoints[1].endpoint, "/2", handlerType, Role.A)

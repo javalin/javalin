@@ -5,12 +5,12 @@ import io.javalin.http.ContentType
 import io.javalin.json.toJsonString
 import java.net.URI
 import java.net.URLEncoder
-import java.net.http.HttpClient as JdkHttpClient
-import java.net.http.HttpHeaders as JdkHttpHeaders
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
+import java.net.http.HttpClient as JdkHttpClient
+import java.net.http.HttpHeaders as JdkHttpHeaders
 
 // Wrapper classes to maintain compatibility with OkHTTP API
 
@@ -18,15 +18,15 @@ class FormBody private constructor(private val formData: String) {
     fun toBodyPublisher(): HttpRequest.BodyPublisher {
         return HttpRequest.BodyPublishers.ofString(formData, StandardCharsets.UTF_8)
     }
-    
+
     class Builder {
         private val params = mutableListOf<Pair<String, String>>()
-        
+
         fun add(name: String, value: String): Builder {
             params.add(name to value)
             return this
         }
-        
+
         fun build(): FormBody {
             val formData = params.joinToString("&") { (name, value) ->
                 "${URLEncoder.encode(name, StandardCharsets.UTF_8)}=${URLEncoder.encode(value, StandardCharsets.UTF_8)}"
@@ -39,10 +39,10 @@ class FormBody private constructor(private val formData: String) {
 class Response(private val response: HttpResponse<String>) {
     fun code(): Int = response.statusCode()
     val code: Int get() = response.statusCode()
-    
+
     fun body(): ResponseBody = ResponseBody(response.body())
     val body: ResponseBody get() = ResponseBody(response.body())
-    
+
     fun headers(): HttpHeaders = HttpHeaders(response.headers())
 }
 
@@ -87,7 +87,7 @@ class Request private constructor(
             bodyPublisher = body
             return this
         }
-        
+
         fun post(formBody: FormBody): Builder {
             method = "POST"
             bodyPublisher = formBody.toBodyPublisher()
@@ -132,24 +132,24 @@ class HttpClient(val app: Javalin, private val client: JdkHttpClient) {
         val builder = HttpRequest.newBuilder()
             .uri(URI.create(request.url))
             .method(request.method, request.bodyPublisher ?: HttpRequest.BodyPublishers.noBody())
-        
+
         // Add default headers first
         defaultHeaders.forEach { (name, value) ->
             builder.header(name, value)
         }
-        
+
         // Then add request-specific headers (these can override defaults)
         request.headers.forEach { (name, value) ->
             builder.header(name, value)
         }
-        
+
         val httpRequest = builder.build()
         val response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString())
         return Response(response)
     }
 
     fun request(path: String, builder: Request.Builder): Response = request(builder.url(origin + path).build())
-    
+
     fun request(path: String, userBuilder: Consumer<Request.Builder>): Response {
         val finalBuilder = Request.Builder()
         userBuilder.accept(finalBuilder)
@@ -200,7 +200,7 @@ class HttpClient(val app: Javalin, private val client: JdkHttpClient) {
         return if (this == null) {
             HttpRequest.BodyPublishers.noBody()
         } else {
-            val jsonString = app.unsafeConfig().pvt.jsonMapper.value.toJsonString(this)
+            val jsonString = app.unsafe.pvt.jsonMapper.value.toJsonString(this)
             HttpRequest.BodyPublishers.ofString(jsonString, StandardCharsets.UTF_8)
         }
     }

@@ -1,8 +1,8 @@
 package io.javalin.config
 
 import io.javalin.plugin.bundled.BasicAuthPlugin
-import io.javalin.plugin.bundled.CorsPluginConfig
 import io.javalin.plugin.bundled.CorsPlugin
+import io.javalin.plugin.bundled.CorsPluginConfig
 import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.plugin.bundled.GlobalHeadersConfig
 import io.javalin.plugin.bundled.GlobalHeadersPlugin

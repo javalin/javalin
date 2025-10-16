@@ -6,9 +6,7 @@ import io.javalin.router.matcher.ParserState.NORMAL
 import io.javalin.router.matcher.PathSegment.MultipleSegments
 import io.javalin.router.matcher.PathSegment.Normal
 import io.javalin.router.matcher.PathSegment.Wildcard
-
 import io.javalin.util.javalinLazy
-import kotlin.LazyThreadSafetyMode.NONE
 
 private enum class ParserState {
     NORMAL,
