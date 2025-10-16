@@ -104,16 +104,8 @@ class TestJavalinInstanceAndConfigApi {
             app.registerPlugin(object : Plugin<Any>() {})
         }
 
-        app.events { event ->
-            event.serverStarting { println("Server is starting") }
-            event.serverStartFailed { println("Server start failed") }
-            event.serverStarted { println("Server is started") }
-            event.serverStopping { println("Server is stopping") }
-            event.serverStopFailed { println("Server stop failed") }
-            event.serverStopped { println("Server is stopped") }
-            event.handlerAdded {}
-            event.wsHandlerAdded {}
-        }
+        // Events are now configured in the config block above (lines 81-90)
+        // The events() method on Javalin instance has been removed as part of Javalin 7 API redesign
         app.start()
         app.javalinServlet()
         app.jettyServer()

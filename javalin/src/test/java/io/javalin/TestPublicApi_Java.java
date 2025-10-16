@@ -113,14 +113,14 @@ public class TestPublicApi_Java {
             config.routes.ws("/path", requestLogger);
         });
 
-        Javalin.create().events(event -> {
-            event.serverStarting(() -> { });
-            event.serverStarted(() -> { });
-            event.serverStartFailed(() -> { });
-            event.serverStopping(() -> { });
-            event.serverStopped(() -> { });
-            event.handlerAdded(handlerMetaInfo -> { });
-            event.wsHandlerAdded(wsHandlerMetaInfo -> { });
+        Javalin.create(config -> {
+            config.events.serverStarting(() -> { });
+            config.events.serverStarted(() -> { });
+            config.events.serverStartFailed(() -> { });
+            config.events.serverStopping(() -> { });
+            config.events.serverStopped(() -> { });
+            config.events.handlerAdded(handlerMetaInfo -> { });
+            config.events.wsHandlerAdded(wsHandlerMetaInfo -> { });
         });
 
         ws(app, "/websocket/{path}", ws -> {

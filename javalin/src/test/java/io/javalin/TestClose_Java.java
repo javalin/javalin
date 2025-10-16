@@ -36,9 +36,9 @@ class TestClose_Java {
     void tryWithResourcesCallsLifecycleEvents() {
         TestUtil.runLogLess(() -> {
             final StringBuilder log = new StringBuilder();
-            final Javalin app = Javalin.create().events(event -> {
-                event.serverStopping(() -> log.append("Stopping"));
-                event.serverStopped(() -> log.append("Stopped"));
+            final Javalin app = Javalin.create(config -> {
+                config.events.serverStopping(() -> log.append("Stopping"));
+                config.events.serverStopped(() -> log.append("Stopped"));
             });
 
             //noinspection EmptyTryBlock
@@ -54,9 +54,9 @@ class TestClose_Java {
     void closingInsideTryWithResourcesIsIdempotent() {
         TestUtil.runLogLess(() -> {
             final StringBuilder log = new StringBuilder();
-            final Javalin app = Javalin.create().events(event -> {
-                event.serverStopping(() -> log.append("Stopping"));
-                event.serverStopped(() -> log.append("Stopped"));
+            final Javalin app = Javalin.create(config -> {
+                config.events.serverStopping(() -> log.append("Stopping"));
+                config.events.serverStopped(() -> log.append("Stopped"));
             });
             try (final AutoClosableJavalin startedApp = new AutoClosableJavalin(app).start(0)) {
                 //noinspection RedundantExplicitClose

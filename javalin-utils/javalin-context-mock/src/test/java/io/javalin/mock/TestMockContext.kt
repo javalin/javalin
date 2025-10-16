@@ -156,9 +156,9 @@ internal class TestMockContext {
     @Test
     @Disabled // TODO: Fix whatever is broken with this test
     fun `should return same defaults as regular unirest request to jetty`() {
-        val app = Javalin.createAndStart {
+        val app = Javalin.create {
             it.jetty.defaultPort = 0
-        }
+        }.start()
 
         try {
             val endpointUrl = "/test/{test}/<tests>"

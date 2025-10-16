@@ -7,7 +7,6 @@
 
 package io.javalin;
 
-import io.javalin.config.EventConfig;
 import io.javalin.config.JavalinConfig;
 import io.javalin.jetty.JettyServer;
 import jakarta.servlet.Servlet;
@@ -66,20 +65,6 @@ public class Javalin {
         Javalin app = new Javalin(cfg);
         app.jettyServer.getValue(); // initialize server if no plugin already did
         return app;
-    }
-
-    /**
-     * Creates a new instance with the user provided configuration and starts it immediately.
-     *
-     * @return running application instance
-     * @see io.javalin.Javalin#create(java.util.function.Consumer)
-     * @see Javalin#start()
-     */
-    public static Javalin createAndStart(Consumer<JavalinConfig> config) {
-        return create(cfg -> {
-            cfg.startupWatcherEnabled = false;
-            config.accept(cfg);
-        }).start();
     }
 
     // Get JavalinServlet (can be attached to other servlet containers)
@@ -142,10 +127,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin events(Consumer<EventConfig> listener) {
-        listener.accept(cfg.events);
-        return this;
-    }
+
 
     /**
      * Get which port instance is running on

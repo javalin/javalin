@@ -16,13 +16,13 @@ class TestLifecycleEvents {
     @Test
     fun `lifecycle events work`() = TestUtil.runLogLess {
         var log = ""
-        Javalin.create().events { event ->
-            event.serverStarting { log += "Starting" }
-            event.serverStarted { log += "Started" }
-            event.serverStopping { log += "Stopping" }
-            event.serverStopping { log += "Stopping" }
-            event.serverStopping { log += "Stopping" }
-            event.serverStopped { log += "Stopped" }
+        Javalin.create { config ->
+            config.events.serverStarting { log += "Starting" }
+            config.events.serverStarted { log += "Started" }
+            config.events.serverStopping { log += "Stopping" }
+            config.events.serverStopping { log += "Stopping" }
+            config.events.serverStopping { log += "Stopping" }
+            config.events.serverStopped { log += "Stopped" }
         }.start(0).stop()
         assertThat(log).isEqualTo("StartingStartedStoppingStoppingStoppingStopped")
     }
@@ -32,8 +32,8 @@ class TestLifecycleEvents {
         var log = ""
         val existingApp = Javalin.create().start(20000)
         runCatching {
-            Javalin.create().events { event ->
-                event.serverStartFailed { log += "Failed to start" }
+            Javalin.create { config ->
+                config.events.serverStartFailed { log += "Failed to start" }
             }.start(20000).stop() // port conflict
         }
         assertThat(log).isEqualTo("Failed to start")

@@ -115,16 +115,8 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.registerPlugin(new Plugin<>() {});
         });
 
-        javalin.events(event -> {
-            event.serverStarting(() -> System.out.println("Server is starting"));
-            event.serverStartFailed(() -> System.out.println("Server start failed"));
-            event.serverStarted(() -> System.out.println("Server is started"));
-            event.serverStopping(() -> System.out.println("Server is stopping"));
-            event.serverStopFailed(() -> System.out.println("Server stop failed"));
-            event.serverStopped(() -> System.out.println("Server is stopped"));
-            event.handlerAdded(handlerMetaInfo -> {});
-            event.wsHandlerAdded(wsHandlerMetaInfo -> {});
-        });
+        // Events are now configured in the config block above (lines 81-90)
+        // The events() method on Javalin instance has been removed as part of Javalin 7 API redesign
         before(javalin, "/hello", ctx -> {});
         get(javalin, "/hello", ctx -> ctx.result("Hello, World!"));
         post(javalin, "/hello", ctx -> ctx.result("Hello, World!"));

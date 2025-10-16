@@ -26,7 +26,7 @@ class TestConfiguration {
 
     @Test
     fun `all config options`() = TestUtil.runLogLess {
-        val app = Javalin.createAndStart {
+        val app = Javalin.create {
             it.jetty.defaultPort = 0
             it.spaRoot.addFile("/", "/public/html.html")
             it.spaRoot.addFile("/", "src/test/resources/public/html.html", Location.EXTERNAL)
@@ -55,7 +55,7 @@ class TestConfiguration {
             it.jetty.modifyServletContextHandler { handler -> }
             it.jetty.modifyHttpConfiguration { httpConfig -> }
             it.jetty.addConnector { server, httpConfig -> ServerConnector(server) }
-        }
+        }.start()
         assertThat(app.jettyServer().started()).isTrue()
         app.stop()
     }

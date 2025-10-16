@@ -32,9 +32,9 @@ class TestClose {
     @Test
     fun useCallsLifecycleEvents() = TestUtil.runLogLess {
         var log = ""
-        val app = AutoClosableJavalin(Javalin.create().events {
-            it.serverStopping { log += "Stopping" }
-            it.serverStopped { log += "Stopped" }
+        val app = AutoClosableJavalin(Javalin.create { config ->
+            config.events.serverStopping { log += "Stopping" }
+            config.events.serverStopped { log += "Stopped" }
         })
         app.start(0).use { }
         assertThat(log).isEqualTo("StoppingStopped")
@@ -43,9 +43,9 @@ class TestClose {
     @Test
     fun closingInsideUseIsIdempotent() = TestUtil.runLogLess {
         var log = ""
-        val app = AutoClosableJavalin(Javalin.create().events {
-            it.serverStopping { log += "Stopping" }
-            it.serverStopped { log += "Stopped" }
+        val app = AutoClosableJavalin(Javalin.create { config ->
+            config.events.serverStopping { log += "Stopping" }
+            config.events.serverStopped { log += "Stopped" }
         })
         app.start(0).use { it.close() }
         assertThat(app.jettyServer().server().isStopped).isTrue
