@@ -19,3 +19,6 @@ buildNumber.properties
 
 # ignore temporary test files
 javalin/src/test/external/test*.txt
+/tmp/
+REVIEW_SUMMARY.txt
+pr-2479-review-*.md
