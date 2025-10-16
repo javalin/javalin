@@ -87,7 +87,7 @@ object Util {
         null // it's not that important
     }
 
-    fun getChecksumAndReset(inputStream: ByteArrayInputStream): String {
+    fun checksumAndReset(inputStream: ByteArrayInputStream): String {
         val cis = CheckedInputStream(inputStream, Adler32())
         var byte = cis.read()
         while (byte > -1) {
@@ -98,12 +98,12 @@ object Util {
     }
 
     @JvmStatic
-    fun getResourceUrl(path: String): URL? = this.javaClass.classLoader.getResource(path)
+    fun resourceUrl(path: String): URL? = this.javaClass.classLoader.getResource(path)
 
-    fun getFileUrl(path: String): URL? = if (File(path).exists()) File(path).toURI().toURL() else null
+    fun fileUrl(path: String): URL? = if (File(path).exists()) File(path).toURI().toURL() else null
 
     @JvmStatic
-    fun getPort(e: Exception) = e.message!!.takeLastWhile { it != ':' }
+    fun port(e: Exception) = e.message!!.takeLastWhile { it != ':' }
 
     fun <T : Any?> findByClass(map: Map<Class<out Exception>, T>, exceptionClass: Class<out Exception>): T? = map.getOrElse(exceptionClass) {
         var superclass = exceptionClass.superclass

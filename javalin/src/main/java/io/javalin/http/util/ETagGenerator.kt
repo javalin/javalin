@@ -21,7 +21,7 @@ object ETagGenerator {
         }
 
         if (serverEtag == null && generatorEnabled && ctx.method() == GET && resultStream is ByteArrayInputStream) {
-            val generatedEtag = Util.getChecksumAndReset(resultStream)
+            val generatedEtag = Util.checksumAndReset(resultStream)
             ctx.header(Header.ETAG, generatedEtag)
 
             if (generatedEtag == clientEtag) {

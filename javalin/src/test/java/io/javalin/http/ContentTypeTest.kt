@@ -18,7 +18,7 @@ class ContentTypeTest {
     @Test
     fun `fetching content type by mime type should get the right type`() {
         ContentType.entries.forEach {
-            assertThat(ContentType.getContentType(it.mimeType)).isEqualTo(it)
+            assertThat(ContentType.contentType(it.mimeType)).isEqualTo(it)
         }
     }
 
@@ -26,8 +26,8 @@ class ContentTypeTest {
     fun `fetching content type by its extension should get the right type`() {
         ContentType.entries.forEach { type ->
             type.extensions.forEach { extension ->
-                assertThat(ContentType.getContentTypeByExtension(extension)).isEqualTo(type)
-                assertThat(ContentType.getMimeTypeByExtension(extension)).isEqualTo(type.mimeType)
+                assertThat(ContentType.contentTypeByExtension(extension)).isEqualTo(type)
+                assertThat(ContentType.mimeTypeByExtension(extension)).isEqualTo(type.mimeType)
             }
         }
     }

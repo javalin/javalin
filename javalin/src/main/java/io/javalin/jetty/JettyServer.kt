@@ -14,7 +14,7 @@ import io.javalin.util.JavalinBindException
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
-import io.javalin.util.Util.getPort
+import io.javalin.util.Util.port
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler.SESSIONS
 import org.eclipse.jetty.ee10.servlet.ServletHolder
@@ -100,7 +100,7 @@ class JettyServer(private val cfg: JavalinConfig) {
                 server().stop() // stop if server is default server; otherwise, the caller is responsible to stop
             }
             if (e.message != null && e.message!!.contains("Failed to bind to")) {
-                throw JavalinBindException("Port already in use. Make sure no other process is using port " + getPort(e) + " and try again.", e)
+                throw JavalinBindException("Port already in use. Make sure no other process is using port " + port(e) + " and try again.", e)
             } else if (e.message != null && e.message!!.contains("Permission denied")) {
                 throw JavalinBindException("Port 1-1023 require elevated privileges (process must be started by admin).", e)
             }

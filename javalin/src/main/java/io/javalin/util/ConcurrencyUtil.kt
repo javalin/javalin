@@ -16,7 +16,7 @@ object ConcurrencyUtil {
 
     @JvmStatic
     fun executorService(name: String, useLoom: Boolean): ExecutorService = when (useLoom && isLoomAvailable()) {
-        true -> LoomUtil.getExecutorService(name)
+        true -> LoomUtil.executorService(name)
         false -> Executors.newCachedThreadPool(NamedThreadFactory(name))
     }
 
@@ -26,7 +26,7 @@ object ConcurrencyUtil {
 
     @JvmStatic
     fun jettyThreadPool(name: String, minThreads: Int, maxThreads: Int, useLoom: Boolean): ThreadPool = when (useLoom && isLoomAvailable()) {
-        true -> LoomUtil.getThreadPool(name)
+        true -> LoomUtil.threadPool(name)
         false -> QueuedThreadPool(maxThreads, minThreads, 60_000).apply { this.name = name }
     }
 
@@ -43,14 +43,14 @@ internal object LoomUtil {
         factoryMethod.invoke(Executors::class.java) as ExecutorService // this *will* throw if preview is not enabled
     }.isSuccess
 
-    fun getExecutorService(name: String): ExecutorService {
+    fun executorService(name: String): ExecutorService {
         require(loomAvailable) { "Your Java version (${System.getProperty("java.version")}) doesn't support Loom" }
         val factoryMethod = Executors::class.java.getMethod("newThreadPerTaskExecutor", ThreadFactory::class.java)
         return factoryMethod.invoke(Executors::class.java, NamedVirtualThreadFactory(name)) as ExecutorService
     }
 
     private class LoomThreadPool(name: String) : ThreadPool {
-        private val executorService = getExecutorService(name)
+        private val executorService = executorService(name)
         override fun join() {}
         override fun getThreads() = 1
         override fun getIdleThreads() = 1
@@ -60,7 +60,7 @@ internal object LoomUtil {
         }
     }
 
-    fun getThreadPool(name: String): ThreadPool =
+    fun threadPool(name: String): ThreadPool =
         LoomThreadPool(name)
 
     fun isLoomThreadPool(threadPool: ThreadPool): Boolean =

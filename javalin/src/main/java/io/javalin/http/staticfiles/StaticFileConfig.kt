@@ -50,7 +50,7 @@ data class StaticFileConfig(
 class MimeTypesConfig {
     private val extensionToMimeType: MutableMap<String, String> = mutableMapOf()
 
-    fun getMapping(): Map<String, String> = extensionToMimeType.toMap()
+    fun mapping(): Map<String, String> = extensionToMimeType.toMap()
 
     /**
      * Adds a known content type to this configuration.

@@ -70,7 +70,7 @@ object DefaultTasks {
             }
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(servlet.router, requestUri)
             if (servlet.cfg.http.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
-                throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
+                throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.availableHandlerTypes(ctx, availableHandlerTypes))
             }
             throw EndpointNotFound(method = ctx.method(), path = requestUri)
         })

@@ -29,7 +29,7 @@ object JettyPrecompressingResourceHandler {
         var compressor = compStrat.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")
 
         // Apply custom mime types from configuration first
-        val customMimeType = config.mimeTypes.getMapping().entries.firstOrNull {
+        val customMimeType = config.mimeTypes.mapping().entries.firstOrNull {
             target.endsWith(".${it.key}", ignoreCase = true)
         }?.value
 

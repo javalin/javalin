@@ -37,28 +37,28 @@ object MultipartUtil {
         return body(parts.asSequence(), parts.size)
     }
 
-    fun getUploadedFiles(req: HttpServletRequest, partName: String): List<UploadedFile> =
+    fun uploadedFiles(req: HttpServletRequest, partName: String): List<UploadedFile> =
         req.processParts { parts, size ->
             parts
                 .filter { isFile(it) && it.name == partName }
                 .mapTo(ArrayList(size)) { UploadedFile(it) }
         }
 
-    fun getUploadedFiles(req: HttpServletRequest): List<UploadedFile> =
+    fun uploadedFiles(req: HttpServletRequest): List<UploadedFile> =
         req.processParts { parts, size ->
             parts
                 .filter(::isFile)
                 .mapTo(ArrayList(size)) { UploadedFile(it) }
         }
 
-    fun getUploadedFileMap(req: HttpServletRequest): Map<String, List<UploadedFile>> =
+    fun uploadedFileMap(req: HttpServletRequest): Map<String, List<UploadedFile>> =
         req.processParts { parts, size ->
             parts
                 .filter(::isFile)
                 .groupByTo(HashMap(size), { it.name }, { UploadedFile(it) })
         }
 
-    fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> =
+    fun fieldMap(req: HttpServletRequest): Map<String, List<String>> =
         req.processParts { parts, size ->
             parts.associateTo(HashMap(size)) { it.name to getPartValue(req, it.name) }
         }

@@ -138,7 +138,7 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         val resource = getResource(resourcePath) ?: return false
 
         // Use Jetty's native content type resolution with custom override support
-        val contentType = config.mimeTypes.getMapping().entries
+        val contentType = config.mimeTypes.mapping().entries
             .firstOrNull { resourcePath.endsWith(".${it.key}", ignoreCase = true) }?.value
             ?: jettyMimeTypes.getMimeByExtension(resourcePath)
 
