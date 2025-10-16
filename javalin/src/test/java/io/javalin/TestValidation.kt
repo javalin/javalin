@@ -57,9 +57,6 @@ class TestValidation {
     fun `formParam gives correct error message`() = TestUtil.test { app, http ->
         app.unsafe.routes.post("/") { it.formParamAsClass<Int>("param").get() }
         assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
-        val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
-        assertThat(log).contains("Couldn't convert param 'param' with value 'abc' to Integer")
-
     }
 
     @Test
@@ -312,7 +309,7 @@ class TestValidation {
     }
 
     @Test
-    fun `All errors can be collected from multiple validators`() = TestUtil.test { app, http ->
+    fun `all errors can be collected from multiple validators`() = TestUtil.test { app, http ->
 
         app.unsafe.routes.get("/") { ctx ->
             val numberValidator = ctx.queryParamAsClass<Int>("number")
@@ -521,4 +518,15 @@ class TestValidation {
         }
         assertThat(http.get("/exception?number=abc").body).isEqualTo("java.lang.NumberFormatException")
     }
+
+    @Test
+    fun `validation errors should not be logged when exception handler is present`() = TestUtil.test { app, http ->
+        val logOutput = TestUtil.captureStdOut {
+            app.unsafe.routes.exception(ValidationException::class.java) { _, ctx -> ctx.status(400).result("handled") }
+            app.unsafe.routes.post("/") { ctx -> ctx.bodyValidator<Int>().get() }
+            assertThat(http.post("/").body("invalid").asString().body).isEqualTo("handled")
+        }
+        assertThat(logOutput).doesNotContain("Couldn't deserialize")
+    }
+
 }

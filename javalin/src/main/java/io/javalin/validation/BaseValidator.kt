@@ -38,10 +38,8 @@ open class BaseValidator<T> internal constructor(protected val params: Params<T>
             params.valueSupplier()
         } catch (e: Exception) {
             if (this is BodyValidator) {
-                JavalinLogger.info("Couldn't deserialize body to ${params.clazz?.simpleName}", e)
                 return@javalinLazy mapOf(REQUEST_BODY to listOf(ValidationError("DESERIALIZATION_FAILED", value = params.stringValue, exception = e)))
             } else {
-                JavalinLogger.info("Couldn't convert param '${params.fieldName}' with value '${params.stringValue}' to ${params.clazz?.simpleName}")
                 return@javalinLazy mapOf(params.fieldName to listOf(ValidationError("TYPE_CONVERSION_FAILED", value = params.stringValue, exception = e)))
             }
         }
