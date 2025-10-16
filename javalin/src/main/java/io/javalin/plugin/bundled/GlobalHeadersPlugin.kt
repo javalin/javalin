@@ -10,7 +10,7 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.Header
 import io.javalin.plugin.Plugin
 import java.time.Duration
-import java.util.Locale
+import java.util.*
 import java.util.function.Consumer
 
 /**

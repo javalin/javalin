@@ -18,7 +18,7 @@ import io.javalin.http.servlet.SESSION_CACHE_KEY_PREFIX
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
+
 import kong.unirest.Unirest
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -35,38 +35,38 @@ class TestRequest {
      */
     @Test
     fun `session-attributes work`() = TestUtil.test { app, http ->
-        app.get("/store-session") { it.req().session.setAttribute("test", "tast") }
-        app.get("/read-session") { it.result(it.req().session.getAttribute("test") as String) }
+        app.unsafe.routes.get("/store-session") { it.req().session.setAttribute("test", "tast") }
+        app.unsafe.routes.get("/read-session") { it.result(it.req().session.getAttribute("test") as String) }
         http.getBody("/store-session")
         assertThat(http.getBody("/read-session")).isEqualTo("tast")
     }
 
     @Test
     fun `session-cookie is http-only`() = TestUtil.test { app, http ->
-        app.get("/store-session") { it.sessionAttribute("test", "tast") }
+        app.unsafe.routes.get("/store-session") { it.sessionAttribute("test", "tast") }
         assertThat(http.get("/store-session").headers.getFirst("Set-Cookie").contains("HttpOnly")).isTrue()
     }
 
     @Test
     fun `session-attribute shorthand work`() = TestUtil.test { app, http ->
-        app.get("/store-session") { it.sessionAttribute("test", "tast") }
-        app.get("/read-session") { it.result(it.sessionAttribute<String>("test")!!) }
+        app.unsafe.routes.get("/store-session") { it.sessionAttribute("test", "tast") }
+        app.unsafe.routes.get("/read-session") { it.result(it.sessionAttribute<String>("test")!!) }
         http.getBody("/store-session")
         assertThat(http.getBody("/read-session")).isEqualTo("tast")
     }
 
     @Test
     fun `session-attribute retrieval does not create session`() = TestUtil.test { app, http ->
-        app.get("/read-session") { it.result("" + it.sessionAttribute<String>("nonexisting")) }
-        app.get("/has-session") { it.result("" + (it.req().getSession(false) != null)) }
+        app.unsafe.routes.get("/read-session") { it.result("" + it.sessionAttribute<String>("nonexisting")) }
+        app.unsafe.routes.get("/has-session") { it.result("" + (it.req().getSession(false) != null)) }
         assertThat(http.getBody("/read-session")).isEqualTo("null")
         assertThat(http.getBody("/has-session")).isEqualTo("false")
     }
 
     @Test
     fun `session-attribute can be consumed easily`() = TestUtil.test { app, http ->
-        app.get("/store-attr") { it.sessionAttribute("attr", "Rowin") }
-        app.get("/read-attr") { it.result(it.consumeSessionAttribute("attr") ?: "Consumed") }
+        app.unsafe.routes.get("/store-attr") { it.sessionAttribute("attr", "Rowin") }
+        app.unsafe.routes.get("/read-attr") { it.result(it.consumeSessionAttribute("attr") ?: "Consumed") }
         http.getBody("/store-attr") // store the attribute
         assertThat(http.getBody("/read-attr")).isEqualTo("Rowin") // read (and consume) the attribute
         assertThat(http.getBody("/read-attr")).isEqualTo("Consumed") // fallback
@@ -74,18 +74,18 @@ class TestRequest {
 
     @Test
     fun `session-attribute-map works`() = TestUtil.test { app, http ->
-        app.get("/store-session") { ctx ->
+        app.unsafe.routes.get("/store-session") { ctx ->
             ctx.sessionAttribute("test", "tast")
             ctx.sessionAttribute("hest", "hast")
         }
-        app.get("/read-session") { it.result(it.sessionAttributeMap().toString()) }
+        app.unsafe.routes.get("/read-session") { it.result(it.sessionAttributeMap().toString()) }
         http.getBody("/store-session")
         assertThat(http.getBody("/read-session")).isEqualTo("{test=tast, hest=hast}")
     }
 
     @Test
     fun `cached session attributes are cached when set`() = TestUtil.test { app, http ->
-        app.get("/cached-session-attr") { ctx ->
+        app.unsafe.routes.get("/cached-session-attr") { ctx ->
             ctx.cachedSessionAttribute("test", "tast")
             ctx.result(ctx.attribute<String>("${SESSION_CACHE_KEY_PREFIX}test")!!) // should be cached as a normal attribute
         }
@@ -94,12 +94,12 @@ class TestRequest {
 
     @Test
     fun `cached session attributes are cached when read`() = TestUtil.test { app, http ->
-        app.get("/set-cached-session-attr") { it.cachedSessionAttribute("test", "tast") }
-        app.get("/get-cached-session-attr") {
+        app.unsafe.routes.get("/set-cached-session-attr") { it.cachedSessionAttribute("test", "tast") }
+        app.unsafe.routes.get("/get-cached-session-attr") {
             it.cachedSessionAttribute<String>("test")
             it.result(it.attributeMap().toString())
         }
-        app.get("/attr-map") { it.result(it.attributeMap().toString()) }
+        app.unsafe.routes.get("/attr-map") { it.result(it.attributeMap().toString()) }
         http.getBody("/set-cached-session-attr") // first we set the cached session variable
         assertThat(http.getBody("/attr-map")).doesNotContain("test=tast") // we inspect the "cache", our key/value pair should not be here
         assertThat(http.getBody("/get-cached-session-attr")).contains("${SESSION_CACHE_KEY_PREFIX}test=tast") // since we've accessed the variable, cache should now contain key/value pair
@@ -107,13 +107,13 @@ class TestRequest {
 
     @Test
     fun `cached session attributes can be computed if not set`() = TestUtil.test { app, http ->
-        app.get("/assert-notsetness") {
+        app.unsafe.routes.get("/assert-notsetness") {
             it.result("Computed: ${it.cachedSessionAttribute<String>("computed")}")
         }
-        app.get("/compute-attribute") {
+        app.unsafe.routes.get("/compute-attribute") {
             it.result("Computed: ${it.cachedSessionAttributeOrCompute("computed") { "Hello" }}")
         }
-        app.get("/cant-recompute-it") {
+        app.unsafe.routes.get("/cant-recompute-it") {
             it.result("Computed: ${it.cachedSessionAttributeOrCompute("computed") { "Hola" }}")
         }
         http.get("/assert-notsetness").let { assertThat(it.body).isEqualTo("Computed: null") }
@@ -124,7 +124,7 @@ class TestRequest {
     @Test
     fun `attributes can be computed`() = TestUtil.test { app, http ->
         val key = "set";
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val data = listOf(
                 ctx.attribute(key) ?: "NOT_SET",
                 ctx.attributeOrCompute(key) { "SET" },
@@ -137,20 +137,20 @@ class TestRequest {
 
     @Test
     fun `attributes can be removed`() = TestUtil.test { app, http ->
-        app.get("/store") { ctx ->
+        app.unsafe.routes.get("/store") { ctx ->
             ctx.attribute("test", "not-null")
             ctx.attribute("test", null)
             ctx.sessionAttribute("tast", "not-null")
             ctx.sessionAttribute("tast", null)
         }
-        app.get("/read") { it.result("${it.sessionAttribute<Any?>("tast")} and ${it.attribute<Any?>("test")}") }
+        app.unsafe.routes.get("/read") { it.result("${it.sessionAttribute<Any?>("tast")} and ${it.attribute<Any?>("test")}") }
         http.getBody("/store")
         assertThat(http.getBody("/read")).isEqualTo("null and null")
     }
 
     @Test
     fun `attributeMap works`() = TestUtil.test { app, http ->
-        app.get("/attr-map") { ctx ->
+        app.unsafe.routes.get("/attr-map") { ctx ->
             ctx.attribute("test", "tast")
             ctx.attribute("hest", "hast")
             ctx.result(ctx.attributeMap().toString())
@@ -164,25 +164,25 @@ class TestRequest {
      */
     @Test
     fun `pathParam throws for invalid param`() = TestUtil.test { app, http ->
-        app.get("/{my}/{path}") { it.result(it.pathParam("path-param")) }
+        app.unsafe.routes.get("/{my}/{path}") { it.result(it.pathParam("path-param")) }
         assertThat(http.getBody("/my/path")).isEqualTo(INTERNAL_SERVER_ERROR.message)
     }
 
     @Test
     fun `pathParam works for multiple params`() = TestUtil.test { app, http ->
-        app.get("/{1}/{2}/{3}") { it.result(it.pathParam("1") + it.pathParam("2") + it.pathParam("3")) }
+        app.unsafe.routes.get("/{1}/{2}/{3}") { it.result(it.pathParam("1") + it.pathParam("2") + it.pathParam("3")) }
         assertThat(http.getBody("/my/path/params")).isEqualTo("mypathparams")
     }
 
     @Test
     fun `pathParamMap returns empty map if no path params present`() = TestUtil.test { app, http ->
-        app.get("/my/path/params") { it.result(it.pathParamMap().toString()) }
+        app.unsafe.routes.get("/my/path/params") { it.result(it.pathParamMap().toString()) }
         assertThat(http.getBody("/my/path/params")).isEqualTo("{}")
     }
 
     @Test
     fun `pathParamMap returns all present path-params`() = TestUtil.test { app, http ->
-        app.get("/{1}/{2}/{3}") { it.result(it.pathParamMap().toString()) }
+        app.unsafe.routes.get("/{1}/{2}/{3}") { it.result(it.pathParamMap().toString()) }
         assertThat(http.getBody("/my/path/params")).isEqualTo("{1=my, 2=path, 3=params}")
     }
 
@@ -191,60 +191,60 @@ class TestRequest {
      */
     @Test
     fun `queryParam returns null for unknown param`() = TestUtil.test { app, http ->
-        app.get("/") { it.result("" + it.queryParam("qp")) }
+        app.unsafe.routes.get("/") { it.result("" + it.queryParam("qp")) }
         assertThat(http.getBody("/")).isEqualTo("null")
     }
 
     @Test
     fun `queryParam defaults to default value`() = TestUtil.test { app, http ->
-        app.get("/") { it.result("" + it.queryParamAsClass<String>("qp").getOrDefault("default")) }
+        app.unsafe.routes.get("/") { it.result("" + it.queryParamAsClass<String>("qp").getOrDefault("default")) }
         assertThat(http.getBody("/")).isEqualTo("default")
     }
 
     @Test
     fun `queryParam returns supplied values`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.queryParam("qp1") + it.queryParam("qp2") + it.queryParam("qp3")) }
+        app.unsafe.routes.get("/") { it.result(it.queryParam("qp1") + it.queryParam("qp2") + it.queryParam("qp3")) }
         assertThat(http.getBody("/?qp1=1&qp2=2&qp3=3")).isEqualTo("123")
     }
 
     @Test
     fun `queryParam returns value containing equal sign`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.queryParam("equation")!!) }
+        app.unsafe.routes.get("/") { it.result(it.queryParam("equation")!!) }
         assertThat(http.getBody("/?equation=2*2=4")).isEqualTo("2*2=4")
     }
 
     @Test
     fun `queryParams returns empty list for unknown param`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.queryParams("qp1").toString()) }
+        app.unsafe.routes.get("/") { it.result(it.queryParams("qp1").toString()) }
         assertThat(http.getBody("/")).isEqualTo("[]")
     }
 
     @Test
     fun `queryParams returns list of supplied params`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.queryParams("qp1").toString()) }
+        app.unsafe.routes.get("/") { it.result(it.queryParams("qp1").toString()) }
         assertThat(http.getBody("/?qp1=1&qp1=2&qp1=3")).isEqualTo("[1, 2, 3]")
     }
 
     @Test
     fun `queryParams returns list of converted and validated supplied params`() = TestUtil.test { app, http ->
-        app.get("/1") { it.result(it.queryParamsAsClass<Double>("qp1").check({ it.all { it > .0 } }, "all values must be greater then 0").get().toString()) }
+        app.unsafe.routes.get("/1") { it.result(it.queryParamsAsClass<Double>("qp1").check({ it.all { it > .0 } }, "all values must be greater then 0").get().toString()) }
         assertThat(http.getBody("/1?qp1=1.3&qp1=2.1&qp1=3.2")).isEqualTo("[1.3, 2.1, 3.2]")
 
-        app.get("/2") { it.result(it.queryParamsAsClass<Double>("qp1").check({ it.all { it > 0 } }, "all values must be greater then 0").get().toString()) }
+        app.unsafe.routes.get("/2") { it.result(it.queryParamsAsClass<Double>("qp1").check({ it.all { it > 0 } }, "all values must be greater then 0").get().toString()) }
         assertThat(http.getStatus("/2?qp1=1.3&qp1=-2.1&qp1=3.2")).isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
     @Test
     fun `query params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
-        app.get("/1") { it.result("${it.queryParam("qp")}") }
-        app.get("/2") { it.result("${it.queryParam("%+")}") }
+        app.unsafe.routes.get("/1") { it.result("${it.queryParam("qp")}") }
+        app.unsafe.routes.get("/2") { it.result("${it.queryParam("%+")}") }
         assertThat(okHttp.getBody("${http.origin}/1?qp=%+")).isEqualTo("null")
         assertThat(okHttp.getBody("${http.origin}/2?%+=qp")).isEqualTo("null")
     }
 
     @Test
     fun `only query params that are invalidly encoded are nulled`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.queryParam("qp") + "|" + it.queryParam("qp2")) }
+        app.unsafe.routes.get("/") { it.result(it.queryParam("qp") + "|" + it.queryParam("qp2")) }
         val responseBody = okHttp.getBody("${http.origin}/?qp=%+&qp2=valid")
         assertThat(responseBody).isEqualTo("null|valid")
     }
@@ -254,34 +254,34 @@ class TestRequest {
      */
     @Test
     fun `formParam returns supplied form-param`() = TestUtil.test { app, http ->
-        app.post("/") { it.result("" + it.formParam("fp1")!!) }
+        app.unsafe.routes.post("/") { it.result("" + it.formParam("fp1")!!) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("1")
     }
 
     @Test
     fun `formParam returns null for unknown param`() = TestUtil.test { app, http ->
-        app.post("/") { it.result("" + it.formParam("fp3")) }
+        app.unsafe.routes.post("/") { it.result("" + it.formParam("fp3")) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("null")
     }
 
     @Test
     fun `formParam returns defaults to default value`() = TestUtil.test { app, http ->
-        app.post("/") { it.result("" + it.formParamAsClass<Int>("fp4").getOrDefault(4)) }
+        app.unsafe.routes.post("/") { it.result("" + it.formParamAsClass<Int>("fp4").getOrDefault(4)) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("4")
     }
 
     @Test
     fun `formParams returns list of converted and validated supplied params`() = TestUtil.test { app, http ->
-        app.post("/1") { it.result(it.formParamsAsClass<Double>("fp1").check({ it.all { it > .0 } }, "all values must be greater then 0").get().toString()) }
+        app.unsafe.routes.post("/1") { it.result(it.formParamsAsClass<Double>("fp1").check({ it.all { it > .0 } }, "all values must be greater then 0").get().toString()) }
         assertThat(http.post("/1").body("fp1=1.3&fp1=2.1&fp1=3.2").asString().body).isEqualTo("[1.3, 2.1, 3.2]")
 
-        app.post("/2") { it.result(it.formParamsAsClass<Double>("fp1").check({ it.all { it > 0 } }, "all values must be greater then 0").get().toString()) }
+        app.unsafe.routes.post("/2") { it.result(it.formParamsAsClass<Double>("fp1").check({ it.all { it > 0 } }, "all values must be greater then 0").get().toString()) }
         assertThat(http.post("/2").body("fp1=1.3&fp1=-2.1&fp1=3.2").asString().status).isEqualTo(HttpStatus.BAD_REQUEST.code)
     }
 
     @Test
     fun `basicAuthCredentials extracts username and password when header properly configured`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val basicAuthCredentials = ctx.basicAuthCredentials()
             ctx.result(basicAuthCredentials?.username + "|" + basicAuthCredentials?.password)
         }
@@ -291,7 +291,7 @@ class TestRequest {
 
     @Test
     fun `basicAuthCredentials returns null when header not properly configured`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val basicAuthCredentials = ctx.basicAuthCredentials()
             ctx.result(basicAuthCredentials?.username + "|" + basicAuthCredentials?.password)
         }
@@ -301,7 +301,7 @@ class TestRequest {
 
     @Test
     fun `basicAuthCredentials extracts username and password with colon`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val basicAuthCredentials = ctx.basicAuthCredentials()
             ctx.result(basicAuthCredentials?.username + "|" + basicAuthCredentials?.password)
         }
@@ -317,7 +317,8 @@ class TestRequest {
                 it.password = "p"
             })
             cfg.staticFiles.add("/public", Location.CLASSPATH)
-        }.get("/hellopath") { it.result("Hello") }
+            cfg.routes.get("/hellopath") { it.result("Hello") }
+        }
         TestUtil.test(basicAuthApp) { _, http ->
             assertThat(http.getBody("/hellopath")).isEqualTo("Unauthorized")
             assertThat(http.getBody("/html.html")).contains("Unauthorized")
@@ -328,9 +329,9 @@ class TestRequest {
 
     @Test
     fun `matchedPath returns the path used to match the request`() = TestUtil.test { app, http ->
-        app.get("/matched") { it.result(it.matchedPath()) }
-        app.get("/matched/{path-param}") { it.result(it.matchedPath()) }
-        app.after("/matched/{path-param}/{param2}") { it.result(it.matchedPath()) }
+        app.unsafe.routes.get("/matched") { it.result(it.matchedPath()) }
+        app.unsafe.routes.get("/matched/{path-param}") { it.result(it.matchedPath()) }
+        app.unsafe.routes.after("/matched/{path-param}/{param2}") { it.result(it.matchedPath()) }
         assertThat(http.getBody("/matched")).isEqualTo("/matched")
         assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/{path-param}")
         assertThat(http.getBody("/matched/p1/p2")).isEqualTo("/matched/{path-param}/{param2}")
@@ -338,25 +339,25 @@ class TestRequest {
 
     @Test
     fun `endpointHandlerPath returns the path used to match the request, excluding any AFTER handlers`() = TestUtil.test { app, http ->
-        app.before { }
-        app.get("/matched/{path-param}") { }
-        app.get("/matched/{another-path-param}") { }
-        app.after { it.result(it.endpointHandlerPath()) }
+        app.unsafe.routes.before { }
+        app.unsafe.routes.get("/matched/{path-param}") { }
+        app.unsafe.routes.get("/matched/{another-path-param}") { }
+        app.unsafe.routes.after { it.result(it.endpointHandlerPath()) }
         assertThat(http.getStatus("/matched/p1")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/{path-param}")
     }
 
     @Test
     fun `endpointHandlerPath doesn't crash for 404s`() = TestUtil.test { app, http ->
-        app.before { }
-        app.after { it.result(it.endpointHandlerPath()) }
+        app.unsafe.routes.before { }
+        app.unsafe.routes.after { it.result(it.endpointHandlerPath()) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(http.getBody("/")).isEqualTo("No handler matched request path/method (404/405)")
     }
 
     @Test
     fun `servlet-context is not null`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(if (it.req().servletContext != null) "not-null" else "null") }
+        app.unsafe.routes.get("/") { it.result(if (it.req().servletContext != null) "not-null" else "null") }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("not-null")
     }
@@ -366,7 +367,7 @@ class TestRequest {
      */
     @Test
     fun `contentLength works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.contentLength().toString()) }
+        app.unsafe.routes.post("/") { it.result(it.contentLength().toString()) }
         val response = http.post("/").body("Hello").asString()
         assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body).isEqualTo("5")
@@ -374,35 +375,35 @@ class TestRequest {
 
     @Test
     fun `host works`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.host()!!) }
+        app.unsafe.routes.get("/") { it.result(it.host()!!) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("localhost:" + app.port())
     }
 
     @Test
     fun `ip works`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.ip()) }
+        app.unsafe.routes.get("/") { it.result(it.ip()) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("127.0.0.1")
     }
 
     @Test
     fun `protocol works`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.protocol()) }
+        app.unsafe.routes.get("/") { it.result(it.protocol()) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("HTTP/1.1")
     }
 
     @Test
     fun `scheme works`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.scheme()) }
+        app.unsafe.routes.get("/") { it.result(it.scheme()) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("http")
     }
 
     @Test
     fun `url works`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.url()) }
+        app.unsafe.routes.get("/") { it.result(it.url()) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("http://localhost:" + app.port() + "/")
     }
@@ -410,7 +411,7 @@ class TestRequest {
     @Test
     fun `fullUrl works`() = TestUtil.test { app, http ->
         val root = http.origin + "/"
-        app.get("/") { it.result(it.fullUrl()) }
+        app.unsafe.routes.get("/") { it.result(it.fullUrl()) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo(root)
         assertThat(http.getBody("/?test")).isEqualTo("$root?test")
@@ -419,28 +420,28 @@ class TestRequest {
 
     @Test
     fun `empty contextPath works`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.contextPath()) }
+        app.unsafe.routes.get("/") { it.result(it.contextPath()) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("")
     }
 
     @Test
     fun `contextPath with value works`() = TestUtil.test(Javalin.create { it.router.contextPath = "/ctx" }) { app, http ->
-        app.get("/") { it.result(it.contextPath()) }
+        app.unsafe.routes.get("/") { it.result(it.contextPath()) }
         assertThat(http.getStatus("/ctx/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/ctx/")).isEqualTo("/ctx")
     }
 
     @Test
     fun `userAgent works`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.userAgent()!!) }
+        app.unsafe.routes.get("/") { it.result(it.userAgent()!!) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/")).isEqualTo("unirest-java/3.1.00")
     }
 
     @Test
     fun `validator header works`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.headerAsClass<Double>("double-header").get().javaClass.name) }
+        app.unsafe.routes.get("/") { it.result(it.headerAsClass<Double>("double-header").get().javaClass.name) }
         val response = http.get("/", mapOf("double-header" to "12.34"))
         assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body).isEqualTo("java.lang.Double")

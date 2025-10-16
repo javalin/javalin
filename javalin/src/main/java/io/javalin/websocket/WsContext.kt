@@ -6,7 +6,6 @@
 
 package io.javalin.websocket
 
-import io.javalin.http.Context
 import io.javalin.http.servlet.JavalinWsServletContext
 import io.javalin.validation.Validation
 import org.eclipse.jetty.websocket.api.Callback

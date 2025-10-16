@@ -11,7 +11,6 @@ import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
-import io.javalin.testing.get
 import io.javalin.testing.httpCode
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -68,7 +67,7 @@ class TestStaticFileAccess {
 
     @Test
     fun `Authentication works for overlapping route and file name`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
-        app.get("/file") { it.result("Test Route") }
+        app.unsafe.routes.get("/file") { it.result("Test Route") }
         assertThat(callWithRole(http.origin, "/file", role = "ROLE_ONE")).isEqualTo("Test Route")
     }
 

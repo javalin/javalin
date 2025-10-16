@@ -11,7 +11,7 @@ import io.javalin.http.HttpStatus.OK
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
+
 import io.javalin.util.FileUtil
 import okhttp3.OkHttpClient
 import okhttp3.Protocol.H2_PRIOR_KNOWLEDGE

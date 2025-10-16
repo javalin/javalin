@@ -118,7 +118,7 @@ class TestJavalinInstanceAndConfigApi {
         app.javalinServlet()
         app.jettyServer()
         app.port()
-        app.unsafeConfig()
+        app.unsafe
         app.stop()
 
     }

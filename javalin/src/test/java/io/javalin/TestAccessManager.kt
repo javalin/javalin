@@ -17,7 +17,6 @@ import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -42,7 +41,7 @@ class TestAccessManager {
 
     @Test
     fun `AccessManager can restrict access for instance`() = TestUtil.test(managedApp()) { app, http ->
-        app.get("/secured", { it.result("Hello") }, ROLE_ONE, ROLE_TWO)
+        app.unsafe.routes.get("/secured", { it.result("Hello") }, ROLE_ONE, ROLE_TWO)
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/secured", "ROLE_TWO")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/secured", "ROLE_THREE")).isEqualTo(UNAUTHORIZED.message)

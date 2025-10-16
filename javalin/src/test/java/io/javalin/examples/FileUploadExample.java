@@ -8,7 +8,9 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 import io.javalin.util.FileUtil;
-import static io.javalin.testing.JavalinTestUtil.*;
+
+import static io.javalin.testing.JavalinTestUtil.get;
+import static io.javalin.testing.JavalinTestUtil.post;
 
 public class FileUploadExample {
 

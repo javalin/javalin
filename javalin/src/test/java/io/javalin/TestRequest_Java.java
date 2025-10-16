@@ -2,8 +2,9 @@ package io.javalin;
 
 import io.javalin.testing.TestUtil;
 import org.junit.jupiter.api.Test;
+
+import static io.javalin.testing.JavalinTestUtil.get;
 import static org.assertj.core.api.Assertions.assertThat;
-import static io.javalin.testing.JavalinTestUtil.*;
 
 public class TestRequest_Java {
 

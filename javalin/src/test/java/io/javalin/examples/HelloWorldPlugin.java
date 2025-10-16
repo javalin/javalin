@@ -9,7 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import static io.javalin.testing.JavalinTestUtil.*;
+
+import static io.javalin.testing.JavalinTestUtil.get;
 
 public class HelloWorldPlugin {
     public static void main(String[] args) {

@@ -12,7 +12,6 @@ import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.captureStdOut
 import io.javalin.testing.WebDriverUtil
-import io.javalin.testing.get
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -41,7 +40,7 @@ class TestWebBrowser {
 
     @Test
     fun `hello world works in chrome`() = TestUtil.test { app, http ->
-        app.get("/hello") { it.result("Hello, Selenium!") }
+        app.unsafe.routes.get("/hello") { it.result("Hello, Selenium!") }
         driver.get(http.origin + "/hello")
         assertThat(driver.pageSource).contains("Hello, Selenium")
     }
@@ -54,7 +53,7 @@ class TestWebBrowser {
                 it.http.brotliOnlyCompression()
                 it.registerPlugin(DevLoggingPlugin())
             }.start(0)
-            app.get("/hello") { it.result(payload) }
+            app.unsafe.routes.get("/hello") { it.result(payload) }
             val logResult = captureStdOut {
                 driver.get("http://localhost:" + app.port() + "/hello")
             }
@@ -80,8 +79,8 @@ class TestWebBrowser {
             }
         }
         TestUtil.test(requestLoggerApp) { app, http ->
-            app.get("/file") { it.writeSeekableStream(file.inputStream(), "audio/mpeg") }
-            app.get("/audio-player") { it.html("""<audio src="/file"></audio>""") }
+            app.unsafe.routes.get("/file") { it.writeSeekableStream(file.inputStream(), "audio/mpeg") }
+            app.unsafe.routes.get("/audio-player") { it.html("""<audio src="/file"></audio>""") }
             driver.get(http.origin + "/audio-player")
             Thread.sleep(100) // so the logger has a chance to run
             assertThat(chunkCount).isEqualTo(expectedChunkCount)

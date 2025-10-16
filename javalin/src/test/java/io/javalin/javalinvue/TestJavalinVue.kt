@@ -10,7 +10,8 @@ import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.staticfiles.Location
-import io.javalin.testing.*
+import io.javalin.testing.TestUtil
+
 import io.javalin.vue.VueComponent
 import io.javalin.vue.VueRenderer
 import org.assertj.core.api.Assertions.assertThat
@@ -132,7 +133,7 @@ class TestJavalinVue {
         it.vue.vueInstanceNameInJs = "app"
     }) { app, http ->
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-        app.get("/no-state", VueComponent("test-component-3"))
+        app.unsafe.routes.get("/no-state", VueComponent("test-component-3"))
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component-3></test-component-3></body>")
@@ -146,7 +147,7 @@ class TestJavalinVue {
         it.vue.stateFunction = { state }
     }) { app, http ->
         val encodedState = """{"pathParams":{"my-param":"test-path-param"},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
-        app.get("/vue/{my-param}", VueComponent("test-component-3"))
+        app.unsafe.routes.get("/vue/{my-param}", VueComponent("test-component-3"))
         val res = http.getBody("/vue/test-path-param")
         assertThat(res).contains(encodedState)
         assertThat(res).contains("""app.component("test-component-3", {template: "#test-component-3"});""")
@@ -158,9 +159,9 @@ class TestJavalinVue {
     fun `vue component with component-specific state`() = VueTestUtil.test { app, http ->
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
         val encodedTestState = """{"pathParams":{},"state":{"test":"tast"}}""".uriEncodeForJavascript()
-        app.get("/no-state", VueComponent("test-component"))
+        app.unsafe.routes.get("/no-state", VueComponent("test-component"))
         val noStateRes = http.getBody("/no-state")
-        app.get("/specific-state", VueComponent("test-component", mapOf("test" to "tast")))
+        app.unsafe.routes.get("/specific-state", VueComponent("test-component", mapOf("test" to "tast")))
         val specificStateRes = http.getBody("/specific-state")
         assertThat(noStateRes).contains(encodedEmptyState)
         assertThat(specificStateRes).contains(encodedTestState)
@@ -168,28 +169,28 @@ class TestJavalinVue {
 
     @Test
     fun `vue component works Javalin#error`() = VueTestUtil.test { app, http ->
-        app.get("/") { it.status(NOT_FOUND) }
-        app.error(NOT_FOUND.code, "html", VueComponent("test-component"))
+        app.unsafe.routes.get("/") { it.status(NOT_FOUND) }
+        app.unsafe.routes.error(NOT_FOUND.code, "html", VueComponent("test-component"))
         assertThat(http.htmlGet("/").body).contains("<body><test-component></test-component></body>")
     }
 
     @Test
     fun `unicode in template works`() = VueTestUtil.test { app, http ->
-        app.get("/unicode", VueComponent("test-component"))
+        app.unsafe.routes.get("/unicode", VueComponent("test-component"))
         assertThat(http.getBody("/unicode")).contains("<div>Test ÆØÅ</div>")
     }
 
     @Test
     fun `state is escaped`() = VueTestUtil.test { app, http ->
         val encodedXSS = "%3Cscript%3Ealert(1)%3Cscript%3E"
-        app.get("/escaped", VueComponent("test-component", mapOf("xss" to "<script>alert(1)<script>")))
+        app.unsafe.routes.get("/escaped", VueComponent("test-component", mapOf("xss" to "<script>alert(1)<script>")))
         assertThat(http.getBody("/escaped")).doesNotContain("<script>alert(1)<script>")
         assertThat(http.getBody("/escaped")).contains(encodedXSS)
     }
 
     @Test
     fun `component shorthand works`() = VueTestUtil.test { app, http ->
-        app.get("/shorthand", VueComponent("test-component"))
+        app.unsafe.routes.get("/shorthand", VueComponent("test-component"))
         assertThat(http.getBody("/shorthand")).contains("<test-component></test-component>")
     }
 
@@ -197,13 +198,13 @@ class TestJavalinVue {
     fun `non-existent component fails`() = VueTestUtil.test({
         it.vue.optimizeDependencies = false
     }) { app, http ->
-        app.get("/fail", VueComponent("unknown-component"))
+        app.unsafe.routes.get("/fail", VueComponent("unknown-component"))
         assertThat(http.getBody("/fail")).contains("Route component not found: <unknown-component></unknown-component>")
     }
 
     @Test
     fun `component can have attributes`() = VueTestUtil.test { app, http ->
-        app.get("/attr", VueComponent("<test-component attr='1'></test-component>"))
+        app.unsafe.routes.get("/attr", VueComponent("<test-component attr='1'></test-component>"))
         assertThat(http.getBody("/attr")).contains("<test-component attr='1'>")
     }
 
@@ -211,7 +212,7 @@ class TestJavalinVue {
     fun `classpath rootDirectory works`() = VueTestUtil.test({
         it.vue.rootDirectory("/vue")
     }) { app, http ->
-        app.get("/classpath", VueComponent("test-component"))
+        app.unsafe.routes.get("/classpath", VueComponent("test-component"))
         assertThat(http.getBody("/classpath")).contains("<test-component></test-component>")
     }
 
@@ -219,7 +220,7 @@ class TestJavalinVue {
     fun `setting rootDirectory with Path works`() = VueTestUtil.test({
         it.vue.rootDirectory(Paths.get("src/test/resources/vue"))
     }) { app, http ->
-        app.get("/path", VueComponent("test-component"))
+        app.unsafe.routes.get("/path", VueComponent("test-component"))
         assertThat(http.getBody("/path")).contains("<test-component></test-component>")
     }
 
@@ -227,7 +228,7 @@ class TestJavalinVue {
     fun `non-existent folder fails`() = VueTestUtil.test({
         it.vue.rootDirectory("/vue", Location.EXTERNAL)
     }) { app, http ->
-        app.get("/fail", VueComponent("test-component"))
+        app.unsafe.routes.get("/fail", VueComponent("test-component"))
         assertThat(http.get("/fail").status).isEqualTo(500)
     }
 
@@ -237,7 +238,7 @@ class TestJavalinVue {
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
         it.contextResolver.url = { "http://localhost:1234/" }
     }) { app, http ->
-        app.get("/path", VueComponent("test-component"))
+        app.unsafe.routes.get("/path", VueComponent("test-component"))
         assertThat(http.getBody("/path")).contains("""src="/webjars/""")
     }
 
@@ -246,7 +247,7 @@ class TestJavalinVue {
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
         it.contextResolver.url = { "https://example.com" }
     }) { app, http ->
-        app.get("/path", VueComponent("test-component"))
+        app.unsafe.routes.get("/path", VueComponent("test-component"))
         assertThat(http.getBody("/path")).contains("""src="https://cdn.jsdelivr.net/webjars/""")
     }
 
@@ -255,7 +256,7 @@ class TestJavalinVue {
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
         it.contextResolver.url = { "http://123.123.123.123:1234/" }
     }) { app, http ->
-        app.get("/path", VueComponent("test-component"))
+        app.unsafe.routes.get("/path", VueComponent("test-component"))
         assertThat(http.getBody("/path")).contains("""src="https://cdn.jsdelivr.net/webjars/""")
     }
 
@@ -264,7 +265,7 @@ class TestJavalinVue {
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
         it.contextResolver.url = { "http://123.123.123.123:1234/" }
     }) { app, http ->
-        app.get("/path", VueComponent("test-component"))
+        app.unsafe.routes.get("/path", VueComponent("test-component"))
         val responseBody = http.getBody("/path")
         assertThat(responseBody).contains("""<script>let a = "Always included";let ${"\$"}a = "Dollar works"</script>""")
         assertThat(responseBody).contains("""<script>let b = "Included if not dev"</script>""")
@@ -278,7 +279,7 @@ class TestJavalinVue {
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
         it.contextResolver.url = { "http://localhost:1234/" }
     }) { app, http ->
-        app.get("/path", VueComponent("test-component"))
+        app.unsafe.routes.get("/path", VueComponent("test-component"))
         val responseBody = http.getBody("/path")
         assertThat(responseBody).contains("""<script>let a = "Always included";let ${"\$"}a = "Dollar works"</script>""")
         assertThat(responseBody).contains("""<script>let b = "Included if dev"</script>""")
@@ -289,7 +290,7 @@ class TestJavalinVue {
 
     @Test
     fun `LoadableData class is included`() = VueTestUtil.test { app, http ->
-        app.get("/shorthand", VueComponent("test-component"))
+        app.unsafe.routes.get("/shorthand", VueComponent("test-component"))
         val response = http.getBody("/shorthand")
         assertThat(response).contains("LoadableData")
     }

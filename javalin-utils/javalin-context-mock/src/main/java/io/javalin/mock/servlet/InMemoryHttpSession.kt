@@ -4,9 +4,7 @@ package io.javalin.mock.servlet
 import jakarta.servlet.ServletContext
 import jakarta.servlet.http.HttpSession
 import jakarta.servlet.http.HttpSessionContext
-import java.util.Collections
-import java.util.Enumeration
-import java.util.UUID
+import java.util.*
 
 // @formatter:off
 @Suppress("DeprecatedCallableAddReplaceWith", "MemberVisibilityCanBePrivate")

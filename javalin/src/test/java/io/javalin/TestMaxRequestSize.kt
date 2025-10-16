@@ -6,7 +6,6 @@ import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -15,7 +14,7 @@ class TestMaxRequestSize {
     @Test
     fun `max request size is set by default`() = TestUtil.test { app, http ->
         val size = HttpConfig(JavalinConfig()).maxRequestSize.toInt()
-        app.post("/") { it.result(it.body()) }
+        app.unsafe.routes.post("/") { it.result(it.body()) }
         assertThat(http.post("/").body(ByteArray(size)).asString().httpCode()).isEqualTo(OK)
         try {
             val response = http.post("/").body(ByteArray(size + 1)).asString()
@@ -28,14 +27,14 @@ class TestMaxRequestSize {
 
     @Test
     fun `user can configure max request size`() = TestUtil.test(Javalin.create { it.http.maxRequestSize = 4L }) { app, http ->
-        app.post("/") { it.result(it.body()) }
+        app.unsafe.routes.post("/") { it.result(it.body()) }
         assertThat(http.post("/").body(ByteArray(4)).asString().httpCode()).isEqualTo(OK)
         assertThat(http.post("/").body(ByteArray(5)).asString().httpCode()).isEqualTo(CONTENT_TOO_LARGE)
     }
 
     @Test
     fun `body can be read multiple times`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.body() + it.body() + it.body()) }
+        app.unsafe.routes.post("/") { it.result(it.body() + it.body() + it.body()) }
         assertThat(http.post("/").body("Hi").asString().body).isEqualTo("HiHiHi")
     }
 

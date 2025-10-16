@@ -13,7 +13,6 @@ import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.security.RouteRole
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
-import jakarta.servlet.http.HttpServletRequest
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.io.EofException
 import org.eclipse.jetty.server.Server
@@ -41,11 +40,11 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     override fun handle(ctx: Context): Boolean {
         val (handler, resourcePath) = findHandler(ctx) ?: return false
-        
+
         try {
             // Apply custom headers
             handler.config.headers.forEach { ctx.header(it.key, it.value) }
-            
+
             return if (handler.config.precompress) {
                 val resource = handler.getResource(resourcePath) ?: return false
                 JettyPrecompressingResourceHandler.handle(resourcePath, resource, ctx, pvt.compressionStrategy, handler.config)
@@ -103,14 +102,14 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     fun getResource(path: String): Resource? {
         return try {
             if (baseResource == null) return null
-            
+
             // Try to resolve the direct resource first
             baseResource.resolve(path)?.let { resource ->
                 if (resource.exists() && !resource.isDirectory && isValidResource(resource, path)) {
                     return resource
                 }
             }
-            
+
             // Check for welcome file (index.html) using Jetty's native logic
             val welcomePath = "${path.removeSuffix("/")}/index.html"
             baseResource.resolve(welcomePath)?.let { welcomeResource ->
@@ -118,33 +117,33 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
                     return welcomeResource
                 }
             }
-            
+
             null
         } catch (e: Exception) {
             null
         }
     }
-    
+
     private fun isValidResource(resource: Resource, path: String): Boolean {
         if (!resource.isAlias) return true
-        
+
         // No alias check configured - default is to block all aliases for security
         if (config.aliasCheck == null) return false
-        
+
         // Apply the configured alias check
         return config.aliasCheck!!.checkAlias(path, resource)
     }
 
     fun handleResource(resourcePath: String, ctx: Context): Boolean {
         val resource = getResource(resourcePath) ?: return false
-        
+
         // Use Jetty's native content type resolution with custom override support
         val contentType = config.mimeTypes.getMapping().entries
             .firstOrNull { resourcePath.endsWith(".${it.key}", ignoreCase = true) }?.value
             ?: jettyMimeTypes.getMimeByExtension(resourcePath)
-        
+
         contentType?.let { ctx.contentType(it) }
-        
+
         // Use Jetty's native ETag support
         if (isEtags) {
             val etag = resource.etagValue
@@ -157,7 +156,7 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
                 ctx.header("ETag", etag)
             }
         }
-        
+
         // Serve the resource content
         ctx.result(resource.newInputStream().use { it.readAllBytes() })
         return true

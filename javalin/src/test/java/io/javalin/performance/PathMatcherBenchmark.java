@@ -2,26 +2,21 @@ package io.javalin.performance;
 
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.RouterConfig;
-import static io.javalin.http.HandlerType.GET;
-
 import io.javalin.http.HandlerType;
 import io.javalin.router.Endpoint;
 import io.javalin.router.ParsedEndpoint;
 import io.javalin.router.matcher.PathMatcher;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static io.javalin.http.HandlerType.GET;
 
 @State(Scope.Benchmark)
 @Fork(value = 1)

@@ -20,6 +20,10 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.ee10.servlet.FilterHolder
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler
+import org.eclipse.jetty.ee10.servlet.ServletHolder
+import org.eclipse.jetty.ee10.servlet.SessionHandler
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.HttpConfiguration
@@ -27,10 +31,6 @@ import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.ee10.servlet.FilterHolder
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler
-import org.eclipse.jetty.ee10.servlet.ServletHolder
-import org.eclipse.jetty.ee10.servlet.SessionHandler
 import org.eclipse.jetty.server.handler.ContextHandlerCollection
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.session.DefaultSessionCache

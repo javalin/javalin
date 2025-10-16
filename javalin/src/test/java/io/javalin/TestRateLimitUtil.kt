@@ -9,7 +9,7 @@ package io.javalin
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.util.NaiveRateLimit
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
+
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -30,10 +30,11 @@ class TestRateLimitUtil {
 
     @Test
     fun `rate limiting is scoped to specific path and method combination`() = TestUtil.test(
-        Javalin.create()
-            .get("/api") { NaiveRateLimit.requestPerTimeUnit(it, 2, TimeUnit.HOURS) }
-            .post("/api") { it.result("post ok") }
-            .get("/other") { it.result("other ok") }
+        Javalin.create {
+            it.routes.get("/api") { NaiveRateLimit.requestPerTimeUnit(it, 2, TimeUnit.HOURS) }
+            it.routes.post("/api") { it.result("post ok") }
+            it.routes.get("/other") { it.result("other ok") }
+        }
     ) { _, http ->
         val responseCodes = mutableListOf<Int>()
         repeat(6) { responseCodes.add(http.get("/api").httpCode().code) }

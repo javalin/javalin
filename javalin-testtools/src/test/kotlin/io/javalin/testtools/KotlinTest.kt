@@ -6,7 +6,6 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
 import io.javalin.testtools.TestTool.Companion.TestLogsKey
-import io.javalin.testtools.FormBody
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -169,7 +168,7 @@ class KotlinTest {
         } catch (t: Throwable) {
             // Ignore
         }
-        assertThat(app.unsafeConfig().pvt.appDataManager.get(TestLogsKey)).contains("Error in handler code")
+        assertThat(app.unsafe.pvt.appDataManager.get(TestLogsKey)).contains("Error in handler code")
     }
 
     private fun throwingTest(app: Javalin) {

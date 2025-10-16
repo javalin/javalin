@@ -13,7 +13,7 @@ import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
+
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

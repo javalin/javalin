@@ -6,19 +6,15 @@
 
 package io.javalin.websocket
 
-import io.javalin.http.Context
 import io.javalin.http.servlet.JavalinWsServletContext
-import org.eclipse.jetty.ee10.websocket.server.JettyServerUpgradeRequest
-import org.eclipse.jetty.util.BufferUtil
 import org.eclipse.jetty.websocket.api.Callback
 import org.eclipse.jetty.websocket.api.Session
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
 import java.nio.ByteBuffer
-import java.util.*
 
 /**
  * Is instantiated for every WebSocket connection. It keeps the session and sessionId and handles incoming events by

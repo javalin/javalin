@@ -2,16 +2,14 @@ package io.javalin.testtools
 
 import io.javalin.Javalin
 import io.javalin.config.Key
-import io.javalin.http.HandlerType
-import io.javalin.router.Endpoint
 import io.javalin.util.JavalinLogger
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.net.CookieManager
 import java.net.CookiePolicy
-import java.net.http.HttpClient as JdkHttpClient
 import java.time.Duration
 import java.util.*
+import java.net.http.HttpClient as JdkHttpClient
 
 object DefaultTestConfig {
     @JvmStatic var clearCookies: Boolean = true
@@ -45,14 +43,12 @@ class TestTool(private val testConfig: TestConfig = TestConfig()) {
             testCase.accept(app, http) // this is where the user's test happens
             if (config.clearCookies) {
                 val endpointUrl = "/clear-cookies-${UUID.randomUUID()}"
-                app.unsafeConfig().pvt.internalRouter.addHttpEndpoint(
-                    Endpoint(HandlerType.DELETE, endpointUrl) { it.cookieMap().forEach { (k, _) -> it.removeCookie(k) } }
-                )
+                app.unsafe.routes.delete(endpointUrl) { it.cookieMap().forEach { (k, _) -> it.removeCookie(k) } }
                 http.request(endpointUrl) { it.delete() }
             }
             app.stop()
         }
-        app.unsafeConfig().appData(TestLogsKey, result.logs)
+        app.unsafe.appData(TestLogsKey, result.logs)
         if (result.exception != null) {
             JavalinLogger.error("JavalinTest#test failed - full log output below:\n" + result.logs)
             throw result.exception

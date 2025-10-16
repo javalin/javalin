@@ -7,13 +7,14 @@
 
 package io.javalin;
 
-import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
+import io.javalin.config.JavalinConfig;
 import io.javalin.jetty.JettyServer;
-import java.util.function.Consumer;
 import jakarta.servlet.Servlet;
 import kotlin.Lazy;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Consumer;
 
 import static io.javalin.util.Util.createLazy;
 
@@ -29,12 +30,11 @@ public class Javalin {
     protected Javalin(JavalinConfig config) {
         this.cfg = config;
         this.jettyServer = createLazy(() -> new JettyServer(this.cfg));
+        unsafe = cfg;
     }
 
     @NotNull
-    public JavalinConfig unsafeConfig() {
-        return cfg;
-    }
+    public JavalinConfig unsafe;
 
     public JettyServer jettyServer() {
         return jettyServer.getValue();

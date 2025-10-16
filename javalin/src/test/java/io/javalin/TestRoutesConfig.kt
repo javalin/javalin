@@ -1,7 +1,7 @@
 ﻿package io.javalin
 
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
+
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -29,7 +29,7 @@ class TestRoutesConfig {
             // Router settings
             config.router.contextPath = "/api"
             config.router.ignoreTrailingSlashes = true
-            
+
             // Routes using new API
             config.routes.get("/test") { ctx -> ctx.result("Test response") }
         }

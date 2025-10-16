@@ -5,7 +5,6 @@ import io.javalin.http.Header
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.WriteListener
 import java.io.OutputStream
-import java.util.Locale.getDefault
 
 internal class CompressedOutputStream(
     val minSizeForCompression: Int,

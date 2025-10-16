@@ -1,7 +1,6 @@
 package io.javalin.mock
 
 import io.javalin.http.ContentType
-import io.javalin.json.JsonMapper
 import io.javalin.json.toJsonString
 import java.io.InputStream
 

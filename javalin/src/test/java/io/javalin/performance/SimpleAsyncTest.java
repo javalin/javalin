@@ -8,20 +8,17 @@ package io.javalin.performance;
 
 import io.javalin.Javalin;
 import io.javalin.testing.HttpUtil;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
-import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.*;
+
+import static io.javalin.testing.JavalinTestUtil.get;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
-import static io.javalin.testing.JavalinTestUtil.*;
 
 public class SimpleAsyncTest {
 

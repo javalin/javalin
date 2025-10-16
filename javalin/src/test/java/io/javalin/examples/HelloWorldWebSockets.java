@@ -7,7 +7,9 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import static io.javalin.testing.JavalinTestUtil.*;
+
+import static io.javalin.testing.JavalinTestUtil.get;
+import static io.javalin.testing.JavalinTestUtil.ws;
 
 // WebSockets also work with ssl,
 // see HelloWorldSecure for how to set that up

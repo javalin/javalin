@@ -3,7 +3,6 @@
 import io.javalin.http.Header
 import io.javalin.plugin.bundled.SslRedirectPlugin
 import io.javalin.testing.TestUtil
-import io.javalin.testing.get
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -24,7 +23,7 @@ class TestSslRedirectPlugin {
             })
         }
     ) { app, http ->
-        app.get("/") { ctx -> ctx.result("Hello") }
+        app.unsafe.routes.get("/") { ctx -> ctx.result("Hello") }
 
         val response = httpWithoutAutoRedirects.get(http.origin).asEmpty()
         assertThat(response.status).isEqualTo(301)
@@ -40,7 +39,7 @@ class TestSslRedirectPlugin {
             })
         }
     ) { app, http ->
-        app.get("/") { ctx -> ctx.result("Hello") }
+        app.unsafe.routes.get("/") { ctx -> ctx.result("Hello") }
 
         val response = httpWithoutAutoRedirects.get(http.origin).asEmpty()
         assertThat(response.status).isEqualTo(301)

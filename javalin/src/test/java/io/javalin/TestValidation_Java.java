@@ -9,11 +9,13 @@ package io.javalin;
 import io.javalin.config.ValidationConfig;
 import io.javalin.testing.TestUtil;
 import io.javalin.validation.Validation;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import org.junit.jupiter.api.Test;
+
+import static io.javalin.testing.JavalinTestUtil.exception;
+import static io.javalin.testing.JavalinTestUtil.get;
 import static org.assertj.core.api.Assertions.assertThat;
-import static io.javalin.testing.JavalinTestUtil.*;
 
 public class TestValidation_Java {
     private static class CustomException extends RuntimeException {

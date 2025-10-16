@@ -2,20 +2,17 @@ package io.javalin.testtools;
 
 import io.javalin.Javalin;
 import io.javalin.http.Header;
-import io.javalin.testtools.FormBody;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 
-import static io.javalin.http.HttpStatus.OK;
 import static io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static io.javalin.http.HttpStatus.OK;
 import static io.javalin.testtools.TestTool.TestLogsKey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -196,7 +193,7 @@ public class JavaTest {
         } catch (Throwable t) {
             // Ignore
         }
-        assertThat(app.unsafeConfig().pvt.appDataManager.get(TestLogsKey)).contains("Error in handler code");
+        assertThat(app.unsafe.pvt.appDataManager.get(TestLogsKey)).contains("Error in handler code");
     }
 
     @Test

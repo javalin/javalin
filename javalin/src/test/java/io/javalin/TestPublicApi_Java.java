@@ -1,5 +1,6 @@
 package io.javalin;
 
+import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.config.Key;
 import io.javalin.http.*;
 import io.javalin.plugin.ContextPlugin;
@@ -11,11 +12,17 @@ import io.javalin.websocket.WsConfig;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
-import static io.javalin.testing.JavalinTestUtil.*;
-import io.javalin.apibuilder.ApiBuilder;
+import static io.javalin.testing.JavalinTestUtil.after;
+import static io.javalin.testing.JavalinTestUtil.before;
+import static io.javalin.testing.JavalinTestUtil.exception;
+import static io.javalin.testing.JavalinTestUtil.get;
+import static io.javalin.testing.JavalinTestUtil.sse;
+import static io.javalin.testing.JavalinTestUtil.ws;
+import static io.javalin.testing.JavalinTestUtil.wsAfter;
+import static io.javalin.testing.JavalinTestUtil.wsException;
 
 // @formatter:off
 public class TestPublicApi_Java {

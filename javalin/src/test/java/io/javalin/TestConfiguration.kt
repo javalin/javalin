@@ -10,13 +10,12 @@ import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.CompressionType.BR
 import io.javalin.compression.CompressionType.GZIP
 import io.javalin.compression.Gzip
-import io.javalin.compression.forType
 import io.javalin.compression.GzipCompressor
+import io.javalin.compression.forType
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
-import io.javalin.testing.get
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServerConnector
@@ -64,7 +63,7 @@ class TestConfiguration {
     @Test
     fun `compression strategy is set to gzip by default`() {
         val app = Javalin.create()
-        assertThat(app.unsafeConfig().pvt.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
+        assertThat(app.unsafe.pvt.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
     }
 
     @Test
@@ -72,8 +71,8 @@ class TestConfiguration {
         val app = Javalin.create {
             it.http.customCompression(CompressionStrategy(null, Gzip(2)))
         }
-        assertThat((app.unsafeConfig().pvt.compressionStrategy.compressors.forType(GZIP.typeName) as GzipCompressor).level).isEqualTo(2)
-        assertThat(app.unsafeConfig().pvt.compressionStrategy.compressors.forType(BR.typeName)).isNull()
+        assertThat((app.unsafe.pvt.compressionStrategy.compressors.forType(GZIP.typeName) as GzipCompressor).level).isEqualTo(2)
+        assertThat(app.unsafe.pvt.compressionStrategy.compressors.forType(BR.typeName)).isNull()
     }
 
     @Test

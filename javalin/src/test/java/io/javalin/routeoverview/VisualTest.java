@@ -7,10 +7,10 @@
 package io.javalin.routeoverview;
 
 import io.javalin.Javalin;
+import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.http.HandlerType;
 import io.javalin.plugin.bundled.CorsPlugin;
 import io.javalin.plugin.bundled.RouteOverviewPlugin;
 import io.javalin.websocket.WsConfig;
@@ -20,10 +20,17 @@ import org.jetbrains.annotations.NotNull;
 import static io.javalin.TestAccessManager.MyRole.ROLE_ONE;
 import static io.javalin.TestAccessManager.MyRole.ROLE_THREE;
 import static io.javalin.TestAccessManager.MyRole.ROLE_TWO;
-import static io.javalin.testing.JavalinTestUtil.*;
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.path;
-import io.javalin.apibuilder.ApiBuilder;
+import static io.javalin.testing.JavalinTestUtil.after;
+import static io.javalin.testing.JavalinTestUtil.before;
+import static io.javalin.testing.JavalinTestUtil.delete;
+import static io.javalin.testing.JavalinTestUtil.get;
+import static io.javalin.testing.JavalinTestUtil.head;
+import static io.javalin.testing.JavalinTestUtil.options;
+import static io.javalin.testing.JavalinTestUtil.patch;
+import static io.javalin.testing.JavalinTestUtil.post;
+import static io.javalin.testing.JavalinTestUtil.put;
 
 public class VisualTest {
 
@@ -65,7 +72,7 @@ public class VisualTest {
         // addHttpHandler(app, HandlerType.TRACE, "/tracer2", new HandlerImplementation(), ROLE_ONE, ROLE_TWO);
         // sse(app, "/sse", sse -> { });
 
-        app.unsafeConfig().routes.apiBuilder(() -> {
+        app.unsafe.routes.apiBuilder(() -> {
             path("users", () -> {
                 ApiBuilder.get(new HandlerImplementation());
                 ApiBuilder.post(new HandlerImplementation());

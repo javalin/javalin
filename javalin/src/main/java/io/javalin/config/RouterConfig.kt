@@ -3,12 +3,8 @@
 package io.javalin.config
 
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
-import io.javalin.router.InternalRouter
 import io.javalin.router.exception.JavaLangErrorHandler
-import io.javalin.router.invokeAsSamWithReceiver
 import io.javalin.util.JavalinLogger
-import java.util.function.Consumer
-import kotlin.internal.LowPriorityInOverloadResolution
 
 /**
  * Configuration for the Router.

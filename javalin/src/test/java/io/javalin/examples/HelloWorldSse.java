@@ -8,6 +8,7 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 import io.javalin.http.sse.SseClient;
+
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;

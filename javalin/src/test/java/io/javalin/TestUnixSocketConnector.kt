@@ -3,7 +3,7 @@
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
-import io.javalin.testing.get
+
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.unixdomain.server.UnixDomainServerConnector
@@ -38,7 +38,7 @@ class TestUnixSocketConnector {
             }
         }
 
-        unixSocketJavalin.get(testPath) { it.status(OK).result(expectedResultString) }
+        unixSocketJavalin.unsafe.routes.get(testPath) { it.status(OK).result(expectedResultString) }
 
         TestUtil.test(unixSocketJavalin) { _, _ ->
 

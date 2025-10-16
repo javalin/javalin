@@ -6,9 +6,9 @@
 
 package io.javalin.http.servlet
 
-import io.javalin.config.AppDataManager
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
+import io.javalin.config.AppDataManager
 import io.javalin.config.JavalinConfig
 import io.javalin.config.Key
 import io.javalin.http.ContentType
@@ -19,10 +19,10 @@ import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
-import io.javalin.router.ParsedEndpoint
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.PluginManager
+import io.javalin.router.ParsedEndpoint
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.JavalinLogger
@@ -38,8 +38,9 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
-import kotlin.LazyThreadSafetyMode.*
 import java.util.stream.Stream
+import kotlin.LazyThreadSafetyMode.PUBLICATION
+import kotlin.LazyThreadSafetyMode.SYNCHRONIZED
 
 data class JavalinServletContextConfig(
     val appDataManager: AppDataManager,

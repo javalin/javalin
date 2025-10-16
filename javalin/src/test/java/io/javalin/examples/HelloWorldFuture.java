@@ -7,6 +7,7 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;

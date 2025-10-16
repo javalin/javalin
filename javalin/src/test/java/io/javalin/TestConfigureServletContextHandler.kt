@@ -9,7 +9,6 @@ package io.javalin
 
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
-import io.javalin.testing.get
 import jakarta.servlet.DispatcherType
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
@@ -77,7 +76,7 @@ class TestConfigureServletContextHandler {
         }
 
         TestUtil.test(filterJavalin) { app, http ->
-            app.get("/test") { it.result("Test") }
+            app.unsafe.routes.get("/test") { it.result("Test") }
             val response = http.get("/test")
             assertThat(response.body).isEqualTo("Test")
             assertThat(filter.initialized).isTrue()

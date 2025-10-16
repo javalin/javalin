@@ -12,7 +12,6 @@ import io.javalin.config.KeyAlreadyExistsException
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
-import io.javalin.testing.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -46,7 +45,7 @@ internal class TestAppData {
     fun `data can be accessed through the app`() = TestUtil.test(Javalin.create {
         it.appData(myOtherKey, MyOtherThing())
     }) { app, _ ->
-        assertThat(app.unsafeConfig().pvt.appDataManager.get(myOtherKey).test).isEqualTo("Test")
+        assertThat(app.unsafe.pvt.appDataManager.get(myOtherKey).test).isEqualTo("Test")
     }
 
     private class MyJson {
@@ -74,7 +73,7 @@ internal class TestAppData {
     fun `keys can be used without storing them as fields()`() = TestUtil.test(Javalin.create {
         it.appData(Key("key-equality"), MyOtherThing())
     }) { app, http ->
-        app.get("/") { it.result(it.appData(Key<MyOtherThing>("key-equality")).test) }
+        app.unsafe.routes.get("/") { it.result(it.appData(Key<MyOtherThing>("key-equality")).test) }
         assertThat(http.getBody("/")).isEqualTo("Test")
     }
 

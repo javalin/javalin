@@ -9,13 +9,13 @@ import io.javalin.http.servlet.JavalinServletRequest
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.servlet.Task
 import io.javalin.http.servlet.TaskInitializer
-import io.javalin.router.Endpoint
-import io.javalin.router.EndpointExecutor
 import io.javalin.mock.servlet.HttpServletRequestMock
 import io.javalin.mock.servlet.HttpServletResponseMock
+import io.javalin.router.Endpoint
+import io.javalin.router.EndpointExecutor
+import org.jetbrains.annotations.ApiStatus.Experimental
 import java.util.concurrent.CountDownLatch
 import java.util.function.Consumer
-import org.jetbrains.annotations.ApiStatus.Experimental
 
 /**
  * A [ContextMock] is an in-memory [Context] instance builder.

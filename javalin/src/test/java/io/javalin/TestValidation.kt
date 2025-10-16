@@ -22,12 +22,11 @@ import io.javalin.json.toJsonString
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.fasterJacksonMapper
-import io.javalin.testing.*
 import io.javalin.testing.httpCode
-import io.javalin.validation.Validation
 import io.javalin.validation.MissingConverterException
 import io.javalin.validation.NullableValidator
 import io.javalin.validation.Params
+import io.javalin.validation.Validation
 import io.javalin.validation.ValidationError
 import io.javalin.validation.ValidationException
 import io.javalin.validation.collectErrors
@@ -44,19 +43,19 @@ class TestValidation {
 
     @Test
     fun `pathParam gives correct error message`() = TestUtil.test { app, http ->
-        app.get("/{param}") { it.pathParamAsClass<Int>("param").get() }
+        app.unsafe.routes.get("/{param}") { it.pathParamAsClass<Int>("param").get() }
         assertThat(http.get("/abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 
     @Test
     fun `queryParam gives correct error message`() = TestUtil.test { app, http ->
-        app.get("/") { it.queryParamAsClass<Int>("param").get() }
+        app.unsafe.routes.get("/") { it.queryParamAsClass<Int>("param").get() }
         assertThat(http.get("/?param=abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 
     @Test
     fun `formParam gives correct error message`() = TestUtil.test { app, http ->
-        app.post("/") { it.formParamAsClass<Int>("param").get() }
+        app.unsafe.routes.post("/") { it.formParamAsClass<Int>("param").get() }
         assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
         val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
         assertThat(log).contains("Couldn't convert param 'param' with value 'abc' to Integer")
@@ -65,21 +64,21 @@ class TestValidation {
 
     @Test
     fun `notNullOrEmpty works for Validator`() = TestUtil.test { app, http ->
-        app.get("/") { it.queryParamAsClass<String>("my-qp").get() }
+        app.unsafe.routes.get("/") { it.queryParamAsClass<String>("my-qp").get() }
         assertThat(http.get("/").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
         assertThat(http.get("/").httpCode()).isEqualTo(BAD_REQUEST)
     }
 
     @Test
     fun `notNullOrEmpty works for NullableValidator`() = TestUtil.test { app, http ->
-        app.get("/") { it.queryParamAsClass<String>("my-qp").allowNullable().get() }
+        app.unsafe.routes.get("/") { it.queryParamAsClass<String>("my-qp").allowNullable().get() }
         assertThat(http.get("/").body).isEqualTo("")
         assertThat(http.get("/").httpCode()).isEqualTo(OK)
     }
 
     @Test
     fun `getAs clazz works`() = TestUtil.test { app, http ->
-        app.get("/int") { ctx ->
+        app.unsafe.routes.get("/int") { ctx ->
             val myInt = ctx.queryParamAsClass<Int>("my-qp").get()
             ctx.result((myInt * 2).toString())
         }
@@ -90,7 +89,7 @@ class TestValidation {
 
     @Test
     fun `check works`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             ctx.queryParamAsClass<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
         }
         assertThat(http.get("/?my-qp=1").body).isEqualTo("""{"my-qp":[{"message":"Length must be more than five","args":{},"value":"1"}]}""")
@@ -98,7 +97,7 @@ class TestValidation {
 
     @Test
     fun `default query param values work`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val myInt = ctx.queryParamAsClass<Int>("my-qp").getOrDefault(788)
             ctx.result(myInt.toString())
         }
@@ -111,7 +110,7 @@ class TestValidation {
 
     @Test
     fun `getOrThrow works`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val myInt = ctx.queryParamAsClass<Int>("my-qp").getOrThrow { CustomException("'${it.keys.first()}' is not a number") }
             ctx.result(myInt.toString())
         }.exception(CustomException::class.java) { e, ctx -> ctx.result(e.message ?: "") }
@@ -120,7 +119,7 @@ class TestValidation {
 
     @Test
     fun `hasValue does not throw exception if value is missing`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val hasValue = ctx.queryParamAsClass<Int>("my-qp").hasValue()
             ctx.result("$hasValue")
         }
@@ -130,7 +129,7 @@ class TestValidation {
 
     @Test
     fun `unregistered converter fails`() = TestUtil.test { app, http ->
-        app.get("/duration") { it.queryParamAsClass<Duration>("from").get() }
+        app.unsafe.routes.get("/duration") { it.queryParamAsClass<Duration>("from").get() }
         assertThat(http.get("/duration?from=abc").status).isEqualTo(500)
     }
 
@@ -141,7 +140,7 @@ class TestValidation {
         it.jsonMapper(timeModuleMapper)
         it.validation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
     }) { app, http ->
-        app.get("/instant") { ctx ->
+        app.unsafe.routes.get("/instant") { ctx ->
             val fromDate = ctx.queryParamAsClass<Instant>("from").get()
             val toDate = ctx.queryParamAsClass<Instant>("to")
                 .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
@@ -156,7 +155,7 @@ class TestValidation {
     fun `can convert enum`() = TestUtil.test(Javalin.create {
         it.validation.register(MyEnum::class.java) { MyEnum.valueOf(it) }
     }) { app, http ->
-        app.get("/enum") { ctx ->
+        app.unsafe.routes.get("/enum") { ctx ->
             val myEnum = ctx.queryParamAsClass<MyEnum>("my-enum").get()
             ctx.result(myEnum.name)
         }
@@ -169,7 +168,7 @@ class TestValidation {
     fun `custom converter works for null when nullable`() = TestUtil.test(Javalin.create {
         it.validation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
     }) { app, http ->
-        app.get("/instant") { ctx ->
+        app.unsafe.routes.get("/instant") { ctx ->
             val fromDate = ctx.queryParamAsClass<Instant>("from").get()
             val toDate = ctx.queryParamAsClass<Instant>("to")
                 .allowNullable()
@@ -185,7 +184,7 @@ class TestValidation {
     fun `custom converter returns null`() = TestUtil.test(Javalin.create {
         it.validation.register(Instant::class.java) { null }
     }) { app, http ->
-        app.get("/instant") { it.queryParamAsClass<Instant>("from").get() }
+        app.unsafe.routes.get("/instant") { it.queryParamAsClass<Instant>("from").get() }
         assertThat(http.get("/instant?from=1262347200000").httpCode()).isEqualTo(BAD_REQUEST)
     }
 
@@ -201,7 +200,7 @@ class TestValidation {
 
     @Test
     fun `bodyValidator works`() = TestUtil.test { app, http ->
-        app.post("/json") { ctx ->
+        app.unsafe.routes.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializableObject>()
                 .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
                 .get()
@@ -224,7 +223,7 @@ class TestValidation {
 
     @Test
     fun `can use bodyValidator check with ValidationError`() = TestUtil.test { app, http ->
-        app.post("/json") { ctx ->
+        app.unsafe.routes.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializableObject>()
                 .check({ it.value1 == "Bananas" }, ValidationError("value1 must be 'Bananas'"))
                 .get()
@@ -237,7 +236,7 @@ class TestValidation {
 
     @Test
     fun `multiple checks and named fields work when validating class`() = TestUtil.test { app, http ->
-        app.post("/json") { ctx ->
+        app.unsafe.routes.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializableObject>()
                 .check({ false }, "UnnamedFieldCheck1")
                 .check({ false }, "UnnamedFieldCheck2")
@@ -254,10 +253,10 @@ class TestValidation {
 
     @Test
     fun `custom treatment for ValidationException exception response works`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val myString = ctx.queryParamAsClass<String>("my-qp").get()
         }
-        app.exception(ValidationException::class.java) { e, ctx ->
+        app.unsafe.routes.exception(ValidationException::class.java) { e, ctx ->
             ctx.status(EXPECTATION_FAILED)
             ctx.result("Error Expected!")
         }
@@ -267,13 +266,13 @@ class TestValidation {
 
     @Test
     fun `allowNullable throws if called after check`() = TestUtil.test { app, http ->
-        app.get("/") { it.queryParamAsClass<Int>("my-qp").check({ false }, "Irrelevant").allowNullable() }
+        app.unsafe.routes.get("/") { it.queryParamAsClass<Int>("my-qp").check({ false }, "Irrelevant").allowNullable() }
         assertThat(http.get("/").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
     }
 
     @Test
     fun `optional query param value works`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val myInt: Int? = ctx.queryParamAsClass<Int>("my-qp").allowNullable().get()
             assertThat(myInt).isEqualTo(null)
         }
@@ -282,7 +281,7 @@ class TestValidation {
 
     @Test
     fun `optional query param value with check works`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val id: Int? = ctx.queryParamAsClass<Int>("id")
                 .allowNullable()
                 .check({ if (it != null) it > 10 else true }, "id was not greater than 10")
@@ -315,7 +314,7 @@ class TestValidation {
     @Test
     fun `All errors can be collected from multiple validators`() = TestUtil.test { app, http ->
 
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             val numberValidator = ctx.queryParamAsClass<Int>("number")
                 .check({ it > 12 }, "must be greater than 12.")
                 .check({ it.rem(2) == 0 }, "must be even.")
@@ -331,7 +330,7 @@ class TestValidation {
             ctx.json(listOf(numberValidator, stringValidator, nullableValidator).collectErrors())
         }
 
-        app.post("/") { ctx ->
+        app.unsafe.routes.post("/") { ctx ->
             val bodyValidator = ctx.bodyValidator<Map<String, String>>()
                 .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
 
@@ -353,7 +352,7 @@ class TestValidation {
 
     @Test
     fun `body validator with check and retrieve errors`() = TestUtil.test { app, http ->
-        app.post("/") { ctx ->
+        app.unsafe.routes.post("/") { ctx ->
             val errors = ctx.bodyValidator<Map<String, String>>()
                 .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
                 .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
@@ -383,7 +382,7 @@ class TestValidation {
 
     @Test
     fun `error args work`() = TestUtil.test { app, http ->
-        app.get("/args") { ctx ->
+        app.unsafe.routes.get("/args") { ctx ->
             ctx.queryParamAsClass<Int>("my-qp")
                 .check({ it <= 5 }, ValidationError("OVER_LIMIT", args = mapOf("limit" to 5)))
                 .get()
@@ -393,12 +392,12 @@ class TestValidation {
 
     @Test
     fun `localization is easy`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
+        app.unsafe.routes.get("/") { ctx ->
             ctx.queryParamAsClass<Int>("number")
                 .check({ it in 6..9 }, ValidationError("NUMBER_NOT_IN_RANGE", args = mapOf("min" to 6, "max" to 9)))
                 .get()
         }
-        app.exception(ValidationException::class.java) { e, ctx ->
+        app.unsafe.routes.exception(ValidationException::class.java) { e, ctx ->
             val msgBundle = mapOf(
                 "NUMBER_NOT_IN_RANGE" to mapOf(
                     "en" to "The value has to at least {0} and at most {1}",
@@ -491,7 +490,7 @@ class TestValidation {
     @Test
     fun `can use JavalinValidation#collectErrors to collect errors from multiple Validators`() = TestUtil.test { app, http ->
         val validation = Validation(ValidationConfig())
-        app.get("/collect-errors") { ctx ->
+        app.unsafe.routes.get("/collect-errors") { ctx ->
             val errors = Validation.collectErrors(
                 validation.validator("first_name", String::class.java, ctx.queryParam("first_name"))
                     .check({ it.length > 2 }, "too short")
@@ -507,8 +506,8 @@ class TestValidation {
 
     @Test
     fun `throws MissingConverterException if converter is missing`() = TestUtil.test { app, http ->
-        app.get("/converter") { it.queryParamAsClass<Date>("date") }
-        app.exception(MissingConverterException::class.java) { e, ctx ->
+        app.unsafe.routes.get("/converter") { it.queryParamAsClass<Date>("date") }
+        app.unsafe.routes.exception(MissingConverterException::class.java) { e, ctx ->
             ctx.result(e.javaClass.name + ":" + e.className)
         }
         assertThat(http.get("/converter?date=20").body).contains("io.javalin.validation.MissingConverterException:java.util.Date")
@@ -516,8 +515,8 @@ class TestValidation {
 
     @Test
     fun `can access underlying exception through ValidationError in exception handler`() = TestUtil.test { app, http ->
-        app.get("/exception") { it.queryParamAsClass<Int>("number").get() }
-        app.exception(ValidationException::class.java) { e, ctx ->
+        app.unsafe.routes.get("/exception") { it.queryParamAsClass<Int>("number").get() }
+        app.unsafe.routes.exception(ValidationException::class.java) { e, ctx ->
             ctx.result(e.errors["number"]!!.first().exception()!!.javaClass.name)
         }
         assertThat(http.get("/exception?number=abc").body).isEqualTo("java.lang.NumberFormatException")

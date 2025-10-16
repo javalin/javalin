@@ -13,14 +13,13 @@ import io.javalin.http.bodyAsClass
 import io.javalin.http.headerAsClass
 import io.javalin.router.Endpoint
 import io.javalin.security.BasicAuthCredentials
-import java.io.ByteArrayOutputStream
-import java.lang.IllegalStateException
-import java.util.Base64
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.io.ByteArrayOutputStream
+import java.util.*
 
 internal class TestMockContext {
 
@@ -174,7 +173,7 @@ internal class TestMockContext {
             val mockedCtx = Endpoint(POST, endpointUrl) { it.result("Passed") }
                 .handle(mock.build(requestedUrl, Body.ofObject(PandaDto("Kim"))))
 
-            app.unsafeConfig().pvt.internalRouter.addHttpEndpoint(Endpoint(POST, endpointUrl) { ctx ->
+            app.unsafe.pvt.internalRouter.addHttpEndpoint(Endpoint(POST, endpointUrl) { ctx ->
                 // Jetty
 
                 assertThat(mockedCtx.req().remoteAddr).isEqualTo(ctx.req().remoteAddr)

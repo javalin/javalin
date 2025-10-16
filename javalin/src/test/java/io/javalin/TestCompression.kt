@@ -7,6 +7,7 @@
 package io.javalin
 
 
+import com.github.luben.zstd.ZstdInputStream
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.CompressionType
@@ -35,8 +36,6 @@ import java.io.OutputStream
 import java.util.zip.GZIPInputStream
 import kotlin.streams.asStream
 import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
-import com.github.luben.zstd.ZstdInputStream
-import io.javalin.testing.get
 
 class TestCompression {
 
@@ -75,8 +74,8 @@ class TestCompression {
     }.addTestEndpoints()
 
     private fun Javalin.addTestEndpoints() = this.apply {
-        get("/huge") { it.result(getSomeObjects(1000).toString()) }
-        get("/tiny") { it.result(getSomeObjects(10).toString()) }
+        unsafe.routes.get("/huge") { it.result(getSomeObjects(1000).toString()) }
+        unsafe.routes.get("/tiny") { it.result(getSomeObjects(10).toString()) }
     }
 
     private fun preferredCompressors(prefCompressors : List<CompressionType>) = Javalin.create {
@@ -359,7 +358,7 @@ class TestCompression {
     @EnabledIf("brotliAvailable")
     fun `brotli works for dynamic responses of different sizes`() = TestUtil.test(superCompressingApp()) { app, http ->
         listOf(10, 100, 1000, 10_000).forEach { size ->
-            app.get("/$size") { it.result(testDocument.repeat(size)) }
+            app.unsafe.routes.get("/$size") { it.result(testDocument.repeat(size)) }
             assertValidBrotliResponse(http.origin, "/$size")
         }
     }
@@ -371,7 +370,7 @@ class TestCompression {
         TestUtil.test(zstdOnlyApp()) { app, http ->
             // Test different response sizes - small, medium, large
             listOf(10, 100, 1000, 10_000).forEach { size ->
-                app.get("/$size") { it.result(testDocument.repeat(size)) }
+                app.unsafe.routes.get("/$size") { it.result(testDocument.repeat(size)) }
                 assertValidZstdResponse(http.origin, "/$size")
             }
 
@@ -459,7 +458,7 @@ class TestCompression {
     @Test
     fun `gzip works for dynamic responses of different sizes`() = TestUtil.test(superCompressingApp()) { app, http ->
         listOf(10, 100, 1000, 10_000).forEach { size ->
-            app.get("/$size") { it.result(testDocument.repeat(size)) }
+            app.unsafe.routes.get("/$size") { it.result(testDocument.repeat(size)) }
             assertValidGzipResponse(http.origin, "/$size")
         }
     }
@@ -514,16 +513,14 @@ class TestCompression {
     private fun testValidCompressionHandler(handler: Handler) {
         val gzipTestApp = Javalin.create {
             it.http.gzipOnlyCompression()
-        }.apply {
-            get("/gzip-test", handler)
+            it.routes.get("/gzip-test", handler)
         }
         TestUtil.test(gzipTestApp) { _, http ->
             assertValidGzipResponse(http.origin, "/gzip-test")
         }
         val brotliTestApp = Javalin.create {
             it.http.brotliOnlyCompression()
-        }.apply {
-            get("/brotli-test", handler)
+            it.routes.get("/brotli-test", handler)
         }
         TestUtil.test(brotliTestApp) { _, http ->
             assertValidBrotliResponse(http.origin, "/brotli-test")
@@ -532,8 +529,7 @@ class TestCompression {
     private fun testValidUncompressedHandler(handler: Handler) {
         val uncompressedTestApp = Javalin.create {
             it.http.gzipOnlyCompression() // compression is enabled so that we can test minSizeForCompression thresholds
-        }.apply {
-            get("/uncompressed-test", handler)
+            it.routes.get("/uncompressed-test", handler)
         }
         TestUtil.test(uncompressedTestApp) { _, http ->
             assertUncompressedResponse(http.origin, "/uncompressed-test")
@@ -598,7 +594,7 @@ class TestCompression {
 
     @Test
     fun `disableCompression disables compression even if size is big`() = TestUtil.test(superCompressingApp()) { app, http ->
-        app.get("/disabled-compression") { ctx ->
+        app.unsafe.routes.get("/disabled-compression") { ctx ->
             ctx.disableCompression()
             ctx.result("a".repeat(10_000))
         }

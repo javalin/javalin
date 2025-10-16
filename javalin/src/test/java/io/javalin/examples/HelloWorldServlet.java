@@ -8,11 +8,12 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 import io.javalin.testing.TestServlet;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
-import static io.javalin.testing.JavalinTestUtil.*;
+
+import static io.javalin.testing.JavalinTestUtil.get;
 
 public class HelloWorldServlet {
 

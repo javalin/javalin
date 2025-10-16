@@ -18,7 +18,6 @@ import io.javalin.plugin.bundled.GlobalHeadersConfig.ReferrerPolicy
 import io.javalin.plugin.bundled.GlobalHeadersConfig.XFrameOptions
 import io.javalin.plugin.bundled.GlobalHeadersPlugin
 import io.javalin.testing.TestUtil
-import io.javalin.testing.get
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.Duration
@@ -132,7 +131,7 @@ class TestGlobalGlobalHeaderConfigPlugin {
             })
         }
         TestUtil.test(testApp) { app, http ->
-            app.get("/") { it.status(OK) }
+            app.unsafe.routes.get("/") { it.status(OK) }
             val returnedHeaders = http.get("/").headers
             assertThat(returnedHeaders.getFirst(Header.X_CONTENT_TYPE_OPTIONS)).isEqualTo("nosniff")
             assertThat(returnedHeaders.getFirst(Header.CLEAR_SITE_DATA)).isEqualTo(""""*"""")

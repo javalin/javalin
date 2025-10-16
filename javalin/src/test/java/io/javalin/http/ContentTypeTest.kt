@@ -4,7 +4,6 @@ import io.javalin.Javalin
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -67,7 +66,7 @@ class ContentTypeTest {
     @MethodSource("contentTypes")
     fun `quoted charset parameter should be handled successfully`(contentType: String) {
         TestUtil.test { app, http ->
-            app.post("/foo") { ctx ->
+            app.unsafe.routes.post("/foo") { ctx ->
                 ctx.result(ctx.body())
             }
             val result = http.post("/foo")

@@ -7,7 +7,7 @@
 package io.javalin
 
 import io.javalin.testing.TestUtil
-import io.javalin.testing.get
+
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
@@ -35,13 +35,11 @@ class TestCustomJettyHttpConfiguration {
         cfg.jetty.modifyHttpConfiguration {
             it.customizers.add(customizer)
         }
-    }) { javalin, http ->
-        javalin.get("/") {
+        cfg.routes.get("/") {
             it.result(it.scheme())
         }
-
+    }) { javalin, http ->
         val response = http.get("/", mapOf("X-Forwarded-Proto" to "https")).body
-
         assertThat(response).isEqualTo("https")
     }
 
@@ -51,9 +49,7 @@ class TestCustomJettyHttpConfiguration {
             it.result(it.scheme())
         }
     }) { javalin, http ->
-
         val response = http.get("/", mapOf("X-Forwarded-Proto" to "https")).body
-
         assertThat(response).isNotEqualTo("https")
     }
 
@@ -69,22 +65,20 @@ class TestCustomJettyHttpConfiguration {
             cfg.jetty.modifyHttpConfiguration {
                 it.sendXPoweredBy = true
             }
+            cfg.routes.get("*") { it.result("PORT WORKS") }
         }
-
         TestUtil.test(app) { server, _ ->
-            server.get("*") { it.result("PORT WORKS") }
             val response = Unirest.get("http://localhost:$port/").asString()
             assertThat(response.body).isEqualTo("PORT WORKS")
             assertThat(response.headers.getFirst("X-Powered-By")).isNotBlank()
 
         }
-
     }
 
     @Test
     fun `responseBufferSize - default is set to the jetty default for outputBufferSize`() = TestUtil.test { app, http ->
         val firstHttpConnectionFactory = app.jettyServer().server().connectors.firstNotNullOfOrNull { (it as? ServerConnector)?.defaultConnectionFactory as? HttpConnectionFactory }
-        assertThat(app.unsafeConfig().http.responseBufferSize)
+        assertThat(app.unsafe.http.responseBufferSize)
             .isNotNull
             .isEqualTo(firstHttpConnectionFactory?.httpConfiguration?.outputBufferSize)
     }
@@ -93,7 +87,7 @@ class TestCustomJettyHttpConfiguration {
     fun `responseBufferSize - outputBufferSize set via jetty httpConfiguration is respected`() = TestUtil.test(Javalin.create { config ->
         config.jetty.modifyHttpConfiguration { http -> http.outputBufferSize = 42_007 }
     }) { app, http ->
-        assertThat(app.unsafeConfig().http.responseBufferSize)
+        assertThat(app.unsafe.http.responseBufferSize)
             .isNotNull
             .isEqualTo(42_007)
     }
@@ -103,7 +97,7 @@ class TestCustomJettyHttpConfiguration {
         config.http.responseBufferSize = 777_777
         config.jetty.modifyHttpConfiguration { http -> http.outputBufferSize = 555_555 }
     }) { app, http ->
-        assertThat(app.unsafeConfig().http.responseBufferSize)
+        assertThat(app.unsafe.http.responseBufferSize)
             .isNotNull
             .isEqualTo(777_777)
     }

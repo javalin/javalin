@@ -19,8 +19,6 @@ import io.javalin.http.Header.REFERER
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
-import io.javalin.testing.get
-import io.javalin.testing.options
 import kong.unirest.HttpResponse
 import kong.unirest.HttpStatus
 import kong.unirest.Unirest
@@ -151,7 +149,7 @@ class TestCors {
                 cors.addRule { it.anyHost() }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             assertThat(http.get("/", mapOf(ORIGIN to "https://A")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("*")
             // referer gets ignored
             assertThat(http.get("/", mapOf(REFERER to "https://B")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("")
@@ -163,7 +161,7 @@ class TestCors {
                 cors.addRule { it.reflectClientOrigin = true }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             assertThat(http.get("/").header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
             assertThat(
                 http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
@@ -188,7 +186,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             assertThat(http.get("/").header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
             assertThat(
                 http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
@@ -229,8 +227,8 @@ class TestCors {
             it.registerPlugin(CorsPlugin { cors ->
                 cors.addRule { it.reflectClientOrigin = true }
             })
+            it.routes.options("/") { it.result("Hello") }
         }) { app, http ->
-            app.options("/") { it.result("Hello") }
             val response = Unirest.options(http.origin)
                 .header(ORIGIN, "https://example.com")
                 .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
@@ -250,7 +248,7 @@ class TestCors {
                 cors.addRule { it.allowHost("https://origin-1.com") }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             assertThat(
                 http.get("/", mapOf(ORIGIN to "https://origin-2.com")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
             ).isEmpty()
@@ -268,7 +266,7 @@ class TestCors {
                     }
                 })
             }) { app, http ->
-                app.get("/") { it.result("Hello") }
+                app.unsafe.routes.get("/") { it.result("Hello") }
                 val response = Unirest.get(http.origin)
                     .header(ORIGIN, "https://example.com")
                     .asString()
@@ -287,7 +285,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "https://example.com")
                 .asString()
@@ -305,7 +303,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "https://example.com")
                 .asString()
@@ -325,7 +323,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "http://example.com")
                 .asString()
@@ -341,7 +339,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "https://sub.example.com")
                 .asString()
@@ -357,7 +355,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "https://example.com")
                 .asString()
@@ -373,7 +371,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "https://example.com")
                 .asString()
@@ -390,7 +388,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val optionsResponse = Unirest.options(http.origin)
                 .headers(mapOf(ACCESS_CONTROL_REQUEST_METHOD to "GET", ACCESS_CONTROL_REQUEST_HEADERS to "origin", ORIGIN to "https://example.com"))
                 .asString()
@@ -406,7 +404,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "https://example.com")
                 .asString()
@@ -451,7 +449,7 @@ class TestCors {
                 }
             }
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
 
             val response = http.get("/", mapOf(ORIGIN to "https://single"))
             assertThat(response.status)
@@ -481,10 +479,10 @@ class TestCors {
                     }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
-            app.get("/images/{id}") { it.result(it.pathParam("id")) }
-            app.get("/videos/{id}") { it.result(it.pathParam("id")) }
-            app.get("/music/{id}") { it.result(it.pathParam("id")) }
+            app.unsafe.routes.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/images/{id}") { it.result(it.pathParam("id")) }
+            app.unsafe.routes.get("/videos/{id}") { it.result(it.pathParam("id")) }
+            app.unsafe.routes.get("/music/{id}") { it.result(it.pathParam("id")) }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "https://example.com")
                 .asString()

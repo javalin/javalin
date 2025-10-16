@@ -3,7 +3,6 @@ package io.javalin.vue
 import io.javalin.util.javalinLazy
 import java.nio.file.Path
 import java.util.regex.Matcher
-import kotlin.LazyThreadSafetyMode.NONE
 
 internal object VueFileInliner {
     private val newlineRegex = Regex("\\r?\\n")

@@ -29,7 +29,6 @@ import io.javalin.http.HttpStatus.OK
 import io.javalin.router.Endpoint
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
 import kong.unirest.Unirest
@@ -430,7 +429,7 @@ class TestApiBuilder {
 
     private fun testInsertion(handlerType: HandlerType, runnable: Runnable) {
         val app = Javalin.create { it.routes.apiBuilder { runnable.run() } }
-        val endpoints = app.unsafeConfig().pvt.internalRouter.allHttpHandlers()
+        val endpoints = app.unsafe.pvt.internalRouter.allHttpHandlers()
         assertThat(endpoints).hasSize(4)
         assertEndpoint(endpoints[0].endpoint, "/1", handlerType)
         assertEndpoint(endpoints[1].endpoint, "/2", handlerType, Role.A)

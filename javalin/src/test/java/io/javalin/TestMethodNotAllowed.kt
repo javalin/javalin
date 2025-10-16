@@ -4,7 +4,6 @@ import io.javalin.http.Header
 import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import io.javalin.testing.*
 import kong.unirest.HttpMethod
 import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
@@ -115,7 +114,7 @@ class TestMethodNotAllowed {
 
     @Test
     fun `Allow header is not set for 404 responses`() = TestUtil.test { app, http ->
-        app.get("/test") { it.result("Hello") }
+        app.unsafe.routes.get("/test") { it.result("Hello") }
         val response = http.call(HttpMethod.POST, "/test")
         assertThat(response.status).isEqualTo(404)
         assertThat(response.headers["Allow"]).isNullOrEmpty()

@@ -18,7 +18,6 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
 import io.javalin.testing.TestUtil.TestLogsKey
 import io.javalin.testing.httpCode
 import jakarta.servlet.DispatcherType
@@ -28,8 +27,8 @@ import jakarta.servlet.FilterConfig
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.ee10.servlet.ServletResponseHttpWrapper
 import org.eclipse.jetty.ee10.servlet.FilterHolder
+import org.eclipse.jetty.ee10.servlet.ServletResponseHttpWrapper
 import org.eclipse.jetty.server.AliasCheck
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -174,7 +173,7 @@ class TestStaticFiles {
 
     @Test
     fun `before-handler runs before static resources`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
-        app.before("/protected/*") { throw UnauthorizedResponse("Protected") }
+        app.unsafe.routes.before("/protected/*") { throw UnauthorizedResponse("Protected") }
         val response = http.get("/protected/secret.html")
         assertThat(response.httpCode()).isEqualTo(UNAUTHORIZED)
         assertThat(response.status).isEqualTo(UNAUTHORIZED.code)
@@ -364,7 +363,7 @@ class TestStaticFiles {
     fun `logs handlers added on startup`() {
         TestUtil.test(multiLocationStaticResourceApp) { _, _ -> }
         assertThat(
-            multiLocationStaticResourceApp.unsafeConfig().pvt.appDataManager.get(TestLogsKey)
+            multiLocationStaticResourceApp.unsafe.pvt.appDataManager.get(TestLogsKey)
                 .split("Static file handler added")
                 .size - 1
         ).isEqualTo(4)
@@ -372,7 +371,7 @@ class TestStaticFiles {
 
     @Test
     fun `static files can be added after app creation`() = TestUtil.test(
-        Javalin.create().also { it.unsafeConfig().staticFiles.add("/public", Location.CLASSPATH) }
+        Javalin.create().also { it.unsafe.staticFiles.add("/public", Location.CLASSPATH) }
     ) { _, http ->
         val response = http.get("/html.html")
         assertThat(response.httpCode()).isEqualTo(OK)
@@ -383,9 +382,9 @@ class TestStaticFiles {
 
     @Test
     fun `static files can be added after app start with previous static files`() = TestUtil.test(
-        Javalin.create().also { it.unsafeConfig().staticFiles.add("/public", Location.CLASSPATH) }
+        Javalin.create().also { it.unsafe.staticFiles.add("/public", Location.CLASSPATH) }
     ) { app, http ->
-        app.unsafeConfig().staticFiles.add { staticFiles ->
+        app.unsafe.staticFiles.add { staticFiles ->
             staticFiles.hostedPath = "/url-prefix"
             staticFiles.directory = "/public"
             staticFiles.location = Location.CLASSPATH
@@ -408,7 +407,7 @@ class TestStaticFiles {
     fun `static files can be added after app start without previous static files`() = TestUtil.test(
         Javalin.create()
     ) { app, http ->
-        app.unsafeConfig().staticFiles.add("/public", Location.CLASSPATH)
+        app.unsafe.staticFiles.add("/public", Location.CLASSPATH)
         val response = http.get("/html.html")
         assertThat(response.httpCode()).isEqualTo(OK)
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)

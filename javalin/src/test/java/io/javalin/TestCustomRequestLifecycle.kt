@@ -5,7 +5,7 @@ import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.servlet.Task
 import io.javalin.http.servlet.TaskInitializer
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
+
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -38,12 +38,12 @@ class TestCustomRequestLifecycle {
 
     @Test
     fun `can terminate request handling`() = TestUtil.test { app, http ->
-        app.before {
+        app.unsafe.routes.before {
             it.result("Before")
             it.skipRemainingHandlers()
         }
-        app.get("/") { it.result("Http") }
-        app.after { it.result("After") }
+        app.unsafe.routes.get("/") { it.result("Http") }
+        app.unsafe.routes.after { it.result("After") }
         assertThat(http.getBody("/")).isEqualTo("Before")
     }
 

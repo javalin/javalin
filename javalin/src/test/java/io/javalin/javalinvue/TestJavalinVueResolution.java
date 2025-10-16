@@ -17,8 +17,9 @@ package io.javalin.javalinvue;
 
 import io.javalin.vue.VueComponent;
 import org.junit.jupiter.api.Test;
+
+import static io.javalin.testing.JavalinTestUtil.get;
 import static org.assertj.core.api.Assertions.assertThat;
-import static io.javalin.testing.JavalinTestUtil.*;
 
 /**
  * @author tareq

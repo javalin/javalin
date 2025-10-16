@@ -9,7 +9,11 @@ package io.javalin
 
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.markdown.JavalinCommonmark
-import io.javalin.rendering.template.*
+import io.javalin.rendering.template.JavalinFreemarker
+import io.javalin.rendering.template.JavalinMustache
+import io.javalin.rendering.template.JavalinPebble
+import io.javalin.rendering.template.JavalinThymeleaf
+import io.javalin.rendering.template.JavalinVelocity
 import io.javalin.testtools.JavalinTest
 import io.pebbletemplates.pebble.PebbleEngine
 import io.pebbletemplates.pebble.loader.ClasspathLoader

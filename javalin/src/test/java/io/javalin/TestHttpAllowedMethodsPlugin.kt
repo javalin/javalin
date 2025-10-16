@@ -14,7 +14,7 @@ import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.http.HttpStatus.OK
 import io.javalin.plugin.bundled.HttpAllowedMethodsPlugin
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
+
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -23,12 +23,14 @@ class TestHttpAllowedMethodsPlugin {
 
     @Test
     fun `enableHttpOptionsForRoutes allows possible methods on routes`() {
-        val javalin = Javalin.create { it.registerPlugin(HttpAllowedMethodsPlugin()) }
-        javalin.get("/") { it.result("Hello") }
-        javalin.delete("/") { it.status(OK) }
-        javalin.get("/users") { it.result("Users") }
-        javalin.post("/users") { it.status(CREATED) }
-        javalin.patch("/users") { it.status(NOT_MODIFIED) }
+        val javalin = Javalin.create {
+            it.registerPlugin(HttpAllowedMethodsPlugin())
+            it.routes.get("/") { it.result("Hello") }
+            it.routes.delete("/") { it.status(OK) }
+            it.routes.get("/users") { it.result("Users") }
+            it.routes.post("/users") { it.status(CREATED) }
+            it.routes.patch("/users") { it.status(NOT_MODIFIED) }
+        }
 
         TestUtil.test(javalin) { app, http ->
             val response = Unirest.options(http.origin)

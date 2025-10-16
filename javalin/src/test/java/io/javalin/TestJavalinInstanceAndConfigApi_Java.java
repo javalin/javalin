@@ -6,11 +6,20 @@ import io.javalin.config.Key;
 import io.javalin.config.MultipartConfig;
 import io.javalin.json.JavalinJackson;
 import io.javalin.plugin.Plugin;
-import static io.javalin.testing.JavalinTestUtil.*;
-import org.eclipse.jetty.server.ServerConnector;
-import java.util.function.Consumer;
 import io.javalin.websocket.WsConfig;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+
+import java.util.function.Consumer;
+
+import static io.javalin.testing.JavalinTestUtil.after;
+import static io.javalin.testing.JavalinTestUtil.before;
+import static io.javalin.testing.JavalinTestUtil.error;
+import static io.javalin.testing.JavalinTestUtil.exception;
+import static io.javalin.testing.JavalinTestUtil.get;
+import static io.javalin.testing.JavalinTestUtil.post;
+import static io.javalin.testing.JavalinTestUtil.sse;
+import static io.javalin.testing.JavalinTestUtil.ws;
 
 public class TestJavalinInstanceAndConfigApi_Java {
 
@@ -128,9 +137,7 @@ public class TestJavalinInstanceAndConfigApi_Java {
         javalin.javalinServlet();
         javalin.jettyServer();
         javalin.port();
-        javalin.unsafeConfig();
         javalin.stop();
-
     }
 
 }

@@ -14,7 +14,7 @@ import io.javalin.json.fromJsonString
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
 import io.javalin.testing.fasterJacksonMapper
-import io.javalin.testing.*
+
 import io.javalin.util.FileUtil
 import jakarta.servlet.MultipartConfigElement
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -38,7 +38,7 @@ class TestMultipartForms {
 
     @Test
     fun `text is uploaded correctly`() = TestUtil.test { app, http ->
-        app.post("/test-upload") {
+        app.unsafe.routes.post("/test-upload") {
             it.result(it.uploadedFile("upload")!!.contentAndClose { it.readBytes().toString(Charsets.UTF_8) })
         }
         val response = http.post("/test-upload")
@@ -53,7 +53,7 @@ class TestMultipartForms {
 
     @Test
     fun `mp3s are uploaded correctly`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx ->
+        app.unsafe.routes.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")!!
             ctx.json(UploadInfo(uf.filename(), uf.size(), uf.contentType(), uf.extension()))
         }
@@ -71,7 +71,7 @@ class TestMultipartForms {
 
     @Test
     fun `pngs are uploaded correctly`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx ->
+        app.unsafe.routes.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")
             ctx.json(UploadInfo(uf!!.filename(), uf.size(), uf.contentType(), uf.extension()))
         }
@@ -89,7 +89,7 @@ class TestMultipartForms {
 
     @Test
     fun `multiple files are handled correctly`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { it.result(it.uploadedFiles("upload").size.toString()) }
+        app.unsafe.routes.post("/test-upload") { it.result(it.uploadedFiles("upload").size.toString()) }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/image.png"))
             .field("upload", File("src/test/resources/upload-test/sound.mp3"))
@@ -100,7 +100,7 @@ class TestMultipartForms {
 
     @Test
     fun `uploadedFile doesn't throw for missing file`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx ->
+        app.unsafe.routes.post("/test-upload") { ctx ->
             ctx.uploadedFile("non-existing-file")
             ctx.result("OK")
         }
@@ -110,7 +110,7 @@ class TestMultipartForms {
     @Test
     fun `uploadedFileMap throws if body has already been consumed`() {
         val result = TestUtil.testWithResult { app, http ->
-            app.post("/") { ctx ->
+            app.unsafe.routes.post("/") { ctx ->
                 ctx.body() // consume body
                 ctx.uploadedFileMap() // try to consume body again
             }
@@ -124,7 +124,7 @@ class TestMultipartForms {
 
     @Test
     fun `getting all files is handled correctly`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx ->
+        app.unsafe.routes.post("/test-upload") { ctx ->
             ctx.result(ctx.uploadedFiles().joinToString(", ") { it.filename() })
         }
         val response = http.post("/test-upload")
@@ -138,15 +138,15 @@ class TestMultipartForms {
 
     @Test
     fun `custom multipart properties applied correctly`() = TestUtil.test { app, http ->
-        app.before("/test-upload") { ctx ->
+        app.unsafe.routes.before("/test-upload") { ctx ->
             ctx.attribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement("/tmp", 10, 10, 5))
         }
 
-        app.post("/test-upload") { ctx ->
+        app.unsafe.routes.post("/test-upload") { ctx ->
             ctx.result(ctx.uploadedFiles().joinToString(", ") { it.filename() })
         }
 
-        app.exception(Exception::class.java) { e, ctx ->
+        app.unsafe.routes.exception(Exception::class.java) { e, ctx ->
             ctx.result("${e::class.java.canonicalName} ${e.message}")
         }
 
@@ -159,7 +159,7 @@ class TestMultipartForms {
 
     @Test
     fun `getting all files doesn't throw for non multipart request`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { it.result(it.uploadedFiles().joinToString("\n")) }
+        app.unsafe.routes.post("/test-upload") { it.result(it.uploadedFiles().joinToString("\n")) }
 
         val response = http.post("/test-upload")
             .header("content-type", ContentType.PLAIN)
@@ -171,7 +171,7 @@ class TestMultipartForms {
 
     @Test
     fun `mixing files and text fields works`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { it.result(it.formParam("field") + " and " + it.uploadedFile("upload")!!.filename()) }
+        app.unsafe.routes.post("/test-upload") { it.result(it.formParam("field") + " and " + it.uploadedFile("upload")!!.filename()) }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/image.png"))
             .field("field", "text-value")
@@ -181,7 +181,7 @@ class TestMultipartForms {
 
     @Test
     fun `mixing files and text fields works with multiple fields`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { it.result(it.formParam("field") + " and " + it.formParam("field2")) }
+        app.unsafe.routes.post("/test-upload") { it.result(it.formParam("field") + " and " + it.formParam("field2")) }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/image.png"))
             .field("field", "text-value")
@@ -192,7 +192,7 @@ class TestMultipartForms {
 
     @Test
     fun `unicode text-fields work`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { it.result(it.formParam("field") + " and " + it.uploadedFile("upload")!!.filename()) }
+        app.unsafe.routes.post("/test-upload") { it.result(it.formParam("field") + " and " + it.uploadedFile("upload")!!.filename()) }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/text.txt"))
             .field("field", "♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
@@ -202,7 +202,7 @@ class TestMultipartForms {
 
     @Test
     fun `text-fields work`() = TestUtil.test { app, http ->
-        app.post("/test-multipart-text-fields") { ctx ->
+        app.unsafe.routes.post("/test-multipart-text-fields") { ctx ->
             val foosExtractedManually = ctx.formParamMap()["foo"]
             val foos = ctx.formParams("foo")
             val bar = ctx.formParam("bar")
@@ -235,7 +235,7 @@ class TestMultipartForms {
     fun `fields and files work in other client`() = TestUtil.test { app, http ->
         val prefix = "PREFIX: "
         val tempFile = File("src/test/resources/upload-test/text.txt")
-        app.post("/test-multipart-file-and-text") { ctx ->
+        app.unsafe.routes.post("/test-multipart-file-and-text") { ctx ->
             val fileContent = ctx.uploadedFile("upload")!!.contentAndClose { it.readBytes().toString(Charsets.UTF_8) }
             ctx.result(ctx.formParam("prefix")!! + fileContent)
         }
@@ -258,7 +258,7 @@ class TestMultipartForms {
 
     @Test
     fun `returning files as map works`() = TestUtil.test { app, http ->
-        app.post("/test-upload-map") { ctx ->
+        app.unsafe.routes.post("/test-upload-map") { ctx ->
             //get the uploaded files as a map and then sort them
             val files = ctx.uploadedFileMap().toSortedMap()
 
@@ -292,13 +292,13 @@ class TestMultipartForms {
         //note: this test does not check the cache directory is set correctly as there is no way to know which
         //paths exist and are writable on the system the test is being run on.  However, if the other parameters
         //are read successfully
-        app.unsafeConfig().also {
+        app.unsafe.also {
             it.jetty.multipartConfig.maxFileSize(100, SizeUnit.MB)
             it.jetty.multipartConfig.maxInMemoryFileSize(10, SizeUnit.MB)
             it.jetty.multipartConfig.maxTotalRequestSize(1, SizeUnit.GB)
         }
 
-        app.post("/test-multipart-config") { ctx ->
+        app.unsafe.routes.post("/test-multipart-config") { ctx ->
             //get the files - this is solely required to ensure that the preUploadFunction has been called
             ctx.uploadedFiles()
 

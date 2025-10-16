@@ -17,7 +17,7 @@ import io.javalin.jetty.JettyPrecompressingResourceHandler
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
+
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -194,7 +194,7 @@ class TestStaticFilesPrecompressor {
             it.precompress = true
         }
     }) { app, http ->
-        app.after { it.header("X-After", "true") }
+        app.unsafe.routes.after { it.header("X-After", "true") }
         val res = http.get("/html.html")
         assertThat(res.status).describedAs("status").isEqualTo(HttpStatus.OK.code)
         assertThat(res.headers.getFirst("Content-Type")).describedAs("content-type").isEqualTo(ContentType.HTML)

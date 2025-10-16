@@ -12,8 +12,8 @@ import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HandlerType
 import io.javalin.http.HttpStatus
-import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
+import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin
@@ -24,7 +24,6 @@ import io.javalin.router.matcher.MissingBracketsException
 import io.javalin.router.matcher.ParameterNamesNotUniqueException
 import io.javalin.router.matcher.WildcardBracketAdjacentException
 import io.javalin.testing.TestUtil
-import io.javalin.testing.*
 import io.javalin.testing.httpCode
 import io.javalin.websocket.WsHandlerType
 import kong.unirest.HttpMethod
@@ -44,7 +43,7 @@ class TestRouting {
 
     @Test
     fun `basic hello world works`() = TestUtil.test { app, http ->
-        app.get("/hello") { it.result("Hello World") }
+        app.unsafe.routes.get("/hello") { it.result("Hello World") }
         assertThat(http.getStatus("/hello")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")
     }
@@ -63,10 +62,10 @@ class TestRouting {
             config.routes.get("/1") { it.result("Hello World") }
             config.routes.before("/2") { }
         }
-        val handler1 = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/1" }!!
+        val handler1 = app.unsafe.pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/1" }!!
         assertThat(handler1.path).isEqualTo("/1")
         assertThat(handler1.method).isEqualTo(HandlerType.GET)
-        val handler2 = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/2" }!!
+        val handler2 = app.unsafe.pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/2" }!!
         assertThat(handler2.method).isEqualTo(HandlerType.BEFORE)
     }
 
@@ -82,7 +81,7 @@ class TestRouting {
             )
         }
 
-        val endpoint = app.unsafeConfig().pvt.internalRouter.allHttpHandlers().first { it.endpoint.path == "/hello" }.endpoint
+        val endpoint = app.unsafe.pvt.internalRouter.allHttpHandlers().first { it.endpoint.path == "/hello" }.endpoint
         assertThat(endpoint.metadata(TestMetadata::class.java)).isEqualTo(TestMetadata)
     }
 
@@ -92,10 +91,10 @@ class TestRouting {
             config.routes.ws("/1") { }
             config.routes.wsBefore("/2") { }
         }
-        val handler1 = app.unsafeConfig().pvt.internalRouter.allWsHandlers().find { it.path == "/1" }!!
+        val handler1 = app.unsafe.pvt.internalRouter.allWsHandlers().find { it.path == "/1" }!!
         assertThat(handler1.path).isEqualTo("/1")
         assertThat(handler1.type).isEqualTo(WsHandlerType.WEBSOCKET)
-        val handler2 = app.unsafeConfig().pvt.internalRouter.allWsHandlers().find { it.path == "/2" }!!
+        val handler2 = app.unsafe.pvt.internalRouter.allWsHandlers().find { it.path == "/2" }!!
         assertThat(handler2.type).isEqualTo(WsHandlerType.WEBSOCKET_BEFORE)
     }
 

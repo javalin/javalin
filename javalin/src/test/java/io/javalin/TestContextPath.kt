@@ -9,7 +9,6 @@ package io.javalin
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
-import io.javalin.testing.get
 import io.javalin.testing.httpCode
 import io.javalin.util.Util
 import org.assertj.core.api.Assertions.assertThat
@@ -46,7 +45,7 @@ class TestContextPath {
     fun `router works with context-path`() {
         val javalin = Javalin.create { it.router.contextPath = "/context-path" }
         TestUtil.test(javalin) { app, http ->
-            app.get("/hello") { it.result("Hello World") }
+            app.unsafe.routes.get("/hello") { it.result("Hello World") }
             assertThat(http.get("/hello").httpCode()).isEqualTo(NOT_FOUND)
             assertThat(http.getBody("/context-path/hello")).isEqualTo("Hello World")
         }
@@ -56,7 +55,7 @@ class TestContextPath {
     fun `router works with multi-level context-path`() {
         val javalin = Javalin.create { it.router.contextPath = "/context-path/path-context" }
         TestUtil.test(javalin) { app, http ->
-            app.get("/hello") { it.result("Hello World") }
+            app.unsafe.routes.get("/hello") { it.result("Hello World") }
             assertThat(http.get("/context-path/").httpCode()).isEqualTo(NOT_FOUND)
             assertThat(http.getBody("/context-path/path-context/hello")).isEqualTo("Hello World")
         }

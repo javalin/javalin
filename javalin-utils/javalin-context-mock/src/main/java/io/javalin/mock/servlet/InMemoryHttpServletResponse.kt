@@ -8,7 +8,7 @@ import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.io.PrintWriter
 import java.net.URLEncoder
-import java.util.Locale
+import java.util.*
 
 // @formatter:off
 @Suppress("MemberVisibilityCanBePrivate")
