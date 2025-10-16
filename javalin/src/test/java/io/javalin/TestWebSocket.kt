@@ -768,6 +768,21 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("123")
     }
 
+    @Test
+    fun `websocket idle timeout works`() = TestUtil.test(Javalin.create {
+        it.jetty.modifyWebSocketServletFactory {
+            it.idleTimeout = Duration.ofMillis(10L)
+        }
+    }) { app, _ ->
+        app.unsafe.routes.ws("/ws") { ws ->
+            ws.onClose { ctx -> app.logger().log.add("Closed due to timeout") }
+        }
+        val client = TestClient(app, "/ws")
+        client.connectBlocking()
+        Thread.sleep(50) // Wait longer than the timeout to provoke it
+        assertThat(app.logger().log).contains("Closed due to timeout")
+    }
+
     // ********************************************************************************************
     // Helpers
     // ********************************************************************************************
