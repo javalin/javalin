@@ -8,6 +8,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>javalin</artifactId>
+    <name>Javalin</name>
+    <description>Javalin: Simple REST APIs for Java and Kotlin</description>
 
     <properties>
         <copy-build-resources.skip>false</copy-build-resources.skip>
@@ -248,7 +250,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>${exec.plugin.version}</version>
             </plugin>
         </plugins>
     </build>

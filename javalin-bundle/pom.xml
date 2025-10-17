@@ -8,6 +8,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>javalin-bundle</artifactId>
+    <name>Javalin Bundle</name>
+    <description>Javalin with commonly used optional dependencies included</description>
 
     <properties>
         <copy-build-resources.skip>false</copy-build-resources.skip>

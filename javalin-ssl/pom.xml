@@ -9,6 +9,7 @@
 
     <groupId>io.javalin.community.ssl</groupId>
     <artifactId>javalin-ssl</artifactId>
+    <name>Javalin SSL</name>
 
     <description>Straightforward SSL Configuration for Javalin!</description>
     <url>https://javalin.io/plugins/ssl-helpers</url>
