@@ -4,13 +4,12 @@
 
     <parent>
         <groupId>io.javalin</groupId>
-        <artifactId>javalin-utils</artifactId>
+        <artifactId>javalin-parent</artifactId>
         <version>7.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>coverage</artifactId>
+    <artifactId>jacoco-coverage-report</artifactId>
     <packaging>pom</packaging>
-    <name>Jacoco Coverage Report</name>
 
     <dependencies>
         <dependency>
@@ -35,7 +34,7 @@
         </dependency>
         <dependency>
             <groupId>io.javalin.community.ssl</groupId>
-            <artifactId>ssl-plugin</artifactId>
+            <artifactId>javalin-ssl</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -79,3 +78,4 @@
     </build>
 
 </project>
+

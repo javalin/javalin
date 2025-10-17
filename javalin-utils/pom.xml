@@ -12,7 +12,6 @@
 
     <modules>
         <module>javalin-context-mock</module>
-        <module>coverage</module>
     </modules>
 
     <properties>
