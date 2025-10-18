@@ -136,6 +136,7 @@ class ContextMock private constructor(
             jsonMapper = mockConfig.javalinConfig.pvt.jsonMapper.value,
             requestLoggerEnabled = false,
             strictContentTypes = false,
+            multipartConfig = mockConfig.javalinConfig.jetty.multipartConfig,
         )
 
 }

@@ -299,7 +299,7 @@ class TestMultipartForms {
         }
 
         app.unsafe.routes.post("/test-multipart-config") { ctx ->
-            //get the files - this is solely required to ensure that the preUploadFunction has been called
+            //get the files - this is solely required to ensure that the multipart config has been applied
             ctx.uploadedFiles()
 
             //now get hold of the MultipartConfigElement from the request attributes

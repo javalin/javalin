@@ -11,6 +11,7 @@ import io.javalin.compression.CompressionStrategy
 import io.javalin.config.AppDataManager
 import io.javalin.config.JavalinConfig
 import io.javalin.config.Key
+import io.javalin.config.MultipartConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
@@ -49,7 +50,8 @@ data class JavalinServletContextConfig(
     val requestLoggerEnabled: Boolean,
     val defaultContentType: String,
     val jsonMapper: JsonMapper,
-    val strictContentTypes: Boolean
+    val strictContentTypes: Boolean,
+    val multipartConfig: MultipartConfig
 ) {
     companion object {
         fun of(cfg: JavalinConfig): JavalinServletContextConfig =
@@ -61,6 +63,7 @@ data class JavalinServletContextConfig(
                 defaultContentType = cfg.http.defaultContentType,
                 jsonMapper = cfg.pvt.jsonMapper.value,
                 strictContentTypes = cfg.http.strictContentTypes,
+                multipartConfig = cfg.jetty.multipartConfig,
             )
     }
 }
@@ -110,6 +113,8 @@ open class JavalinServletContext(
     override fun <T> with(clazz: Class<out ContextPlugin<*, T>>) = cfg.pluginManager.getContextPlugin(clazz).createExtension(this)
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
+
+    override fun multipartConfig(): MultipartConfig = cfg.multipartConfig
 
     override fun endpointHandlerPath() = when {
         handlerType() != HandlerType.BEFORE -> endpointHandlerPath

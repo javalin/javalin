@@ -189,10 +189,13 @@ interface Context {
 
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> = when {
-        isMultipartFormData() -> MultipartUtil.fieldMap(req())
+        isMultipartFormData() -> MultipartUtil.fieldMap(req(), multipartConfig())
         isFormUrlencoded() || !strictContentTypes() -> splitKeyValueStringAndGroupByKey(body(), characterEncoding() ?: "UTF-8")
         else -> mapOf()
     }
+
+    /** Gets the multipart configuration for this context */
+    fun multipartConfig(): io.javalin.config.MultipartConfig
 
     fun strictContentTypes(): Boolean
 
@@ -314,13 +317,13 @@ interface Context {
 
     /** Gets a list of [UploadedFile]s for the specified name, or empty list. */
     fun uploadedFiles(fileName: String): List<UploadedFile> = when {
-        isMultipartFormData() -> MultipartUtil.uploadedFiles(req(), fileName)
+        isMultipartFormData() -> MultipartUtil.uploadedFiles(req(), fileName, multipartConfig())
         else -> listOf()
     }
 
     /** Gets a list of [UploadedFile]s, or empty list. */
     fun uploadedFiles(): List<UploadedFile> = when {
-        isMultipartFormData() -> MultipartUtil.uploadedFiles(req())
+        isMultipartFormData() -> MultipartUtil.uploadedFiles(req(), multipartConfig())
         else -> listOf()
     }
 
@@ -331,7 +334,7 @@ interface Context {
      * If called on a non-multipart request this returns an empty map
      */
     fun uploadedFileMap(): Map<String, List<UploadedFile>> = when {
-        isMultipartFormData() -> MultipartUtil.uploadedFileMap(req())
+        isMultipartFormData() -> MultipartUtil.uploadedFileMap(req(), multipartConfig())
         else -> emptyMap()
     }
 

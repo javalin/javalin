@@ -381,25 +381,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.jetbrains.dokka</groupId>
-                <artifactId>dokka-maven-plugin</artifactId>
-                <version>${dokka.plugin.version}</version>
-                <configuration>
-                    <jdkVersion>${dokka.jdkVersion}</jdkVersion>
-                    <failOnWarning>false</failOnWarning>
-                    <suppressObviousFunctions>true</suppressObviousFunctions>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <id>attach-javadocs-dokka</id>
-                        <goals>
-                            <goal>javadocJar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -554,6 +536,25 @@
                                         </requireJavaVersion>
                                     </rules>
                                 </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jetbrains.dokka</groupId>
+                        <artifactId>dokka-maven-plugin</artifactId>
+                        <version>${dokka.plugin.version}</version>
+                        <configuration>
+                            <jdkVersion>${dokka.jdkVersion}</jdkVersion>
+                            <failOnWarning>false</failOnWarning>
+                            <suppressObviousFunctions>true</suppressObviousFunctions>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <id>attach-javadocs-dokka</id>
+                                <goals>
+                                    <goal>javadocJar</goal>
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>

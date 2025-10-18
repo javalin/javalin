@@ -17,16 +17,6 @@ class MultipartConfig {
     private var maxTotalRequestSize: Long = -1
     private var maxInMemoryFileSize: Int = 1
 
-    //when the configuration is initialized we override the preupload function in the multipart util to read the
-    //configuration from these settings rather than the current hard-coded method
-    init {
-        MultipartUtil.preUploadFunction = { req ->
-            if (req.getAttribute(MultipartUtil.MULTIPART_CONFIG_ATTRIBUTE) == null) {
-                req.setAttribute(MultipartUtil.MULTIPART_CONFIG_ATTRIBUTE, multipartConfigElement())
-            }
-        }
-    }
-
     /**
      * Sets the location of the cache directory used to write file uploads
      *
@@ -69,7 +59,7 @@ class MultipartConfig {
     /**
      * builds a multipart configuration element from the current file upload settings
      */
-    private fun multipartConfigElement(): MultipartConfigElement {
+    internal fun multipartConfigElement(): MultipartConfigElement {
         return MultipartConfigElement(cacheDirectory, maxFileSize, maxTotalRequestSize, maxInMemoryFileSize)
     }
 }
