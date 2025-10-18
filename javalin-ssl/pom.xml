@@ -30,10 +30,6 @@
         </developer>
     </developers>
 
-    <properties>
-        <copy-build-resources.skip>false</copy-build-resources.skip>
-    </properties>
-
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
         <testSourceDirectory>src/test/kotlin</testSourceDirectory>

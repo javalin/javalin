@@ -11,10 +11,6 @@
     <name>Javalin Test Tools</name>
     <description>Testing utilities and helpers for Javalin applications</description>
 
-    <properties>
-        <copy-build-resources.skip>false</copy-build-resources.skip>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.javalin</groupId>

@@ -11,10 +11,6 @@
     <name>Javalin</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
 
-    <properties>
-        <copy-build-resources.skip>false</copy-build-resources.skip>
-    </properties>
-
     <dependencies>
 
         <dependency>

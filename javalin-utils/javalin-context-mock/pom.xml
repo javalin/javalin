@@ -11,10 +11,6 @@
     <name>Javalin Context Mock</name>
     <description>Mock utilities for testing Javalin context objects</description>
 
-    <properties>
-        <copy-build-resources.skip>false</copy-build-resources.skip>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.javalin</groupId>

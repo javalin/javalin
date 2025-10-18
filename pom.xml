@@ -67,7 +67,7 @@
 
         <!-- PLUGINS -->
         <compiler.plugin.version>3.14.0</compiler.plugin.version>
-        <dokka.plugin.version>2.0.0</dokka.plugin.version>
+        <dokka.plugin.version>1.9.20</dokka.plugin.version>
         <javadoc.plugin.version>3.6.0</javadoc.plugin.version>
         <gpg.plugin.version>3.2.8</gpg.plugin.version>
         <jar.plugin.version>3.4.2</jar.plugin.version>
@@ -80,7 +80,6 @@
         <resources.plugin.version>3.3.1</resources.plugin.version>
         <source.plugin.version>3.3.1</source.plugin.version>
         <moditect.plugin.version>1.2.2.Final</moditect.plugin.version>
-        <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
         <jacoco.plugin.version>0.8.13</jacoco.plugin.version>
 
         <!-- RENDERING ENGINE VERSIONS -->
@@ -97,7 +96,7 @@
 
         <!-- DEPENDENCIES -->
         <annotations.version>26.0.2</annotations.version>
-        <jetty.version>12.1.0</jetty.version>
+        <jetty.version>12.1.2</jetty.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
         <jackson.version>2.20.0</jackson.version>
         <jackson.databind.version>2.20.0</jackson.databind.version>
@@ -383,6 +382,25 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.jetbrains.dokka</groupId>
+                <artifactId>dokka-maven-plugin</artifactId>
+                <version>${dokka.plugin.version}</version>
+                <configuration>
+                    <jdkVersion>${dokka.jdkVersion}</jdkVersion>
+                    <failOnWarning>false</failOnWarning>
+                    <suppressObviousFunctions>true</suppressObviousFunctions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <id>attach-javadocs-dokka</id>
+                        <goals>
+                            <goal>javadocJar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.plugin.version}</version>
@@ -414,27 +432,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${compiler.plugin.version}</version>
                 </plugin>
-                <plugin>
-                    <groupId>org.jetbrains.dokka</groupId>
-                    <artifactId>dokka-maven-plugin</artifactId>
-                    <version>${dokka.plugin.version}</version>
-                    <configuration>
-                        <jdkVersion>${dokka.jdkVersion}</jdkVersion>
-                        <sourceDirectories>
-                            <dir>${project.basedir}/src/main/java</dir>
-                            <dir>${project.basedir}/src/main/kotlin</dir>
-                        </sourceDirectories>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <phase>package</phase>
-                            <id>attach-javadocs-dokka</id>
-                            <goals>
-                                <goal>javadocJar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
+
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${surefire.plugin.version}</version>
@@ -538,18 +536,6 @@
             <id>sonatype-oss-release</id>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.jetbrains.dokka</groupId>
-                        <artifactId>dokka-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <phase>pre-site</phase>
-                                <goals>
-                                    <goal>dokka</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-enforcer-plugin</artifactId>
