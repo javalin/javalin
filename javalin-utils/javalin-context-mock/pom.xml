@@ -8,10 +8,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>javalin-context-mock</artifactId>
-
-    <properties>
-        <copy-build-resources.skip>false</copy-build-resources.skip>
-    </properties>
+    <name>Javalin Context Mock</name>
+    <description>Mock utilities for testing Javalin context objects</description>
 
     <dependencies>
         <dependency>

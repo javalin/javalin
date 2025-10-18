@@ -1,18 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>javalin-parent</artifactId>
+        <artifactId>javalin-utils</artifactId>
         <groupId>io.javalin</groupId>
         <version>7.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>javalin-utils</artifactId>
-    <name>Javalin Utils (parent)</name>
+    <artifactId>javalin-rendering</artifactId>
+    <name>Javalin Rendering (parent)</name>
     <packaging>pom</packaging>
 
     <modules>
-        <module>javalin-context-mock</module>
-        <module>javalin-rendering</module>
+        <module>javalin-rendering-velocity</module>
+        <module>javalin-rendering-freemarker</module>
+        <module>javalin-rendering-thymeleaf</module>
+        <module>javalin-rendering-mustache</module>
+        <module>javalin-rendering-pebble</module>
+        <module>javalin-rendering-commonmark</module>
     </modules>
 </project>
+

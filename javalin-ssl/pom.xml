@@ -9,6 +9,7 @@
 
     <groupId>io.javalin.community.ssl</groupId>
     <artifactId>javalin-ssl</artifactId>
+    <name>Javalin SSL</name>
 
     <description>Straightforward SSL Configuration for Javalin!</description>
     <url>https://javalin.io/plugins/ssl-helpers</url>
@@ -28,10 +29,6 @@
             <email>alberto@zugazagoitia.com</email>
         </developer>
     </developers>
-
-    <properties>
-        <copy-build-resources.skip>false</copy-build-resources.skip>
-    </properties>
 
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
