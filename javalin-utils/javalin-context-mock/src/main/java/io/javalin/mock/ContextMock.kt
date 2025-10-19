@@ -137,6 +137,8 @@ class ContextMock private constructor(
             requestLoggerEnabled = false,
             strictContentTypes = false,
             multipartConfig = mockConfig.javalinConfig.jetty.multipartConfig,
+            eventManager = mockConfig.javalinConfig.pvt.eventManager,
+            asyncExecutor = mockConfig.javalinConfig.pvt.asyncExecutor,
         )
 
 }
