@@ -6,13 +6,14 @@
 
 package io.javalin.validation
 
+import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
 
 typealias Check<T> = (T) -> Boolean
 
 data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: ValidationError<T>)
-class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : RuntimeException() //TODO: Extend JavalinException
+class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : JavalinException("Validation failed")
 data class ValidationError<T> @JvmOverloads constructor(
     val message: String,
     val args: Map<String, Any?> = mapOf(),

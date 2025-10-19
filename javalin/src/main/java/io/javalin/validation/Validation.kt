@@ -10,9 +10,10 @@ import io.javalin.config.JavalinConfig
 import io.javalin.config.Key
 import io.javalin.config.ValidationConfig
 import io.javalin.http.HttpStatus
+import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 
-class MissingConverterException(val className: String) : RuntimeException()
+class MissingConverterException(val className: String) : JavalinException("No converter registered for class: $className")
 
 class Validation(private val validationConfig: ValidationConfig = ValidationConfig()) {
 

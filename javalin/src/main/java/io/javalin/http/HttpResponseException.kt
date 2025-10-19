@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.util.JavalinException
 import io.javalin.http.HttpStatus.ACCEPTED
 import io.javalin.http.HttpStatus.ALREADY_REPORTED
 import io.javalin.http.HttpStatus.BAD_GATEWAY
@@ -73,7 +74,7 @@ open class HttpResponseException @JvmOverloads constructor(
     val status: Int,
     message: String = "",
     val details: Map<String, String> = mapOf()
-) : RuntimeException(message) {
+) : JavalinException(message) {
     constructor(
         status: HttpStatus,
         message: String = status.message,
