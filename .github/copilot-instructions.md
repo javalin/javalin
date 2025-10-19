@@ -38,9 +38,9 @@ Always reference these instructions first and fallback to search or bash command
 // Test script: Validate core Javalin functionality
 var app = Javalin.create(config -> {
     // Basic config test
-}).get("/", ctx -> ctx.result("Hello Javalin!"))
-  .get("/health", ctx -> ctx.json(Map.of("status", "ok")))
-  .start(7070);
+    config.routes.get("/", ctx -> ctx.result("Hello Javalin!"));
+    config.routes.get("/health", ctx -> ctx.json(Map.of("status", "ok")));
+}).start(7070);
 
 // Test HTTP requests work
 // Verify responses are correct
