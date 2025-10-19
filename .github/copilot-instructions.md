@@ -273,7 +273,7 @@ Javalin.create(config -> {
 import io.javalin.apibuilder.ApiBuilder.*;
 
 Javalin.create(config -> {
-    config.router.apiBuilder(() -> {
+    config.routes.apiBuilder(() -> {
         path("/users", () -> {
             get(UserController::getAll);
             post(UserController::create);
@@ -593,7 +593,7 @@ Javalin.create(config -> {
 import io.javalin.apibuilder.ApiBuilder.*;
 
 Javalin.create(config -> {
-    config.router.apiBuilder(() -> {
+    config.routes.apiBuilder(() -> {
         ws("/websocket", ws -> {
             ws.onConnect(ctx -> ctx.send("Hello"));
             ws.onMessage(ctx -> ctx.send("Echo: " + ctx.message()));
