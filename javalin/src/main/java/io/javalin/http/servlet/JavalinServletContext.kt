@@ -23,6 +23,7 @@ import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.PluginManager
+import io.javalin.router.Endpoint
 import io.javalin.router.ParsedEndpoint
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
@@ -84,6 +85,7 @@ open class JavalinServletContext(
     internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
     private var resultStream: InputStream? = null,
     private var minSizeForCompression: Int = cfg.compressionStrategy.defaultMinSizeForCompression,
+    private var matchedEndpoint: Endpoint? = null,
 ) : Context {
 
     init {
@@ -94,6 +96,7 @@ open class JavalinServletContext(
 
     fun update(parsedEndpoint: ParsedEndpoint, requestUri: String) = also {
         handlerType = parsedEndpoint.endpoint.method
+        matchedEndpoint = parsedEndpoint.endpoint
         if (matchedPath != parsedEndpoint.endpoint.path) { // if the path has changed, we have to extract path params
             matchedPath = parsedEndpoint.endpoint.path
             if (parsedEndpoint.endpoint.hasPathParams()) {
@@ -132,6 +135,7 @@ open class JavalinServletContext(
 
     override fun handlerType(): HandlerType = handlerType
     override fun matchedPath(): String = matchedPath
+    override fun matchedEndpoint(): Endpoint? = matchedEndpoint
 
     /** has to be cached, because we can read input stream only once */
     private val body by javalinLazy(SYNCHRONIZED) { super.bodyAsBytes() }

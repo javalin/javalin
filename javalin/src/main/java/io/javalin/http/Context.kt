@@ -26,6 +26,7 @@ import io.javalin.http.util.SeekableWriter
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextPlugin
 import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
+import io.javalin.router.Endpoint
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.function.ThrowingRunnable
@@ -66,6 +67,9 @@ interface Context {
 
     /** Gets the path that was used to match request (also includes before/after paths) */
     fun matchedPath(): String
+
+    /** Gets the matched endpoint (null in before, available in endpoint/after) */
+    fun matchedEndpoint(): Endpoint?
 
     /** Gets the endpoint path that was used to match request (null in before, available in endpoint/after) */
     fun endpointHandlerPath(): String

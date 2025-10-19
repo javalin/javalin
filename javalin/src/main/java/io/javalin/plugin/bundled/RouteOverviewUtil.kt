@@ -177,7 +177,7 @@ object RouteOverviewUtil {
                         "path": "${it.path}",
                         "handlerType": "${it.method}",
                         "metaInfo": "${it.handler.metaInfo}",
-                        "roles": "${it.roles}"
+                        "roles": "${it.metadata(Roles::class.java)?.roles ?: emptySet()}"
                     }
                     """
             }

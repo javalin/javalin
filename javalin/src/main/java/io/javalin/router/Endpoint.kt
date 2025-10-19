@@ -4,8 +4,6 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.http.NotFoundResponse
-import io.javalin.security.Roles
-import io.javalin.security.RouteRole
 
 /**
  * Marker interface for endpoint metadata.
@@ -27,23 +25,6 @@ open class Endpoint @JvmOverloads constructor(
     metadata: Set<EndpointMetadata> = emptySet(),
     val handler: Handler
 ) {
-
-    @Deprecated("Use Endpoint builder instead", ReplaceWith("Endpoint.create(method, path)"))
-    constructor(
-        method: HandlerType,
-        path: String,
-        vararg roles: RouteRole,
-        handler: Handler
-    ) : this(
-        method = method,
-        path = path,
-        metadata = setOf(Roles(roles.toSet())),
-        handler = handler
-    )
-
-    @Deprecated("Use metadata instead", ReplaceWith("getMetadata(Roles.class)"))
-    val roles: Set<RouteRole>
-        get() = metadata(Roles::class.java)?.roles ?: emptySet()
 
     private val metadata = metadata.associateBy { it::class.java }
 
@@ -73,7 +54,6 @@ open class Endpoint @JvmOverloads constructor(
 
         }
 
-        @Deprecated("Experimental feature")
         @JvmStatic
         fun create(method: HandlerType, path: String): EndpointBuilder = EndpointBuilder(method, path)
     }

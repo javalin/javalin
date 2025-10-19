@@ -24,10 +24,10 @@ import java.util.*
 internal class TestMockContext {
 
     object TestController {
-        val defaultApiEndpoint = Endpoint(GET, "/api/{simple}/<complex>") { it.result("Hello ${it.ip()}").status(IM_A_TEAPOT) }
-        val asyncApiEndpoint = Endpoint(GET, "/api/async") { it.async { it.result("Welcome to the future") } }
-        val consumeBodyEndpoint = Endpoint(POST, "/api/consume") { it.result(it.body()) }
-        val sessionEndpoint = Endpoint(GET, "/api/session") { it.sessionAttribute("a", "b") }
+        val defaultApiEndpoint = Endpoint.create(GET, "/api/{simple}/<complex>").handler { it.result("Hello ${it.ip()}").status(IM_A_TEAPOT) }
+        val asyncApiEndpoint = Endpoint.create(GET, "/api/async").handler { it.async { it.result("Welcome to the future") } }
+        val consumeBodyEndpoint = Endpoint.create(POST, "/api/consume").handler { it.result(it.body()) }
+        val sessionEndpoint = Endpoint.create(GET, "/api/session").handler { it.sessionAttribute("a", "b") }
     }
 
     data class PandaDto(val name: String)

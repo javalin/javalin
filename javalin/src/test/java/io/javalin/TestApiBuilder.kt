@@ -28,6 +28,7 @@ import io.javalin.http.HttpStatus.NO_CONTENT
 import io.javalin.http.HttpStatus.OK
 import io.javalin.router.Endpoint
 import io.javalin.security.RouteRole
+import io.javalin.security.Roles
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
@@ -440,7 +441,8 @@ class TestApiBuilder {
     private fun assertEndpoint(endpoint: Endpoint, expectedPath: String, expectedMethod: HandlerType, vararg expectedRoles: Role) {
         assertThat(endpoint.path).isEqualTo(expectedPath)
         assertThat(endpoint.method).isEqualTo(expectedMethod)
-        assertThat(endpoint.roles).containsExactly(*expectedRoles)
+        val roles = endpoint.metadata(Roles::class.java)?.roles ?: emptySet()
+        assertThat(roles).containsExactly(*expectedRoles)
     }
 
 }

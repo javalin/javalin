@@ -338,6 +338,31 @@ class TestRequest {
     }
 
     @Test
+    fun `matchedEndpoint returns the endpoint used to match the request`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/endpoint") { it.result(it.matchedEndpoint()?.path ?: "null") }
+        app.unsafe.routes.get("/endpoint/{path-param}") { it.result(it.matchedEndpoint()?.path ?: "null") }
+        app.unsafe.routes.after("/endpoint/{path-param}/{param2}") { it.result(it.matchedEndpoint()?.path ?: "null") }
+        assertThat(http.getBody("/endpoint")).isEqualTo("/endpoint")
+        assertThat(http.getBody("/endpoint/p1")).isEqualTo("/endpoint/{path-param}")
+        assertThat(http.getBody("/endpoint/p1/p2")).isEqualTo("/endpoint/{path-param}/{param2}")
+    }
+
+    @Test
+    fun `matchedEndpoint is available in before handler with wildcard path`() = TestUtil.test { app, http ->
+        app.unsafe.routes.before { it.result(it.matchedEndpoint()?.path ?: "null") }
+        app.unsafe.routes.get("/endpoint") { }
+        assertThat(http.getBody("/endpoint")).isEqualTo("*")
+    }
+
+    @Test
+    fun `matchedEndpoint returns correct handler type`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/endpoint") { it.result(it.matchedEndpoint()?.method?.name ?: "null") }
+        app.unsafe.routes.post("/endpoint") { it.result(it.matchedEndpoint()?.method?.name ?: "null") }
+        assertThat(http.getBody("/endpoint")).isEqualTo("GET")
+        assertThat(http.post("/endpoint").asString().body).isEqualTo("POST")
+    }
+
+    @Test
     fun `endpointHandlerPath returns the path used to match the request, excluding any AFTER handlers`() = TestUtil.test { app, http ->
         app.unsafe.routes.before { }
         app.unsafe.routes.get("/matched/{path-param}") { }

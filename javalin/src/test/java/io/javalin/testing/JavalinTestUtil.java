@@ -13,6 +13,7 @@ import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.router.Endpoint;
 import io.javalin.security.RouteRole;
+import io.javalin.security.Roles;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsHandlerType;
 
@@ -27,77 +28,85 @@ public class JavalinTestUtil {
     // HTTP Methods
     public static Javalin get(Javalin app, String path, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.GET, path, java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.GET, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin post(Javalin app, String path, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.POST, path, java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.POST, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin put(Javalin app, String path, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.PUT, path, java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.PUT, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin put(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.PUT, path, roles, handler)
+            Endpoint.create(HandlerType.PUT, path)
+                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .handler(handler)
         );
         return app;
     }
 
     public static Javalin patch(Javalin app, String path, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.PATCH, path, java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.PATCH, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin patch(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.PATCH, path, roles, handler)
+            Endpoint.create(HandlerType.PATCH, path)
+                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .handler(handler)
         );
         return app;
     }
 
     public static Javalin delete(Javalin app, String path, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.DELETE, path, java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.DELETE, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin delete(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.DELETE, path, roles, handler)
+            Endpoint.create(HandlerType.DELETE, path)
+                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .handler(handler)
         );
         return app;
     }
 
     public static Javalin head(Javalin app, String path, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.HEAD, path, java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.HEAD, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin options(Javalin app, String path, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.OPTIONS, path, java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.OPTIONS, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin options(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.OPTIONS, path, roles, handler)
+            Endpoint.create(HandlerType.OPTIONS, path)
+                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .handler(handler)
         );
         return app;
     }
@@ -105,14 +114,18 @@ public class JavalinTestUtil {
     // HTTP Methods with roles
     public static Javalin get(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.GET, path, roles, handler)
+            Endpoint.create(HandlerType.GET, path)
+                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .handler(handler)
         );
         return app;
     }
 
     public static Javalin post(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.POST, path, roles, handler)
+            Endpoint.create(HandlerType.POST, path)
+                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .handler(handler)
         );
         return app;
     }
@@ -120,28 +133,28 @@ public class JavalinTestUtil {
     // Before/After handlers
     public static Javalin before(Javalin app, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.BEFORE, "*", java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.BEFORE, "*").handler(handler)
         );
         return app;
     }
 
     public static Javalin before(Javalin app, String path, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.BEFORE, path, java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.BEFORE, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin after(Javalin app, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.AFTER, "*", java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.AFTER, "*").handler(handler)
         );
         return app;
     }
 
     public static Javalin after(Javalin app, String path, Handler handler) {
         app.unsafe.pvt.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.AFTER, path, java.util.Collections.emptySet(), handler)
+            Endpoint.create(HandlerType.AFTER, path).handler(handler)
         );
         return app;
     }
