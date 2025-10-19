@@ -529,6 +529,15 @@ interface Context {
 
     fun routeRoles(): Set<RouteRole>
 
+    /**
+     * Emits a user-defined event to all registered handlers.
+     * This method runs the event handlers asynchronously using the configured thread pool.
+     *
+     * @param event the event to emit
+     * @return a CompletableFuture that completes when all handlers have finished processing the event
+     */
+    fun <T : Any> emit(event: T): CompletableFuture<Void>
+
 }
 
 /** Reified version of [Context.json] (Kotlin only) */

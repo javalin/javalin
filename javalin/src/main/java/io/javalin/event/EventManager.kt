@@ -11,6 +11,9 @@ import io.javalin.http.HandlerType
 import io.javalin.security.RouteRole
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsHandlerType
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
 import java.util.function.Consumer
 
 /**
@@ -22,6 +25,9 @@ class EventManager {
     var handlerAddedHandlers = mutableSetOf<Consumer<HandlerMetaInfo>>()
     val wsHandlerAddedHandlers = mutableSetOf<Consumer<WsHandlerMetaInfo>>()
 
+    /** Map of event types to their handlers */
+    private val userEventHandlers = ConcurrentHashMap<Class<*>, MutableSet<Consumer<*>>>()
+
     /** Fires a Javalin Lifecycle Event to the listeners. */
     fun fireEvent(javalinLifecycleEvent: JavalinLifecycleEvent) = lifecycleHandlers[javalinLifecycleEvent]?.forEach { it.handleEvent() }
     /** Fires an event telling listeners that a new HTTP handler has been added.*/
@@ -31,6 +37,35 @@ class EventManager {
 
     internal fun addLifecycleEvent(event: JavalinLifecycleEvent, lifecycleEventListener: LifecycleEventListener) {
         lifecycleHandlers[event]!!.add(lifecycleEventListener)
+    }
+
+    /**
+     * Registers a handler for a user-defined event type.
+     * @param eventClass the class of the event
+     * @param handler the handler to be called when the event is emitted
+     */
+    fun <T : Any> on(eventClass: Class<T>, handler: Consumer<T>) {
+        userEventHandlers.computeIfAbsent(eventClass) { ConcurrentHashMap.newKeySet() }.add(handler)
+    }
+
+    /**
+     * Emits a user-defined event to all registered handlers.
+     * @param event the event to emit
+     * @param executor the executor service to use for async execution
+     * @return a CompletableFuture that completes when all handlers have finished
+     */
+    fun <T : Any> emit(event: T, executor: ExecutorService): CompletableFuture<Void> {
+        val eventClass = event.javaClass
+        val handlers = userEventHandlers[eventClass] ?: return CompletableFuture.completedFuture(null)
+        
+        val futures = handlers.map { handler ->
+            CompletableFuture.runAsync({
+                @Suppress("UNCHECKED_CAST")
+                (handler as Consumer<T>).accept(event)
+            }, executor)
+        }
+        
+        return CompletableFuture.allOf(*futures.toTypedArray())
     }
 
 }
