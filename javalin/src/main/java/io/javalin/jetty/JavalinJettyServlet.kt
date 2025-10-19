@@ -13,6 +13,8 @@ import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContextConfig
 import io.javalin.http.servlet.JavalinWsServletContext
 import io.javalin.http.servlet.Task
+import io.javalin.router.Endpoint
+import io.javalin.security.Roles
 import io.javalin.util.javalinLazy
 import io.javalin.websocket.WsConnection
 import jakarta.servlet.http.HttpServletRequest
@@ -62,13 +64,17 @@ class JavalinJettyServlet(val cfg: JavalinConfig) : JettyWebSocketServlet() {
             return
         }
 
+        val wsEndpoint = Endpoint.create(HandlerType.GET, wsRouterHandlerEntry.path)
+            .addMetadata(Roles(wsRouterHandlerEntry.roles))
+            .handler { }
+
         val upgradeContext = JavalinWsServletContext(
             cfg = servletContextConfig,
             req = req,
             res = res,
             routeRoles = wsRouterHandlerEntry.roles,
-            matchedPath = wsRouterHandlerEntry.path,
             pathParamMap = wsRouterHandlerEntry.extractPathParams(requestUri),
+            endpoint = wsEndpoint,
         )
         req.setAttribute(upgradeContextKey, upgradeContext)
         res.setWsProtocolHeader(req)

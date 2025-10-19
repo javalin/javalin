@@ -217,7 +217,7 @@ public class TestPublicApi_Java {
             ctx.async(() -> {});
             ctx.handlerType();
             ctx.appData(testComponentkey);
-            ctx.matchedPath();
+            ctx.endpoint();
             ctx.endpointHandlerPath();
             ctx.cookieStore();
             ctx.with(TestContextPlugin.class);

@@ -65,11 +65,8 @@ interface Context {
     /** Gets the handler type of the current handler */
     fun handlerType(): HandlerType
 
-    /** Gets the path that was used to match request (also includes before/after paths) */
-    fun matchedPath(): String
-
     /** Gets the matched endpoint (null in before, available in endpoint/after) */
-    fun matchedEndpoint(): Endpoint?
+    fun endpoint(): Endpoint?
 
     /** Gets the endpoint path that was used to match request (null in before, available in endpoint/after) */
     fun endpointHandlerPath(): String

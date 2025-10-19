@@ -57,7 +57,7 @@ internal class TestMockContext {
         assertThat(context.method()).isEqualTo(GET)
         assertThat(context.url()).isEqualTo("http://localhost:80/api/simple/comp/lex")
         assertThat(context.path()).isEqualTo("/api/simple/comp/lex")
-        assertThat(context.matchedPath()).isEqualTo("/api/{simple}/<complex>")
+        assertThat(context.endpoint()?.path).isEqualTo("/api/{simple}/<complex>")
         assertThat(context.pathParam("simple")).isEqualTo("simple")
         assertThat(context.pathParam("complex")).isEqualTo("comp/lex")
     }
@@ -187,7 +187,7 @@ internal class TestMockContext {
                 // Context
 
                 assertThat(mockedCtx.handlerType()).isEqualTo(ctx.handlerType())
-                assertThat(mockedCtx.matchedPath()).isEqualTo(ctx.matchedPath())
+                assertThat(mockedCtx.endpoint()?.path).isEqualTo(ctx.endpoint()?.path)
                 assertThat(mockedCtx.endpointHandlerPath()).isEqualTo(ctx.endpointHandlerPath())
 
                 assertThat(mockedCtx.contentLength()).isEqualTo(ctx.contentLength())

@@ -79,13 +79,12 @@ open class JavalinServletContext(
     private val startTimeNanos: Long? = if (cfg.requestLoggerEnabled) System.nanoTime() else null,
     private var handlerType: HandlerType = HandlerType.BEFORE,
     private var routeRoles: Set<RouteRole> = emptySet(),
-    private var matchedPath: String = "",
     private var pathParamMap: Map<String, String> = emptyMap(),
     internal var endpointHandlerPath: String = "",
     internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
     private var resultStream: InputStream? = null,
     private var minSizeForCompression: Int = cfg.compressionStrategy.defaultMinSizeForCompression,
-    private var matchedEndpoint: Endpoint? = null,
+    internal var endpoint: Endpoint? = null,
 ) : Context {
 
     init {
@@ -96,12 +95,9 @@ open class JavalinServletContext(
 
     fun update(parsedEndpoint: ParsedEndpoint, requestUri: String) = also {
         handlerType = parsedEndpoint.endpoint.method
-        matchedEndpoint = parsedEndpoint.endpoint
-        if (matchedPath != parsedEndpoint.endpoint.path) { // if the path has changed, we have to extract path params
-            matchedPath = parsedEndpoint.endpoint.path
-            if (parsedEndpoint.endpoint.hasPathParams()) {
-                pathParamMap = parsedEndpoint.extractPathParams(requestUri)
-            }
+        endpoint = parsedEndpoint.endpoint
+        if (parsedEndpoint.endpoint.hasPathParams()) {
+            pathParamMap = parsedEndpoint.extractPathParams(requestUri)
         }
         if (handlerType != AFTER) {
             endpointHandlerPath = parsedEndpoint.endpoint.path
@@ -134,8 +130,7 @@ open class JavalinServletContext(
     override fun method(): HandlerType = method
 
     override fun handlerType(): HandlerType = handlerType
-    override fun matchedPath(): String = matchedPath
-    override fun matchedEndpoint(): Endpoint? = matchedEndpoint
+    override fun endpoint(): Endpoint? = endpoint
 
     /** has to be cached, because we can read input stream only once */
     private val body by javalinLazy(SYNCHRONIZED) { super.bodyAsBytes() }
@@ -150,7 +145,7 @@ open class JavalinServletContext(
     }
 
     override fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
-    override fun pathParam(key: String): String = pathParamOrThrow(pathParamMap, key, matchedPath)
+    override fun pathParam(key: String): String = pathParamOrThrow(pathParamMap, key, endpoint?.path ?: "")
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
     private val queryParams by javalinLazy { super.queryParamMap() }

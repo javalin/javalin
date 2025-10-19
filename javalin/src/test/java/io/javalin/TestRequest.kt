@@ -328,36 +328,26 @@ class TestRequest {
     }
 
     @Test
-    fun `matchedPath returns the path used to match the request`() = TestUtil.test { app, http ->
-        app.unsafe.routes.get("/matched") { it.result(it.matchedPath()) }
-        app.unsafe.routes.get("/matched/{path-param}") { it.result(it.matchedPath()) }
-        app.unsafe.routes.after("/matched/{path-param}/{param2}") { it.result(it.matchedPath()) }
+    fun `endpoint returns the endpoint used to match the request`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/matched") { it.result(it.endpoint()?.path ?: "") }
+        app.unsafe.routes.get("/matched/{path-param}") { it.result(it.endpoint()?.path ?: "") }
+        app.unsafe.routes.after("/matched/{path-param}/{param2}") { it.result(it.endpoint()?.path ?: "") }
         assertThat(http.getBody("/matched")).isEqualTo("/matched")
         assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/{path-param}")
         assertThat(http.getBody("/matched/p1/p2")).isEqualTo("/matched/{path-param}/{param2}")
     }
 
     @Test
-    fun `matchedEndpoint returns the endpoint used to match the request`() = TestUtil.test { app, http ->
-        app.unsafe.routes.get("/endpoint") { it.result(it.matchedEndpoint()?.path ?: "null") }
-        app.unsafe.routes.get("/endpoint/{path-param}") { it.result(it.matchedEndpoint()?.path ?: "null") }
-        app.unsafe.routes.after("/endpoint/{path-param}/{param2}") { it.result(it.matchedEndpoint()?.path ?: "null") }
-        assertThat(http.getBody("/endpoint")).isEqualTo("/endpoint")
-        assertThat(http.getBody("/endpoint/p1")).isEqualTo("/endpoint/{path-param}")
-        assertThat(http.getBody("/endpoint/p1/p2")).isEqualTo("/endpoint/{path-param}/{param2}")
-    }
-
-    @Test
-    fun `matchedEndpoint is available in before handler with wildcard path`() = TestUtil.test { app, http ->
-        app.unsafe.routes.before { it.result(it.matchedEndpoint()?.path ?: "null") }
+    fun `endpoint is available in before handler with wildcard path`() = TestUtil.test { app, http ->
+        app.unsafe.routes.before { it.result(it.endpoint()?.path ?: "null") }
         app.unsafe.routes.get("/endpoint") { }
         assertThat(http.getBody("/endpoint")).isEqualTo("*")
     }
 
     @Test
-    fun `matchedEndpoint returns correct handler type`() = TestUtil.test { app, http ->
-        app.unsafe.routes.get("/endpoint") { it.result(it.matchedEndpoint()?.method?.name ?: "null") }
-        app.unsafe.routes.post("/endpoint") { it.result(it.matchedEndpoint()?.method?.name ?: "null") }
+    fun `endpoint returns correct handler type`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/endpoint") { it.result(it.endpoint()?.method?.name ?: "null") }
+        app.unsafe.routes.post("/endpoint") { it.result(it.endpoint()?.method?.name ?: "null") }
         assertThat(http.getBody("/endpoint")).isEqualTo("GET")
         assertThat(http.post("/endpoint").asString().body).isEqualTo("POST")
     }

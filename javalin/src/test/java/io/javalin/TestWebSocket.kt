@@ -257,7 +257,7 @@ class TestWebSocket {
         var queryParams = listOf<String>()
         app.unsafe.routes.ws("/websocket/{channel}") { ws ->
             ws.onConnect { ctx ->
-                matchedPath = ctx.matchedPath()
+                matchedPath = ctx.endpoint()?.path ?: ""
                 pathParam = ctx.pathParam("channel")
                 queryParam = ctx.queryParam("qp")!!
                 queryParams = ctx.queryParams("qps")

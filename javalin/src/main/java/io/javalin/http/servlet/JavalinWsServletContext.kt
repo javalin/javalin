@@ -1,5 +1,6 @@
 package io.javalin.http.servlet
 
+import io.javalin.router.Endpoint
 import io.javalin.security.RouteRole
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -11,16 +12,21 @@ class JavalinWsServletContext(
     req: HttpServletRequest,
     res: HttpServletResponse,
     routeRoles: Set<RouteRole> = emptySet(),
-    matchedPath: String = "",
     pathParamMap: Map<String, String> = emptyMap(),
+    endpoint: Endpoint? = null,
 ) : JavalinServletContext(
     cfg = cfg,
     req = req,
     res = res,
     routeRoles = routeRoles,
-    matchedPath = matchedPath,
     pathParamMap = pathParamMap,
 ) {
+    init {
+        if (endpoint != null) {
+            this.endpoint = endpoint
+        }
+    }
+
     val extractedData = UpgradeRequestData(this)
     fun attach(session: Session) = apply { this.extractedData.session = session }
 }
