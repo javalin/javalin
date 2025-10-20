@@ -44,7 +44,7 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
                         router.findHttpHandlerEntries(HandlerType.AFTER, requestUri)
                     )
                     .flatMap { it }
-                    .map { it.endpoint.method.name + "=" + it.endpoint.path }
+                    .map { it.endpoint.method.name() + "=" + it.endpoint.path }
                 val resHeaders = res().headerNames.asSequence().map { it to res().getHeader(it) }.toMap()
                 JavalinLogger.info(
                     """|JAVALIN REQUEST DEBUG LOG:

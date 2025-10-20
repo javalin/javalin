@@ -24,7 +24,7 @@ class TestCustomHttpMethods {
     @Test
     fun `HandlerType findOrCreate creates custom methods correctly`() {
         val customMethod = HandlerType.findOrCreate("PROPFIND")
-        assertThat(customMethod.name).isEqualTo("PROPFIND")
+        assertThat(customMethod.name()).isEqualTo("PROPFIND")
         assertThat(customMethod.isHttpMethod).isTrue()
         assertThat(customMethod.toString()).isEqualTo("PROPFIND")
     }

@@ -346,8 +346,8 @@ class TestRequest {
 
     @Test
     fun `endpoint returns correct handler type`() = TestUtil.test { app, http ->
-        app.unsafe.routes.get("/endpoint") { it.result(it.endpoint()?.method?.name ?: "null") }
-        app.unsafe.routes.post("/endpoint") { it.result(it.endpoint()?.method?.name ?: "null") }
+        app.unsafe.routes.get("/endpoint") { it.result(it.endpoint()?.method?.name() ?: "null") }
+        app.unsafe.routes.post("/endpoint") { it.result(it.endpoint()?.method?.name() ?: "null") }
         assertThat(http.getBody("/endpoint")).isEqualTo("GET")
         assertThat(http.post("/endpoint").asString().body).isEqualTo("POST")
     }

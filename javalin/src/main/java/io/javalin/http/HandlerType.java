@@ -8,7 +8,6 @@ package io.javalin.http;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static java.util.stream.Collectors.toConcurrentMap;
 
@@ -17,43 +16,15 @@ import static java.util.stream.Collectors.toConcurrentMap;
  * This includes all standard HTTP methods (e.g.: GET, POST, …),
  * as well as Javalin specific operations.
  */
-public class HandlerType {
-    private final String name;
-    private final boolean isHttpMethod;
-
-    public HandlerType(String name, boolean isHttpMethod) {
-        this.name = name;
-        this.isHttpMethod = isHttpMethod;
-    }
+public record HandlerType(String name, boolean isHttpMethod) {
 
     public HandlerType(String name) {
         this(name, true);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public boolean isHttpMethod() {
-        return isHttpMethod;
-    }
-
     @Override
     public String toString() {
         return name;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        HandlerType that = (HandlerType) obj;
-        return isHttpMethod == that.isHttpMethod && Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, isHttpMethod);
     }
 
     /**
@@ -88,7 +59,7 @@ public class HandlerType {
     private static final List<HandlerType> COMMON_HTTP_METHODS = List.of(GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE);
 
     private static final Map<String, HandlerType> METHOD_MAP = DEFAULT_METHODS.stream()
-        .collect(toConcurrentMap(HandlerType::getName, method -> method)); // start with default methods
+        .collect(toConcurrentMap(HandlerType::name, method -> method)); // start with default methods
 
     /**
      * Find a HandlerType by name. Returns existing constants for standard methods,

@@ -71,4 +71,4 @@ fun interface EndpointExecutor {
 class EndpointNotFound(
     method: HandlerType,
     path: String
-) : NotFoundResponse("Endpoint ${method.name} $path not found")
+) : NotFoundResponse("Endpoint ${method.name()} $path not found")
