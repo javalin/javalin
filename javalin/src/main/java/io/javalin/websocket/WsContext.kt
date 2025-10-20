@@ -27,8 +27,8 @@ abstract class WsContext(@JvmSynthetic internal val upgradeCtx: JavalinWsServlet
     @JvmField val session: Session = upgradeCtx.extractedData.session
     @JvmField val sessionId: String = upgradeCtx.extractedData.sessionId
 
-    /** Returns the matched endpoint */
-    fun endpoint() = upgradeCtx.endpoint()
+    /** Returns the matched HTTP endpoint */
+    fun endpoint() = upgradeCtx.endpoints().last()
 
     /** Reified version of [sendAsClass] (Kotlin only) */
     @OptIn(ExperimentalStdlibApi::class)

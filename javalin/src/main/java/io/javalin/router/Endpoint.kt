@@ -12,6 +12,11 @@ import io.javalin.http.NotFoundResponse
 interface EndpointMetadata
 
 /**
+ * Metadata for storing path parameters extracted from the request URI.
+ */
+data class PathParams(val params: Map<String, String>) : EndpointMetadata
+
+/**
  * Represents an HTTP endpoint in the application.
  *
  * @param method The HTTP method of the endpoint
@@ -20,8 +25,8 @@ interface EndpointMetadata
  * @param handler The handler of the endpoint
  */
 open class Endpoint @JvmOverloads constructor(
-    val method: HandlerType,
-    val path: String,
+    @JvmField val method: HandlerType,
+    @JvmField val path: String,
     metadata: Set<EndpointMetadata> = emptySet(),
     val handler: Handler
 ) {
@@ -39,6 +44,12 @@ open class Endpoint @JvmOverloads constructor(
     @Suppress("UNCHECKED_CAST")
     fun <METADATA : EndpointMetadata> metadata(key: Class<METADATA>): METADATA? =
         metadata[key] as METADATA?
+
+    /**
+     * Creates a copy of this endpoint with additional metadata.
+     */
+    fun withMetadata(newMetadata: EndpointMetadata): Endpoint =
+        Endpoint(method, path, metadata.values.toSet() + newMetadata, handler)
 
     companion object {
 

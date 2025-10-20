@@ -25,6 +25,7 @@ import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.PluginManager
 import io.javalin.router.Endpoint
 import io.javalin.router.ParsedEndpoint
+import io.javalin.router.PathParams
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.JavalinLogger
@@ -77,15 +78,13 @@ open class JavalinServletContext(
     private var req: HttpServletRequest,
     private val res: HttpServletResponse,
     private val startTimeNanos: Long? = if (cfg.requestLoggerEnabled) System.nanoTime() else null,
-    private var handlerType: HandlerType = HandlerType.BEFORE,
     private var routeRoles: Set<RouteRole> = emptySet(),
-    private var pathParamMap: Map<String, String> = emptyMap(),
-    internal var endpointHandlerPath: String = "",
     internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
     private var resultStream: InputStream? = null,
     private var minSizeForCompression: Int = cfg.compressionStrategy.defaultMinSizeForCompression,
-    internal var endpoint: Endpoint? = null,
 ) : Context {
+
+    private val endpointStack: MutableList<Endpoint> = mutableListOf()
 
     init {
         contentType(cfg.defaultContentType)
@@ -93,15 +92,8 @@ open class JavalinServletContext(
 
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
 
-    fun update(parsedEndpoint: ParsedEndpoint, requestUri: String) = also {
-        handlerType = parsedEndpoint.endpoint.method
-        endpoint = parsedEndpoint.endpoint
-        if (parsedEndpoint.endpoint.hasPathParams()) {
-            pathParamMap = parsedEndpoint.extractPathParams(requestUri)
-        }
-        if (handlerType != AFTER) {
-            endpointHandlerPath = parsedEndpoint.endpoint.path
-        }
+    fun update(endpoint: Endpoint) = also {
+        endpointStack.add(endpoint)
     }
 
     override fun req(): HttpServletRequest = req
@@ -115,11 +107,6 @@ open class JavalinServletContext(
 
     override fun multipartConfig(): MultipartConfig = cfg.multipartConfig
 
-    override fun endpointHandlerPath() = when {
-        handlerType() != HandlerType.BEFORE -> endpointHandlerPath
-        else -> throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
-    }
-
     private val characterEncoding by javalinLazy { super.characterEncoding() ?: "UTF-8" }
     override fun characterEncoding(): String = characterEncoding
 
@@ -129,8 +116,9 @@ open class JavalinServletContext(
     private val method by javalinLazy { super.method() }
     override fun method(): HandlerType = method
 
-    override fun handlerType(): HandlerType = handlerType
-    override fun endpoint(): Endpoint? = endpoint
+    override fun endpoints(): List<Endpoint> = endpointStack.toList()
+
+    override fun httpEndpoint(): Endpoint? = endpointStack.findLast { it.method.isHttpMethod }
 
     /** has to be cached, because we can read input stream only once */
     private val body by javalinLazy(SYNCHRONIZED) { super.bodyAsBytes() }
@@ -144,8 +132,21 @@ open class JavalinServletContext(
         return cfg.strictContentTypes
     }
 
-    override fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
-    override fun pathParam(key: String): String = pathParamOrThrow(pathParamMap, key, endpoint?.path ?: "")
+    override fun pathParamMap(): Map<String, String> {
+        val (_, pathParams) = lastEndpointWithPathParams()
+        return Collections.unmodifiableMap(pathParams)
+    }
+
+    override fun pathParam(key: String): String {
+        val (endpoint, pathParams) = lastEndpointWithPathParams()
+        return pathParamOrThrow(pathParams, key, endpoint?.path ?: "")
+    }
+
+    private fun lastEndpointWithPathParams(): Pair<Endpoint?, Map<String, String>> {
+        val endpoint = endpointStack.findLast { it.metadata(PathParams::class.java)?.params?.isNotEmpty() == true }
+        val params = endpoint?.metadata(PathParams::class.java)?.params ?: emptyMap()
+        return endpoint to params
+    }
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
     private val queryParams by javalinLazy { super.queryParamMap() }
@@ -163,7 +164,7 @@ open class JavalinServletContext(
 
     override fun redirect(location: String, status: HttpStatus) {
         header(Header.LOCATION, location).status(status).result("Redirected")
-        if (handlerType() == HandlerType.BEFORE) {
+        if (endpointStack.last().method == HandlerType.BEFORE) {
             tasks.removeIf { it.skipIfExceptionOccurred }
         }
     }

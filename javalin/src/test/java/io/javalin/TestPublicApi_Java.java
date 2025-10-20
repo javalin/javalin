@@ -215,10 +215,8 @@ public class TestPublicApi_Java {
             ctx.render("/template.tmpl",Map.of("test", "tast"));
             ctx.res();
             ctx.async(() -> {});
-            ctx.handlerType();
             ctx.appData(testComponentkey);
-            ctx.endpoint();
-            ctx.endpointHandlerPath();
+            ctx.httpEndpoint();
             ctx.cookieStore();
             ctx.with(TestContextPlugin.class);
         });

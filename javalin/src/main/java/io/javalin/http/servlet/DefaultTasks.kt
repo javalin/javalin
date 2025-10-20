@@ -32,15 +32,11 @@ object DefaultTasks {
             ctx.setRouteRoles(if (isResourceHandler) resourceRouteRoles else matchedRouteRoles)
             servlet.willMatch(ctx, requestUri)
         }
+
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
                 submitTask(LAST, Task(skipIfExceptionOccurred = true) {
-                    val httpHandler = httpHandlerOrNull
-                    if (httpHandler != null && !entry.endpoint.hasPathParams()) {
-                        entry.endpoint.handle(ctx.update(httpHandler, requestUri))
-                    } else {
-                        entry.handle(ctx, requestUri)
-                    }
+                    entry.handle(ctx, requestUri)
                 })
             }
         }
@@ -65,9 +61,8 @@ object DefaultTasks {
                 if (servlet.cfg.pvt.resourceHandler?.handle(ctx) == true) return@Task
                 if (servlet.cfg.pvt.singlePageHandler.handle(ctx)) return@Task
             }
-            if (ctx.handlerType() == HandlerType.BEFORE) { // no match, status will be 404 or 405 after this point
-                ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
-            }
+            // No match, status will be 404 or 405 after this point
+            // The endpoint will still be the placeholder with path ""
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(servlet.router, requestUri)
             if (servlet.cfg.http.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
                 throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.availableHandlerTypes(ctx, availableHandlerTypes))

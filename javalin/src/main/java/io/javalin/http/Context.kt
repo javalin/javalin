@@ -62,14 +62,11 @@ interface Context {
     /** Servlet response */
     fun res(): HttpServletResponse
 
-    /** Gets the handler type of the current handler */
-    fun handlerType(): HandlerType
+    /** Gets all endpoints visited during this request (in order) */
+    fun endpoints(): List<Endpoint>
 
-    /** Gets the matched endpoint (null in before, available in endpoint/after) */
-    fun endpoint(): Endpoint?
-
-    /** Gets the endpoint path that was used to match request (null in before, available in endpoint/after) */
-    fun endpointHandlerPath(): String
+    /** Gets the HTTP endpoint (if one was matched), or null if no HTTP endpoint was matched */
+    fun httpEndpoint(): Endpoint?
 
     ///////////////////////////////////////////////////////////////
     // Config-ish methods

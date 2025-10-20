@@ -12,21 +12,12 @@ class JavalinWsServletContext(
     req: HttpServletRequest,
     res: HttpServletResponse,
     routeRoles: Set<RouteRole> = emptySet(),
-    pathParamMap: Map<String, String> = emptyMap(),
-    endpoint: Endpoint? = null,
 ) : JavalinServletContext(
     cfg = cfg,
     req = req,
     res = res,
     routeRoles = routeRoles,
-    pathParamMap = pathParamMap,
 ) {
-    init {
-        if (endpoint != null) {
-            this.endpoint = endpoint
-        }
-    }
-
     val extractedData = UpgradeRequestData(this)
     fun attach(session: Session) = apply { this.extractedData.session = session }
 }
