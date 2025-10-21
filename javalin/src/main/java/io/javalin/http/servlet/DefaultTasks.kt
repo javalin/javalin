@@ -27,7 +27,7 @@ object DefaultTasks {
         }
         val isResourceHandler = httpHandlerOrNull == null && ctx.method() in setOf(HEAD, GET)
         val matchedRouteRoles by javalinLazy { servlet.matchedRoles(ctx, requestUri) }
-        val resourceRouteRoles by javalinLazy { servlet.cfg.pvt.resourceHandler?.getResourceRouteRoles(ctx) ?: emptySet() }
+        val resourceRouteRoles by javalinLazy { servlet.cfg.pvt.resourceHandler?.resourceRouteRoles(ctx) ?: emptySet() }
         val willMatch by javalinLazy {
             ctx.setRouteRoles(if (isResourceHandler) resourceRouteRoles else matchedRouteRoles)
             servlet.willMatch(ctx, requestUri)

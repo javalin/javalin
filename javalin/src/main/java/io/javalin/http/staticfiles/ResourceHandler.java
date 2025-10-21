@@ -12,5 +12,5 @@ public interface ResourceHandler {
 
     boolean addStaticFileConfig(StaticFileConfig config);
 
-    Set<RouteRole> getResourceRouteRoles(Context ctx);
+    Set<RouteRole> resourceRouteRoles(Context ctx);
 }
