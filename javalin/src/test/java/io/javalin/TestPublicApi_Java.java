@@ -216,7 +216,7 @@ public class TestPublicApi_Java {
             ctx.res();
             ctx.async(() -> {});
             ctx.appData(testComponentkey);
-            ctx.httpEndpoint();
+            ctx.endpoint();
             ctx.cookieStore();
             ctx.with(TestContextPlugin.class);
         });

@@ -65,8 +65,8 @@ interface Context {
     /** Gets all endpoints visited during this request (in order) */
     fun endpoints(): List<Endpoint>
 
-    /** Gets the HTTP endpoint (if one was matched), or null if no HTTP endpoint was matched */
-    fun httpEndpoint(): Endpoint?
+    /** Gets the matched Endpoint */
+    fun endpoint(): Endpoint
 
     ///////////////////////////////////////////////////////////////
     // Config-ish methods

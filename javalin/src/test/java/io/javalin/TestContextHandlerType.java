@@ -27,7 +27,7 @@ public class TestContextHandlerType {
         TestUtil.test(Javalin.create(), (app, http) -> {
             List<HandlerType> handlerTypes = new ArrayList<>();
             before(app, ctx -> handlerTypes.add(lastEndpoint(ctx).method));
-            get(app, "/", ctx -> handlerTypes.add(ctx.httpEndpoint().method));
+            get(app, "/", ctx -> handlerTypes.add(ctx.endpoint().method));
             after(app, ctx -> handlerTypes.add(lastEndpoint(ctx).method));
             assertThat(http.get("/").getStatus()).isEqualTo(OK.getCode());
             assertThat(handlerTypes).containsExactly(HandlerType.BEFORE, HandlerType.GET, HandlerType.AFTER);

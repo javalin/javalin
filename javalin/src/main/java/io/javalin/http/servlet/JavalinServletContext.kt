@@ -15,7 +15,6 @@ import io.javalin.config.MultipartConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
-import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
@@ -24,7 +23,6 @@ import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.PluginManager
 import io.javalin.router.Endpoint
-import io.javalin.router.ParsedEndpoint
 import io.javalin.router.PathParams
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
@@ -84,7 +82,7 @@ open class JavalinServletContext(
     private var minSizeForCompression: Int = cfg.compressionStrategy.defaultMinSizeForCompression,
 ) : Context {
 
-    private val endpointStack: MutableList<Endpoint> = mutableListOf()
+    private val endpointStack: LinkedList<Endpoint> = LinkedList()
 
     init {
         contentType(cfg.defaultContentType)
@@ -116,9 +114,9 @@ open class JavalinServletContext(
     private val method by javalinLazy { super.method() }
     override fun method(): HandlerType = method
 
-    override fun endpoints(): List<Endpoint> = endpointStack.toList()
+    override fun endpoints(): List<Endpoint> = Collections.unmodifiableList(endpointStack)
 
-    override fun httpEndpoint(): Endpoint? = endpointStack.findLast { it.method.isHttpMethod }
+    override fun endpoint(): Endpoint = endpointStack.last()
 
     /** has to be cached, because we can read input stream only once */
     private val body by javalinLazy(SYNCHRONIZED) { super.bodyAsBytes() }
@@ -164,7 +162,7 @@ open class JavalinServletContext(
 
     override fun redirect(location: String, status: HttpStatus) {
         header(Header.LOCATION, location).status(status).result("Redirected")
-        if (endpointStack.last().method == HandlerType.BEFORE) {
+        if (endpoint().method == HandlerType.BEFORE) {
             tasks.removeIf { it.skipIfExceptionOccurred }
         }
     }
@@ -231,7 +229,7 @@ fun acceptsHtml(ctx: Context) =
 
 fun Context.isLocalhost() = try {
     URI.create(this.url()).toURL().host.let { it == "localhost" || it == "127.0.0.1" }
-} catch (e: Exception) {
+} catch (_: Exception) {
     false
 }
 
@@ -275,11 +273,11 @@ fun <T> attributeOrCompute(callback: (Context) -> T, key: String, ctx: Context):
     if (ctx.attribute<T>(key) == null) {
         ctx.attribute(key, callback(ctx))
     }
-    return ctx.attribute<T>(key)
+    return ctx.attribute(key)
 }
 
 fun readAndResetStreamIfPossible(stream: InputStream?, charset: Charset) = try {
     stream?.apply { reset() }?.readBytes()?.toString(charset).also { stream?.reset() }
-} catch (e: Exception) {
+} catch (_: Exception) {
     "resultString unavailable (resultStream couldn't be reset)"
 }
