@@ -132,19 +132,13 @@ open class JavalinServletContext(
     }
 
     override fun pathParamMap(): Map<String, String> {
-        val (_, pathParams) = lastEndpointWithPathParams()
+        val (_, pathParams) = endpoints.lastEndpointWithPathParams
         return Collections.unmodifiableMap(pathParams)
     }
 
     override fun pathParam(key: String): String {
-        val (endpoint, pathParams) = lastEndpointWithPathParams()
+        val (endpoint, pathParams) = endpoints.lastEndpointWithPathParams
         return pathParamOrThrow(pathParams, key, endpoint?.path ?: "")
-    }
-
-    private fun lastEndpointWithPathParams(): Pair<Endpoint?, Map<String, String>> {
-        val endpoint = endpoints.list().findLast { it.metadata(PathParams::class.java)?.params?.isNotEmpty() == true }
-        val params = endpoint?.metadata(PathParams::class.java)?.params ?: emptyMap()
-        return endpoint to params
     }
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
