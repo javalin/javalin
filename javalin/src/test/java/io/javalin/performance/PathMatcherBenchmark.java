@@ -75,7 +75,7 @@ final class OldPathMatcher {
     );
 
     public void add(ParsedEndpoint entry) {
-        handlerEntries.get(entry.getEndpoint().getMethod()).add(entry);
+        handlerEntries.get(entry.endpoint.method).add(entry);
     }
 
     public List<ParsedEndpoint> findEntries(HandlerType handlerType, String requestUri) {
@@ -89,8 +89,8 @@ final class OldPathMatcher {
     }
 
     private boolean match(ParsedEndpoint entry, String requestPath) {
-        if (entry.getEndpoint().getPath().equals("*")) return true;
-        if (entry.getEndpoint().getPath().equals(requestPath)) return true;
+        if (entry.endpoint.path.equals("*")) return true;
+        if (entry.endpoint.path.equals(requestPath)) return true;
         return entry.matches(requestPath);
     }
 }

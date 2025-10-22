@@ -122,7 +122,7 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
            |WebSocket Event: $event
            |Session Id: ${this.sessionId()}
            |Host: ${this.host()}
-           |Matched Path: ${this.endpoint()?.path}
+           |Matched Path: ${this.endpoint().path}
            |PathParams: ${this.pathParamMap()}
            |QueryParams: ${if (this.queryString() != null) this.queryParamMap().mapValues { (_, v) -> v.toString() }.toString() else "No query string was provided"}
            |$additionalInfo

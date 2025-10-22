@@ -27,6 +27,7 @@ import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextPlugin
 import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
 import io.javalin.router.Endpoint
+import io.javalin.router.Endpoints
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.function.ThrowingRunnable
@@ -62,14 +63,11 @@ interface Context {
     /** Servlet response */
     fun res(): HttpServletResponse
 
-    /** Gets the handler type of the current handler */
-    fun handlerType(): HandlerType
+    /** Gets all endpoints visited during this request (in order) */
+    fun endpoints(): Endpoints
 
-    /** Gets the matched endpoint (null in before, available in endpoint/after) */
-    fun endpoint(): Endpoint?
-
-    /** Gets the endpoint path that was used to match request (null in before, available in endpoint/after) */
-    fun endpointHandlerPath(): String
+    /** Gets the matched Endpoint */
+    fun endpoint(): Endpoint
 
     ///////////////////////////////////////////////////////////////
     // Config-ish methods

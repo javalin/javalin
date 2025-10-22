@@ -328,49 +328,6 @@ class TestRequest {
     }
 
     @Test
-    fun `endpoint returns the endpoint used to match the request`() = TestUtil.test { app, http ->
-        app.unsafe.routes.get("/matched") { it.result(it.endpoint()?.path ?: "") }
-        app.unsafe.routes.get("/matched/{path-param}") { it.result(it.endpoint()?.path ?: "") }
-        app.unsafe.routes.after("/matched/{path-param}/{param2}") { it.result(it.endpoint()?.path ?: "") }
-        assertThat(http.getBody("/matched")).isEqualTo("/matched")
-        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/{path-param}")
-        assertThat(http.getBody("/matched/p1/p2")).isEqualTo("/matched/{path-param}/{param2}")
-    }
-
-    @Test
-    fun `endpoint is available in before handler with wildcard path`() = TestUtil.test { app, http ->
-        app.unsafe.routes.before { it.result(it.endpoint()?.path ?: "null") }
-        app.unsafe.routes.get("/endpoint") { }
-        assertThat(http.getBody("/endpoint")).isEqualTo("*")
-    }
-
-    @Test
-    fun `endpoint returns correct handler type`() = TestUtil.test { app, http ->
-        app.unsafe.routes.get("/endpoint") { it.result(it.endpoint()?.method?.name() ?: "null") }
-        app.unsafe.routes.post("/endpoint") { it.result(it.endpoint()?.method?.name() ?: "null") }
-        assertThat(http.getBody("/endpoint")).isEqualTo("GET")
-        assertThat(http.post("/endpoint").asString().body).isEqualTo("POST")
-    }
-
-    @Test
-    fun `endpointHandlerPath returns the path used to match the request, excluding any AFTER handlers`() = TestUtil.test { app, http ->
-        app.unsafe.routes.before { }
-        app.unsafe.routes.get("/matched/{path-param}") { }
-        app.unsafe.routes.get("/matched/{another-path-param}") { }
-        app.unsafe.routes.after { it.result(it.endpointHandlerPath()) }
-        assertThat(http.getStatus("/matched/p1")).isEqualTo(HttpStatus.OK)
-        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/{path-param}")
-    }
-
-    @Test
-    fun `endpointHandlerPath doesn't crash for 404s`() = TestUtil.test { app, http ->
-        app.unsafe.routes.before { }
-        app.unsafe.routes.after { it.result(it.endpointHandlerPath()) }
-        assertThat(http.getStatus("/")).isEqualTo(HttpStatus.NOT_FOUND)
-        assertThat(http.getBody("/")).isEqualTo("No handler matched request path/method (404/405)")
-    }
-
-    @Test
     fun `servlet-context is not null`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/") { it.result(if (it.req().servletContext != null) "not-null" else "null") }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
