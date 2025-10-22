@@ -26,15 +26,12 @@ public class TestContextHandlerType {
     public void testHandlerTypeCanBeAccessedInContext() {
         TestUtil.test(Javalin.create(), (app, http) -> {
             List<HandlerType> handlerTypes = new ArrayList<>();
-            before(app, ctx -> handlerTypes.add(lastEndpoint(ctx).method));
+            before(app, ctx -> handlerTypes.add(ctx.endpoint().method));
             get(app, "/", ctx -> handlerTypes.add(ctx.endpoint().method));
-            after(app, ctx -> handlerTypes.add(lastEndpoint(ctx).method));
+            after(app, ctx -> handlerTypes.add(ctx.endpoint().method));
             assertThat(http.get("/").getStatus()).isEqualTo(OK.getCode());
             assertThat(handlerTypes).containsExactly(HandlerType.BEFORE, HandlerType.GET, HandlerType.AFTER);
         });
     }
 
-    static Endpoint lastEndpoint(Context ctx) {
-        return ctx.endpoints().get(ctx.endpoints().size() - 1);
-    }
 }

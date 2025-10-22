@@ -23,6 +23,7 @@ import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.PluginManager
 import io.javalin.router.Endpoint
+import io.javalin.router.Endpoints
 import io.javalin.router.PathParams
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
@@ -82,7 +83,7 @@ open class JavalinServletContext(
     private var minSizeForCompression: Int = cfg.compressionStrategy.defaultMinSizeForCompression,
 ) : Context {
 
-    private val endpointStack: LinkedList<Endpoint> = LinkedList()
+    private val endpoints: Endpoints = Endpoints()
 
     init {
         contentType(cfg.defaultContentType)
@@ -91,7 +92,7 @@ open class JavalinServletContext(
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
 
     fun update(endpoint: Endpoint) = also {
-        endpointStack.add(endpoint)
+        endpoints.add(endpoint)
     }
 
     override fun req(): HttpServletRequest = req
@@ -114,9 +115,9 @@ open class JavalinServletContext(
     private val method by javalinLazy { super.method() }
     override fun method(): HandlerType = method
 
-    override fun endpoints(): List<Endpoint> = Collections.unmodifiableList(endpointStack)
+    override fun endpoints(): Endpoints = endpoints
 
-    override fun endpoint(): Endpoint = endpointStack.last()
+    override fun endpoint(): Endpoint = endpoints.current()
 
     /** has to be cached, because we can read input stream only once */
     private val body by javalinLazy(SYNCHRONIZED) { super.bodyAsBytes() }
@@ -141,7 +142,7 @@ open class JavalinServletContext(
     }
 
     private fun lastEndpointWithPathParams(): Pair<Endpoint?, Map<String, String>> {
-        val endpoint = endpointStack.findLast { it.metadata(PathParams::class.java)?.params?.isNotEmpty() == true }
+        val endpoint = endpoints.list().findLast { it.metadata(PathParams::class.java)?.params?.isNotEmpty() == true }
         val params = endpoint?.metadata(PathParams::class.java)?.params ?: emptyMap()
         return endpoint to params
     }
