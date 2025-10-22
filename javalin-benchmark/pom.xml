@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.javalin</groupId>
+    <artifactId>javalin-benchmark</artifactId>
+    <version>7.0.0-SNAPSHOT</version>
+    <name>Javalin Benchmark</name>
+    <description>JMH benchmarks for Javalin performance testing</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <kotlin.version>2.2.20</kotlin.version>
+        <jmh.version>1.37</jmh.version>
+        <jackson.version>2.20.0</jackson.version>
+        <okhttp.version>4.12.0</okhttp.version>
+        <logback.version>1.5.18</logback.version>
+        <maven-shade-plugin.version>3.6.1</maven-shade-plugin.version>
+        <uberjar.name>benchmarks</uberjar.name>
+        <!-- Default to current version, can be overridden by profiles -->
+        <javalin.benchmark.version>${project.version}</javalin.benchmark.version>
+        <!-- Source directory based on Javalin major version -->
+        <javalin.source.dir>src/main/kotlin-javalin7</javalin.source.dir>
+    </properties>
+
+    <dependencies>
+        <!-- Kotlin -->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+
+        <!-- Javalin core -->
+        <dependency>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin</artifactId>
+            <version>${javalin.benchmark.version}</version>
+        </dependency>
+
+        <!-- JMH -->
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>${jmh.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>${jmh.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Jackson for JSON benchmarks -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- OkHttp for end-to-end benchmarks -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>${javalin.source.dir}</sourceDirectory>
+        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+
+        <plugins>
+            <!-- Kotlin compiler plugin with kapt for JMH annotation processing -->
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>kapt</id>
+                        <goals>
+                            <goal>kapt</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>${javalin.source.dir}</sourceDir>
+                            </sourceDirs>
+                            <annotationProcessorPaths>
+                                <annotationProcessorPath>
+                                    <groupId>org.openjdk.jmh</groupId>
+                                    <artifactId>jmh-generator-annprocess</artifactId>
+                                    <version>${jmh.version}</version>
+                                </annotationProcessorPath>
+                            </annotationProcessorPaths>
+                            <aptMode>stubsAndApt</aptMode>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Maven compiler plugin to compile JMH generated sources -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>java-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${uberjar.name}</finalName>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.openjdk.jmh.Main</mainClass>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <!-- Shading signed JARs will fail without this. -->
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- Profile for comparing different Javalin versions -->
+        <!-- Usage: mvn clean package -P compare-versions -Djavalin.version.1=6.3.0 -Djavalin.version.2=7.0.0-SNAPSHOT -->
+
+        <!-- Javalin 6.x versions -->
+        <profile>
+            <id>javalin-6.3.0</id>
+            <properties>
+                <javalin.benchmark.version>6.3.0</javalin.benchmark.version>
+                <javalin.source.dir>src/main/kotlin-javalin6</javalin.source.dir>
+                <uberjar.name>benchmarks-6.3.0</uberjar.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>javalin-6.2.0</id>
+            <properties>
+                <javalin.benchmark.version>6.2.0</javalin.benchmark.version>
+                <javalin.source.dir>src/main/kotlin-javalin6</javalin.source.dir>
+                <uberjar.name>benchmarks-6.2.0</uberjar.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>javalin-6.1.0</id>
+            <properties>
+                <javalin.benchmark.version>6.1.0</javalin.benchmark.version>
+                <javalin.source.dir>src/main/kotlin-javalin6</javalin.source.dir>
+                <uberjar.name>benchmarks-6.1.0</uberjar.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>javalin-6.0.0</id>
+            <properties>
+                <javalin.benchmark.version>6.0.0</javalin.benchmark.version>
+                <javalin.source.dir>src/main/kotlin-javalin6</javalin.source.dir>
+                <uberjar.name>benchmarks-6.0.0</uberjar.name>
+            </properties>
+        </profile>
+
+        <!-- Javalin 5.x versions -->
+        <profile>
+            <id>javalin-5.6.0</id>
+            <properties>
+                <javalin.benchmark.version>5.6.0</javalin.benchmark.version>
+                <javalin.source.dir>src/main/kotlin-javalin5</javalin.source.dir>
+                <uberjar.name>benchmarks-5.6.0</uberjar.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>javalin-5.5.0</id>
+            <properties>
+                <javalin.benchmark.version>5.5.0</javalin.benchmark.version>
+                <javalin.source.dir>src/main/kotlin-javalin5</javalin.source.dir>
+                <uberjar.name>benchmarks-5.5.0</uberjar.name>
+            </properties>
+        </profile>
+
+        <!-- Custom version profile -->
+        <profile>
+            <id>custom-version</id>
+            <activation>
+                <property>
+                    <name>javalin.custom.version</name>
+                </property>
+            </activation>
+            <properties>
+                <javalin.benchmark.version>${javalin.custom.version}</javalin.benchmark.version>
+                <uberjar.name>benchmarks-${javalin.custom.version}</uberjar.name>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+
