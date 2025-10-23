@@ -16,18 +16,14 @@ import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
-import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
-import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.PluginManager
 import io.javalin.router.Endpoint
 import io.javalin.router.Endpoints
-import io.javalin.router.PathParams
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
-import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
@@ -226,19 +222,6 @@ fun Context.isLocalhost() = try {
     URI.create(this.url()).toURL().host.let { it == "localhost" || it == "127.0.0.1" }
 } catch (_: Exception) {
     false
-}
-
-internal object MaxRequestSize {
-    val MaxRequestSizeKey = Key<Long>("javalin-max-request-size")
-
-    fun throwContentTooLargeIfContentTooLarge(ctx: Context) {
-        val maxRequestSize = ctx.appData(MaxRequestSizeKey)
-
-        if (ctx.req().contentLength > maxRequestSize) {
-            JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
-            throw HttpResponseException(CONTENT_TOO_LARGE, CONTENT_TOO_LARGE.message)
-        }
-    }
 }
 
 const val SESSION_CACHE_KEY_PREFIX = "javalin-session-attribute-cache-"

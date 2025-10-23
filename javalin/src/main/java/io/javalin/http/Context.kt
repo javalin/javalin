@@ -143,8 +143,8 @@ interface Context {
      * with status 413 CONTENT_TOO_LARGE.
      */
     fun bodyAsBytes(): ByteArray {
-        MaxRequestSize.throwContentTooLargeIfContentTooLarge(this)
-        return req().inputStream.readBytes()
+        val maxRequestSize = appData(MaxRequestSize.MaxRequestSizeKey)
+        return MaxRequestSize.readBytesWithLimit(req().inputStream, maxRequestSize)
     }
 
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.json.JsonMapper] */

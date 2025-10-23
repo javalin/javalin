@@ -126,7 +126,7 @@ class TestBodyReading {
             app.unsafe.routes.post("/") { it.result(it.body() + it.body()) }
             http.post("/").body("x".repeat(1001)).asString()
         }
-        assertThat(result.logs).contains("Body greater than max size (1000 bytes)")
+        assertThat(result.logs).contains("Body size greater than max size (1000 bytes)")
     }
 
     private fun urlEncode(text: String) = URLEncoder.encode(text, StandardCharsets.UTF_8.name())
