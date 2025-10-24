@@ -48,7 +48,9 @@ data class JavalinServletContextConfig(
     val defaultContentType: String,
     val jsonMapper: JsonMapper,
     val strictContentTypes: Boolean,
-    val multipartConfig: MultipartConfig
+    val multipartConfig: MultipartConfig,
+    val eventManager: io.javalin.event.EventManager,
+    val asyncExecutor: Lazy<io.javalin.http.util.AsyncExecutor>
 ) {
     companion object {
         fun of(cfg: JavalinConfig): JavalinServletContextConfig =
@@ -61,6 +63,8 @@ data class JavalinServletContextConfig(
                 jsonMapper = cfg.pvt.jsonMapper.value,
                 strictContentTypes = cfg.http.strictContentTypes,
                 multipartConfig = cfg.jetty.multipartConfig,
+                eventManager = cfg.pvt.eventManager,
+                asyncExecutor = cfg.pvt.asyncExecutor
             )
     }
 }
@@ -177,6 +181,10 @@ open class JavalinServletContext(
     override fun routeRoles() = routeRoles
     internal fun setRouteRoles(routeRoles: Set<RouteRole>) {
         this.routeRoles = routeRoles
+    }
+
+    override fun <T : Any> emit(event: T): CompletableFuture<Void> {
+        return cfg.eventManager.emit(event, cfg.asyncExecutor.value.getExecutor())
     }
 
     override fun writeJsonStream(stream: Stream<*>) {
