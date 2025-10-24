@@ -80,7 +80,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             .thenApply { handleSync() }
             .exceptionally {
                 router.handleHttpException(this, it)
-                writeResponseAndLog()
+                handleSync() // resume normal request flow (after-handlers, request-logging)
             }
     }
 
@@ -90,7 +90,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             status(INTERNAL_SERVER_ERROR) // default error handling
             router.handleHttpError(statusCode(), this) // user defined error handling
             if (resultInputStream() == null) result(REQUEST_TIMEOUT.message) // write default response only if handler didn't do anything
-            writeResponseAndLog()
+            handleSync() // resume normal request flow (after-handlers, request-logging)
         }))
     }
 
