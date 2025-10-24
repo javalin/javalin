@@ -83,14 +83,6 @@ class TestJavalinInstanceAndConfigApi {
             app.requestLogger.ws { ctx -> }
             // Validation
             app.validation.register(Any::class.java) { }
-            // Vue
-            app.vue.cacheControl = "Test"
-            app.vue.enableCspAndNonces = true
-            app.vue.vueInstanceNameInJs = "Test"
-            app.vue.isDevFunction = { true }
-            app.vue.optimizeDependencies = true
-            app.vue.stateFunction = { "Test" }
-            app.vue.rootDirectory("Test")
             // Spa root
             app.spaRoot.addFile("/", "index.html")
             app.spaRoot.addHandler("/") { ctx -> }

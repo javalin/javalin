@@ -14,7 +14,7 @@ public class TestJavalinVueHandler {
 
     @Test
     public void testDefaultPreAndPostRenderer() {
-        VueTestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test(null, null, (server, httpUtil) -> {
             get(server, "/no-state", new VueHandler("test-component") {
             });
             String body = httpUtil.getBody("/no-state");
@@ -26,7 +26,7 @@ public class TestJavalinVueHandler {
 
     @Test
     public void testPreRenderer() {
-        VueTestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test(null, null, (server, httpUtil) -> {
             get(server, "/no-state", new VueHandler("test-component") {
                 @NotNull
                 @Override
@@ -43,7 +43,7 @@ public class TestJavalinVueHandler {
 
     @Test
     public void testPostRenderer() {
-        VueTestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test(null, null, (server, httpUtil) -> {
             get(server, "/no-state", new VueHandler("test-component") {
                 @NotNull
                 @Override
@@ -60,7 +60,7 @@ public class TestJavalinVueHandler {
 
     @Test
     public void testVueRenderer() {
-        VueTestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test(null, null, (server, httpUtil) -> {
             get(server, "/no-state", new VueComponent("test-component", null, new VueRenderer() {
                 @NotNull
                 @Override

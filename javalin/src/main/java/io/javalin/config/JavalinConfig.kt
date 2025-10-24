@@ -18,8 +18,6 @@ import io.javalin.util.javalinLazy
 import io.javalin.validation.Validation
 import io.javalin.validation.Validation.Companion.ValidationKey
 import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
-import io.javalin.vue.JavalinVueConfig
-import io.javalin.vue.JavalinVueConfig.Companion.VueConfigKey
 import java.util.function.Consumer
 
 // this class should be abbreviated `cfg` in the source code.
@@ -49,8 +47,6 @@ class JavalinConfig {
     @JvmField val bundledPlugins = BundledPluginsConfig(this)
     /** Events configuration */
     @JvmField val events = EventConfig(this)
-    /** Vue Plugin configuration */
-    @JvmField val vue = JavalinVueConfig()
     /** Context resolver implementation configuration */
     @JvmField val contextResolver = ContextResolverConfig()
     /** Use virtual threads (based on Java Project Loom) */
@@ -113,7 +109,6 @@ class JavalinConfig {
             cfg.pvt.appDataManager.registerIfAbsent(ValidationKey, Validation(cfg.validation))
             cfg.pvt.appDataManager.registerIfAbsent(FileRendererKey, NotImplementedRenderer())
             cfg.pvt.appDataManager.registerIfAbsent(MaxRequestSizeKey, cfg.http.maxRequestSize)
-            cfg.pvt.appDataManager.registerIfAbsent(VueConfigKey, cfg.vue)
         }
     }
     //@formatter:on
