@@ -27,6 +27,11 @@
             <artifactId>javalin-testtools</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin-plugins</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- jackson + date and kotlin modules -->
         <dependency>
