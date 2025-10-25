@@ -16,7 +16,6 @@ import io.javalin.http.queryParamAsClass
 import io.javalin.http.queryParamsAsClass
 import io.javalin.http.servlet.SESSION_CACHE_KEY_PREFIX
 import io.javalin.http.staticfiles.Location
-import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.testing.TestUtil
 
 import kong.unirest.Unirest
@@ -307,24 +306,6 @@ class TestRequest {
         }
         val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-pass:::word").asString()
         assertThat(response.body).isEqualTo("some-username|some-pass:::word")
-    }
-
-    @Test
-    fun `basic auth filter plugin works`() {
-        val basicAuthApp = Javalin.create { cfg ->
-            cfg.registerPlugin(BasicAuthPlugin {
-                it.username = "u"
-                it.password = "p"
-            })
-            cfg.staticFiles.add("/public", Location.CLASSPATH)
-            cfg.routes.get("/hellopath") { it.result("Hello") }
-        }
-        TestUtil.test(basicAuthApp) { _, http ->
-            assertThat(http.getBody("/hellopath")).isEqualTo("Unauthorized")
-            assertThat(http.getBody("/html.html")).contains("Unauthorized")
-            Unirest.get("${http.origin}/hellopath").basicAuth("u", "p").asString().let { assertThat(it.body).isEqualTo("Hello") }
-            Unirest.get("${http.origin}/html.html").basicAuth("u", "p").asString().let { assertThat(it.body).contains("HTML works") }
-        }
     }
 
     @Test

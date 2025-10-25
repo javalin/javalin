@@ -8,7 +8,6 @@ package io.javalin.examples
 
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.plugin.bundled.DevLoggingPlugin
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -33,7 +32,5 @@ fun main() {
                 }
             }
         }
-
-        it.registerPlugin(DevLoggingPlugin())
     }.start(7070)
 }

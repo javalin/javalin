@@ -15,7 +15,7 @@ import static io.javalin.testing.JavalinTestUtil.ws;
 // see HelloWorldSecure for how to set that up
 public class HelloWorldWebSockets {
     public static void main(String[] args) {
-        Javalin app = Javalin.create(cfg -> cfg.bundledPlugins.enableDevLogging());
+        Javalin app = Javalin.create();
         ws(app, "/websocket", ws -> {
             ws.onConnect(ctx -> {
                 System.out.println("Connected");

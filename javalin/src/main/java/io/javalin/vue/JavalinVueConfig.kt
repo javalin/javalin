@@ -15,7 +15,7 @@ import java.nio.file.Paths
  */
 class JavalinVueConfig {
     companion object {
-        internal val VueConfigKey = Key<JavalinVueConfig>("javalin-javalinvue-config")
+        @JvmField val VueConfigKey = Key<JavalinVueConfig>("javalin-javalinvue-config")
     }
 
     //@formatter:off

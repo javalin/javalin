@@ -43,8 +43,6 @@ class JavalinConfig {
     @JvmField val spaRoot = SpaRootConfig(this)
     /** Request Logger configuration: http and websocket loggers */
     @JvmField val requestLogger = RequestLoggerConfig(this)
-    /** Bundled plugins configuration: enable bundled plugins or add custom ones */
-    @JvmField val bundledPlugins = BundledPluginsConfig(this)
     /** Events configuration */
     @JvmField val events = EventConfig(this)
     /** Context resolver implementation configuration */
