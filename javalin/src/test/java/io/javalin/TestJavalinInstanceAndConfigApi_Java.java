@@ -73,10 +73,8 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.contextResolver.ip = ctx -> "Test";
             app.contextResolver.url = ctx -> "Test";
             app.contextResolver.scheme = ctx -> "Test";
-            // Bundled plugins
-            app.bundledPlugins.enableDevLogging();
-            app.bundledPlugins.enableRouteOverview("/overview");
-            app.bundledPlugins.enableSslRedirects();
+            // Plugins
+            app.registerPlugin(new Plugin<>() {});
             // Events
             app.events(event -> {
                 event.serverStarting(() -> System.out.println("Server is starting"));
@@ -104,7 +102,6 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.jsonMapper(new JavalinJackson());
             app.appData(new Key<>("Test"), "Test");
             app.fileRenderer((filePath, model, ctx) -> "Test");
-            app.registerPlugin(new Plugin<>() {});
         });
 
         // Events are now configured in the config block above (lines 81-90)

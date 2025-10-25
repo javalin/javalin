@@ -15,7 +15,6 @@ import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
-import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.TestLogsKey
@@ -56,7 +55,6 @@ class TestStaticFiles {
     private val customHeaderApp: Javalin by lazy { Javalin.create { it.staticFiles.add { it.headers = mapOf(Header.CACHE_CONTROL to "max-age=31622400") } } }
     private val devLoggingApp: Javalin by lazy {
         Javalin.create {
-            it.registerPlugin(DevLoggingPlugin())
             it.staticFiles.add("/public", Location.CLASSPATH)
         }
     }

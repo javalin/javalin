@@ -7,13 +7,11 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.plugin.bundled.DevLoggingPlugin
 
 // WebSockets also work with ssl,
 // see HelloWorldSecure for how to set that up
 fun main() {
     Javalin.create {
-        it.registerPlugin(DevLoggingPlugin())
         it.routes.ws("/websocket") { ws ->
             ws.onConnect { ctx ->
                 println("Connection established")

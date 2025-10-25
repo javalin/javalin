@@ -463,19 +463,19 @@ Javalin.create(config -> {
 Plugins are registered during configuration:
 
 ```java
-import io.javalin.plugin.bundled.*;
+import io.javalin.plugin.*;
 
 Javalin.create(config -> {
     // Simple plugins without config
     config.registerPlugin(new DevLoggingPlugin());
-    
+
     // Plugins with configuration using consumer pattern
     config.registerPlugin(new CorsPlugin(cors -> {
         cors.addRule(rule -> {
             rule.anyHost();
         });
     }));
-    
+
     // SSL Plugin
     config.registerPlugin(new SSLPlugin(ssl -> {
         ssl.pemFromPath("/path/to/cert.pem", "/path/to/key.pem");

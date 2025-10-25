@@ -16,7 +16,6 @@ import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
-import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin
 import io.javalin.router.Endpoint
 import io.javalin.router.EndpointMetadata
 import io.javalin.router.EndpointNotFound
@@ -534,16 +533,6 @@ class TestRouting {
             assertThat(http.getBody("/PATH/vAlUe")).isEqualTo("vAlUe")
             assertThat(http.getBody("/Path/VALUe")).isEqualTo("VALUe")
             assertThat(http.getBody("/pAtH/VALUE")).isEqualTo("VALUE")
-        }
-    }
-
-    @Test
-    fun `enableRedirectToLowercasePaths with caseInsensitiveRoutes throws exception`() {
-        assertThrows<java.lang.IllegalStateException> {
-            Javalin.create {
-                it.router.caseInsensitiveRoutes = true
-                it.registerPlugin(RedirectToLowercasePathPlugin())
-            }.start()
         }
     }
 

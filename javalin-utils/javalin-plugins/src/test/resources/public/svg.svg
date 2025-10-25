@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="400px" height="400px" viewBox="0 0 400 400" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <path d="M400 0L400 0L400 400L0 400L0 0L400 0Z" id="path_1" />
+    <path d="M20 200C20 100.589 100.589 20 200 20C299.411 20 380 100.589 380 200C380 299.411 299.411 380 200 380C100.589 380 20 299.411 20 200Z" id="path_2" />
+    <path d="M110 90C110 40.2944 150.294 0 200 0C249.706 0 290 40.2944 290 90C290 139.706 249.706 180 200 180C150.294 180 110 139.706 110 90Z" id="path_3" />
+    <path d="M90 270C90 209.249 139.249 160 200 160C260.751 160 310 209.249 310 270C310 330.751 260.751 380 200 380C139.249 380 90 330.751 90 270Z" id="path_4" />
+    <clipPath id="clip_1">
+      <use xlink:href="#path_1" clip-rule="evenodd" fill-rule="evenodd" />
+    </clipPath>
+    <clipPath id="clip_2">
+      <use xlink:href="#path_2" />
+    </clipPath>
+    <clipPath id="clip_3">
+      <use xlink:href="#path_3" />
+    </clipPath>
+    <clipPath id="clip_4">
+      <use xlink:href="#path_4" />
+    </clipPath>
+  </defs>
+  <g id="1" clip-path="url(#clip_1)">
+    <path d="M400 0L400 0L400 400L0 400L0 0L400 0Z" id="1" fill="#787878" stroke="none" />
+    <path d="M0 200C0 89.5431 89.5431 0 200 0C310.457 0 400 89.5431 400 200C400 310.457 310.457 400 200 400C89.5431 400 0 310.457 0 200Z" id="Ellipse-3" fill="#FFFFFF" fill-rule="evenodd" stroke="none" />
+    <g id="Ellipse-4">
+      <g clip-path="url(#clip_2)">
+        <use xlink:href="#path_2" fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="8 8" />
+      </g>
+    </g>
+    <g id="Ellipse-7">
+      <g clip-path="url(#clip_3)">
+        <use xlink:href="#path_3" fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="8 8" />
+      </g>
+    </g>
+    <g id="Ellipse-6">
+      <g clip-path="url(#clip_4)">
+        <use xlink:href="#path_4" fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="8 8" />
+      </g>
+    </g>
+    <path d="M130 90C130 51.3401 161.34 20 200 20C238.66 20 270 51.3401 270 90C270 128.66 238.66 160 200 160C161.34 160 130 128.66 130 90Z" id="Ellipse-5" fill="none" fill-rule="evenodd" stroke="#000000" stroke-width="1" />
+    <path d="M279.826 48.445C280.48 49.7154 281.329 51.3896 281.834 52.4893C287.077 63.9079 290 76.6127 290 90.0001C290 119.212 276.083 145.173 254.517 161.615C253.764 162.19 252.597 163.023 251.638 163.699C250.736 164.335 250 165.74 250 166.844L250 169.996C250 171.1 250.792 172.411 251.765 172.932C252.699 173.432 253.8 174.028 254.528 174.445C287.667 193.396 310 229.09 310 270C310 305.549 293.137 337.159 266.974 357.268C266.004 358.014 264.455 359.128 263.276 359.966C262.376 360.605 261.963 361.954 262.359 362.985L263.629 366.292C264.024 367.323 265.177 367.83 266.203 367.42C267.685 366.827 269.719 366.006 270.992 365.459C335.102 337.916 380 274.201 380 200C380 132.766 343.137 74.1411 288.52 43.2343C287.573 42.6983 286.101 41.8993 284.942 41.275C283.97 40.7515 282.68 41.0725 282.062 41.9878L280.021 45.0144C279.403 45.9297 279.32 47.4636 279.826 48.445Z" id="Vector-shape-2" fill="#000000" fill-rule="evenodd" stroke="none" />
+    <path d="M130 90.0001C130 51.3402 161.34 20.0001 200 20.0001C238.66 20.0001 270 51.3402 270 90.0001C270 128.66 238.66 160 200 160C161.34 160 130 128.66 130 90.0001Z" id="Ellipse-6" fill="#000000" fill-rule="evenodd" stroke="none" />
+  </g>
+</svg>

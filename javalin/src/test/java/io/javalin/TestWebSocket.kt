@@ -13,7 +13,6 @@ import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.json.toJsonString
-import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.security.RouteRole
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
@@ -382,14 +381,6 @@ class TestWebSocket {
 
         // Verify that the failed upgrade due to authentication error is logged
         assertThat(app.logger().log).containsExactly("/auth-ws upgrade attempted (401 Unauthorized)")
-    }
-
-    @Test
-    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
-        app.unsafe.routes.ws("/path/{param}") {}
-        TestClient(app, "/path/0").connectAndDisconnect()
-        TestClient(app, "/path/1?test=banana&hi=1&hi=2").connectAndDisconnect()
-        assertThat(app.logger().log.size).isEqualTo(0)
     }
 
     @Test

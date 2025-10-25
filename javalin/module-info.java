@@ -13,7 +13,6 @@ module io.javalin {
     exports io.javalin.jetty;
     exports io.javalin.json;
     exports io.javalin.plugin;
-    exports io.javalin.plugin.bundled;
     exports io.javalin.rendering;
     exports io.javalin.router;
     exports io.javalin.security;

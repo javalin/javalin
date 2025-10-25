@@ -4,7 +4,6 @@ import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.config.Key;
 import io.javalin.http.*;
 import io.javalin.plugin.ContextPlugin;
-import io.javalin.plugin.bundled.CorsPlugin;
 import io.javalin.validation.ValidationError;
 import io.javalin.validation.Validator;
 import io.javalin.websocket.WsConfig;
@@ -40,12 +39,6 @@ public class TestPublicApi_Java {
         var app = Javalin.create(config -> {
             config.appData(testComponentkey, "name");
             config.validation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
-            config.registerPlugin(new CorsPlugin(cors -> {
-                cors.addRule(rule -> {
-                    rule.path = "images*";
-                    rule.allowHost("https://images.local");
-                });
-            }));
             config.registerPlugin(new TestContextPlugin());
             config.http.asyncTimeout = 10_000L;
             config.routes.apiBuilder(() -> {

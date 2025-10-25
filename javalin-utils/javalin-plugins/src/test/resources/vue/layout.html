@@ -1,0 +1,11 @@
+<head>
+    <script nonce="@addNonce">function Vue(){}</script>
+    @componentRegistration
+    <script>@inlineFile("/vue/scripts.js")</script>
+    <script>@inlineFileDev("/vue/scripts-dev.js")</script>
+    <script>@inlineFileNotDev("/vue/scripts-not-dev.js")</script>
+    <script src="@cdnWebjar/swagger-ui/3.24.3/swagger-ui.css"></script>
+    <script>let noncelessString = "abc"</script>
+</head>
+<body>@routeComponent</body>
+

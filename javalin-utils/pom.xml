@@ -13,6 +13,7 @@
 
     <modules>
         <module>javalin-context-mock</module>
+        <module>javalin-plugins</module>
         <module>javalin-rendering</module>
     </modules>
 </project>
