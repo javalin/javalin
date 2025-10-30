@@ -3,7 +3,7 @@
     <parent>
         <artifactId>javalin-utils</artifactId>
         <groupId>io.javalin</groupId>
-        <version>7.0.0-SNAPSHOT</version>
+        <version>7.0.0-alpha.1</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -73,7 +73,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
-                        <pomPropertiesFile combine.self="override"/>
+                        <pomPropertiesFile combine.self="override" />
                     </archive>
                 </configuration>
             </plugin>
@@ -81,7 +81,7 @@
                 <artifactId>maven-source-plugin</artifactId>
                 <configuration>
                     <archive>
-                        <pomPropertiesFile combine.self="override"/>
+                        <pomPropertiesFile combine.self="override" />
                     </archive>
                 </configuration>
             </plugin>
