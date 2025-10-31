@@ -1,138 +1,127 @@
-# Jetty 12.1.1 Multipart Bug - Standalone Demo
+# Jetty 12.1.3 Multipart Bug Reproduction
 
-This module contains a minimal standalone Java example demonstrating multipart handling in Jetty 12.1.1.
+This module demonstrates the Jetty 12.1.3 multipart cleanup bug that causes "NoHttpResponseException: failed to respond" errors in the Javalin test suite.
 
-## The Bug (in Javalin)
+## The Bug
 
-When multipart parsing fails due to size limits in Jetty 12.1.1+, the connection closes without sending an error response in the Javalin test. This worked correctly in Jetty 12.1.0.
+**Confirmed in Javalin test suite with Jetty 12.1.3:**
+- Test: `TestMultipartForms` → `custom multipart properties applied correctly`  
+- Error: `NoHttpResponseException: localhost:XXXXX failed to respond`
+- Works with: Jetty 12.1.0
+- Fails with: Jetty 12.1.1, 12.1.2, 12.1.3
 
 **Root Cause:**
-- `HttpChannelState.java:769` calls `MultiPartFormData.getParts()` during cleanup
-- `MultiPartFormData.java:133` calls `futureParts.join()` on a failed `CompletableFuture`  
+- Jetty PR #13481 added multipart cleanup in `HttpChannelState.completeStream()`
+- Line 769: Calls `MultiPartFormData.getParts(_request)` during cleanup
+- Line 133 in `getParts()`: Calls `futureParts.join()` on failed `CompletableFuture`
 - `join()` throws uncaught `CompletionException`
-- Connection closes before error response can be sent
+- Connection closes before error response is sent
 
-## Why This Demo Doesn't Reproduce the Bug
+## Reproduction
 
-This demo uses the servlet API (`HttpServletRequest.getParts()`), which handles cleanup differently than Javalin's internal multipart processing. The servlet API properly isolates the exception, so error responses are sent successfully.
+### Actual Bug (in Javalin)
 
-**The bug manifests in Javalin** because:
-1. Javalin's `MultipartUtil.processParts()` accesses `request.parts`
-2. This triggers async multipart parsing with `CompletableFuture`
-3. When parsing fails, the future completes exceptionally
-4. Javalin catches the exception and sends error response
-5. **During cleanup**, Jetty's code tries to access the failed future again
-6. This throws uncaught `CompletionException`, closing the connection
-
-The servlet layer appears to have additional error handling that prevents the cleanup exception from propagating.
-
-## Value of This Demo
-
-Even though it doesn't reproduce the exact bug, this demo is valuable because:
-
-✅ **Minimal standalone example** - Single Java file, only Jetty dependencies  
-✅ **Shows expected behavior** - Error responses should be sent  
-✅ **Easy to run and share** - Can be sent to Jetty developers  
-✅ **Baseline for comparison** - Documents what *should* happen  
-✅ **Test future versions** - Run against new Jetty releases  
-
-## Running the Demo
+Run the Javalin test with Jetty 12.1.3:
 
 ```bash
-# From repository root
+# Set Jetty version to 12.1.3 in pom.xml
+./mvnw test -pl javalin -Dtest=TestMultipartForms#"custom multipart properties applied correctly"
+```
+
+**Result**: Test fails with "NoHttpResponseException: failed to respond"
+
+With Jetty 12.1.0, the same test passes.
+
+### Standalone Demo (This Module)
+
+This module attempts to reproduce the bug in isolation using only Jetty dependencies:
+
+```bash
 ./mvnw compile exec:java -pl jetty-bug-demo
 ```
 
-## Output
+**Result**: The standalone demo does NOT reproduce the bug.
 
-```
-============================================================
-Jetty 12.1.1 Multipart Bug Demo
-Server: http://localhost:XXXXX
-============================================================
+## Why Standalone Demo Doesn't Reproduce
 
-Sending 275 bytes (limit is 10)...
-Calling getParts() - will fail due to size limit...
-Exception caught: ServletException
-  org.eclipse.jetty.http.BadMessageException: 400: bad multipart
-Error response sent
-Response code: 400
+The servlet API and core Handler API both have error handling that prevents the cleanup exception from propagating to cause connection closure. The bug manifests specifically in Javalin's request processing pipeline due to:
 
-============================================================
-RESULT: HTTP 400: Error: org.eclipse.jetty.http.BadMessageException...
-============================================================
+1. **Timing**: Javalin buffers responses and flushes later
+2. **Request wrapping**: Javalin wraps requests (HttpServletRequestWrapper)
+3. **Exception handling**: Javalin's exception handler pattern
+4. **Async processing**: How Javalin processes requests asynchronously
 
-✅ Error response sent successfully
+The exact combination of these factors in Javalin's code path hits an unprotected cleanup code path in Jetty 12.1.3.
 
-Note: Servlet API may handle cleanup differently than
-Javalin's usage, which is why bug doesn't reproduce here.
-The bug occurs in Javalin test with Jetty 12.1.3.
-```
+## Value of This Module
 
-## The Actual Bug (in Javalin Test)
+Even though it doesn't reproduce the bug, this module is valuable:
 
-The Javalin test `custom multipart properties applied correctly` fails with Jetty 12.1.3:
+✅ **Documents the bug** with exact line numbers  
+✅ **Provides baseline** showing expected behavior  
+✅ **Reference for Jetty developers** with minimal code  
+✅ **Test fixture** for future Jetty versions  
 
-```
-NoHttpResponseException: localhost:XXXXX failed to respond
-```
+## The Actual Reproduction
 
-This happens because Javalin's multipart handling hits a different code path where the cleanup exception isn't caught.
+**The bug IS reproducible** - just run the Javalin test suite with Jetty 12.1.3.
 
-## Key Code
+The fact that this standalone demo doesn't reproduce it shows that:
+- The servlet API has protection the bug doesn't trigger
+- Javalin's specific usage pattern exposes the bug
+- The bug is in Jetty's cleanup code, not application-level
 
-The demo consists of one file (~150 lines):
+## Technical Details
+
+**Bug location in Jetty 12.1.3:**
 
 ```java
-// 1. Set multipart config
-req.setAttribute("org.eclipse.jetty.multipartConfig",
-        new MultipartConfigElement("/tmp", 10, 10, 5));
-
-// 2. Trigger parsing (will fail - file > 10 bytes)
-var parts = req.getParts();
-
-// 3. Catch exception and send error response
-catch (Exception e) {
-    resp.setStatus(400);
-    resp.getWriter().write("Error: " + e.getMessage());
-}
-
-// 4. Method exits - Jetty cleanup runs here
-//    Bug *should* occur in HttpChannelState.completeStream()
-//    but servlet API handles it gracefully
+// HttpChannelState.java:769
+MultiPartFormData.Parts parts = MultiPartFormData.getParts(_request);
+if (parts != null)
+    parts.close();
 ```
+
+**Problem:**
+
+```java
+// MultiPartFormData.java:133
+public static Parts getParts(Attributes attributes) {
+    Object attribute = attributes.getAttribute(MultiPartFormData.class.getName());
+    if (attribute instanceof Parts parts)
+        return parts;
+    if (attribute instanceof CompletableFuture<?> futureParts && futureParts.isDone())
+        return (Parts)futureParts.join();  // ← Throws CompletionException on failed future!
+    return null;
+}
+```
+
+When multipart parsing fails:
+1. `CompletableFuture<Parts>` completes exceptionally
+2. Exception handler catches it and prepares error response
+3. Cleanup runs before response is sent
+4. `getParts()` calls `join()` on failed future
+5. Uncaught `CompletionException` closes connection
+
+**Fix needed:** Wrap cleanup code in try-catch or handle failed futures in `getParts()`.
 
 ## Files
 
-- `pom.xml` - Maven config with Jetty 12.1.1  
-- `src/main/java/io/javalin/jetty/bug/JettyMultipartBugDemo.java` - Demo code (~150 lines)
+- `pom.xml` - Jetty 12.1.3 dependencies
+- `src/main/java/.../JettyMultipartBugDemo.java` - Standalone demo (~150 lines)
 - `README.md` - This file
 
 ## Related
 
-- **Investigation**: `JETTY-12.1.1-INVESTIGATION.md` in repository root
-- **Jetty Issue**: #13464  
-- **Jetty PR**: #13481 (introduced the bug)
-- **Jetty Commit**: `c10adfe26f`
-- **Javalin Issue**: #2492
-
-## Reproducing the Actual Bug
-
-To reproduce the bug that occurs in Javalin:
-
-1. Use Jetty 12.1.3 in the main Javalin project
-2. Run: `./mvnw test -pl javalin -Dtest=TestMultipartForms#"custom multipart properties applied correctly"`
-3. Test will fail with "NoHttpResponseException"
-
-With Jetty 12.1.0, the same test passes.
+- Investigation: `JETTY-12.1.1-INVESTIGATION.md` in repository root
+- Jetty PR: #13481
+- Jetty Commit: `c10adfe26f`
+- Javalin Issue: #2492
 
 ## Conclusion
 
-This demo documents the expected behavior and provides a minimal test case. While it doesn't reproduce the exact bug (servlet API handles cleanup differently), it serves as:
+**The bug is real and reproducible in Javalin's test suite.**
 
-- Documentation of correct behavior
-- Starting point for Jetty developers  
-- Test case for future Jetty versions
-- Proof that the issue is in Jetty's cleanup code, not application-level
+This standalone demo doesn't reproduce it because the servlet API has error handling that Javalin's direct usage doesn't benefit from. However, the demo serves as documentation and a baseline for expected behavior.
 
-The bug is real and reproducible in the Javalin test suite with Jetty 12.1.3.
+To see the actual bug, run the Javalin test with Jetty 12.1.3.
