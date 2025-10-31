@@ -90,7 +90,7 @@
         <thymeleaf.version>3.1.3.RELEASE</thymeleaf.version>
         <mustache.version>0.9.14</mustache.version>
         <pebble.version>3.2.4</pebble.version>
-        <commonmark.version>0.21.0</commonmark.version>
+        <commonmark.version>0.27.0</commonmark.version>
 
         <!-- ADDITIONAL PLUGIN VERSIONS -->
         <exec.plugin.version>3.5.0</exec.plugin.version>
@@ -98,20 +98,20 @@
         <git-commit-id.plugin.version>9.0.1</git-commit-id.plugin.version>
 
         <!-- DEPENDENCIES -->
-        <annotations.version>26.0.2</annotations.version>
         <jetty.version>12.1.0</jetty.version>
+        <annotations.version>26.0.2-1</annotations.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
         <jackson.version>2.20.0</jackson.version>
         <jackson.databind.version>2.20.0</jackson.databind.version>
         <brotli4j.version>1.20.0</brotli4j.version>
-        <zstd.jni.version>1.5.7-4</zstd.jni.version>
-        <logback.version>1.5.18</logback.version>
+        <zstd.jni.version>1.5.7-6</zstd.jni.version>
+        <logback.version>1.5.20</logback.version>
         <slf4j.version>2.0.17</slf4j.version>
         <gson.version>2.13.2</gson.version>
         <okhttp.version>4.12.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
 
         <!-- SSL DEPENDENCIES -->
-        <ayza.version>10.0.0</ayza.version>
+        <ayza.version>10.0.1</ayza.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.27.3</assertj.version>
