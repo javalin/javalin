@@ -4,16 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>io.javalin</groupId>
-        <artifactId>javalin-parent</artifactId>
-        <version>7.0.0-SNAPSHOT</version>
-    </parent>
-
+    <groupId>io.javalin</groupId>
     <artifactId>jetty-bug-demo</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>Jetty 12.1.1 Multipart Bug Demo</name>
-    <description>Minimal reproducible example of Jetty 12.1.1 multipart bug</description>
+    <name>Jetty 12.1.3 Multipart Bug Demo</name>
+    <description>Minimal reproducible example of Jetty 12.1.3 multipart bug</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,21 +17,32 @@
     </properties>
 
     <dependencies>
-        <!-- Jetty 12.1.3 to demonstrate the bug -->
+        <!-- Jetty 12.1.1 - first version with the bug -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>12.1.3</version>
+            <version>12.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-http</artifactId>
-            <version>12.1.3</version>
+            <version>12.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.ee10</groupId>
             <artifactId>jetty-ee10-servlet</artifactId>
-            <version>12.1.3</version>
+            <version>12.1.1</version>
+        </dependency>
+        <!-- Apache HttpClient for multipart uploads like the test uses -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.14</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.5.14</version>
         </dependency>
     </dependencies>
 
