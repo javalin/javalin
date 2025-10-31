@@ -1,6 +1,7 @@
 package io.javalin.jetty.bug;
 
 import jakarta.servlet.MultipartConfigElement;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,178 +20,149 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Minimal reproducible example of Jetty 12.1.1 multipart bug.
+ * Minimal reproducible example attempting to demonstrate Jetty 12.1.1 multipart bug.
  * 
- * This demonstrates that when multipart parsing fails due to size limits,
- * Jetty 12.1.1 closes the connection without sending an error response.
+ * This mimics what Javalin does:
+ * 1. Sets multipart config via request attribute
+ * 2. Calls req.getParts() to trigger parsing
+ * 3. Catches exception and sends error response
  * 
- * Expected behavior (works in 12.1.0):
- * - Server catches the parsing exception
- * - Server sends HTTP 400 error response
- * - Client receives the error response
+ * The bug should occur during cleanup when HttpChannelState.completeStream()
+ * calls MultiPartFormData.getParts() which throws CompletionException.
  * 
- * Actual behavior (broken in 12.1.1+):
- * - Server catches the parsing exception
- * - Server tries to send error response
- * - During cleanup, getParts() throws uncaught CompletionException
- * - Connection closes prematurely
- * - Client sees "Connection reset" or no response
- * 
- * Bug details:
- * - HttpChannelState.java:769 calls MultiPartFormData.getParts() during cleanup
- * - MultiPartFormData.java:133 calls futureParts.join() on failed CompletableFuture
- * - join() throws uncaught CompletionException
- * - Connection closes before error response is sent
+ * However, the servlet API appears to handle cleanup differently than
+ * Javalin's direct usage, so this demo may not reproduce the exact bug.
  */
 public class JettyMultipartBugDemo {
 
     public static void main(String[] args) throws Exception {
-        // Create Jetty server with servlet
         Server server = new Server();
         ServerConnector connector = new ServerConnector(server);
-        connector.setPort(0); // Use ephemeral port
+        connector.setPort(0);
         server.addConnector(connector);
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
 
-        // Add servlet that handles multipart with size limit
+        // Servlet that mimics Javalin's multipart handling
         ServletHolder holder = new ServletHolder(new HttpServlet() {
             @Override
-            protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            protected void doPost(HttpServletRequest req, HttpServletResponse resp) 
+                    throws IOException, ServletException {
                 try {
-                    // Set multipart config with tiny 10-byte limit
+                    // Step 1: Set multipart config (like Javalin does in before handler)
                     req.setAttribute("org.eclipse.jetty.multipartConfig",
                             new MultipartConfigElement("/tmp", 10, 10, 5));
 
-                    // Try to get parts - this will fail when size exceeds 10 bytes
+                    // Step 2: Call getParts() (like Javalin's MultipartUtil.processParts())
+                    System.out.println("Calling getParts() - will fail due to size limit...");
                     var parts = req.getParts();
-
-                    // If we get here, parsing succeeded
+                    
+                    // If we get here, no exception
+                    System.out.println("Success: " + parts.size() + " parts");
                     resp.setStatus(200);
                     resp.setContentType("text/plain");
-                    PrintWriter writer = resp.getWriter();
-                    writer.write("Success: " + parts.size() + " parts");
-                    writer.flush();
+                    resp.getWriter().write("Success: " + parts.size() + " parts");
 
                 } catch (Exception e) {
-                    // We expect to catch the size limit exception here
-                    System.err.println("Caught exception: " + e.getClass().getSimpleName() + ": " + e.getMessage());
-
-                    // Try to send error response
+                    // Step 3: Exception handler (like Javalin's exception handlers)
+                    System.err.println("Exception caught: " + e.getClass().getSimpleName());
+                    System.err.println("  " + e.getMessage());
+                    
+                    // Send error response
                     resp.setStatus(400);
                     resp.setContentType("text/plain");
-                    PrintWriter writer = resp.getWriter();
-                    writer.write("Error: " + e.getMessage());
-                    writer.flush();
+                    resp.getWriter().write("Error: " + e.getMessage());
+                    
+                    System.out.println("Error response sent");
                 }
+                // Method exits here - Jetty cleanup runs
+                // Bug should occur in HttpChannelState.completeStream() line 769
             }
         });
         context.addServlet(holder, "/upload");
 
-        // Start server
         server.start();
         int port = connector.getLocalPort();
-        System.out.println("Server started on port " + port);
+        
+        System.out.println("=".repeat(60));
+        System.out.println("Jetty 12.1.1 Multipart Bug Demo");
+        System.out.println("Server: http://localhost:" + port);
+        System.out.println("=".repeat(60));
 
-        // Give server time to fully start
         Thread.sleep(500);
 
-        // Make client request
-        CompletableFuture<String> resultFuture = CompletableFuture.supplyAsync(() -> {
-            try {
-                return makeMultipartRequest(port);
-            } catch (Exception e) {
-                return "ERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage();
-            }
-        });
+        // Client request
+        String result = makeMultipartRequest(port);
 
-        // Wait for result
-        String result;
-        try {
-            result = resultFuture.get(5, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            result = "TIMEOUT: Request did not complete in time";
-        }
-
-        // Stop server
         server.stop();
 
-        // Print results
-        System.out.println("\n========================================");
-        System.out.println("RESULT:");
-        System.out.println("========================================");
-        System.out.println(result);
-        System.out.println("========================================\n");
+        System.out.println("\n" + "=".repeat(60));
+        System.out.println("RESULT: " + result);
+        System.out.println("=".repeat(60) + "\n");
 
-        // Check if bug occurred
+        // Check result
         if (result.contains("Connection reset") || result.contains("SocketException") ||
-                result.contains("ERROR") || result.contains("Broken pipe")) {
+                result.startsWith("ERROR:")) {
             System.err.println("❌ BUG REPRODUCED!");
-            System.err.println("Connection was closed without sending error response.");
-            System.err.println("\nThis is the Jetty 12.1.1 multipart bug:");
-            System.err.println("1. Multipart parsing fails (size > 10 bytes)");
-            System.err.println("2. CompletableFuture<Parts> completes exceptionally");
-            System.err.println("3. During cleanup, HttpChannelState.java:769 calls getParts()");
-            System.err.println("4. getParts() at line 133 calls join() on failed future");
-            System.err.println("5. join() throws uncaught CompletionException");
-            System.err.println("6. Connection closes before error response is sent");
+            System.err.println("Connection closed before error response sent.");
+            System.err.println("\nThis is the Jetty 12.1.1+ bug:");
+            System.err.println("- HttpChannelState.java:769 calls getParts() in cleanup");
+            System.err.println("- MultiPartFormData.java:133 calls join() on failed future");
+            System.err.println("- CompletionException thrown, connection closes");
             System.exit(1);
-        } else if (result.contains("HTTP 400") || result.contains("Error:")) {
-            System.out.println("✅ NO BUG - Error response was successfully sent!");
-            System.out.println("Server handled the exception and sent an error response.");
+        } else if (result.contains("Error") || result.contains("400")) {
+            System.out.println("✅ Error response sent successfully");
+            System.out.println("\nNote: Servlet API may handle cleanup differently than");
+            System.out.println("Javalin's usage, which is why bug doesn't reproduce here.");
+            System.out.println("The bug occurs in Javalin test with Jetty 12.1.3.");
             System.exit(0);
         } else {
-            System.err.println("⚠️  UNEXPECTED RESULT");
+            System.err.println("⚠️  Unexpected result");
             System.exit(2);
         }
     }
 
-    private static String makeMultipartRequest(int port) throws IOException {
-        String boundary = "----WebKitFormBoundary";
-        String contentType = "multipart/form-data; boundary=" + boundary;
-
-        // Multipart content > 10 bytes
-        String content = "--" + boundary + "\r\n" +
-                "Content-Disposition: form-data; name=\"file\"; filename=\"test.txt\"\r\n" +
-                "Content-Type: text/plain\r\n" +
-                "\r\n" +
-                "This content is definitely more than 10 bytes!\r\n" +
-                "--" + boundary + "--\r\n";
-
-        byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
-
-        HttpURLConnection conn = (HttpURLConnection) URI.create("http://localhost:" + port + "/upload")
-                .toURL().openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", contentType);
-        conn.setRequestProperty("Content-Length", String.valueOf(contentBytes.length));
-        conn.setDoOutput(true);
-        conn.setConnectTimeout(2000);
-        conn.setReadTimeout(2000);
-
-        // Send request
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(contentBytes);
-            os.flush();
-        }
-
-        // Try to read response
+    private static String makeMultipartRequest(int port) {
         try {
-            int responseCode = conn.getResponseCode();
-            String responseBody;
+            String boundary = "----WebKitFormBoundary";
+            String content = "--" + boundary + "\r\n" +
+                    "Content-Disposition: form-data; name=\"upload\"; filename=\"test.txt\"\r\n" +
+                    "Content-Type: text/plain\r\n" +
+                    "\r\n" +
+                    "Content exceeding 10 bytes limit here!\r\n" +
+                    "--" + boundary + "\r\n" +
+                    "Content-Disposition: form-data; name=\"text-field\"\r\n" +
+                    "\r\n" +
+                    "text\r\n" +
+                    "--" + boundary + "--\r\n";
 
-            if (responseCode >= 400) {
-                responseBody = new String(conn.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
-            } else {
-                responseBody = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+            System.out.println("\nSending " + bytes.length + " bytes (limit is 10)...");
+
+            HttpURLConnection conn = (HttpURLConnection) 
+                    URI.create("http://localhost:" + port + "/upload").toURL().openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+            conn.setDoOutput(true);
+            conn.setConnectTimeout(2000);
+            conn.setReadTimeout(2000);
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(bytes);
             }
 
-            return "HTTP " + responseCode + ": " + responseBody;
+            int code = conn.getResponseCode();
+            System.out.println("Response code: " + code);
+            
+            String body = new String((code >= 400 ? conn.getErrorStream() : conn.getInputStream())
+                    .readAllBytes(), StandardCharsets.UTF_8);
+
+            return "HTTP " + code + ": " + body;
 
         } catch (IOException e) {
-            // Connection reset happens here
+            System.err.println("IOException: " + e.getMessage());
             return "ERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage();
         }
     }
