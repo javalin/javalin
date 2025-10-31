@@ -8,6 +8,7 @@
         <module>javalin-utils</module>
         <module>javalin-ssl</module>
         <module>jacoco-coverage-report</module>
+        <module>jetty-bug-demo</module>
     </modules>
 
     <groupId>io.javalin</groupId>
