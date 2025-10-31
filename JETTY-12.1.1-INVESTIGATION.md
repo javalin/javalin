@@ -59,7 +59,9 @@ if (parts != null)
     parts.close();
 ```
 
-**Location**: `jetty-core/jetty-server/src/main/java/org/eclipse/jetty/server/internal/HttpChannelState.java`
+**Location**: `jetty-core/jetty-server/src/main/java/org/eclipse/jetty/server/internal/HttpChannelState.java`  
+**Exact problematic line**: Line 769  
+**Method**: `completeStream(HttpStream stream, Throwable failure)`
 
 ### Why This Breaks
 
@@ -72,26 +74,59 @@ The cleanup logic doesn't account for error conditions during multipart parsing:
    - `completeStream()` runs cleanup → `parts.close()` safely cleans up temp files
 
 2. **Error Flow** (Broken in 12.1.1+):
-   - Multipart parsing exceeds size limit → `BadMessageException` thrown
+   - Multipart parsing exceeds size limit → `IllegalStateException` thrown
+   - `CompletableFuture<Parts>` stored in request attributes completes exceptionally
    - Exception is caught by Javalin's exception handler
    - Handler prepares error response
-   - **Problem**: `completeStream()` is called before response is fully sent
-   - `parts.close()` is invoked on a `Parts` object in an error state
-   - Closing a partially-parsed or error-state `Parts` object triggers connection closure
-   - Connection closes **before** error response can be sent
+   - **Problem**: `completeStream()` is called during request completion
+   - **Line 769**: `MultiPartFormData.getParts(_request)` is invoked
+   - **Inside getParts() at line 133**: `futureParts.join()` is called
+   - **`join()` throws `CompletionException`** wrapping the original `IllegalStateException`
+   - **Exception is NOT caught** in the try block
+   - Exception propagates up, causing connection to close immediately
    - Client receives: "Connection reset" / "failed to respond"
+
+### The Exact Bug
+
+**File**: `jetty-core/jetty-http/src/main/java/org/eclipse/jetty/http/MultiPartFormData.java`  
+**Problematic method**: `getParts(Attributes attributes)`  
+**Line 133**: `return (Parts)futureParts.join();`
+
+When the `CompletableFuture<Parts>` has completed exceptionally (due to size limit violation), calling `join()` throws a `CompletionException`. This exception is not caught in `HttpChannelState.completeStream()`, causing the connection to close prematurely.
+
+```java
+public static Parts getParts(Attributes attributes)
+{
+    Object attribute = attributes.getAttribute(MultiPartFormData.class.getName());
+    if (attribute instanceof Parts parts)
+        return parts;
+    if (attribute instanceof CompletableFuture<?> futureParts && futureParts.isDone())
+        return (Parts)futureParts.join();  // ← THROWS CompletionException on failed future!
+    return null;
+}
+```
 
 ### Technical Details
 
 When a `BadMessageException` is thrown during multipart parsing:
-- The `MultiPartFormData.Parts` object may be in an inconsistent or error state
-- It might contain partially parsed data or error metadata
-- Calling `close()` on this object can:
-  - Trigger additional exceptions
-  - Force immediate connection closure
-  - Prevent pending response writes from completing
+- Line 720 in `MultiPartFormData.java`: Size check fails
+  ```java
+  if (maxPartSize >= 0 && size > maxPartSize)
+  {
+      onFailure(new IllegalStateException("max file size exceeded: %d".formatted(maxPartSize)));
+      return;
+  }
+  ```
+- The `CompletableFuture<Parts>` object stored in request attributes completes exceptionally
+- The future is stored under key `MultiPartFormData.class.getName()`
+- When `completeStream()` calls `getParts()` during cleanup
+- `getParts()` calls `futureParts.join()` on line 133
+- `join()` throws `CompletionException` wrapping the `IllegalStateException`
+- This exception is **not caught** in `HttpChannelState.completeStream()`
+- The uncaught exception causes immediate connection closure
+- No error response can be sent
 
-The cleanup code runs too early in the error path, before the application has a chance to send an error response.
+**The core issue**: Calling `join()` on a failed `CompletableFuture` throws an exception, and the cleanup code doesn't handle this case.
 
 ---
 
@@ -145,29 +180,98 @@ The multipart cleanup commit (`c10adfe26f`) is present in 12.1.1 but not in 12.1
    - Reference PR #13481 and issue #13464
    - Provide minimal reproduction case
    - Link to this investigation
+   - **Suggest the fix**: Wrap `getParts()` call in try-catch, or make `getParts()` handle failed futures gracefully
 
 3. **Long Term**: Monitor Jetty Releases
    - Watch for fixes to the multipart cleanup logic
    - Test future Jetty releases before upgrading
    - Consider adding specific regression tests for this scenario
 
+### Proposed Fix for Jetty
+
+**Option 1**: Catch exception in cleanup code (`HttpChannelState.java` line 768-771)
+```java
+// Clean up any multipart tmp files and release any associated resources.
+try
+{
+    MultiPartFormData.Parts parts = MultiPartFormData.getParts(_request);
+    if (parts != null)
+        parts.close();
+}
+catch (Exception e)
+{
+    // Failed to get or close parts, but this is cleanup phase - don't propagate
+    if (LOG.isDebugEnabled())
+        LOG.debug("Failed to cleanup multipart parts", e);
+}
+```
+
+**Option 2**: Make `getParts()` safe for failed futures (`MultiPartFormData.java` line 127-135)
+```java
+public static Parts getParts(Attributes attributes)
+{
+    Object attribute = attributes.getAttribute(MultiPartFormData.class.getName());
+    if (attribute instanceof Parts parts)
+        return parts;
+    if (attribute instanceof CompletableFuture<?> futureParts && futureParts.isDone())
+    {
+        try
+        {
+            return (Parts)futureParts.join();
+        }
+        catch (CompletionException e)
+        {
+            // Future completed exceptionally, no parts to return
+            return null;
+        }
+    }
+    return null;
+}
+```
+
 ### Bug Report Template for Jetty
 
 ```markdown
-Title: Regression in 12.1.1: BadMessageException during multipart parsing causes connection closure instead of error response
+Title: Regression in 12.1.1: CompletionException in multipart cleanup causes premature connection closure
 
 ## Description
-Starting in Jetty 12.1.1, when a `BadMessageException` is thrown during multipart parsing (e.g., due to exceeding size limits), the connection closes without sending an error response. This worked correctly in 12.1.0.
+Starting in Jetty 12.1.1, when multipart parsing fails (e.g., due to exceeding size limits), the connection closes without sending an error response. This worked correctly in 12.1.0.
 
 ## Root Cause
-PR #13481 added automatic multipart cleanup in `HttpChannelState.completeStream()`. The cleanup code runs too early in the error path, before error responses can be sent.
+PR #13481 added multipart cleanup in `HttpChannelState.completeStream()` that calls `MultiPartFormData.getParts()`. When parsing has failed, the stored `CompletableFuture<Parts>` has completed exceptionally. The `getParts()` method calls `futureParts.join()` on line 133, which throws `CompletionException` for failed futures. This exception is not caught, causing the connection to close before error handlers can send a response.
+
+## Exact Problem Location
+**File**: `jetty-core/jetty-http/src/main/java/org/eclipse/jetty/http/MultiPartFormData.java`  
+**Line 133**: `return (Parts)futureParts.join();` ← Throws `CompletionException` on failed future  
+
+**File**: `jetty-core/jetty-server/src/main/java/org/eclipse/jetty/server/internal/HttpChannelState.java`  
+**Line 769**: `MultiPartFormData.Parts parts = MultiPartFormData.getParts(_request);` ← Doesn't catch exception  
 
 ## Reproduction
 1. Set a custom `MultipartConfigElement` with small size limit (e.g., 10 bytes)
 2. Upload a file larger than the limit
-3. Configure an exception handler to catch `BadMessageException` and send error response
+3. Configure an exception handler to catch parsing errors and send error response
 4. **Expected**: HTTP 400 response with error message
-5. **Actual**: Connection closes, client sees "failed to respond"
+5. **Actual in 12.1.1+**: Connection closes, client sees "failed to respond"
+6. **Actual in 12.1.0**: Works correctly, client receives error response
+
+## Proposed Fix
+Make `getParts()` safe for failed futures:
+```java
+if (attribute instanceof CompletableFuture<?> futureParts && futureParts.isDone())
+{
+    try
+    {
+        return (Parts)futureParts.join();
+    }
+    catch (CompletionException e)
+    {
+        return null; // Future failed, no parts available
+    }
+}
+```
+
+Or wrap the cleanup call in try-catch in `HttpChannelState.completeStream()`.
 
 ## Impact
 Applications relying on exception handlers to send error responses for multipart upload failures will experience broken behavior.
