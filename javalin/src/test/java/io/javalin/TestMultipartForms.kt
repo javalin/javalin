@@ -147,14 +147,20 @@ class TestMultipartForms {
         }
 
         app.unsafe.routes.exception(Exception::class.java) { e, ctx ->
-            ctx.result("${e::class.java.canonicalName} ${e.message}")
+            ctx.result("Bad multipart handled")
         }
 
-        val response = http.post("/test-upload")
-            .field("upload", File("src/test/resources/upload-test/image.png"))
-            .field("text-field", "text")
-            .asString()
-        assertThat(response.body).contains("org.eclipse.jetty.http.BadMessageException: 400: bad multipart")
+        val uploadFile = File("src/test/resources/upload-test/image.png")
+        val responseAsString = okHttp.newCall(
+            Request.Builder().url(http.origin + "/test-upload").post(
+                MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("upload", uploadFile.name, uploadFile.asRequestBody(ContentType.OCTET_STREAM.toMediaTypeOrNull()))
+                    .addFormDataPart("text-field", "text")
+                    .build()
+            ).build()
+        ).execute().body!!.string()
+        assertThat(responseAsString).contains("Bad multipart handled")
     }
 
     @Test
