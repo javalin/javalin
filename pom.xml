@@ -91,6 +91,7 @@
         <mustache.version>0.9.14</mustache.version>
         <pebble.version>3.2.4</pebble.version>
         <commonmark.version>0.27.0</commonmark.version>
+        <jte.version>3.2.1</jte.version>
 
         <!-- ADDITIONAL PLUGIN VERSIONS -->
         <exec.plugin.version>3.6.2</exec.plugin.version>

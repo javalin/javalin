@@ -18,6 +18,7 @@
         <module>javalin-rendering-mustache</module>
         <module>javalin-rendering-pebble</module>
         <module>javalin-rendering-commonmark</module>
+        <module>javalin-rendering-jte</module>
     </modules>
 </project>
 

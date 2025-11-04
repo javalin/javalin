@@ -19,3 +19,6 @@ buildNumber.properties
 
 # ignore temporary test files
 javalin/src/test/external/test*.txt
+
+# ignore JTE generated classes
+jte-classes/
