@@ -125,7 +125,7 @@ class JettyServer(private val cfg: JavalinConfig) {
         server().connectors.filter { it !is ServerConnector }.forEach {
             JavalinLogger.startup("Binding to: $it")
         }
-        Util.logJavalinVersion()
+        Util.logJavalinVersion(cfg.showJavalinVersionWarning)
         eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STARTED)
     }
 

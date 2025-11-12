@@ -53,6 +53,8 @@ class JavalinConfig {
     @JvmField var useVirtualThreads = false
     /** Show the Javalin banner in the logs */
     @JvmField var showJavalinBanner = true
+    /** Show a warning if the Javalin version is more than 120 days old */
+    @JvmField var showJavalinVersionWarning = true
     /** Default validator configuration */
     @JvmField var validation = ValidationConfig()
     /**
