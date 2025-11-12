@@ -46,7 +46,7 @@ class TestConfiguration {
             it.requestLogger.http { ctx, timeInMs -> }
             it.requestLogger.ws { ws -> }
             it.showJavalinBanner = false
-            it.showJavalinVersionWarning = false
+            it.showOldJavalinVersionWarning = false
             it.router.contextPath = "/"
             it.jetty.defaultHost = "localhost"
             it.jetty.defaultPort = 1234
@@ -114,14 +114,14 @@ class TestConfiguration {
     }
 
     @Test
-    fun `showJavalinVersionWarning config option exists and defaults to true`() {
+    fun `showOldJavalinVersionWarning config option exists and defaults to true`() {
         val app = Javalin.create()
-        assertThat(app.unsafe.showJavalinVersionWarning).isTrue()
+        assertThat(app.unsafe.showOldJavalinVersionWarning).isTrue()
     }
 
     @Test
-    fun `showJavalinVersionWarning can be disabled`() {
-        val app = Javalin.create { it.showJavalinVersionWarning = false }
-        assertThat(app.unsafe.showJavalinVersionWarning).isFalse()
+    fun `showOldJavalinVersionWarning can be disabled`() {
+        val app = Javalin.create { it.showOldJavalinVersionWarning = false }
+        assertThat(app.unsafe.showOldJavalinVersionWarning).isFalse()
     }
 }
