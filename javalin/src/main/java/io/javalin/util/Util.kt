@@ -66,21 +66,21 @@ object Util {
     }
 
     @JvmStatic
-    fun logJavalinVersion() = try {
+    fun logJavalinVersion(showVersionWarning: Boolean = true) = try {
         val properties = Properties().also {
             val propertiesPath = "META-INF/maven/io.javalin/javalin/pom.properties"
             it.load(this.javaClass.classLoader.getResourceAsStream(propertiesPath))
         }
         val (version, buildTime) = listOf(properties.getProperty("version")!!, properties.getProperty("buildTime")!!)
-        JavalinLogger.startup("You are running Javalin $version (released ${formatBuildTime(buildTime)}).")
+        JavalinLogger.startup("You are running Javalin $version (released ${formatBuildTime(buildTime, showVersionWarning)}).")
     } catch (e: Exception) {
         // it's not that important
     }
 
-    private fun formatBuildTime(buildTime: String): String? = try {
+    private fun formatBuildTime(buildTime: String, showVersionWarning: Boolean = true): String? = try {
         val (release, now) = listOf(Instant.parse(buildTime), Instant.now())
         val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.US).withZone(ZoneId.of("Z"))
-        formatter.format(release) + if (now.isAfter(release.plus(120, ChronoUnit.DAYS))) {
+        formatter.format(release) + if (showVersionWarning && now.isAfter(release.plus(120, ChronoUnit.DAYS))) {
             ". Your Javalin version is ${ChronoUnit.DAYS.between(release, now)} days old. Consider checking for a newer version."
         } else ""
     } catch (e: Exception) {
