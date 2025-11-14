@@ -399,7 +399,7 @@ public class ApiBuilder implements RoutingApi {
      * Adds a WebSocket before handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a config.routes.apiBuilder(EndpointGroup)}.
      */
-    public void wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+    public static void wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
         staticInstance().wsBefore(prefixPath(path), wsConfig);
     }
 
@@ -407,7 +407,7 @@ public class ApiBuilder implements RoutingApi {
      * Adds a WebSocket before handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a config.routes.apiBuilder(EndpointGroup)}.
      */
-    public void wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
+    public static void wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
         staticInstance().wsBefore(prefixPath("*"), wsConfig);
     }
 
@@ -415,7 +415,7 @@ public class ApiBuilder implements RoutingApi {
      * Adds a WebSocket after handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a config.routes.apiBuilder(EndpointGroup)}.
      */
-    public void wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+    public static void wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
         staticInstance().wsAfter(prefixPath(path), wsConfig);
     }
 
@@ -423,7 +423,7 @@ public class ApiBuilder implements RoutingApi {
      * Adds a WebSocket after handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a config.routes.apiBuilder(EndpointGroup)}.
      */
-    public void wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
+    public static void wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
         staticInstance().wsAfter(prefixPath("*"), wsConfig);
     }
 
