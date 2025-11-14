@@ -137,5 +137,17 @@ public class Javalin {
         return jettyServer.getValue().port();
     }
 
+    /**
+     * Emits a user-defined event to all registered handlers.
+     * This method runs the event handlers asynchronously using the configured thread pool.
+     *
+     * @param event the event to emit
+     * @param <T> the type of the event
+     * @return a CompletableFuture that completes when all handlers have finished processing the event
+     */
+    public <T> java.util.concurrent.CompletableFuture<Void> emit(T event) {
+        return cfg.pvt.eventManager.emit(event, cfg.pvt.asyncExecutor.getValue().getExecutor());
+    }
+
 
 }

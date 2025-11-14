@@ -43,6 +43,11 @@ class AsyncExecutor(private val defaultExecutor: ExecutorService) {
     }
 
     /**
+     * Gets the default executor service.
+     */
+    fun getExecutor(): ExecutorService = defaultExecutor
+
+    /**
      * Utility method that executes [task] asynchronously using [executor] ([defaultExecutor] by default).
      * It also provides custom timeout handling via [onTimeout] callback registered directly on underlying [CompletableFuture],
      * so global [HttpConfig.asyncTimeout] does not affect this particular task.

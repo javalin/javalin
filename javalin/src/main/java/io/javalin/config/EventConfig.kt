@@ -50,6 +50,15 @@ class EventConfig(private val cfg: JavalinConfig) {
         eventManager.wsHandlerAddedHandlers.add(callback);
     }
 
+    /**
+     * Registers a handler for a user-defined event type.
+     * @param eventClass the class of the event
+     * @param handler the handler to be called when the event is emitted
+     */
+    fun <T : Any> on(eventClass: Class<T>, handler: Consumer<T>) {
+        eventManager.on(eventClass, handler)
+    }
+
     private val eventManager: EventManager
         get() = cfg.pvt.eventManager
 
