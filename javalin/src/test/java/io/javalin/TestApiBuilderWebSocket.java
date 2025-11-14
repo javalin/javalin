@@ -6,6 +6,7 @@
 
 package io.javalin;
 
+import io.javalin.websocket.WsHandlerType;
 import org.junit.jupiter.api.Test;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
@@ -25,6 +26,12 @@ public class TestApiBuilderWebSocket {
             });
         });
 
-        assertThat(app.unsafe.pvt.internalRouter.allWsHandlers()).hasSize(5);
+        var handlers = app.unsafe.pvt.internalRouter.allWsHandlers();
+        assertThat(handlers).hasSize(5);
+        assertThat(handlers).anyMatch(h -> h.getType() == WsHandlerType.WEBSOCKET_BEFORE && h.getPath().equals("/ws/*"));
+        assertThat(handlers).anyMatch(h -> h.getType() == WsHandlerType.WEBSOCKET_BEFORE && h.getPath().equals("*"));
+        assertThat(handlers).anyMatch(h -> h.getType() == WsHandlerType.WEBSOCKET && h.getPath().equals("/ws/test"));
+        assertThat(handlers).anyMatch(h -> h.getType() == WsHandlerType.WEBSOCKET_AFTER && h.getPath().equals("/ws/*"));
+        assertThat(handlers).anyMatch(h -> h.getType() == WsHandlerType.WEBSOCKET_AFTER && h.getPath().equals("*"));
     }
 }
