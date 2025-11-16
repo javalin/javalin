@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Minimal logging configuration for benchmarks -->
+    <!-- Reduces noise and potential performance impact from logging -->
+    
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Set root logger to WARN to minimize output during benchmarks -->
+    <root level="WARN">
+        <appender-ref ref="STDOUT" />
+    </root>
+    
+    <!-- Silence Jetty logging -->
+    <logger name="org.eclipse.jetty" level="ERROR"/>
+    
+    <!-- Silence Javalin startup banner -->
+    <logger name="io.javalin.Javalin" level="ERROR"/>
+    
+    <!-- Keep JMH output visible -->
+    <logger name="org.openjdk.jmh" level="INFO"/>
+</configuration>
+
