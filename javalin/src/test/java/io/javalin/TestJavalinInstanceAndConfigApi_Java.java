@@ -74,16 +74,14 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.bundledPlugins.enableRouteOverview("/overview");
             app.bundledPlugins.enableSslRedirects();
             // Events
-            app.events(event -> {
-                event.serverStarting(() -> System.out.println("Server is starting"));
-                event.serverStartFailed(() -> System.out.println("Server start failed"));
-                event.serverStarted(() -> System.out.println("Server is started"));
-                event.serverStopping(() -> System.out.println("Server is stopping"));
-                event.serverStopFailed(() -> System.out.println("Server stop failed"));
-                event.serverStopped(() -> System.out.println("Server is stopped"));
-                event.handlerAdded(handlerMetaInfo -> {});
-                event.wsHandlerAdded(wsHandlerMetaInfo -> {});
-            });
+            app.events.serverStarting(() -> System.out.println("Server is starting"));
+            app.events.serverStartFailed(() -> System.out.println("Server start failed"));
+            app.events.serverStarted(() -> System.out.println("Server is started"));
+            app.events.serverStopping(() -> System.out.println("Server is stopping"));
+            app.events.serverStopFailed(() -> System.out.println("Server stop failed"));
+            app.events.serverStopped(() -> System.out.println("Server is stopped"));
+            app.events.handlerAdded(handlerMetaInfo -> {});
+            app.events.wsHandlerAdded(wsHandlerMetaInfo -> {});
             // Request logger
             app.requestLogger.http((ctx, ms) -> {});
             Consumer<WsConfig> requestLogger = ws -> {};

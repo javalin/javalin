@@ -38,11 +38,8 @@ public class CopilotInstructionsPatternValidation {
             config.router.treatMultipleSlashesAsSingleSlash = true;
             config.staticFiles.add("/public");
             config.staticFiles.enableWebjars();
-
-            config.events(events -> {
-                events.serverStarting(() -> System.out.println("Starting..."));
-                events.serverStarted(() -> System.out.println("Started!"));
-            });
+            config.events.serverStarting(() -> System.out.println("Starting..."));
+            config.events.serverStarted(() -> System.out.println("Started!"));
         });
     }
 

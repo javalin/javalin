@@ -28,7 +28,6 @@ import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
 import io.javalin.rendering.NotImplementedRenderer
 import io.javalin.router.InternalRouter
-import io.javalin.router.exception.JavaLangErrorHandler
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.javalinLazy
 import io.javalin.validation.Validation
@@ -49,19 +48,25 @@ import java.util.function.Consumer
  */
 class JavalinState {
     //@formatter:off
-    // PUBLIC CONFIG API
-    @JvmField val misc = MiscConfig()
+    // CORE CONFIGS - HTTP, routing, and server
     @JvmField val http = HttpConfig()
     @JvmField val router = RouterConfig()
-    @JvmField val contextResolver = ContextResolverConfig()
-    @JvmField val routes = RoutesConfig(this)
     @JvmField val jetty = JettyConfig(this)
+
+    // FEATURE CONFIGS - Static files, SPAs, and routes
     @JvmField val staticFiles = StaticFilesConfig(this)
     @JvmField val spaRoot = SpaRootConfig(this)
+    @JvmField val routes = RoutesConfig(this)
+
+    // CROSS-CUTTING CONFIGS - Validation, context resolution, logging, plugins, events
+    @JvmField val validation = ValidationConfig()
+    @JvmField val contextResolver = ContextResolverConfig()
     @JvmField val requestLogger = RequestLoggerConfig(this)
     @JvmField val bundledPlugins = BundledPluginsConfig(this)
     @JvmField val events = EventConfig(this)
-    @JvmField val validation = ValidationConfig()
+
+    // MISC SETTINGS - General application-level settings
+    @JvmField val misc = MiscConfig() // yeah, i know ...
 
     // INTERNAL CONFIG API
     @JvmField val eventManager = EventManager()
@@ -77,7 +82,7 @@ class JavalinState {
     @JvmField var asyncExecutor = javalinLazy { AsyncExecutor(ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", misc.useVirtualThreads)) }
     @JvmField var servlet: Lazy<ServletEntry> = javalinLazy { createJettyServletWithWebsocketsIfAvailable(this) ?: ServletEntry(servlet = JavalinServlet(this)) }
     @JvmField var jettyInternal = JettyInternalConfig()
-    @JvmField var servletRequestLifecycle = mutableListOf(
+    @JvmField var servletRequestLifecycle = listOf(
         DefaultTasks.BEFORE,
         DefaultTasks.BEFORE_MATCHED,
         DefaultTasks.HTTP,
@@ -86,10 +91,9 @@ class JavalinState {
         DefaultTasks.AFTER
     )
 
-    fun requestLifeCycle(vararg requestLifecycle: TaskInitializer<JavalinServletContext>) {
-        servletRequestLifecycle = requestLifecycle.toMutableList()
+    fun requestLifeCycle(vararg lifecycle: TaskInitializer<JavalinServletContext>) {
+        servletRequestLifecycle = lifecycle.toList()
     }
-    fun events(listener:Consumer<EventConfig>) { listener.accept(this.events) }
     fun jsonMapper(jsonMapper: JsonMapper) { this.jsonMapper = javalinLazy { jsonMapper } }
     fun fileRenderer(fileRenderer: FileRenderer) = appData(FileRendererKey, fileRenderer)
     fun <CFG> registerPlugin(plugin: Plugin<CFG>): Plugin<CFG> = plugin.also { pluginManager.register(plugin) }

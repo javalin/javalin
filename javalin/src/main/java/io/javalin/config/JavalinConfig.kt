@@ -23,23 +23,28 @@ import java.util.function.Consumer
  */
 class JavalinConfig internal constructor(internal val state: JavalinState) {
 
-    // PUBLIC CONFIG SECTIONS - References delegated to JavalinState
-    @JvmField val misc = state.misc
+    // CORE CONFIGS - HTTP, routing, and server
     @JvmField val http = state.http
     @JvmField val router = state.router
-    @JvmField val contextResolver = state.contextResolver
-    @JvmField val routes = state.routes
     @JvmField val jetty = state.jetty
+
+    // FEATURE CONFIGS - Static files, SPAs, and routes
     @JvmField val staticFiles = state.staticFiles
     @JvmField val spaRoot = state.spaRoot
+    @JvmField val routes = state.routes
+
+    // CROSS-CUTTING CONFIGS - Validation, context resolution, logging, plugins, events
+    @JvmField val validation = state.validation
+    @JvmField val contextResolver = state.contextResolver
     @JvmField val requestLogger = state.requestLogger
     @JvmField val bundledPlugins = state.bundledPlugins
     @JvmField val events = state.events
-    @JvmField val validation = state.validation
+
+    // MISC SETTINGS - General application-level settings
+    @JvmField val misc = state.misc // yeah, i know ...
 
     // PUBLIC METHODS - Delegated to state
     fun requestLifeCycle(vararg requestLifecycle: TaskInitializer<JavalinServletContext>) = state.requestLifeCycle(*requestLifecycle)
-    fun events(listener: Consumer<EventConfig>) = state.events(listener)
     fun jsonMapper(jsonMapper: JsonMapper) = state.jsonMapper(jsonMapper)
     fun fileRenderer(fileRenderer: FileRenderer) = state.fileRenderer(fileRenderer)
     fun <CFG> registerPlugin(plugin: Plugin<CFG>) = state.registerPlugin(plugin)

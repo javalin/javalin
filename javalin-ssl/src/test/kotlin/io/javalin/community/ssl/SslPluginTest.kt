@@ -56,7 +56,7 @@ class SslPluginTest : IntegrationTestClass() {
         }
         try {
             Javalin.create { config ->
-                config.showJavalinBanner = false
+                config.misc.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
                 config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
@@ -145,7 +145,7 @@ class SslPluginTest : IntegrationTestClass() {
         }
         try {
             Javalin.create { config ->
-                config.showJavalinBanner = false
+                config.misc.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
                 config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
@@ -204,7 +204,7 @@ class SslPluginTest : IntegrationTestClass() {
         }
         try {
             Javalin.create { config ->
-                config.showJavalinBanner = false
+                config.misc.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
                 config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->

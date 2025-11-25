@@ -64,16 +64,14 @@ class TestJavalinInstanceAndConfigApi {
             app.bundledPlugins.enableSslRedirects()
             app.bundledPlugins // etc etc
             // Events
-            app.events { event ->
-                event.serverStarting { println("Server is starting") }
-                event.serverStartFailed { println("Server start failed") }
-                event.serverStarted { println("Server is started") }
-                event.serverStopping { println("Server is stopping") }
-                event.serverStopFailed { println("Server stop failed") }
-                event.serverStopped { println("Server is stopped") }
-                event.handlerAdded {}
-                event.wsHandlerAdded {}
-            }
+            app.events.serverStarting { println("Server is starting") }
+            app.events.serverStartFailed { println("Server start failed") }
+            app.events.serverStarted { println("Server is started") }
+            app.events.serverStopping { println("Server is stopping") }
+            app.events.serverStopFailed { println("Server stop failed") }
+            app.events.serverStopped { println("Server is stopped") }
+            app.events.handlerAdded {}
+            app.events.wsHandlerAdded {}
             // Request logger
             app.requestLogger.http { ctx, ms -> }
             app.requestLogger.ws { ctx -> }
