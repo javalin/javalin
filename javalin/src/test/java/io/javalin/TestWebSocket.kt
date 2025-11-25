@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.ws
+import io.javalin.config.JavalinConfig
 import io.javalin.config.JavalinState
 import io.javalin.config.Key
 import io.javalin.http.Header
@@ -62,7 +63,7 @@ class TestWebSocket {
         return componentManager.get(testLoggerKey)
     }
 
-    private fun contextPathJavalin(cfg: ((JavalinState) -> Unit)? = null): Javalin =
+    private fun contextPathJavalin(cfg: ((JavalinConfig) -> Unit)? = null): Javalin =
         Javalin.create {
             it.router.contextPath = "/websocket"
             cfg?.invoke(it)

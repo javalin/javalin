@@ -6,7 +6,6 @@
 package io.javalin.config
 
 import io.javalin.Javalin
-import io.javalin.compression.CompressionStrategy
 import io.javalin.config.ContextResolverConfig.Companion.ContextResolverKey
 import io.javalin.event.EventManager
 import io.javalin.http.RequestLogger
@@ -38,7 +37,12 @@ import io.javalin.websocket.WsRouter
 import java.util.function.Consumer
 
 /**
- * Javalin configuration class.
+ * Complete Javalin configuration state containing both public and internal APIs.
+ *
+ * Users access the safe public API through [JavalinConfig] in [Javalin.create].
+ * Internal APIs and power users can access this class directly through [Javalin.unsafe].
+ *
+ * @see JavalinConfig
  * @see [Javalin.create]
  */
 class JavalinState {
@@ -84,9 +88,18 @@ class JavalinState {
 
     companion object {
         @JvmStatic
-        fun applyUserConfig(cfg: JavalinState, userConfig: Consumer<JavalinState>) {
+        fun applyUserConfig(cfg: JavalinState, userConfig: Consumer<JavalinConfig>) {
+            val publicConfig = JavalinConfig(cfg)
             addValidationExceptionMapper(cfg) // add default mapper for validation
-            userConfig.accept(cfg) // apply user config to the default config
+            userConfig.accept(publicConfig) // apply user config through public API wrapper
+            // Copy mutable fields from public config back to state
+            cfg.validation = publicConfig.validation
+            cfg.useVirtualThreads = publicConfig.useVirtualThreads
+            cfg.showJavalinBanner = publicConfig.showJavalinBanner
+            cfg.showOldJavalinVersionWarning = publicConfig.showOldJavalinVersionWarning
+            cfg.startupWatcherEnabled = publicConfig.startupWatcherEnabled
+            cfg.servletRequestLifecycle = publicConfig.servletRequestLifecycle
+            // Continue with plugin and data manager initialization
             cfg.pluginManager.startPlugins()
             cfg.appDataManager.registerIfAbsent(ContextResolverKey, cfg.contextResolver)
             cfg.appDataManager.registerIfAbsent(AsyncExecutorKey, cfg.asyncExecutor.value)

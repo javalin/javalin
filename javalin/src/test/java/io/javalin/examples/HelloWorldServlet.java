@@ -20,17 +20,14 @@ public class HelloWorldServlet {
     public static void main(String[] args) {
         Javalin app = Javalin.create(config -> {
             config.router.contextPath = "/api";
-
-            Server server = new Server();
-            ServletContextHandler context = new ServletContextHandler();
-            context.setContextPath("/test-servlet");
-            //Servlet will respond to all requests beginning with /test-servlet
-            context.addServlet(TestServlet.class, "/");
-            ContextHandlerCollection handlers = new ContextHandlerCollection();
-            handlers.setHandlers(new Handler[]{context});
-            server.setHandler(handlers);
-
-            config.jettyInternal.server = server;
+            config.jetty.modifyServer(server -> {
+                ServletContextHandler context = new ServletContextHandler();
+                context.setContextPath("/test-servlet");
+                context.addServlet(TestServlet.class, "/");
+                ContextHandlerCollection handlers = new ContextHandlerCollection();
+                handlers.setHandlers(context);
+                server.setHandler(handlers);
+            });
         });
         get(app, "/", ctx -> ctx.result("Hello Javalin World!"));
         app.start(8000);

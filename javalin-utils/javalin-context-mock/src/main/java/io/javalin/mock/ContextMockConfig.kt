@@ -1,6 +1,7 @@
 package io.javalin.mock
 
 import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.config.JavalinState
 import io.javalin.mock.servlet.HttpServletRequestMock.RequestState
 import io.javalin.mock.servlet.HttpServletResponseMock.ResponseState
@@ -13,7 +14,7 @@ data class ContextMockConfig internal constructor(
 ) {
 
     /** Change Javalin config used to prepare the [Context] instance. */
-    fun javalinConfig(config: Consumer<JavalinState>) {
+    fun javalinConfig(config: Consumer<JavalinConfig>) {
         this.javalinState = Javalin.create(config).unsafe
     }
 

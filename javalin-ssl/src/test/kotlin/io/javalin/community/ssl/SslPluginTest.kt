@@ -55,7 +55,7 @@ class SslPluginTest : IntegrationTestClass() {
             sslConfig.pemFromString(Server.NORWAY_CERTIFICATE_AS_STRING, Server.NON_ENCRYPTED_KEY_AS_STRING)
         }
         try {
-            Javalin.create { config: JavalinState ->
+            Javalin.create { config ->
                 config.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
                 config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
@@ -144,7 +144,7 @@ class SslPluginTest : IntegrationTestClass() {
             sslConfig.keystoreFromPath(norwayKeyStorePath, Server.KEY_STORE_PASSWORD)
         }
         try {
-            Javalin.create { config: JavalinState ->
+            Javalin.create { config ->
                 config.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
                 config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
@@ -203,7 +203,7 @@ class SslPluginTest : IntegrationTestClass() {
             sslConfig.insecurePort = insecurePort
         }
         try {
-            Javalin.create { config: JavalinState ->
+            Javalin.create { config ->
                 config.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
                 config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }

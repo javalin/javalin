@@ -12,6 +12,7 @@ import io.javalin.TestAccessManager.MyRole.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.config.JavalinConfig
 import io.javalin.config.JavalinState
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.http.UnauthorizedResponse
@@ -28,7 +29,7 @@ class TestAccessManager {
 
     enum class MyRole : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
-    private fun managedApp(cfg: ((JavalinState) -> Unit)? = null) = Javalin.create { config ->
+    private fun managedApp(cfg: ((JavalinConfig) -> Unit)? = null) = Javalin.create { config ->
         config.routes.beforeMatched { ctx ->
             val role: RouteRole? = ctx.queryParam("role")?.let { MyRole.valueOf(it) }
             val routeRoles = ctx.routeRoles()

@@ -68,8 +68,9 @@ class TestCustomJetty {
         val statisticsHandler = StatisticsHandler()
         val newServer = Server().apply { handler = statisticsHandler }
         val app = Javalin.create {
-            it.jettyInternal.server = newServer
             it.routes.get("/") { it.result("Hello World") }
+        }.apply {
+            unsafe.jettyInternal.server = newServer
         }.start(0)
         val requests = 5
         for (i in 0 until requests) {
@@ -92,8 +93,9 @@ class TestCustomJetty {
             requestLog = RequestLog { _, _ -> logCount.incrementAndGet() }
         }
         val app = Javalin.create {
-            it.jettyInternal.server = newServer
             it.routes.get("/") { it.result("Hello World") }
+        }.apply {
+            unsafe.jettyInternal.server = newServer
         }.start(0)
         val requests = 10
         for (i in 0 until requests) {
@@ -113,8 +115,9 @@ class TestCustomJetty {
         val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
         val newServer = Server().apply { handler = handlerChain }
         val app = Javalin.create {
-            it.jettyInternal.server = newServer
             it.routes.get("/") { it.result("Hello World") }
+        }.apply {
+            unsafe.jettyInternal.server = newServer
         }.start(0)
         val requests = 10
         for (i in 0 until requests) {
@@ -140,7 +143,8 @@ class TestCustomJetty {
         }
         val javalin = Javalin.create {
             it.jetty.modifyServletContextHandler { it.sessionHandler = fileSessionHandler }
-            it.jettyInternal.server = newServer
+        }.apply {
+            unsafe.jettyInternal.server = newServer
         }.start(0)
         val httpHandler = (newServer.handlers[0] as ServletContextHandler)
         assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
@@ -167,8 +171,9 @@ class TestCustomJetty {
         newServer.handler = handler
 
         val javalin = Javalin.create {
-            it.jettyInternal.server = newServer
             it.routes.get("/bar") { it.result("Hello") }
+        }.apply {
+            unsafe.jettyInternal.server = newServer
         }
         TestUtil.test(javalin) { app, http ->
             assertThat(http.getBody("/foo/foo")).isEqualTo("yo dude")
@@ -188,12 +193,12 @@ class TestCustomJetty {
             }
         }
         val javalin = Javalin.create {
-            it.jettyInternal.server = newServer
             it.router.contextPath = "/api"
             it.routes.get("/") { it.result("Hello Javalin World!") }
+        }.apply {
+            unsafe.jettyInternal.server = newServer
         }
         TestUtil.test(javalin) { app, http ->
-
             assertThat(http.getBody("/api")).contains("Hello Javalin World!")
             assertThat(http.getBody("/other-servlet")).contains("Hello Servlet World!")
         }

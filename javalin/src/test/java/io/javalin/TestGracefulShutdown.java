@@ -44,15 +44,19 @@ public class TestGracefulShutdown {
     public void t2_shutdown_is_graceful_when_custom_server_has_statisticshandler() throws Exception {
         Server server = new Server();
         server.insertHandler(new StatisticsHandler());
-        Javalin app = Javalin.create(c -> c.jettyInternal.server = server).start(0);
+        Javalin app = Javalin.create();
+        app.unsafe.jettyInternal.server = server;
         addEndpoints(app);
+        app.start(0);
         testIfShutdownIsGraceful(app);
     }
 
     @Test
     public void t3_shutdown_is_not_graceful_when_custom_server_has_no_statisticshandler() {
-        Javalin app = Javalin.create(c -> c.jettyInternal.server = new Server()).start(0);
+        Javalin app = Javalin.create();
+        app.unsafe.jettyInternal.server = new Server();
         addEndpoints(app);
+        app.start(0);
         assertThrows(ExecutionException.class, () -> testIfShutdownIsGraceful(app));
     }
 

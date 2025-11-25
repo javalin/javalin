@@ -119,10 +119,10 @@ class CertificateAuthorityTests : IntegrationTestClass() {
             config.withTrustConfig { trustConfig: TrustConfig -> trustConfig.certificateFromClasspath(ROOT_CERT_NAME) }
         }
         try {
-            Javalin.create { javalinState: JavalinState ->
-                javalinState.showJavalinBanner = false
-                javalinState.registerPlugin(sslPlugin)
-                javalinState.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
+            Javalin.create { config  ->
+                config.showJavalinBanner = false
+                config.registerPlugin(sslPlugin)
+                config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
                 testSuccessfulEndpoint(url, client.get()) // works
                 sslPlugin.reload { config: SslConfig ->

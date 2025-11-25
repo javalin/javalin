@@ -99,7 +99,7 @@ class ContextMock private constructor(
             req.headers.computeIfAbsent(Header.CONNECTION) { mutableListOf("keep-alive") }
             req.headers.computeIfAbsent(Header.HOST) { mutableListOf("localhost:${req.serverPort}") }
             req.headers.computeIfAbsent(Header.USER_AGENT) { mutableListOf("javalin-mock/1.0") }
-            req.headers.computeIfAbsent(Header.ACCEPT_ENCODING) { mockConfig.javalinState.compressionStrategy.compressors.mapTo(ArrayList()) { it.encoding() } }
+            req.headers.computeIfAbsent(Header.ACCEPT_ENCODING) { mockConfig.javalinState.http.compressionStrategy.compressors.mapTo(ArrayList()) { it.encoding() } }
             req.headers.computeIfAbsent(Header.CONTENT_TYPE) { req.contentType?.let { mutableListOf(it) } ?: mutableListOf() }
             req.headers.computeIfAbsent(Header.CONTENT_LENGTH) { req.contentLength.takeIf { it > 0 }?.let { mutableListOf(it.toString()) } ?: mutableListOf() }
         }
@@ -131,7 +131,7 @@ class ContextMock private constructor(
         JavalinServletContextConfig(
             appDataManager = mockConfig.javalinState.appDataManager,
             pluginManager = mockConfig.javalinState.pluginManager,
-            compressionStrategy = mockConfig.javalinState.compressionStrategy,
+            compressionStrategy = mockConfig.javalinState.http.compressionStrategy,
             defaultContentType = mockConfig.javalinState.http.defaultContentType,
             jsonMapper = mockConfig.javalinState.jsonMapper.value,
             requestLoggerEnabled = false,

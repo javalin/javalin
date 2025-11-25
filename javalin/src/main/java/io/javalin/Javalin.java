@@ -7,6 +7,7 @@
 
 package io.javalin;
 
+import io.javalin.config.JavalinConfig;
 import io.javalin.config.JavalinState;
 import io.javalin.jetty.JettyServer;
 import jakarta.servlet.Servlet;
@@ -19,19 +20,19 @@ import static io.javalin.util.Util.createLazy;
 
 public class Javalin {
 
-    /**
-     * Do not use this field unless you know what you're doing.
-     * Application config should be declared in {@link Javalin#create(Consumer)}.
-     */
-    private final JavalinState cfg;
+    private final JavalinState state;
     protected final Lazy<JettyServer> jettyServer;
 
-    protected Javalin(JavalinState config) {
-        this.cfg = config;
-        this.jettyServer = createLazy(() -> new JettyServer(this.cfg));
-        unsafe = cfg;
+    protected Javalin(JavalinState state) {
+        this.state = state;
+        this.jettyServer = createLazy(() -> new JettyServer(this.state));
+        unsafe = this.state;
     }
 
+    /**
+     * Advanced/unsafe API providing access to internal Javalin configuration.
+     * This exposes powerful but potentially dangerous APIs. Use with caution.
+     */
     @NotNull
     public JavalinState unsafe;
 
@@ -55,21 +56,22 @@ public class Javalin {
      * Creates a new instance with the user provided configuration.
      * The server does not run until {@link Javalin#start()} is called.
      *
+     * @param config configuration consumer accepting {@link JavalinConfig}
      * @return application instance
      * @see Javalin#start()
      * @see Javalin#start(int)
      */
-    public static Javalin create(Consumer<JavalinState> config) {
-        JavalinState cfg = new JavalinState();
-        JavalinState.applyUserConfig(cfg, config); // mutates app.config and app (adds http-handlers)
-        Javalin app = new Javalin(cfg);
+    public static Javalin create(Consumer<JavalinConfig> config) {
+        JavalinState state = new JavalinState();
+        JavalinState.applyUserConfig(state, config); // mutates app.config and app (adds http-handlers)
+        Javalin app = new Javalin(state);
         app.jettyServer.getValue(); // initialize server if no plugin already did
         return app;
     }
 
     // Get JavalinServlet (can be attached to other servlet containers)
     public Servlet javalinServlet() {
-        return cfg.servlet.getValue().getServlet();
+        return state.servlet.getValue().getServlet();
     }
 
     /**
@@ -103,7 +105,8 @@ public class Javalin {
 
     /**
      * Synchronously starts the application instance on the configured port, or on
-     * the configured ServerConnectors if the Jetty server has been manually configured.
+     * the configured ServerConnectors if the Jetty server has been manually
+     * configured.
      * If no port or connector is configured, the instance will start on port 8080.
      *
      * @return running application instance.
@@ -127,8 +130,6 @@ public class Javalin {
         return this;
     }
 
-
-
     /**
      * Get which port instance is running on
      * Mostly useful if you start the instance with port(0) (random port)
@@ -136,6 +137,5 @@ public class Javalin {
     public int port() {
         return jettyServer.getValue().port();
     }
-
 
 }
