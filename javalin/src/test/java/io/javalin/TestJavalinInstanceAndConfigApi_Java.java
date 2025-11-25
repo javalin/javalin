@@ -94,9 +94,9 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.spaRoot.addFile("/", "index.html");
             app.spaRoot.addHandler("/", ctx -> {});
             // Other
-            app.showJavalinBanner = false;
-            app.startupWatcherEnabled = false;
-            app.useVirtualThreads = true;
+            app.misc.showJavalinBanner = false;
+            app.misc.startupWatcherEnabled = false;
+            app.misc.useVirtualThreads = true;
             app.jsonMapper(new JavalinJackson());
             app.appData(new Key<>("Test"), "Test");
             app.fileRenderer((filePath, model, ctx) -> "Test");

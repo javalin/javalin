@@ -36,7 +36,7 @@ class JettyServer(private val cfg: JavalinState) {
 
     init {
 
-        if (cfg.startupWatcherEnabled) {
+        if (cfg.misc.startupWatcherEnabled) {
             Thread {
                 Thread.sleep(5000)
                 if (!started) {
@@ -48,7 +48,7 @@ class JettyServer(private val cfg: JavalinState) {
         }
     }
 
-    fun threadPool() = cfg.jetty.threadPool ?: defaultThreadPool(cfg.useVirtualThreads).also { cfg.jetty.threadPool = it } // make sure config has access to the thread pool instance
+    fun threadPool() = cfg.jetty.threadPool ?: defaultThreadPool(cfg.misc.useVirtualThreads).also { cfg.jetty.threadPool = it } // make sure config has access to the thread pool instance
     fun server() = cfg.jettyInternal.server ?: defaultServer(threadPool()).also { cfg.jettyInternal.server = it } // make sure config has access to the update server instance
     fun port() = (server().connectors[0] as ServerConnector).localPort
 
@@ -106,7 +106,7 @@ class JettyServer(private val cfg: JavalinState) {
             }
             throw JavalinException(e)
         }
-        if (cfg.showJavalinBanner) JavalinLogger.startup(
+        if (cfg.misc.showJavalinBanner) JavalinLogger.startup(
             """|
                |       __                  ___          _____
                |      / /___ __   ______ _/ (_)___     /__  /
@@ -125,7 +125,7 @@ class JettyServer(private val cfg: JavalinState) {
         server().connectors.filter { it !is ServerConnector }.forEach {
             JavalinLogger.startup("Binding to: $it")
         }
-        Util.logJavalinVersion(cfg.showOldJavalinVersionWarning)
+        Util.logJavalinVersion(cfg.misc.showOldJavalinVersionWarning)
         eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STARTED)
     }
 

@@ -6,6 +6,8 @@
 package io.javalin.config
 
 import io.javalin.Javalin
+import io.javalin.http.servlet.JavalinServletContext
+import io.javalin.http.servlet.TaskInitializer
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
 import io.javalin.rendering.FileRenderer
@@ -14,14 +16,15 @@ import java.util.function.Consumer
 /**
  * Public-facing configuration API exposed to users in [Javalin.create].
  * This class provides a safe subset of configuration options, hiding internal APIs.
- * 
+ *
  * For advanced/dangerous configuration options, use [Javalin.unsafe] to access [JavalinState] directly.
- * 
+ *
  * @see JavalinState
  */
 class JavalinConfig internal constructor(internal val state: JavalinState) {
-    
-    // PUBLIC CONFIG SECTIONS - Immutable references delegated to JavalinState
+
+    // PUBLIC CONFIG SECTIONS - References delegated to JavalinState
+    @JvmField val misc = state.misc
     @JvmField val http = state.http
     @JvmField val router = state.router
     @JvmField val contextResolver = state.contextResolver
@@ -32,16 +35,10 @@ class JavalinConfig internal constructor(internal val state: JavalinState) {
     @JvmField val requestLogger = state.requestLogger
     @JvmField val bundledPlugins = state.bundledPlugins
     @JvmField val events = state.events
-    
-    // MUTABLE PUBLIC FIELDS - Direct fields initialized by copying from state
-    @JvmField var validation: ValidationConfig = state.validation
-    @JvmField var useVirtualThreads: Boolean = state.useVirtualThreads
-    @JvmField var showJavalinBanner: Boolean = state.showJavalinBanner
-    @JvmField var showOldJavalinVersionWarning: Boolean = state.showOldJavalinVersionWarning
-    @JvmField var startupWatcherEnabled: Boolean = state.startupWatcherEnabled
-    @JvmField var servletRequestLifecycle: MutableList<io.javalin.http.servlet.TaskInitializer<io.javalin.http.servlet.JavalinServletContext>> = state.servletRequestLifecycle
-    
+    @JvmField val validation = state.validation
+
     // PUBLIC METHODS - Delegated to state
+    fun requestLifeCycle(vararg requestLifecycle: TaskInitializer<JavalinServletContext>) = state.requestLifeCycle(*requestLifecycle)
     fun events(listener: Consumer<EventConfig>) = state.events(listener)
     fun jsonMapper(jsonMapper: JsonMapper) = state.jsonMapper(jsonMapper)
     fun fileRenderer(fileRenderer: FileRenderer) = state.fileRenderer(fileRenderer)

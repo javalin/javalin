@@ -209,7 +209,7 @@ class TestCustomJetty {
         if (!LoomUtil.loomAvailable) return
         val isVirtual = Thread::class.java.getMethod("isVirtual")
         val defaultApp = Javalin.create {
-            it.useVirtualThreads = true
+            it.misc.useVirtualThreads = true
             it.routes.get("/") {
                 val thread = Thread.currentThread()
                 it.result("isVirtual:${isVirtual.invoke(thread)}|name:${thread.name}")

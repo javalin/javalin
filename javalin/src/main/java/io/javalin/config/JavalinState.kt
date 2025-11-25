@@ -12,8 +12,10 @@ import io.javalin.http.RequestLogger
 import io.javalin.http.SinglePageHandler
 import io.javalin.http.servlet.DefaultTasks
 import io.javalin.http.servlet.JavalinServlet
+import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.MaxRequestSize.MaxRequestSizeKey
 import io.javalin.http.servlet.ServletEntry
+import io.javalin.http.servlet.TaskInitializer
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.http.util.AsyncExecutor
 import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
@@ -48,10 +50,10 @@ import java.util.function.Consumer
 class JavalinState {
     //@formatter:off
     // PUBLIC CONFIG API
+    @JvmField val misc = MiscConfig()
     @JvmField val http = HttpConfig()
     @JvmField val router = RouterConfig()
     @JvmField val contextResolver = ContextResolverConfig()
-    @JvmField var validation = ValidationConfig()
     @JvmField val routes = RoutesConfig(this)
     @JvmField val jetty = JettyConfig(this)
     @JvmField val staticFiles = StaticFilesConfig(this)
@@ -59,27 +61,34 @@ class JavalinState {
     @JvmField val requestLogger = RequestLoggerConfig(this)
     @JvmField val bundledPlugins = BundledPluginsConfig(this)
     @JvmField val events = EventConfig(this)
-    @JvmField var useVirtualThreads = false
-    @JvmField var showJavalinBanner = true
-    @JvmField var showOldJavalinVersionWarning = true
-    @JvmField var startupWatcherEnabled = true
+    @JvmField val validation = ValidationConfig()
 
     // INTERNAL CONFIG API
     @JvmField val eventManager = EventManager()
     @JvmField val wsRouter = WsRouter(router)
     @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, router, jetty)
-    @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy { JavalinJackson(null, useVirtualThreads) }
+    @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy { JavalinJackson(null, misc.useVirtualThreads) }
     @JvmField var appDataManager = AppDataManager()
     @JvmField var pluginManager = PluginManager(this)
     @JvmField var httpRequestLogger: RequestLogger? = null
     @JvmField var wsRequestLogger: WsConfig? = null
     @JvmField var resourceHandler: ResourceHandler? = null
     @JvmField var singlePageHandler = SinglePageHandler()
-    @JvmField var asyncExecutor = javalinLazy { AsyncExecutor(ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", useVirtualThreads)) }
-    @JvmField var servletRequestLifecycle = mutableListOf(DefaultTasks.BEFORE, DefaultTasks.BEFORE_MATCHED, DefaultTasks.HTTP, DefaultTasks.AFTER_MATCHED, DefaultTasks.ERROR, DefaultTasks.AFTER)
+    @JvmField var asyncExecutor = javalinLazy { AsyncExecutor(ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", misc.useVirtualThreads)) }
     @JvmField var servlet: Lazy<ServletEntry> = javalinLazy { createJettyServletWithWebsocketsIfAvailable(this) ?: ServletEntry(servlet = JavalinServlet(this)) }
     @JvmField var jettyInternal = JettyInternalConfig()
+    @JvmField var servletRequestLifecycle = mutableListOf(
+        DefaultTasks.BEFORE,
+        DefaultTasks.BEFORE_MATCHED,
+        DefaultTasks.HTTP,
+        DefaultTasks.AFTER_MATCHED,
+        DefaultTasks.ERROR,
+        DefaultTasks.AFTER
+    )
 
+    fun requestLifeCycle(vararg requestLifecycle: TaskInitializer<JavalinServletContext>) {
+        servletRequestLifecycle = requestLifecycle.toMutableList()
+    }
     fun events(listener:Consumer<EventConfig>) { listener.accept(this.events) }
     fun jsonMapper(jsonMapper: JsonMapper) { this.jsonMapper = javalinLazy { jsonMapper } }
     fun fileRenderer(fileRenderer: FileRenderer) = appData(FileRendererKey, fileRenderer)
@@ -92,13 +101,6 @@ class JavalinState {
             val publicConfig = JavalinConfig(cfg)
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(publicConfig) // apply user config through public API wrapper
-            // Copy mutable fields from public config back to state
-            cfg.validation = publicConfig.validation
-            cfg.useVirtualThreads = publicConfig.useVirtualThreads
-            cfg.showJavalinBanner = publicConfig.showJavalinBanner
-            cfg.showOldJavalinVersionWarning = publicConfig.showOldJavalinVersionWarning
-            cfg.startupWatcherEnabled = publicConfig.startupWatcherEnabled
-            cfg.servletRequestLifecycle = publicConfig.servletRequestLifecycle
             // Continue with plugin and data manager initialization
             cfg.pluginManager.startPlugins()
             cfg.appDataManager.registerIfAbsent(ContextResolverKey, cfg.contextResolver)
