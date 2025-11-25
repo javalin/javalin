@@ -23,7 +23,7 @@ public class CopilotInstructionsPatternValidation {
         var app = Javalin.create(config -> {
             config.http.asyncTimeout = 10_000L;
             config.staticFiles.add("/public");
-            config.misc.useVirtualThreads = true;
+            config.concurrency.useVirtualThreads = true;
         });
     }
 
@@ -259,7 +259,7 @@ public class CopilotInstructionsPatternValidation {
      */
     public static void validateVirtualThreads() {
         Javalin.create(config -> {
-            config.misc.useVirtualThreads = true;
+            config.concurrency.useVirtualThreads = true;
         });
     }
 

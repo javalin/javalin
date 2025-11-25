@@ -11,7 +11,6 @@ import io.javalin.http.servlet.TaskInitializer
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
 import io.javalin.rendering.FileRenderer
-import java.util.function.Consumer
 
 /**
  * Public-facing configuration API exposed to users in [Javalin.create].
@@ -41,7 +40,8 @@ class JavalinConfig internal constructor(internal val state: JavalinState) {
     @JvmField val events = state.events
 
     // MISC SETTINGS - General application-level settings
-    @JvmField val misc = state.misc // yeah, i know ...
+    @JvmField val startup = state.startup
+    @JvmField val concurrency = state.concurrency
 
     // PUBLIC METHODS - Delegated to state
     fun requestLifeCycle(vararg requestLifecycle: TaskInitializer<JavalinServletContext>) = state.requestLifeCycle(*requestLifecycle)

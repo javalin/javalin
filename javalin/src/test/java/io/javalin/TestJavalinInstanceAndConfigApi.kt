@@ -81,9 +81,9 @@ class TestJavalinInstanceAndConfigApi {
             app.spaRoot.addFile("/", "index.html")
             app.spaRoot.addHandler("/") { ctx -> }
             // Other
-            app.misc.showJavalinBanner = false
-            app.misc.startupWatcherEnabled = false
-            app.misc.useVirtualThreads = true
+            app.startup.showJavalinBanner = false
+            app.startup.startupWatcherEnabled = false
+            app.concurrency.useVirtualThreads = true
             app.jsonMapper(JavalinJackson())
             app.appData(Key("Test"), "Test")
             app.fileRenderer { filePath, model, ctx -> "Test" }

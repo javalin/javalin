@@ -106,7 +106,7 @@ class TestResponse {
         val longString = Array(Short.MAX_VALUE.toInt()) { "0" }.joinToString()
         val javalin = Javalin.create { javalinConfig ->
             javalinConfig.registerPlugin(CorsPlugin { cors -> cors.addRule { it.reflectClientOrigin = true } })
-            javalinConfig.misc.showJavalinBanner = false
+            javalinConfig.startup.showJavalinBanner = false
             javalinConfig.http.maxRequestSize = 5_000_000
             javalinConfig.routes.get("/route") { ctx -> ctx.result(longString) }
         }.start(9005)

@@ -66,23 +66,24 @@ class JavalinState {
     @JvmField val events = EventConfig(this)
 
     // MISC SETTINGS - General application-level settings
-    @JvmField val misc = MiscConfig() // yeah, i know ...
+    @JvmField val startup = StartupConfig()
+    @JvmField val concurrency = ConcurrencyConfig()
 
     // INTERNAL CONFIG API
     @JvmField val eventManager = EventManager()
     @JvmField val wsRouter = WsRouter(router)
     @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, router, jetty)
-    @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy { JavalinJackson(null, misc.useVirtualThreads) }
+    @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy { JavalinJackson(null, concurrency.useVirtualThreads) }
     @JvmField var appDataManager = AppDataManager()
     @JvmField var pluginManager = PluginManager(this)
     @JvmField var httpRequestLogger: RequestLogger? = null
     @JvmField var wsRequestLogger: WsConfig? = null
     @JvmField var resourceHandler: ResourceHandler? = null
     @JvmField var singlePageHandler = SinglePageHandler()
-    @JvmField var asyncExecutor = javalinLazy { AsyncExecutor(ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", misc.useVirtualThreads)) }
+    // @JvmField var asyncExecutor = javalinLazy { AsyncExecutor(ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", startup.useVirtualThreads)) }
     @JvmField var servlet: Lazy<ServletEntry> = javalinLazy { createJettyServletWithWebsocketsIfAvailable(this) ?: ServletEntry(servlet = JavalinServlet(this)) }
     @JvmField var jettyInternal = JettyInternalConfig()
-    @JvmField var servletRequestLifecycle = listOf(
+    @JvmField var servletRequestLifecycle = mutableListOf(
         DefaultTasks.BEFORE,
         DefaultTasks.BEFORE_MATCHED,
         DefaultTasks.HTTP,
@@ -92,7 +93,7 @@ class JavalinState {
     )
 
     fun requestLifeCycle(vararg lifecycle: TaskInitializer<JavalinServletContext>) {
-        servletRequestLifecycle = lifecycle.toList()
+        servletRequestLifecycle = lifecycle.toMutableList()
     }
     fun jsonMapper(jsonMapper: JsonMapper) { this.jsonMapper = javalinLazy { jsonMapper } }
     fun fileRenderer(fileRenderer: FileRenderer) = appData(FileRendererKey, fileRenderer)
@@ -108,7 +109,7 @@ class JavalinState {
             // Continue with plugin and data manager initialization
             cfg.pluginManager.startPlugins()
             cfg.appDataManager.registerIfAbsent(ContextResolverKey, cfg.contextResolver)
-            cfg.appDataManager.registerIfAbsent(AsyncExecutorKey, cfg.asyncExecutor.value)
+            cfg.appDataManager.registerIfAbsent(AsyncExecutorKey, cfg.concurrency.executor.value)
             cfg.appDataManager.registerIfAbsent(ValidationKey, Validation(cfg.validation))
             cfg.appDataManager.registerIfAbsent(FileRendererKey, NotImplementedRenderer())
             cfg.appDataManager.registerIfAbsent(MaxRequestSizeKey, cfg.http.maxRequestSize)

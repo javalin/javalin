@@ -120,7 +120,7 @@ class CertificateAuthorityTests : IntegrationTestClass() {
         }
         try {
             Javalin.create { config  ->
-                config.misc.showJavalinBanner = false
+                config.startup.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
                 config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->

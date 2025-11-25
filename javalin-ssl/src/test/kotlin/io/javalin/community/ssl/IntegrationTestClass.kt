@@ -134,7 +134,7 @@ abstract class IntegrationTestClass {
         @JvmStatic
         fun createTestApp(config: Consumer<SslConfig>): Javalin {
             return Javalin.create { javalinConfig ->
-                javalinConfig.misc.showJavalinBanner = false
+                javalinConfig.startup.showJavalinBanner = false
                 javalinConfig.registerPlugin(SslPlugin(config))
                 javalinConfig.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }
