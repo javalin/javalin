@@ -43,8 +43,11 @@ import java.util.function.Consumer
  */
 class JavalinState {
     //@formatter:off
-    @JvmField val http = HttpConfig(this)
-    @JvmField val router = RouterConfig(this)
+    // PUBLIC CONFIG API
+    @JvmField val http = HttpConfig()
+    @JvmField val router = RouterConfig()
+    @JvmField val contextResolver = ContextResolverConfig()
+    @JvmField var validation = ValidationConfig()
     @JvmField val routes = RoutesConfig(this)
     @JvmField val jetty = JettyConfig(this)
     @JvmField val staticFiles = StaticFilesConfig(this)
@@ -52,13 +55,12 @@ class JavalinState {
     @JvmField val requestLogger = RequestLoggerConfig(this)
     @JvmField val bundledPlugins = BundledPluginsConfig(this)
     @JvmField val events = EventConfig(this)
-    @JvmField val contextResolver = ContextResolverConfig()
-    @JvmField var validation = ValidationConfig()
     @JvmField var useVirtualThreads = false
     @JvmField var showJavalinBanner = true
     @JvmField var showOldJavalinVersionWarning = true
     @JvmField var startupWatcherEnabled = true
 
+    // INTERNAL CONFIG API
     @JvmField val eventManager = EventManager()
     @JvmField val wsRouter = WsRouter(router)
     @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, router, jetty)
@@ -69,7 +71,6 @@ class JavalinState {
     @JvmField var wsRequestLogger: WsConfig? = null
     @JvmField var resourceHandler: ResourceHandler? = null
     @JvmField var singlePageHandler = SinglePageHandler()
-    @JvmField var compressionStrategy = CompressionStrategy.GZIP
     @JvmField var asyncExecutor = javalinLazy { AsyncExecutor(ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", useVirtualThreads)) }
     @JvmField var servletRequestLifecycle = mutableListOf(DefaultTasks.BEFORE, DefaultTasks.BEFORE_MATCHED, DefaultTasks.HTTP, DefaultTasks.AFTER_MATCHED, DefaultTasks.ERROR, DefaultTasks.AFTER)
     @JvmField var servlet: Lazy<ServletEntry> = javalinLazy { createJettyServletWithWebsocketsIfAvailable(this) ?: ServletEntry(servlet = JavalinServlet(this)) }

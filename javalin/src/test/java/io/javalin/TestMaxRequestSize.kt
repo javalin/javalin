@@ -18,7 +18,7 @@ class TestMaxRequestSize {
 
     @Test
     fun `max request size is set by default`() = TestUtil.test { app, http ->
-        val size = HttpConfig(JavalinState()).maxRequestSize.toInt()
+        val size = HttpConfig().maxRequestSize.toInt()
         app.unsafe.routes.post("/") { it.result(it.body()) }
         assertThat(http.post("/").body(ByteArray(size)).asString().httpCode()).isEqualTo(OK)
         try {

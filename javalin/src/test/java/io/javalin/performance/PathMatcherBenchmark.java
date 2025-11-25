@@ -39,7 +39,7 @@ public class PathMatcherBenchmark {
     public void setup() {
         this.oldPathMatcher = new OldPathMatcher();
         this.pathMatcher = new PathMatcher();
-        var routingConfig = new RouterConfig(new JavalinState());
+        var routingConfig = new RouterConfig();
         for (int i = 0; i < 50; i++) {
             this.pathMatcher.add(new ParsedEndpoint(Endpoint.create(GET, "/hello" + i).handler((ctx) -> {}), routingConfig));
             this.oldPathMatcher.add(new ParsedEndpoint(Endpoint.create(GET, "/hello" + i).handler((ctx) -> {}), routingConfig));

@@ -12,7 +12,7 @@ import io.javalin.util.JavalinLogger
  * @param cfg the parent Javalin Configuration
  * @see [JavalinState.router]
  */
-class RouterConfig(internal val cfg: JavalinState) {
+class RouterConfig() {
 
     // @formatter:off
     /** The context path (ex '/blog' if you are hosting an app on a subpath, like 'mydomain.com/blog') */

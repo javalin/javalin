@@ -31,11 +31,7 @@ class TestJavalinInstanceAndConfigApi {
             app.http.generateEtags = true
             app.http.prefer405over404 = true
             app.http.strictContentTypes = true
-            app.http.customCompression(CompressionStrategy())
-            app.http.brotliAndGzipCompression(3)
-            app.http.brotliOnlyCompression(3)
-            app.http.gzipOnlyCompression(3)
-            app.http.disableCompression()
+            app.http.compressionStrategy = CompressionStrategy()
             // Static files
             app.staticFiles.add("/public")
             app.staticFiles.enableWebjars()

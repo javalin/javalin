@@ -11,7 +11,7 @@ import io.javalin.http.ContentType
  * @param cfg the parent Javalin Configuration
  * @see [JavalinState.http]
  */
-class HttpConfig(private val cfg: JavalinState) {
+class HttpConfig() {
     //@formatter:off
     @JvmField var generateEtags = false
     @JvmField var prefer405over404 = false
@@ -20,33 +20,7 @@ class HttpConfig(private val cfg: JavalinState) {
     @JvmField var responseBufferSize: Int? = null
     @JvmField var defaultContentType = ContentType.PLAIN
     @JvmField var asyncTimeout = 0L
+    @JvmField var compressionStrategy = CompressionStrategy.GZIP
     //@formatter:on
 
-    /** Sets a custom CompressionStrategy. */
-    fun customCompression(compressionStrategy: CompressionStrategy) {
-        cfg.compressionStrategy = compressionStrategy
-    }
-
-    /** Sets a CompressionStrategy using both gzip (default level: 6) and brotli (default level: 4).*/
-    @JvmOverloads
-    fun brotliAndGzipCompression(gzipLevel: Int = 6, brotliLevel: Int = 4) {
-        cfg.compressionStrategy = CompressionStrategy(Brotli(brotliLevel), Gzip(gzipLevel))
-    }
-
-    /** Sets a CompressionStrategy using gzip (default level: 6). */
-    @JvmOverloads
-    fun gzipOnlyCompression(level: Int = 6) {
-        cfg.compressionStrategy = CompressionStrategy(null, Gzip(level))
-    }
-
-    /** Sets a CompressionStrategy using brotli (default level: 4). */
-    @JvmOverloads
-    fun brotliOnlyCompression(level: Int = 4) {
-        cfg.compressionStrategy = CompressionStrategy(Brotli(level), null)
-    }
-
-    /** Disable Compression */
-    fun disableCompression() {
-        cfg.compressionStrategy = CompressionStrategy(null, null)
-    }
 }

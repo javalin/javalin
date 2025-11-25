@@ -44,7 +44,7 @@ class JettyResourceHandler(val cfg: JavalinState) : JavalinResourceHandler {
         try {
             handler.config.headers.forEach { ctx.header(it.key, it.value) }
             return if (handler.config.precompress) {
-                JettyPrecompressingResourceHandler.handle(resourcePath, ctx, cfg.compressionStrategy, handler)
+                JettyPrecompressingResourceHandler.handle(resourcePath, ctx, cfg.http.compressionStrategy, handler)
             } else {
                 handler.handleResource(resourcePath, ctx)
             }
