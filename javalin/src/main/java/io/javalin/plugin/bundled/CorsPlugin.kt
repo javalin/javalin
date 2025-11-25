@@ -1,6 +1,6 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header
@@ -86,7 +86,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
         }
     }
 
-    override fun onStart(config: JavalinConfig) {
+    override fun onStart(config: JavalinState) {
         pluginConfig.rules.forEach { corsRule ->
             val origins = corsRule.allowedOrigins()
 

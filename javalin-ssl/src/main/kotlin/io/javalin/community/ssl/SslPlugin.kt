@@ -2,7 +2,7 @@ package io.javalin.community.ssl
 
 import io.javalin.community.ssl.util.ConnectorFactory
 import io.javalin.community.ssl.util.SSLUtils
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.plugin.Plugin
 import nl.altindag.ssl.SSLFactory
 import nl.altindag.ssl.util.SSLFactoryUtils
@@ -25,7 +25,7 @@ class SslPlugin (userConfig: Consumer<SslConfig>) : Plugin<SslConfig>(userConfig
 
     private var sslFactory: SSLFactory? = null
 
-    override fun onStart(config: JavalinConfig) {
+    override fun onStart(config: JavalinState) {
         //Add the connectors to the server
         createConnectors(pluginConfig).forEach(config.jetty::addConnector)
 

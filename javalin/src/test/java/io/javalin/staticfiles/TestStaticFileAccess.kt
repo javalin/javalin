@@ -1,7 +1,7 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
@@ -22,7 +22,7 @@ class TestStaticFileAccess {
 
     enum class MyRole : RouteRole { ROLE_ONE, ROLE_TWO}
 
-    private fun addAuthentication(config: JavalinConfig) {
+    private fun addAuthentication(config: JavalinState) {
         config.routes.beforeMatched { ctx ->
             val role: RouteRole? = ctx.queryParam("role")?.let { role -> MyRole.valueOf(role) }
             val routeRoles = ctx.routeRoles()

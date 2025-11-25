@@ -27,28 +27,28 @@ public class JavalinTestUtil {
 
     // HTTP Methods
     public static Javalin get(Javalin app, String path, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.GET, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin post(Javalin app, String path, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.POST, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin put(Javalin app, String path, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.PUT, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin put(Javalin app, String path, Handler handler, RouteRole... roles) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.PUT, path)
                 .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
                 .handler(handler)
@@ -57,14 +57,14 @@ public class JavalinTestUtil {
     }
 
     public static Javalin patch(Javalin app, String path, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.PATCH, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin patch(Javalin app, String path, Handler handler, RouteRole... roles) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.PATCH, path)
                 .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
                 .handler(handler)
@@ -73,14 +73,14 @@ public class JavalinTestUtil {
     }
 
     public static Javalin delete(Javalin app, String path, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.DELETE, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin delete(Javalin app, String path, Handler handler, RouteRole... roles) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.DELETE, path)
                 .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
                 .handler(handler)
@@ -89,21 +89,21 @@ public class JavalinTestUtil {
     }
 
     public static Javalin head(Javalin app, String path, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.HEAD, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin options(Javalin app, String path, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.OPTIONS, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin options(Javalin app, String path, Handler handler, RouteRole... roles) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.OPTIONS, path)
                 .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
                 .handler(handler)
@@ -113,7 +113,7 @@ public class JavalinTestUtil {
 
     // HTTP Methods with roles
     public static Javalin get(Javalin app, String path, Handler handler, RouteRole... roles) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.GET, path)
                 .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
                 .handler(handler)
@@ -122,7 +122,7 @@ public class JavalinTestUtil {
     }
 
     public static Javalin post(Javalin app, String path, Handler handler, RouteRole... roles) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.POST, path)
                 .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
                 .handler(handler)
@@ -132,28 +132,28 @@ public class JavalinTestUtil {
 
     // Before/After handlers
     public static Javalin before(Javalin app, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.BEFORE, "*").handler(handler)
         );
         return app;
     }
 
     public static Javalin before(Javalin app, String path, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.BEFORE, path).handler(handler)
         );
         return app;
     }
 
     public static Javalin after(Javalin app, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.AFTER, "*").handler(handler)
         );
         return app;
     }
 
     public static Javalin after(Javalin app, String path, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.AFTER, path).handler(handler)
         );
         return app;
@@ -161,19 +161,19 @@ public class JavalinTestUtil {
 
     // Exception handlers
     public static <E extends Exception> Javalin exception(Javalin app, Class<E> exceptionClass, io.javalin.http.ExceptionHandler<E> handler) {
-        app.unsafe.pvt.internalRouter.addHttpExceptionHandler(exceptionClass, handler);
+        app.unsafe.internalRouter.addHttpExceptionHandler(exceptionClass, handler);
         return app;
     }
 
     // Error handlers
     public static Javalin error(Javalin app, int status, Handler handler) {
-        app.unsafe.pvt.internalRouter.addHttpErrorHandler(status, "*", handler);
+        app.unsafe.internalRouter.addHttpErrorHandler(status, "*", handler);
         return app;
     }
 
     // Server-Sent Events
     public static Javalin sse(Javalin app, String path, Consumer<SseClient> client) {
-        app.unsafe.pvt.internalRouter.addHttpEndpoint(
+        app.unsafe.internalRouter.addHttpEndpoint(
             new Endpoint(HandlerType.GET, path, java.util.Collections.emptySet(), new SseHandler(0, client))
         );
         return app;
@@ -181,34 +181,34 @@ public class JavalinTestUtil {
 
     // WebSocket handlers
     public static Javalin ws(Javalin app, String path, Consumer<WsConfig> wsConfig) {
-        app.unsafe.pvt.internalRouter.addWsHandler(WsHandlerType.WEBSOCKET, path, wsConfig);
+        app.unsafe.internalRouter.addWsHandler(WsHandlerType.WEBSOCKET, path, wsConfig);
         return app;
     }
 
     // WebSocket exception handlers
     public static <E extends Exception> Javalin wsException(Javalin app, Class<E> exceptionClass, io.javalin.websocket.WsExceptionHandler<E> handler) {
-        app.unsafe.pvt.internalRouter.addWsExceptionHandler(exceptionClass, handler);
+        app.unsafe.internalRouter.addWsExceptionHandler(exceptionClass, handler);
         return app;
     }
 
     // WebSocket before/after handlers
     public static Javalin wsAfter(Javalin app, Consumer<WsConfig> wsConfig) {
-        app.unsafe.pvt.internalRouter.addWsHandler(WsHandlerType.WEBSOCKET_AFTER, "*", wsConfig);
+        app.unsafe.internalRouter.addWsHandler(WsHandlerType.WEBSOCKET_AFTER, "*", wsConfig);
         return app;
     }
 
     public static Javalin wsAfter(Javalin app, String path, Consumer<WsConfig> wsConfig) {
-        app.unsafe.pvt.internalRouter.addWsHandler(WsHandlerType.WEBSOCKET_AFTER, path, wsConfig);
+        app.unsafe.internalRouter.addWsHandler(WsHandlerType.WEBSOCKET_AFTER, path, wsConfig);
         return app;
     }
 
     public static Javalin wsBefore(Javalin app, Consumer<WsConfig> wsConfig) {
-        app.unsafe.pvt.internalRouter.addWsHandler(WsHandlerType.WEBSOCKET_BEFORE, "*", wsConfig);
+        app.unsafe.internalRouter.addWsHandler(WsHandlerType.WEBSOCKET_BEFORE, "*", wsConfig);
         return app;
     }
 
     public static Javalin wsBefore(Javalin app, String path, Consumer<WsConfig> wsConfig) {
-        app.unsafe.pvt.internalRouter.addWsHandler(WsHandlerType.WEBSOCKET_BEFORE, path, wsConfig);
+        app.unsafe.internalRouter.addWsHandler(WsHandlerType.WEBSOCKET_BEFORE, path, wsConfig);
         return app;
     }
 }

@@ -15,7 +15,7 @@ import java.util.function.Consumer
 class AsyncTaskConfig {
     /**
      * Thread-pool used to execute the given task,
-     * You can change this default in [io.javalin.config.JavalinConfig].
+     * You can change this default in [io.javalin.config.JavalinState].
      */
     @JvmField var executor: ExecutorService? = null
     /**

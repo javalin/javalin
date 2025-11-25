@@ -430,7 +430,7 @@ class TestApiBuilder {
 
     private fun testInsertion(handlerType: HandlerType, runnable: Runnable) {
         val app = Javalin.create { it.routes.apiBuilder { runnable.run() } }
-        val endpoints = app.unsafe.pvt.internalRouter.allHttpHandlers()
+        val endpoints = app.unsafe.internalRouter.allHttpHandlers()
         assertThat(endpoints).hasSize(4)
         assertEndpoint(endpoints[0].endpoint, "/1", handlerType)
         assertEndpoint(endpoints[1].endpoint, "/2", handlerType, Role.A)

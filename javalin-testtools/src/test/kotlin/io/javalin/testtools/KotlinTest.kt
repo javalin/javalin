@@ -168,7 +168,7 @@ class KotlinTest {
         } catch (t: Throwable) {
             // Ignore
         }
-        assertThat(app.unsafe.pvt.appDataManager.get(TestLogsKey)).contains("Error in handler code")
+        assertThat(app.unsafe.appDataManager.get(TestLogsKey)).contains("Error in handler code")
     }
 
     private fun throwingTest(app: Javalin) {

@@ -14,9 +14,9 @@ import java.util.function.Consumer
  * Configures the embedded Jetty webserver.
  *
  * @param cfg the parent Javalin Configuration
- * @see [JavalinConfig.jetty]
+ * @see [JavalinState.jetty]
  */
-class JettyConfig(private val cfg: JavalinConfig) {
+class JettyConfig(private val cfg: JavalinState) {
     //@formatter:off
     @JvmField var defaultHost: String? = null
     @JvmField var defaultPort = 8080
@@ -34,31 +34,31 @@ class JettyConfig(private val cfg: JavalinConfig) {
      * Consider using the other methods in this class before resorting to this one.
      * It can be called multiple times, and the supplied consumers will be called in order. */
     fun modifyServer(server: Consumer<Server>) {
-        cfg.pvt.jetty.serverConsumers.add(server)
+        cfg.jettyInternal.serverConsumers.add(server)
     }
 
     /** Configure the jetty [ServletContextHandler]. The [SessionHandler] can be set here.
      * It can be called multiple times, and the supplied consumers will be called in order. */
     fun modifyServletContextHandler(consumer: Consumer<ServletContextHandler>) {
-        cfg.pvt.jetty.servletContextHandlerConsumers.add(consumer)
+        cfg.jettyInternal.servletContextHandlerConsumers.add(consumer)
     }
 
     /** Configure the jetty [JettyWebSocketServletFactory].
      * It can be called multiple times, and the supplied consumers will be called in order. */
     fun modifyWebSocketServletFactory(wsFactoryConfig: Consumer<JettyWebSocketServletFactory>) {
-        cfg.pvt.jetty.wsFactoryConfigs.add(wsFactoryConfig)
+        cfg.jettyInternal.wsFactoryConfigs.add(wsFactoryConfig)
     }
 
     /** Configure the [HttpConfiguration] to be used by the jetty [Server].
      * It can be called multiple times, and the supplied consumers will be called in order. */
     fun modifyHttpConfiguration(httpConfigurationConfig: Consumer<HttpConfiguration>) {
-        cfg.pvt.jetty.httpConfigurationConfigs.add(httpConfigurationConfig)
+        cfg.jettyInternal.httpConfigurationConfigs.add(httpConfigurationConfig)
     }
 
     /** Add a [Connector] to the jetty [Server].
      * It can be called multiple times, and the supplied connectors will be added in order. */
     fun addConnector(connector : BiFunction<Server, HttpConfiguration, Connector>){
-        cfg.pvt.jetty.connectors.add(connector)
+        cfg.jettyInternal.connectors.add(connector)
     }
 
 }

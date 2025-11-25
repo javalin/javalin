@@ -9,7 +9,7 @@ package io.javalin.http.servlet
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
 import io.javalin.config.AppDataManager
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.config.Key
 import io.javalin.config.MultipartConfig
 import io.javalin.http.ContentType
@@ -51,14 +51,14 @@ data class JavalinServletContextConfig(
     val multipartConfig: MultipartConfig
 ) {
     companion object {
-        fun of(cfg: JavalinConfig): JavalinServletContextConfig =
+        fun of(cfg: JavalinState): JavalinServletContextConfig =
             JavalinServletContextConfig(
-                appDataManager = cfg.pvt.appDataManager,
-                pluginManager = cfg.pvt.pluginManager,
-                compressionStrategy = cfg.pvt.compressionStrategy,
-                requestLoggerEnabled = cfg.pvt.requestLogger != null,
+                appDataManager = cfg.appDataManager,
+                pluginManager = cfg.pluginManager,
+                compressionStrategy = cfg.compressionStrategy,
+                requestLoggerEnabled = cfg.httpRequestLogger != null,
                 defaultContentType = cfg.http.defaultContentType,
-                jsonMapper = cfg.pvt.jsonMapper.value,
+                jsonMapper = cfg.jsonMapper.value,
                 strictContentTypes = cfg.http.strictContentTypes,
                 multipartConfig = cfg.jetty.multipartConfig,
             )

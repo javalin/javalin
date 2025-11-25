@@ -1,6 +1,6 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Header.X_FORWARDED_PROTO
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.servlet.isLocalhost
@@ -18,7 +18,7 @@ class SslRedirectPlugin(userConfig: Consumer<Config>? = null) : Plugin<SslRedire
         @JvmField var sslPort: Int? = null
     }
 
-    override fun onStart(config: JavalinConfig) {
+    override fun onStart(config: JavalinState) {
         config.routes.before { ctx ->
             if (!pluginConfig.redirectOnLocalhost && ctx.isLocalhost()) {
                 return@before
@@ -29,7 +29,7 @@ class SslRedirectPlugin(userConfig: Consumer<Config>? = null) : Plugin<SslRedire
             if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
                 val urlWithHttps = ctx.fullUrl().replace("http", "https")
 
-                val urlWithHttpsAndPort = config.pvt.jetty.server
+                val urlWithHttpsAndPort = config.jettyInternal.server
                     ?.takeIf { pluginConfig.sslPort != null }
                     ?.connectors
                     ?.filterIsInstance<ServerConnector>()

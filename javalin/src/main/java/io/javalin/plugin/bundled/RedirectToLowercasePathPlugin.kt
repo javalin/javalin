@@ -6,7 +6,7 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginPriority
@@ -24,7 +24,7 @@ import java.util.*
  */
 open class RedirectToLowercasePathPlugin : Plugin<Void>() {
 
-    override fun onInitialize(config: JavalinConfig) {
+    override fun onInitialize(config: JavalinState) {
         if (config.router.caseInsensitiveRoutes) {
             throw IllegalStateException("RedirectToLowercasePathPlugin is not compatible with caseInsensitiveRoutes")
         }
@@ -48,10 +48,10 @@ open class RedirectToLowercasePathPlugin : Plugin<Void>() {
         }
     }
 
-    override fun onStart(config: JavalinConfig) {
+    override fun onStart(config: JavalinState) {
         config.routes.before { ctx ->
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
-            val router = config.pvt.internalRouter
+            val router = config.internalRouter
 
             if (router.findHttpHandlerEntries(ctx.method(), requestUri).findFirst().isPresent) {
                 return@before // we found a route for this case, no need to redirect

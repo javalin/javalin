@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import io.javalin.config.JavalinConfig;
+import io.javalin.config.JavalinState;
 import io.javalin.jetty.JettyServer;
 import jakarta.servlet.Servlet;
 import kotlin.Lazy;
@@ -23,17 +23,17 @@ public class Javalin {
      * Do not use this field unless you know what you're doing.
      * Application config should be declared in {@link Javalin#create(Consumer)}.
      */
-    private final JavalinConfig cfg;
+    private final JavalinState cfg;
     protected final Lazy<JettyServer> jettyServer;
 
-    protected Javalin(JavalinConfig config) {
+    protected Javalin(JavalinState config) {
         this.cfg = config;
         this.jettyServer = createLazy(() -> new JettyServer(this.cfg));
         unsafe = cfg;
     }
 
     @NotNull
-    public JavalinConfig unsafe;
+    public JavalinState unsafe;
 
     public JettyServer jettyServer() {
         return jettyServer.getValue();
@@ -59,9 +59,9 @@ public class Javalin {
      * @see Javalin#start()
      * @see Javalin#start(int)
      */
-    public static Javalin create(Consumer<JavalinConfig> config) {
-        JavalinConfig cfg = new JavalinConfig();
-        JavalinConfig.applyUserConfig(cfg, config); // mutates app.config and app (adds http-handlers)
+    public static Javalin create(Consumer<JavalinState> config) {
+        JavalinState cfg = new JavalinState();
+        JavalinState.applyUserConfig(cfg, config); // mutates app.config and app (adds http-handlers)
         Javalin app = new Javalin(cfg);
         app.jettyServer.getValue(); // initialize server if no plugin already did
         return app;
@@ -69,7 +69,7 @@ public class Javalin {
 
     // Get JavalinServlet (can be attached to other servlet containers)
     public Servlet javalinServlet() {
-        return cfg.pvt.servlet.getValue().getServlet();
+        return cfg.servlet.getValue().getServlet();
     }
 
     /**

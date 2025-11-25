@@ -134,7 +134,7 @@ class TestExceptionMapper {
 
     @Test
     fun `errors are handled by javaLangErrorHandler`() = TestUtil.test { app, http ->
-        app.unsafe.pvt.javaLangErrorHandler { res, throwable ->
+        app.unsafe.router.javaLangErrorHandler { res, throwable ->
             res.status = 200
             res.writer.write("Error: ${throwable.message}")
         }

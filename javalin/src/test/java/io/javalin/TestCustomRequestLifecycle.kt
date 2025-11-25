@@ -13,7 +13,7 @@ class TestCustomRequestLifecycle {
 
     @Test
     fun `can remove lifecycle stage`() = TestUtil.test(Javalin.create { config ->
-        config.pvt.servletRequestLifecycle = mutableListOf(HTTP)
+        config.servletRequestLifecycle = mutableListOf(HTTP)
         config.routes.before { it.result("Overridden") }
         config.routes.get("/") { it.result("Hello!") }
         config.routes.after { it.result("Overridden") }
@@ -23,7 +23,7 @@ class TestCustomRequestLifecycle {
 
     @Test
     fun `can add custom lifecycle stage`() = TestUtil.test(Javalin.create { config ->
-        config.pvt.servletRequestLifecycle = mutableListOf(
+        config.servletRequestLifecycle = mutableListOf(
             HTTP,
             TaskInitializer { submitTask, _, ctx, _ ->
                 submitTask(LAST, Task {

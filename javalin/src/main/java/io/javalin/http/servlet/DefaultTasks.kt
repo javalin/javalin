@@ -27,7 +27,7 @@ object DefaultTasks {
         }
         val isResourceHandler = httpHandlerOrNull == null && ctx.method() in setOf(HEAD, GET)
         val matchedRouteRoles by javalinLazy { servlet.matchedRoles(ctx, requestUri) }
-        val resourceRouteRoles by javalinLazy { servlet.cfg.pvt.resourceHandler?.resourceRouteRoles(ctx) ?: emptySet() }
+        val resourceRouteRoles by javalinLazy { servlet.cfg.resourceHandler?.resourceRouteRoles(ctx) ?: emptySet() }
         val willMatch by javalinLazy {
             ctx.setRouteRoles(if (isResourceHandler) resourceRouteRoles else matchedRouteRoles)
             servlet.willMatch(ctx, requestUri)
@@ -58,8 +58,8 @@ object DefaultTasks {
                 return@Task
             }
             if (ctx.method() == HEAD || ctx.method() == GET) { // check for static resources (will write response if found)
-                if (servlet.cfg.pvt.resourceHandler?.handle(ctx) == true) return@Task
-                if (servlet.cfg.pvt.singlePageHandler.handle(ctx)) return@Task
+                if (servlet.cfg.resourceHandler?.handle(ctx) == true) return@Task
+                if (servlet.cfg.singlePageHandler.handle(ctx)) return@Task
             }
             // No match, status will be 404 or 405 after this point
             // The endpoint will still be the placeholder with path ""
@@ -93,8 +93,8 @@ object DefaultTasks {
     private fun JavalinServlet.willMatch(ctx: JavalinServletContext, requestUri: String) = when {
         ctx.method() == HEAD && this.router.hasHttpHandlerEntry(GET, requestUri) -> true
         this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() != null -> true
-        this.cfg.pvt.resourceHandler?.canHandle(ctx) == true -> true
-        this.cfg.pvt.singlePageHandler.canHandle(ctx) -> true
+        this.cfg.resourceHandler?.canHandle(ctx) == true -> true
+        this.cfg.singlePageHandler.canHandle(ctx) -> true
         else -> false
     }
 

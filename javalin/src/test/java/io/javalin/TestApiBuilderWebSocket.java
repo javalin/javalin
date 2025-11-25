@@ -26,7 +26,7 @@ public class TestApiBuilderWebSocket {
             });
         });
 
-        var handlers = app.unsafe.pvt.internalRouter.allWsHandlers();
+        var handlers = app.unsafe.internalRouter.allWsHandlers();
         assertThat(handlers).hasSize(5);
         assertThat(handlers).anyMatch(h -> h.getType() == WsHandlerType.WEBSOCKET_BEFORE && h.getPath().equals("/ws/*"));
         assertThat(handlers).anyMatch(h -> h.getType() == WsHandlerType.WEBSOCKET_BEFORE && h.getPath().equals("*"));

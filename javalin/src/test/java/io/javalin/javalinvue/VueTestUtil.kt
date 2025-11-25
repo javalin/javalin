@@ -1,7 +1,7 @@
 ﻿package io.javalin.javalinvue
 
 import io.javalin.Javalin
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.JavalinVuePlugin
 import io.javalin.testing.HttpUtil
@@ -12,7 +12,7 @@ import java.util.function.Consumer
 
 object VueTestUtil {
     @JvmStatic
-    fun test(vueConfig: Consumer<JavalinVueConfig>?, config: Consumer<JavalinConfig>?, test: ThrowingBiConsumer<Javalin, HttpUtil>) =
+    fun test(vueConfig: Consumer<JavalinVueConfig>?, config: Consumer<JavalinState>?, test: ThrowingBiConsumer<Javalin, HttpUtil>) =
         TestUtil.test(Javalin.create { baseConfig ->
             baseConfig.registerPlugin(JavalinVuePlugin { vue ->
                 vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)

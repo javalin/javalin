@@ -200,7 +200,7 @@ class HttpClient(val app: Javalin, private val client: JdkHttpClient) {
         return if (this == null) {
             HttpRequest.BodyPublishers.noBody()
         } else {
-            val jsonString = app.unsafe.pvt.jsonMapper.value.toJsonString(this)
+            val jsonString = app.unsafe.jsonMapper.value.toJsonString(this)
             HttpRequest.BodyPublishers.ofString(jsonString, StandardCharsets.UTF_8)
         }
     }

@@ -48,7 +48,7 @@ class TestCompression {
     private val testDocument = FileUtil.readResource("/public/html.html")
 
     private fun customCompressionApp(limit: Int): Javalin = Javalin.create {
-        it.pvt.compressionStrategy.defaultMinSizeForCompression = limit
+        it.compressionStrategy.defaultMinSizeForCompression = limit
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
@@ -68,7 +68,7 @@ class TestCompression {
     }.addTestEndpoints()
 
     private fun etagApp() = Javalin.create {
-        it.pvt.compressionStrategy.defaultMinSizeForCompression = testDocument.length
+        it.compressionStrategy.defaultMinSizeForCompression = testDocument.length
         it.staticFiles.add("/public", Location.CLASSPATH)
         it.http.generateEtags = true
     }.addTestEndpoints()
@@ -497,7 +497,7 @@ class TestCompression {
                 staticFiles.directory = "/public"
                 staticFiles.location = Location.CLASSPATH
             }
-            it.pvt.compressionStrategy.defaultMinSizeForCompression = 0 // minSize to enable automatic compress
+            it.compressionStrategy.defaultMinSizeForCompression = 0 // minSize to enable automatic compress
         }
         TestUtil.test(gzipWebjars) { _, http ->
             assertValidGzipResponse(http.origin, path)

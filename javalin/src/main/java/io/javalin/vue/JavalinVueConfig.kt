@@ -1,6 +1,6 @@
 package io.javalin.vue
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.config.Key
 import io.javalin.http.Context
 import io.javalin.http.servlet.isLocalhost
@@ -10,7 +10,7 @@ import java.nio.file.Paths
 
 /**
  * Configuration for the Vue plugin.
- * @see [JavalinConfig.vue]
+ * @see [JavalinState.vue]
  * @see [Online Doc](https://javalin.io/plugins/javalinvue)
  */
 class JavalinVueConfig {

@@ -1,6 +1,6 @@
 package io.javalin.plugin
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import java.util.function.Consumer
 
@@ -33,10 +33,10 @@ enum class PluginPriority {
 abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfig: CONFIG? = null) {
 
     /** Initialize properties and access configuration before any handler is registered. */
-    open fun onInitialize(config: JavalinConfig) {}
+    open fun onInitialize(config: JavalinState) {}
 
     /** Called when the plugin is applied to the Javalin instance. */
-    open fun onStart(config: JavalinConfig) {}
+    open fun onStart(config: JavalinState) {}
 
     /**Checks if plugin can be registered multiple times. */
     open fun repeatable(): Boolean = false

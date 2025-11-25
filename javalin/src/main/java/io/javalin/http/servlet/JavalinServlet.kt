@@ -6,7 +6,7 @@
 
 package io.javalin.http.servlet
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.REQUEST_TIMEOUT
@@ -20,10 +20,10 @@ import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
-class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
+class JavalinServlet(val cfg: JavalinState) : HttpServlet() {
 
-    val requestLifecycle = cfg.pvt.servletRequestLifecycle.toList()
-    val router = cfg.pvt.internalRouter
+    val requestLifecycle = cfg.servletRequestLifecycle.toList()
+    val router = cfg.internalRouter
     private val servletContextConfig by javalinLazy { JavalinServletContextConfig.of(cfg) }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
@@ -111,7 +111,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                 val etagWritten = ETagGenerator.tryWriteEtagAndClose(cfg.http.generateEtags, this, resultStream)
                 if (!etagWritten) resultStream.copyTo(outputStream(), cfg.http.responseBufferSize ?: 32_768) // default should never happen, we add a fallback just in case
             }
-            cfg.pvt.requestLogger?.handle(this, executionTimeMs())
+            cfg.httpRequestLogger?.handle(this, executionTimeMs())
         } catch (throwable: Throwable) {
             router.handleHttpUnexpectedThrowable(res(), throwable) // handle any unexpected error, e.g. write failure
         } finally {

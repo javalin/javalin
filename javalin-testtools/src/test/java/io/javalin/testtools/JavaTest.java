@@ -193,7 +193,7 @@ public class JavaTest {
         } catch (Throwable t) {
             // Ignore
         }
-        assertThat(app.unsafe.pvt.appDataManager.get(TestLogsKey)).contains("Error in handler code");
+        assertThat(app.unsafe.appDataManager.get(TestLogsKey)).contains("Error in handler code");
     }
 
     @Test

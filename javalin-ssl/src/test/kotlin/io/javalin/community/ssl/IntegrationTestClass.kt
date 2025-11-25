@@ -2,7 +2,7 @@ package io.javalin.community.ssl
 
 import io.javalin.Javalin
 import io.javalin.community.ssl.certs.Server
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -133,10 +133,10 @@ abstract class IntegrationTestClass {
 
         @JvmStatic
         fun createTestApp(config: Consumer<SslConfig>): Javalin {
-            return Javalin.create { javalinConfig: JavalinConfig ->
-                javalinConfig.showJavalinBanner = false
-                javalinConfig.registerPlugin(SslPlugin(config))
-                javalinConfig.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
+            return Javalin.create { javalinState: JavalinState ->
+                javalinState.showJavalinBanner = false
+                javalinState.registerPlugin(SslPlugin(config))
+                javalinState.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }
         }
 

@@ -68,7 +68,7 @@ class TestCustomJetty {
         val statisticsHandler = StatisticsHandler()
         val newServer = Server().apply { handler = statisticsHandler }
         val app = Javalin.create {
-            it.pvt.jetty.server = newServer
+            it.jettyInternal.server = newServer
             it.routes.get("/") { it.result("Hello World") }
         }.start(0)
         val requests = 5
@@ -92,7 +92,7 @@ class TestCustomJetty {
             requestLog = RequestLog { _, _ -> logCount.incrementAndGet() }
         }
         val app = Javalin.create {
-            it.pvt.jetty.server = newServer
+            it.jettyInternal.server = newServer
             it.routes.get("/") { it.result("Hello World") }
         }.start(0)
         val requests = 10
@@ -113,7 +113,7 @@ class TestCustomJetty {
         val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
         val newServer = Server().apply { handler = handlerChain }
         val app = Javalin.create {
-            it.pvt.jetty.server = newServer
+            it.jettyInternal.server = newServer
             it.routes.get("/") { it.result("Hello World") }
         }.start(0)
         val requests = 10
@@ -140,7 +140,7 @@ class TestCustomJetty {
         }
         val javalin = Javalin.create {
             it.jetty.modifyServletContextHandler { it.sessionHandler = fileSessionHandler }
-            it.pvt.jetty.server = newServer
+            it.jettyInternal.server = newServer
         }.start(0)
         val httpHandler = (newServer.handlers[0] as ServletContextHandler)
         assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
@@ -167,7 +167,7 @@ class TestCustomJetty {
         newServer.handler = handler
 
         val javalin = Javalin.create {
-            it.pvt.jetty.server = newServer
+            it.jettyInternal.server = newServer
             it.routes.get("/bar") { it.result("Hello") }
         }
         TestUtil.test(javalin) { app, http ->
@@ -188,7 +188,7 @@ class TestCustomJetty {
             }
         }
         val javalin = Javalin.create {
-            it.pvt.jetty.server = newServer
+            it.jettyInternal.server = newServer
             it.router.contextPath = "/api"
             it.routes.get("/") { it.result("Hello Javalin World!") }
         }

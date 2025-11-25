@@ -1,7 +1,7 @@
 ﻿package io.javalin
 
 import io.javalin.config.HttpConfig
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
@@ -13,13 +13,12 @@ import okhttp3.RequestBody
 import okio.BufferedSink
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.io.IOException
 
 class TestMaxRequestSize {
 
     @Test
     fun `max request size is set by default`() = TestUtil.test { app, http ->
-        val size = HttpConfig(JavalinConfig()).maxRequestSize.toInt()
+        val size = HttpConfig(JavalinState()).maxRequestSize.toInt()
         app.unsafe.routes.post("/") { it.result(it.body()) }
         assertThat(http.post("/").body(ByteArray(size)).asString().httpCode()).isEqualTo(OK)
         try {

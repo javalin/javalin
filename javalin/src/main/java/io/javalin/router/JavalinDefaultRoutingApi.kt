@@ -1,6 +1,6 @@
 package io.javalin.router
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
@@ -30,7 +30,7 @@ import io.javalin.websocket.WsHandlerType.WEBSOCKET_AFTER
 import io.javalin.websocket.WsHandlerType.WEBSOCKET_BEFORE
 import java.util.function.Consumer
 
-class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRoutingApi<JavalinDefaultRouting> {
+class JavalinDefaultRouting(private val cfg: JavalinState) : JavalinDefaultRoutingApi<JavalinDefaultRouting> {
 
     companion object {
         @JvmField
@@ -38,23 +38,23 @@ class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRout
     }
 
     override fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>) = apply {
-        cfg.pvt.internalRouter.addHttpExceptionHandler(exceptionClass, exceptionHandler)
+        cfg.internalRouter.addHttpExceptionHandler(exceptionClass, exceptionHandler)
     }
 
     override fun error(status: Int, contentType: String, handler: Handler) = apply {
-        cfg.pvt.internalRouter.addHttpErrorHandler(status, contentType, handler)
+        cfg.internalRouter.addHttpErrorHandler(status, contentType, handler)
     }
 
     override fun addEndpoint(endpoint: Endpoint): JavalinDefaultRouting = apply {
-        cfg.pvt.internalRouter.addHttpEndpoint(endpoint)
+        cfg.internalRouter.addHttpEndpoint(endpoint)
     }
 
     override fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>) = apply {
-        cfg.pvt.internalRouter.addWsExceptionHandler(exceptionClass, exceptionHandler)
+        cfg.internalRouter.addWsExceptionHandler(exceptionClass, exceptionHandler)
     }
 
     override fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, vararg roles: RouteRole) = apply {
-        cfg.pvt.internalRouter.addWsHandler(handlerType, path, wsConfig, *roles)
+        cfg.internalRouter.addWsHandler(handlerType, path, wsConfig, *roles)
     }
 
 }

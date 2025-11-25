@@ -30,7 +30,7 @@ public class HelloWorldServlet {
             handlers.setHandlers(new Handler[]{context});
             server.setHandler(handlers);
 
-            config.pvt.jetty.server = server;
+            config.jettyInternal.server = server;
         });
         get(app, "/", ctx -> ctx.result("Hello Javalin World!"));
         app.start(8000);
