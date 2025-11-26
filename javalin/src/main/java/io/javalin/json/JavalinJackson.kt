@@ -77,16 +77,18 @@ class JavalinJackson(
     companion object {
         @JvmStatic
         fun defaultMapper(): ObjectMapper = ObjectMapper()
-            .registerOptionalModule(CoreDependency.JACKSON_KT.testClass)
-            .registerOptionalModule(CoreDependency.JACKSON_JSR_310.testClass)
-            .registerOptionalModule(CoreDependency.JACKSON_ECLIPSE_COLLECTIONS.testClass)
-            .registerOptionalModule(CoreDependency.JACKSON_KTORM.testClass) // very optional module for ktorm (a kotlin orm)
+            .registerOptionalModule(CoreDependency.JACKSON_KT.testClass) { com.fasterxml.jackson.module.kotlin.KotlinModule.Builder().build() }
+            .registerOptionalModule(CoreDependency.JACKSON_JSR_310.testClass) { com.fasterxml.jackson.datatype.jsr310.JavaTimeModule.Builder().build() }
+            .registerOptionalModule(CoreDependency.JACKSON_ECLIPSE_COLLECTIONS.testClass) { com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule.Builder().build() }
+
+            // very optional module for ktorm (a kotlin orm)
+            .registerOptionalModule(CoreDependency.JACKSON_KTORM.testClass) { org.ktorm.jackson.KtormModule.Builder().build() }
     }
 }
 
-private fun ObjectMapper.registerOptionalModule(classString: String): ObjectMapper {
-    if (Util.classExists(classString)) {
-        this.registerModule(Class.forName(classString).getConstructor().newInstance() as Module)
+private fun ObjectMapper.registerOptionalModule(classAccessor: () -> Any?, classInstantiator: () -> Module): ObjectMapper {
+    if (Util.classExists(classAccessor)) {
+        this.registerModule(classInstantiator())
     }
     return this
 }

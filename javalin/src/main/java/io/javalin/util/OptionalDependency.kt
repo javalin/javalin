@@ -35,7 +35,7 @@ object DependencyUtil {
 
 interface OptionalDependency {
     val displayName: String
-    val testClass: String
+    val testClass: () -> Any?
     val groupId: String
     val artifactId: String
     val version: String
@@ -43,26 +43,26 @@ interface OptionalDependency {
 
 enum class CoreDependency(
     override val displayName: String,
-    override val testClass: String,
+    override val testClass: () -> Any?,
     override val groupId: String,
     override val artifactId: String,
     override val version: String
 ) : OptionalDependency {
 
     // JSON (Jackson) handling
-    JACKSON("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core", "jackson-databind", "2.17.2"),
-    JACKSON_KT("JacksonKt", "com.fasterxml.jackson.module.kotlin.KotlinModule", "com.fasterxml.jackson.module", "jackson-module-kotlin", "2.17.2"),
-    JACKSON_JSR_310("JacksonJsr310", "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", "com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "2.17.2"),
-    JACKSON_ECLIPSE_COLLECTIONS("JacksonEclipseCollections", "com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "com.fasterxml.jackson.datatype", "jackson-datatype-eclipse-collections", "2.17.2"),
-    JACKSON_KTORM("Jackson Ktorm", "org.ktorm.jackson.KtormModule", "org.ktorm", "ktorm-jackson", "3.6.0"),
+    JACKSON("Jackson", { com.fasterxml.jackson.databind.ObjectMapper::class }, "com.fasterxml.jackson.core", "jackson-databind", "2.17.2"),
+    JACKSON_KT("JacksonKt", { com.fasterxml.jackson.module.kotlin.KotlinModule::class }, "com.fasterxml.jackson.module", "jackson-module-kotlin", "2.17.2"),
+    JACKSON_JSR_310("JacksonJsr310", { com.fasterxml.jackson.datatype.jsr310.JavaTimeModule::class }, "com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "2.17.2"),
+    JACKSON_ECLIPSE_COLLECTIONS("JacksonEclipseCollections", { com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule::class }, "com.fasterxml.jackson.datatype", "jackson-datatype-eclipse-collections", "2.17.2"),
+    JACKSON_KTORM("Jackson Ktorm", { org.ktorm.jackson.KtormModule::class }, "org.ktorm", "ktorm-jackson", "3.6.0"),
 
     // JSON (Gson)
-    GSON("Gson", "com.google.gson.Gson", "com.google.code.gson", "gson", "2.11.0"),
+    GSON("Gson", { com.google.gson.Gson::class }, "com.google.code.gson", "gson", "2.11.0"),
 
     // Logging
-    SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "2.0.16"),
+    SLF4JSIMPLE("Slf4j simple", { org.slf4j.impl.StaticLoggerBinder::class }, "org.slf4j", "slf4j-simple", "2.0.16"),
 
     // Compression
-    BROTLI4J("Brotli4j", "com.aayushatharva.brotli4j.Brotli4jLoader", "com.aayushatharva.brotli4j", "brotli4j", "1.20.0"),
-    ZSTD_JNI("Zstd-jni", "com.github.luben.zstd.Zstd", "com.github.luben", "zstd-jni", "1.5.7-4"),
+    BROTLI4J("Brotli4j", { com.aayushatharva.brotli4j.Brotli4jLoader::class }, "com.aayushatharva.brotli4j", "brotli4j", "1.20.0"),
+    ZSTD_JNI("Zstd-jni", { com.github.luben.zstd.Zstd::class }, "com.github.luben", "zstd-jni", "1.5.7-4"),
 }
