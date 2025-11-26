@@ -19,8 +19,8 @@ import java.util.function.Consumer
  */
 class GlobalHeadersPlugin(userConfig: Consumer<GlobalHeadersConfig>? = null) : Plugin<GlobalHeadersConfig>(userConfig, GlobalHeadersConfig()) {
 
-    override fun onStart(config: JavalinState) {
-        config.routes.before { ctx ->
+    override fun onStart(state: JavalinState) {
+        state.routes.before { ctx ->
             pluginConfig.headers.forEach { (name, value) ->
                 ctx.header(name, value)
             }

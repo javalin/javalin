@@ -23,8 +23,8 @@ class BasicAuthPlugin(userConfig: Consumer<Config>) : Plugin<BasicAuthPlugin.Con
         @JvmField var password: String? = null
     }
 
-    override fun onStart(config: JavalinState) {
-        config.routes.before { ctx ->
+    override fun onStart(state: JavalinState) {
+        state.routes.before { ctx ->
             val matched = runCatching { ctx.basicAuthCredentials() }
                 .fold(
                     onSuccess = { auth -> auth?.username == pluginConfig.username && auth?.password == pluginConfig.password },

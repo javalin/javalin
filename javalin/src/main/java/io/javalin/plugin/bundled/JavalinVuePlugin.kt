@@ -15,8 +15,8 @@ import java.util.function.Consumer
  */
 class JavalinVuePlugin(userConfig: Consumer<JavalinVueConfig>? = null) : Plugin<JavalinVueConfig>(userConfig, JavalinVueConfig()) {
 
-    override fun onStart(config: JavalinState) {
-        config.appData(VueConfigKey, pluginConfig)
+    override fun onStart(state: JavalinState) {
+        state.appData(VueConfigKey, pluginConfig)
     }
 
 }

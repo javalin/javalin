@@ -25,12 +25,12 @@ class SslPlugin (userConfig: Consumer<SslConfig>) : Plugin<SslConfig>(userConfig
 
     private var sslFactory: SSLFactory? = null
 
-    override fun onStart(config: JavalinState) {
+    override fun onStart(state: JavalinState) {
         //Add the connectors to the server
-        createConnectors(pluginConfig).forEach(config.jetty::addConnector)
+        createConnectors(pluginConfig).forEach(state.jetty::addConnector)
 
         if(pluginConfig.redirect && pluginConfig.secure) {
-            config.jetty.modifyServer{
+            state.jetty.modifyServer{
                 it.handler = SecuredRedirectHandler()
             }
         }

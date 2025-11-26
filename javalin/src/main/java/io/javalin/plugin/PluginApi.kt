@@ -33,10 +33,10 @@ enum class PluginPriority {
 abstract class Plugin<CONFIG>(userConfig: Consumer<CONFIG>? = null, defaultConfig: CONFIG? = null) {
 
     /** Initialize properties and access configuration before any handler is registered. */
-    open fun onInitialize(config: JavalinState) {}
+    open fun onInitialize(state: JavalinState) {}
 
     /** Called when the plugin is applied to the Javalin instance. */
-    open fun onStart(config: JavalinState) {}
+    open fun onStart(state: JavalinState) {}
 
     /**Checks if plugin can be registered multiple times. */
     open fun repeatable(): Boolean = false

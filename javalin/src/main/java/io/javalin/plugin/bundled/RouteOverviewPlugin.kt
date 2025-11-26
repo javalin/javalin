@@ -19,8 +19,8 @@ class RouteOverviewPlugin(userConfig: Consumer<Config>? = null) : Plugin<RouteOv
         @JvmField var roles: Array<out RouteRole> = emptyArray()
     }
 
-    override fun onStart(config: JavalinState) {
-        config.routes.get(pluginConfig.path, { ctx -> handle(ctx, config.internalRouter) }, *pluginConfig.roles)
+    override fun onStart(state: JavalinState) {
+        state.routes.get(pluginConfig.path, { ctx -> handle(ctx, state.internalRouter) }, *pluginConfig.roles)
     }
 
     private fun handle(ctx: Context, internalRouter: InternalRouter) {

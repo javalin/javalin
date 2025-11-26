@@ -25,10 +25,10 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
         var skipStaticFiles = false
     }
 
-    override fun onInitialize(config: JavalinState) {
-        config.requestLogger.http { ctx, ms -> httpDevLogger(config.internalRouter, ctx, ms) }
-        config.requestLogger.ws { wsDevLogger(it) }
-        config.events.handlerAdded { handlerMetaInfo ->
+    override fun onInitialize(state: JavalinState) {
+        state.requestLogger.http { ctx, ms -> httpDevLogger(state.internalRouter, ctx, ms) }
+        state.requestLogger.ws { wsDevLogger(it) }
+        state.events.handlerAdded { handlerMetaInfo ->
             JavalinLogger.info("JAVALIN HANDLER REGISTRATION DEBUG LOG: ${handlerMetaInfo.httpMethod}[${handlerMetaInfo.path}]")
         }
     }

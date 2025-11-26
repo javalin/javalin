@@ -80,7 +80,6 @@ class JavalinState {
     @JvmField var wsRequestLogger: WsConfig? = null
     @JvmField var resourceHandler: ResourceHandler? = null
     @JvmField var singlePageHandler = SinglePageHandler()
-    // @JvmField var asyncExecutor = javalinLazy { AsyncExecutor(ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", startup.useVirtualThreads)) }
     @JvmField var servlet: Lazy<ServletEntry> = javalinLazy { createJettyServletWithWebsocketsIfAvailable(this) ?: ServletEntry(servlet = JavalinServlet(this)) }
     @JvmField var jettyInternal = JettyInternalConfig()
     @JvmField var servletRequestLifecycle = mutableListOf(

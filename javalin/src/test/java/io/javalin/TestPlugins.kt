@@ -26,11 +26,11 @@ class TestPlugins {
     }
 
     open inner class TestPlugin : Plugin<Void>() {
-        override fun onInitialize(config: JavalinState) {
+        override fun onInitialize(state: JavalinState) {
             calls.add(Calls.INIT)
         }
 
-        override fun onStart(config: JavalinState) {
+        override fun onStart(state: JavalinState) {
             calls.add(Calls.START)
         }
     }
@@ -77,7 +77,7 @@ class TestPlugins {
 
         Javalin.create {
             it.registerPlugin(object : Plugin<Void>() {
-                override fun onStart(config: JavalinState) {
+                override fun onStart(state: JavalinState) {
                     called = true
                 }
             })
@@ -117,32 +117,32 @@ class TestPlugins {
 
         class EarlyPlugin : Plugin<Void>() {
             override fun priority() = EARLY
-            override fun onInitialize(config: JavalinState) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("early-init")
             }
 
-            override fun onStart(config: JavalinState) {
+            override fun onStart(state: JavalinState) {
                 calls.add("early-start")
             }
         }
 
         class NormalPlugin : Plugin<Void>() {
-            override fun onInitialize(config: JavalinState) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("normal-init")
             }
 
-            override fun onStart(config: JavalinState) {
+            override fun onStart(state: JavalinState) {
                 calls.add("normal-start")
             }
         }
 
         class LatePlugin : Plugin<Void>() {
             override fun priority() = LATE
-            override fun onInitialize(config: JavalinState) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("late-init")
             }
 
-            override fun onStart(config: JavalinState) {
+            override fun onStart(state: JavalinState) {
                 calls.add("late-start")
             }
         }
@@ -168,21 +168,21 @@ class TestPlugins {
         val calls = mutableListOf<String>()
 
         class Plugin3 : Plugin<Void>() {
-            override fun onInitialize(config: JavalinState) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("3")
             }
         }
 
         class Plugin2 : Plugin<Void>() {
-            override fun onInitialize(config: JavalinState) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("2")
             }
         }
 
         class Plugin1 : Plugin<Void>() {
-            override fun onInitialize(config: JavalinState) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("1")
-                config.registerPlugin(Plugin2())
+                state.registerPlugin(Plugin2())
             }
         }
 
@@ -209,7 +209,7 @@ class TestPlugins {
     @Test
     fun `pluginConfig throws if defaultConfig is null`() {
         class ThrowingPlugin : Plugin<List<String>>() {
-            override fun onStart(config: JavalinState) {
+            override fun onStart(state: JavalinState) {
                 pluginConfig[2] // should throw
             }
         }

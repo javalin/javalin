@@ -18,8 +18,8 @@ class SslRedirectPlugin(userConfig: Consumer<Config>? = null) : Plugin<SslRedire
         @JvmField var sslPort: Int? = null
     }
 
-    override fun onStart(config: JavalinState) {
-        config.routes.before { ctx ->
+    override fun onStart(state: JavalinState) {
+        state.routes.before { ctx ->
             if (!pluginConfig.redirectOnLocalhost && ctx.isLocalhost()) {
                 return@before
             }
@@ -29,7 +29,7 @@ class SslRedirectPlugin(userConfig: Consumer<Config>? = null) : Plugin<SslRedire
             if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
                 val urlWithHttps = ctx.fullUrl().replace("http", "https")
 
-                val urlWithHttpsAndPort = config.jettyInternal.server
+                val urlWithHttpsAndPort = state.jettyInternal.server
                     ?.takeIf { pluginConfig.sslPort != null }
                     ?.connectors
                     ?.filterIsInstance<ServerConnector>()

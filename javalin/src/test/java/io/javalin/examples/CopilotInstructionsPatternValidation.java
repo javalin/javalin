@@ -184,8 +184,8 @@ public class CopilotInstructionsPatternValidation {
         }
 
         @Override
-        public void onStart(JavalinState config) {
-            config.routes.before(ctx -> {
+        public void onStart(JavalinState state) {
+            state.routes.before(ctx -> {
                 if (pluginConfig.enabled) {
                     // Plugin logic
                 }
