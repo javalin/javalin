@@ -33,18 +33,16 @@ object Util {
     @JvmStatic
     fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
 
-    fun classExists(className: String) = try {
-        Class.forName(className)
-        true
-    } catch (e: ClassNotFoundException) {
+    fun classExists(classAccessor: () -> Any?) = try {
+        classAccessor() != null
+    } catch (e: NoClassDefFoundError) {
         false
     }
 
     private fun slf4jServiceImplementationExists() = try {
-        val serviceClass = Class.forName("org.slf4j.spi.SLF4JServiceProvider")
-        val loader = ServiceLoader.load(serviceClass)
+        val loader = ServiceLoader.load(org.slf4j.spi.SLF4JServiceProvider::class.java)
         loader.any()
-    } catch (e: ClassNotFoundException) {
+    } catch (e: NoClassDefFoundError) {
         false
     }
 
