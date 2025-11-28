@@ -6,7 +6,7 @@ import io.javalin.http.Header
 /**
  * Configure the implementation for Context functions.
  *
- * @see [JavalinConfig.contextResolver]
+ * @see [JavalinState.contextResolver]
  */
 class ContextResolverConfig {
     companion object {

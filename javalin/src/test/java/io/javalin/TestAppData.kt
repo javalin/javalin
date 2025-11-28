@@ -45,7 +45,7 @@ internal class TestAppData {
     fun `data can be accessed through the app`() = TestUtil.test(Javalin.create {
         it.appData(myOtherKey, MyOtherThing())
     }) { app, _ ->
-        assertThat(app.unsafeConfig().pvt.appDataManager.get(myOtherKey).test).isEqualTo("Test")
+        assertThat(app.unsafe.appDataManager.get(myOtherKey).test).isEqualTo("Test")
     }
 
     private class MyJson {
@@ -54,17 +54,18 @@ internal class TestAppData {
     private val myJsonKey = Key<MyJson>("my-json")
 
     @Test
-    fun `app data can be accessed through the Context`() = TestUtil.test(Javalin.create {
-        it.appData(myJsonKey, MyJson())
+    fun `app data can be accessed through the Context`() = TestUtil.test(Javalin.create { config ->
+        config.appData(myJsonKey, MyJson())
+        config.routes.get("/") { it.result(it.appData(myJsonKey).render(SerializableObject())) }
     }) { app, http ->
         val gson = GsonBuilder().create()
-        app.get("/") { it.result(it.appData(myJsonKey).render(SerializableObject())) }
         assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
     }
 
     @Test
-    fun `Context#appData() throws if data does not exist`() = TestUtil.test(Javalin.create()) { app, http ->
-        app.get("/") { it.result(it.appData(myJsonKey).render(SerializableObject())) }
+    fun `Context#appData() throws if data does not exist`() = TestUtil.test(Javalin.create { config ->
+        config.routes.get("/") { it.result(it.appData(myJsonKey).render(SerializableObject())) }
+    }) { app, http ->
         assertThat(http.get("/").status).isEqualTo(INTERNAL_SERVER_ERROR.code)
     }
 
@@ -72,7 +73,7 @@ internal class TestAppData {
     fun `keys can be used without storing them as fields()`() = TestUtil.test(Javalin.create {
         it.appData(Key("key-equality"), MyOtherThing())
     }) { app, http ->
-        app.get("/") { it.result(it.appData(Key<MyOtherThing>("key-equality")).test) }
+        app.unsafe.routes.get("/") { it.result(it.appData(Key<MyOtherThing>("key-equality")).test) }
         assertThat(http.getBody("/")).isEqualTo("Test")
     }
 

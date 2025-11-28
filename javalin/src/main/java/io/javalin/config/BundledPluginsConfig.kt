@@ -1,8 +1,8 @@
 package io.javalin.config
 
 import io.javalin.plugin.bundled.BasicAuthPlugin
-import io.javalin.plugin.bundled.CorsPluginConfig
 import io.javalin.plugin.bundled.CorsPlugin
+import io.javalin.plugin.bundled.CorsPluginConfig
 import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.plugin.bundled.GlobalHeadersConfig
 import io.javalin.plugin.bundled.GlobalHeadersPlugin
@@ -16,9 +16,9 @@ import java.util.function.Consumer
 /**
  * Configuration to enable bundled plugins or add custom ones.
  *
- * @see [JavalinConfig.bundledPlugins]
+ * @see [JavalinState.bundledPlugins]
  */
-class BundledPluginsConfig(private val cfg: JavalinConfig) {
+class BundledPluginsConfig(private val cfg: JavalinState) {
 
     /**
      * Enables the RouteOverview plugin.

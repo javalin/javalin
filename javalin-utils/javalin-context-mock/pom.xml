@@ -3,15 +3,13 @@
     <parent>
         <artifactId>javalin-utils</artifactId>
         <groupId>io.javalin</groupId>
-        <version>6.3.1-SNAPSHOT</version>
+        <version>7.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>javalin-context-mock</artifactId>
-
-    <properties>
-        <copy-build-resources.skip>false</copy-build-resources.skip>
-    </properties>
+    <name>Javalin Context Mock</name>
+    <description>Mock utilities for testing Javalin context objects</description>
 
     <dependencies>
         <dependency>
@@ -61,14 +59,15 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-servlet</artifactId>
             <version>${jetty.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-jetty-server</artifactId>
+            <groupId>org.eclipse.jetty.ee10.websocket</groupId>
+            <artifactId>jetty-ee10-websocket-jetty-server</artifactId>
+            <version>${jetty.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

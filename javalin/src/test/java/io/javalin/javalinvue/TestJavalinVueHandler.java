@@ -6,14 +6,16 @@ import io.javalin.vue.VueHandler;
 import io.javalin.vue.VueRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+
+import static io.javalin.testing.JavalinTestUtil.get;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestJavalinVueHandler {
 
     @Test
     public void testDefaultPreAndPostRenderer() {
-        VueTestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueHandler("test-component") {
+        VueTestUtil.test(null, null, (server, httpUtil) -> {
+            get(server, "/no-state", new VueHandler("test-component") {
             });
             String body = httpUtil.getBody("/no-state");
             assertThat(body).contains("<body><test-component></test-component></body>");
@@ -24,8 +26,8 @@ public class TestJavalinVueHandler {
 
     @Test
     public void testPreRenderer() {
-        VueTestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueHandler("test-component") {
+        VueTestUtil.test(null, null, (server, httpUtil) -> {
+            get(server, "/no-state", new VueHandler("test-component") {
                 @NotNull
                 @Override
                 public String preRender(@NotNull String layout, @NotNull Context ctx) {
@@ -41,8 +43,8 @@ public class TestJavalinVueHandler {
 
     @Test
     public void testPostRenderer() {
-        VueTestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueHandler("test-component") {
+        VueTestUtil.test(null, null, (server, httpUtil) -> {
+            get(server, "/no-state", new VueHandler("test-component") {
                 @NotNull
                 @Override
                 public String postRender(@NotNull String layout, @NotNull Context ctx) {
@@ -58,8 +60,8 @@ public class TestJavalinVueHandler {
 
     @Test
     public void testVueRenderer() {
-        VueTestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueComponent("test-component", null, new VueRenderer() {
+        VueTestUtil.test(null, null, (server, httpUtil) -> {
+            get(server, "/no-state", new VueComponent("test-component", null, new VueRenderer() {
                 @NotNull
                 @Override
                 public String postRender(@NotNull String layout, @NotNull Context ctx) {

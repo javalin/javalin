@@ -14,27 +14,27 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 fun main() {
-    val app = Javalin.create().start(7070)
+    val app = Javalin.create {
+        it.routes.get("/image/:color/width/:width/height/:height") { ctx ->
+            // rrggbb, in hex, then setting the alpha channel to 0xff
+            val colorStr = ctx.pathParam("color")
+            val colorBits = colorStr.toInt(16)
+            val color = (colorBits and 0xffffff) or 0xff000000.toInt()
+            val width = ctx.pathParam("width").toInt()
+            val height = ctx.pathParam("height").toInt()
 
-    app.get("/image/:color/width/:width/height/:height") { ctx ->
-        // rrggbb, in hex, then setting the alpha channel to 0xff
-        val colorStr = ctx.pathParam("color")
-        val colorBits = colorStr.toInt(16)
-        val color = (colorBits and 0xffffff) or 0xff000000.toInt()
-        val width = ctx.pathParam("width").toInt()
-        val height = ctx.pathParam("height").toInt()
+            val image = java.awt.image.BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+            for (y in 0 until height)
+                for (x in 0 until width)
+                    image.setRGB(x, y, color)
 
-        val image = java.awt.image.BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-        for (y in 0 until height)
-            for (x in 0 until width)
-                image.setRGB(x, y, color)
+            val os = ByteArrayOutputStream()
+            val success = ImageIO.write(image, "png", os)
+            val bytes = os.toByteArray()
 
-        val os = ByteArrayOutputStream()
-        val success = ImageIO.write(image, "png", os)
-        val bytes = os.toByteArray()
-
-        ctx.contentType(ContentType.IMAGE_PNG).result(bytes)
-    }
+            ctx.contentType(ContentType.IMAGE_PNG).result(bytes)
+        }
+    }.start(7070)
 
     JavalinLogger.info("Red square: http://localhost:7070/image/ff0000/width/400/height/400")
     JavalinLogger.info("Brown rectangle: http://localhost:7070/image/804020/width/400/height/100")

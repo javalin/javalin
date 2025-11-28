@@ -5,16 +5,14 @@
         <module>javalin</module>
         <module>javalin-bundle</module>
         <module>javalin-testtools</module>
-        <module>javalin-micrometer</module>
         <module>javalin-utils</module>
-        <module>javalin-rendering</module>
         <module>javalin-ssl</module>
-        <module>javalin-osgi</module>
+        <module>jacoco-coverage-report</module>
     </modules>
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>6.3.1-SNAPSHOT</version>
+    <version>7.0.0-SNAPSHOT</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -45,8 +43,8 @@
 
     <distributionManagement>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>central</id>
+            <url>https://central.sonatype.com/api/v1/publisher</url>
         </repository>
         <snapshotRepository>
             <name>Reposilite Maven Repository</name>
@@ -56,91 +54,90 @@
     </distributionManagement>
 
     <properties>
-        <jdk.version>11</jdk.version>
+        <jdk.version>17</jdk.version>
 
-        <copy-build-resources.skip>true</copy-build-resources.skip>
-
-        <dokka.jdkVersion>11</dokka.jdkVersion>
+        <dokka.jdkVersion>17</dokka.jdkVersion>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <kotlin.version>1.9.25</kotlin.version>
-        <kotlin.compiler.jvmTarget>11</kotlin.compiler.jvmTarget>
+        <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
+        <kotlin.version>2.2.20</kotlin.version>
+        <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
 
         <!-- PLUGINS -->
-        <compiler.plugin.version>3.13.0</compiler.plugin.version>
-        <dokka.plugin.version>1.9.20</dokka.plugin.version>
-        <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
-        <gpg.plugin.version>3.2.7</gpg.plugin.version>
+        <compiler.plugin.version>3.14.1</compiler.plugin.version>
+        <dokka.plugin.version>2.1.0</dokka.plugin.version>
+        <javadoc.plugin.version>3.6.0</javadoc.plugin.version>
+        <gpg.plugin.version>3.2.8</gpg.plugin.version>
         <jar.plugin.version>3.4.2</jar.plugin.version>
-        <surefire.plugin.version>3.5.0</surefire.plugin.version>
-        <shade.plugin.version>3.6.0</shade.plugin.version>
-        <build-helper.plugin.version>3.6.0</build-helper.plugin.version>
-        <enforcer.plugin.version>3.5.0</enforcer.plugin.version>
-        <clean.plugin.version>3.4.0</clean.plugin.version>
-        <install.plugin.version>3.1.3</install.plugin.version>
+        <surefire.plugin.version>3.5.4</surefire.plugin.version>
+        <shade.plugin.version>3.6.1</shade.plugin.version>
+        <build-helper.plugin.version>3.6.1</build-helper.plugin.version>
+        <enforcer.plugin.version>3.6.2</enforcer.plugin.version>
+        <clean.plugin.version>3.5.0</clean.plugin.version>
+        <install.plugin.version>3.1.4</install.plugin.version>
         <resources.plugin.version>3.3.1</resources.plugin.version>
         <source.plugin.version>3.3.1</source.plugin.version>
-        <moditect.plugin.version>1.2.2.Final</moditect.plugin.version>
-        <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
-        <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
+        <moditect.plugin.version>1.3.0.Final</moditect.plugin.version>
+        <jacoco.plugin.version>0.8.14</jacoco.plugin.version>
+        <central-publishing.plugin.version>0.9.0</central-publishing.plugin.version>
+
+        <!-- RENDERING ENGINE VERSIONS -->
+        <velocity.version>2.4.1</velocity.version>
+        <freemarker.version>2.3.34</freemarker.version>
+        <thymeleaf.version>3.1.3.RELEASE</thymeleaf.version>
+        <mustache.version>0.9.14</mustache.version>
+        <pebble.version>4.0.0</pebble.version>
+        <commonmark.version>0.27.0</commonmark.version>
+        <jte.version>3.2.1</jte.version>
+
+        <!-- ADDITIONAL PLUGIN VERSIONS -->
+        <exec.plugin.version>3.6.2</exec.plugin.version>
+        <deploy.plugin.version>3.1.4</deploy.plugin.version>
+        <git-commit-id.plugin.version>9.0.2</git-commit-id.plugin.version>
 
         <!-- DEPENDENCIES -->
-        <annotations.version>25.0.0</annotations.version>
-        <jetty.version>11.0.24</jetty.version>
+        <jetty.version>12.1.3</jetty.version>
+        <annotations.version>26.0.2-1</annotations.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
-        <jackson.version>2.18.0</jackson.version>
-        <jackson.databind.version>2.18.0</jackson.databind.version>
-        <brotli4j.version>1.17.0</brotli4j.version>
-        <logback.version>1.5.8</logback.version>
-        <slf4j.version>2.0.16</slf4j.version>
-        <gson.version>2.11.0</gson.version>
-        <okhttp.version>4.12.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
+        <jackson.version>2.20.1</jackson.version>
+        <jackson.databind.version>2.20.1</jackson.databind.version>
+        <brotli4j.version>1.20.0</brotli4j.version>
+        <zstd.jni.version>1.5.7-6</zstd.jni.version>
+        <logback.version>1.5.20</logback.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <gson.version>2.13.2</gson.version>
+        <okhttp.version>5.3.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
 
         <!-- SSL DEPENDENCIES -->
-        <sslcontext-kickstart.version>8.3.7</sslcontext-kickstart.version>
+        <ayza.version>10.0.1</ayza.version>
 
         <!-- TEST DEPENDENCIES -->
-        <assertj.version>3.26.3</assertj.version>
-        <moshi.version>1.15.1</moshi.version>
-        <java.websocket.version>1.5.7</java.websocket.version>
-        <junit.version>5.11.1</junit.version>
+        <assertj.version>3.27.6</assertj.version>
+        <moshi.version>1.15.2</moshi.version>
+        <java.websocket.version>1.6.0</java.websocket.version>
+        <junit.version>6.0.1</junit.version>
         <jmh.version>1.37</jmh.version>
-        <mockito.version>5.14.1</mockito.version>
-        <mockk.version>1.13.12</mockk.version>
+        <mockito.version>5.20.0</mockito.version>
+        <mockk.version>1.14.6</mockk.version>
         <unirest.version>3.14.5</unirest.version>
-        <selenium.chrome.driver.version>4.25.0</selenium.chrome.driver.version>
-        <webdrivermanager.version>5.9.2</webdrivermanager.version>
+        <selenium.chrome.driver.version>4.38.0</selenium.chrome.driver.version>
+        <webdrivermanager.version>6.3.2</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <artifactId>kotlin-stdlib</artifactId>
         </dependency>
     </dependencies>
 
     <dependencyManagement>
         <dependencies>
             <!-- Kotlin -->
-            <dependency>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-stdlib-jdk8</artifactId>
-                <version>${kotlin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-reflect</artifactId>
-                <version>${kotlin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-stdlib-common</artifactId>
-                <version>${kotlin.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-stdlib</artifactId>
@@ -181,18 +178,18 @@
             <!-- SSL Plugin -->
             <dependency>
                 <groupId>io.github.hakky54</groupId>
-                <artifactId>sslcontext-kickstart</artifactId>
-                <version>${sslcontext-kickstart.version}</version>
+                <artifactId>ayza</artifactId>
+                <version>${ayza.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.hakky54</groupId>
-                <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-                <version>${sslcontext-kickstart.version}</version>
+                <artifactId>ayza-for-jetty</artifactId>
+                <version>${ayza.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.hakky54</groupId>
-                <artifactId>sslcontext-kickstart-for-pem</artifactId>
-                <version>${sslcontext-kickstart.version}</version>
+                <artifactId>ayza-for-pem</artifactId>
+                <version>${ayza.version}</version>
             </dependency>
 
             <!-- BEGIN Optional dependencies -->
@@ -200,6 +197,11 @@
                 <groupId>com.aayushatharva.brotli4j</groupId>
                 <artifactId>brotli4j</artifactId>
                 <version>${brotli4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.luben</groupId>
+                <artifactId>zstd-jni</artifactId>
+                <version>${zstd.jni.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -228,7 +230,7 @@
             </dependency>
             <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp</artifactId>
+                <artifactId>okhttp-jvm</artifactId>
                 <version>${okhttp.version}</version>
             </dependency>
             <dependency>
@@ -242,6 +244,23 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <version>${git-commit-id.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <dateFormat>yyyy-MM-dd'T'HH:mm:ss'Z'</dateFormat>
+                    <dateFormatTimeZone>UTC</dateFormatTimeZone>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <groupId>org.jetbrains.kotlin</groupId>
@@ -329,13 +348,12 @@
                             <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/../</directory>
+                                    <directory>${maven.multiModuleProjectDirectory}</directory>
                                     <includes>
                                         <include>LICENSE</include>
                                     </includes>
                                 </resource>
                             </resources>
-                            <skip>${copy-build-resources.skip}</skip>
                         </configuration>
                     </execution>
                     <execution>
@@ -349,14 +367,13 @@
                             <outputDirectory>${project.build.directory}</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/../</directory>
+                                    <directory>${maven.multiModuleProjectDirectory}</directory>
                                     <includes>
                                         <include>pom.properties</include>
                                     </includes>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
-                            <skip>${copy-build-resources.skip}</skip>
                         </configuration>
                     </execution>
                 </executions>
@@ -374,6 +391,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -385,6 +403,17 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>${central-publishing.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                </configuration>
             </plugin>
         </plugins>
 
@@ -406,27 +435,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${compiler.plugin.version}</version>
                 </plugin>
-                <plugin>
-                    <groupId>org.jetbrains.dokka</groupId>
-                    <artifactId>dokka-maven-plugin</artifactId>
-                    <version>${dokka.plugin.version}</version>
-                    <configuration>
-                        <jdkVersion>${dokka.jdkVersion}</jdkVersion>
-                        <sourceDirectories>
-                            <dir>${project.basedir}/src/main/java</dir>
-                            <dir>${project.basedir}/src/main/kotlin</dir>
-                        </sourceDirectories>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <phase>package</phase>
-                            <id>attach-javadocs-dokka</id>
-                            <goals>
-                                <goal>javadocJar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
+
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${surefire.plugin.version}</version>
@@ -434,6 +443,16 @@
                         <dependency>
                             <groupId>org.junit.jupiter</groupId>
                             <artifactId>junit-jupiter-engine</artifactId>
+                            <version>${junit.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.junit.platform</groupId>
+                            <artifactId>junit-platform-launcher</artifactId>
+                            <version>${junit.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.junit.platform</groupId>
+                            <artifactId>junit-platform-engine</artifactId>
                             <version>${junit.version}</version>
                         </dependency>
                     </dependencies>
@@ -466,9 +485,6 @@
                             <manifest>
                                 <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             </manifest>
-                            <manifestEntries>
-                                <Build-Time>${maven.build.timestamp}</Build-Time>
-                            </manifestEntries>
                             <pomPropertiesFile>${project.build.directory}/pom.properties</pomPropertiesFile>
                         </archive>
                     </configuration>
@@ -481,9 +497,6 @@
                             <manifest>
                                 <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             </manifest>
-                            <manifestEntries>
-                                <Build-Time>${maven.build.timestamp}</Build-Time>
-                            </manifestEntries>
                             <pomPropertiesFile>${project.build.directory}/pom.properties</pomPropertiesFile>
                         </archive>
                     </configuration>
@@ -511,6 +524,11 @@
                     <artifactId>moditect-maven-plugin</artifactId>
                     <version>${moditect.plugin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>${central-publishing.plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
@@ -520,18 +538,6 @@
             <id>sonatype-oss-release</id>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.jetbrains.dokka</groupId>
-                        <artifactId>dokka-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <phase>pre-site</phase>
-                                <goals>
-                                    <goal>dokka</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-enforcer-plugin</artifactId>
@@ -552,6 +558,32 @@
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jetbrains.dokka</groupId>
+                        <artifactId>dokka-maven-plugin</artifactId>
+                        <version>${dokka.plugin.version}</version>
+                        <configuration>
+                            <jdkVersion>${dokka.jdkVersion}</jdkVersion>
+                            <failOnWarning>false</failOnWarning>
+                            <suppressObviousFunctions>true</suppressObviousFunctions>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <id>attach-javadocs-dokka</id>
+                                <goals>
+                                    <goal>javadocJar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>

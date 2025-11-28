@@ -8,20 +8,20 @@ import java.util.function.Consumer
  * Configuration for http requests and websocket loggers.
  *
  * @param cfg the parent Javalin Configuration
- * @see [JavalinConfig.requestLogger]
+ * @see [JavalinState.requestLogger]
  */
-class RequestLoggerConfig(private val cfg: JavalinConfig) {
+class RequestLoggerConfig(private val cfg: JavalinState) {
 
     /** Adds a request logger for HTTP requests. */
     fun http(requestLogger: RequestLogger) {
-        cfg.pvt.requestLogger = requestLogger
+        cfg.httpRequestLogger = requestLogger
     }
 
     /** Adds a request logger for websocket requests. */
     fun ws(ws: Consumer<WsConfig>) {
         val logger = WsConfig()
         ws.accept(logger)
-        cfg.pvt.wsLogger = logger
+        cfg.wsRequestLogger = logger
     }
 
 }

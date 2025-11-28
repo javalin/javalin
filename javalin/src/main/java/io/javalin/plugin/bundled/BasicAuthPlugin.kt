@@ -6,7 +6,7 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Header.WWW_AUTHENTICATE
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.plugin.Plugin
@@ -23,19 +23,17 @@ class BasicAuthPlugin(userConfig: Consumer<Config>) : Plugin<BasicAuthPlugin.Con
         @JvmField var password: String? = null
     }
 
-    override fun onStart(config: JavalinConfig) {
-        config.router.mount {
-            it.before { ctx ->
-                val matched = runCatching { ctx.basicAuthCredentials() }
-                    .fold(
-                        onSuccess = { auth -> auth?.username == pluginConfig.username && auth?.password == pluginConfig.password },
-                        onFailure = { false }
-                    )
+    override fun onStart(state: JavalinState) {
+        state.routes.before { ctx ->
+            val matched = runCatching { ctx.basicAuthCredentials() }
+                .fold(
+                    onSuccess = { auth -> auth?.username == pluginConfig.username && auth?.password == pluginConfig.password },
+                    onFailure = { false }
+                )
 
-                if (!matched) {
-                    ctx.header(WWW_AUTHENTICATE, "Basic")
-                    throw UnauthorizedResponse()
-                }
+            if (!matched) {
+                ctx.header(WWW_AUTHENTICATE, "Basic")
+                throw UnauthorizedResponse()
             }
         }
     }

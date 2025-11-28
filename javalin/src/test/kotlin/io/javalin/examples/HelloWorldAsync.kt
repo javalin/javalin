@@ -17,7 +17,7 @@ fun main() {
     Javalin.create {
         val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 
-        it.router.apiBuilder {
+        it.routes.apiBuilder {
             get("/result") { ctx ->
                 ctx.future {
                     val future = CompletableFuture<String>()

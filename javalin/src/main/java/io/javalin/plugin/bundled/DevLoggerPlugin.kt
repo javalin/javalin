@@ -1,6 +1,6 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
@@ -25,10 +25,10 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
         var skipStaticFiles = false
     }
 
-    override fun onInitialize(config: JavalinConfig) {
-        config.requestLogger.http { ctx, ms -> httpDevLogger(config.pvt.internalRouter, ctx, ms) }
-        config.requestLogger.ws { wsDevLogger(it) }
-        config.events.handlerAdded { handlerMetaInfo ->
+    override fun onInitialize(state: JavalinState) {
+        state.requestLogger.http { ctx, ms -> httpDevLogger(state.internalRouter, ctx, ms) }
+        state.requestLogger.ws { wsDevLogger(it) }
+        state.events.handlerAdded { handlerMetaInfo ->
             JavalinLogger.info("JAVALIN HANDLER REGISTRATION DEBUG LOG: ${handlerMetaInfo.httpMethod}[${handlerMetaInfo.path}]")
         }
     }
@@ -44,7 +44,7 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
                         router.findHttpHandlerEntries(HandlerType.AFTER, requestUri)
                     )
                     .flatMap { it }
-                    .map { it.endpoint.method.name + "=" + it.endpoint.path }
+                    .map { it.endpoint.method.name() + "=" + it.endpoint.path }
                 val resHeaders = res().headerNames.asSequence().map { it to res().getHeader(it) }.toMap()
                 JavalinLogger.info(
                     """|JAVALIN REQUEST DEBUG LOG:
@@ -111,7 +111,7 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
     private fun wsDevLogger(ws: WsConfig) {
         ws.onConnect { ctx -> ctx.logEvent("onConnect") }
         ws.onMessage { ctx -> ctx.logEvent("onMessage", "Message (next line):\n${ctx.message()}") }
-        ws.onBinaryMessage { ctx -> ctx.logEvent("onBinaryMessage", "Offset: ${ctx.offset()}, Length: ${ctx.length()}\nMessage (next line):\n${ctx.data()}") }
+        ws.onBinaryMessage { ctx -> ctx.logEvent("onBinaryMessage", "Message (next line):\n${ctx.data()}") }
         ws.onClose { ctx -> ctx.logEvent("onClose", "StatusCode: ${ctx.status()}\nReason: ${ctx.reason() ?: "No reason was provided"}") }
         ws.onError { ctx -> ctx.logEvent("onError", "Throwable:  ${ctx.error() ?: "No throwable was provided"}") }
     }
@@ -122,7 +122,7 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
            |WebSocket Event: $event
            |Session Id: ${this.sessionId()}
            |Host: ${this.host()}
-           |Matched Path: ${this.matchedPath()}
+           |Matched Path: ${this.endpoint().path}
            |PathParams: ${this.pathParamMap()}
            |QueryParams: ${if (this.queryString() != null) this.queryParamMap().mapValues { (_, v) -> v.toString() }.toString() else "No query string was provided"}
            |$additionalInfo

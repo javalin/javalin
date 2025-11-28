@@ -4,6 +4,7 @@ import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.jetty.JettyResourceHandler
+import io.javalin.security.RouteRole
 import java.util.function.Consumer
 
 /**
@@ -13,12 +14,13 @@ import java.util.function.Consumer
  * meaning your own GET endpoints have higher priority.
  *
  * @param cfg the parent Javalin Configuration
- * @see [JavalinConfig.staticFiles]
+ * @see [JavalinState.staticFiles]
  */
-class StaticFilesConfig(private val cfg: JavalinConfig) {
+class StaticFilesConfig(private val cfg: JavalinState) {
 
     /** Enable webjars access. They will be available at /webjars/name/version/file.ext. */
     fun enableWebjars() = add { staticFiles ->
+        staticFiles.hostedPath = "/webjars"
         staticFiles.directory = "META-INF/resources/webjars"
         staticFiles.headers = mapOf(Header.CACHE_CONTROL to "max-age=31622400")
     }
@@ -27,11 +29,13 @@ class StaticFilesConfig(private val cfg: JavalinConfig) {
      * Adds the given directory as a static file containers.
      * @param directory the directory where your files are located
      * @param location the location of the static directory (default: CLASSPATH)
+     * @param roles the roles which can access the the static directory (default: emptySet())
      */
     @JvmOverloads
-    fun add(directory: String, location: Location = Location.CLASSPATH) = add { staticFiles ->
+    fun add(directory: String, location: Location = Location.CLASSPATH, roles: Set<RouteRole> = emptySet()) = add { staticFiles ->
         staticFiles.directory = directory
         staticFiles.location = location
+        staticFiles.roles = roles
     }
 
     /**
@@ -39,12 +43,12 @@ class StaticFilesConfig(private val cfg: JavalinConfig) {
      * @param userConfig a lambda to configure advanced static files
      */
     fun add(userConfig: Consumer<StaticFileConfig>) {
-        if (cfg.pvt.resourceHandler == null) {
-            cfg.pvt.resourceHandler = JettyResourceHandler(cfg.pvt)
+        if (cfg.resourceHandler == null) {
+            cfg.resourceHandler = JettyResourceHandler(cfg)
         }
         val finalConfig = StaticFileConfig()
         userConfig.accept(finalConfig)
-        cfg.pvt.resourceHandler!!.addStaticFileConfig(finalConfig)
+        cfg.resourceHandler!!.addStaticFileConfig(finalConfig)
     }
 
 }

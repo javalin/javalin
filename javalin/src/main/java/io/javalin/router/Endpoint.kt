@@ -4,14 +4,17 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.http.NotFoundResponse
-import io.javalin.security.Roles
-import io.javalin.security.RouteRole
 
 /**
  * Marker interface for endpoint metadata.
  * Requiring this interfaces prevents the user from passing existing classes (such as String) as metadata.
  */
 interface EndpointMetadata
+
+/**
+ * Metadata for storing path parameters extracted from the request URI.
+ */
+data class PathParams(val params: Map<String, String>) : EndpointMetadata
 
 /**
  * Represents an HTTP endpoint in the application.
@@ -22,28 +25,11 @@ interface EndpointMetadata
  * @param handler The handler of the endpoint
  */
 open class Endpoint @JvmOverloads constructor(
-    val method: HandlerType,
-    val path: String,
+    @JvmField val method: HandlerType,
+    @JvmField val path: String,
     metadata: Set<EndpointMetadata> = emptySet(),
     val handler: Handler
 ) {
-
-    @Deprecated("Use Endpoint builder instead", ReplaceWith("Endpoint.create(method, path)"))
-    constructor(
-        method: HandlerType,
-        path: String,
-        vararg roles: RouteRole,
-        handler: Handler
-    ) : this(
-        method = method,
-        path = path,
-        metadata = setOf(Roles(roles.toSet())),
-        handler = handler
-    )
-
-    @Deprecated("Use metadata instead", ReplaceWith("getMetadata(Roles.class)"))
-    val roles: Set<RouteRole>
-        get() = metadata(Roles::class.java)?.roles ?: emptySet()
 
     private val metadata = metadata.associateBy { it::class.java }
 
@@ -59,6 +45,12 @@ open class Endpoint @JvmOverloads constructor(
     fun <METADATA : EndpointMetadata> metadata(key: Class<METADATA>): METADATA? =
         metadata[key] as METADATA?
 
+    /**
+     * Creates a copy of this endpoint with additional metadata.
+     */
+    fun withMetadata(newMetadata: EndpointMetadata): Endpoint =
+        Endpoint(method, path, metadata.values.toSet() + newMetadata, handler)
+
     companion object {
 
         class EndpointBuilder internal constructor(val method: HandlerType, val path: String) {
@@ -73,7 +65,6 @@ open class Endpoint @JvmOverloads constructor(
 
         }
 
-        @Deprecated("Experimental feature")
         @JvmStatic
         fun create(method: HandlerType, path: String): EndpointBuilder = EndpointBuilder(method, path)
     }
@@ -91,4 +82,4 @@ fun interface EndpointExecutor {
 class EndpointNotFound(
     method: HandlerType,
     path: String
-) : NotFoundResponse("Endpoint ${method.name} $path not found")
+) : NotFoundResponse("Endpoint ${method.name()} $path not found")

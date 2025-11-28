@@ -9,13 +9,16 @@ package io.javalin.examples;
 import io.javalin.Javalin;
 import io.javalin.util.FileUtil;
 
+import static io.javalin.testing.JavalinTestUtil.get;
+import static io.javalin.testing.JavalinTestUtil.post;
+
 public class FileUploadExample {
 
     public static void main(String[] args) {
 
         Javalin app = Javalin.create().start(7000);
 
-        app.get("/", ctx ->
+        get(app, "/", ctx ->
             ctx.html(
                 ""
                     + "<form method='post' enctype='multipart/form-data'>"
@@ -25,7 +28,7 @@ public class FileUploadExample {
             )
         );
 
-        app.post("/", ctx -> {
+        post(app, "/", ctx -> {
             ctx.uploadedFiles("files").forEach(file -> {
                 FileUtil.streamToFile(file.content(), "upload/" + file.filename());
             });

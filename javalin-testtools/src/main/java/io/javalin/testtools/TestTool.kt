@@ -3,21 +3,28 @@ package io.javalin.testtools
 import io.javalin.Javalin
 import io.javalin.config.Key
 import io.javalin.util.JavalinLogger
-import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.net.CookieManager
+import java.net.CookiePolicy
+import java.time.Duration
 import java.util.*
+import java.net.http.HttpClient as JdkHttpClient
 
 object DefaultTestConfig {
     @JvmStatic var clearCookies: Boolean = true
     @JvmStatic var captureLogs: Boolean = true
-    @JvmStatic var okHttpClient: OkHttpClient = OkHttpClient()
+    @JvmStatic var httpClient: JdkHttpClient = JdkHttpClient.newBuilder()
+        .cookieHandler(CookieManager(null, CookiePolicy.ACCEPT_ALL))
+        .connectTimeout(Duration.ofSeconds(10))
+        .build()
 }
 
 data class TestConfig @JvmOverloads constructor(
     val clearCookies: Boolean = DefaultTestConfig.clearCookies,
     val captureLogs: Boolean = DefaultTestConfig.captureLogs,
-    val okHttpClient: OkHttpClient = DefaultTestConfig.okHttpClient
+    val httpClient: JdkHttpClient = DefaultTestConfig.httpClient,
+    val defaultHeaders: Map<String, String> = emptyMap()
 )
 
 class TestTool(private val testConfig: TestConfig = TestConfig()) {
@@ -32,16 +39,16 @@ class TestTool(private val testConfig: TestConfig = TestConfig()) {
     fun test(app: Javalin = Javalin.create(), config: TestConfig = this.testConfig, testCase: TestCase) {
         val result: RunResult = runAndCaptureLogs(config) {
             app.start(0)
-            val http = HttpClient(app, config.okHttpClient)
+            val http = HttpClient(app, config.httpClient, config.defaultHeaders)
             testCase.accept(app, http) // this is where the user's test happens
             if (config.clearCookies) {
                 val endpointUrl = "/clear-cookies-${UUID.randomUUID()}"
-                app.delete(endpointUrl) { it.cookieMap().forEach { (k, _) -> it.removeCookie(k) } }
+                app.unsafe.routes.delete(endpointUrl) { it.cookieMap().forEach { (k, _) -> it.removeCookie(k) } }
                 http.request(endpointUrl) { it.delete() }
             }
             app.stop()
         }
-        app.unsafeConfig().appData(TestLogsKey, result.logs)
+        app.unsafe.appData(TestLogsKey, result.logs)
         if (result.exception != null) {
             JavalinLogger.error("JavalinTest#test failed - full log output below:\n" + result.logs)
             throw result.exception

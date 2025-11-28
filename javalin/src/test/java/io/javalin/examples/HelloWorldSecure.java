@@ -27,8 +27,9 @@ public class HelloWorldSecure {
                     connector.setPort(80);
                     return connector;
             });
+            config.routes.get("/", ctx -> ctx.result("Hello World")); // valid endpoint for both connectors
 
-        }).start().get("/", ctx -> ctx.result("Hello World")); // valid endpoint for both connectors
+        }).start();
     }
 
     private static SslContextFactory.Server getSslContextFactory() {

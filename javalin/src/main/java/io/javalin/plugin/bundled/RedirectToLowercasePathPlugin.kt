@@ -6,7 +6,7 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginPriority
@@ -24,13 +24,13 @@ import java.util.*
  */
 open class RedirectToLowercasePathPlugin : Plugin<Void>() {
 
-    override fun onInitialize(config: JavalinConfig) {
-        if (config.router.caseInsensitiveRoutes) {
+    override fun onInitialize(state: JavalinState) {
+        if (state.router.caseInsensitiveRoutes) {
             throw IllegalStateException("RedirectToLowercasePathPlugin is not compatible with caseInsensitiveRoutes")
         }
 
-        config.events.handlerAdded { handlerMetaInfo ->
-            val parser = PathParser(handlerMetaInfo.path, config.router)
+        state.events.handlerAdded { handlerMetaInfo ->
+            val parser = PathParser(handlerMetaInfo.path, state.router)
 
             parser.segments.asSequence()
                 .filterIsInstance<PathSegment.Normal>()
@@ -48,52 +48,50 @@ open class RedirectToLowercasePathPlugin : Plugin<Void>() {
         }
     }
 
-    override fun onStart(config: JavalinConfig) {
-        config.router.mount {
-            it.before { ctx ->
-                val requestUri = ctx.path().removePrefix(ctx.contextPath())
-                val router = config.pvt.internalRouter
+    override fun onStart(state: JavalinState) {
+        state.routes.before { ctx ->
+            val requestUri = ctx.path().removePrefix(ctx.contextPath())
+            val router = state.internalRouter
 
-                if (router.findHttpHandlerEntries(ctx.method(), requestUri).findFirst().isPresent) {
-                    return@before // we found a route for this case, no need to redirect
-                }
-
-                val lowercaseRoute = router.findHttpHandlerEntries(ctx.method(), requestUri.lowercase(Locale.ROOT))
-                    .firstOrNull()
-                    ?: return@before // lowercase route not found
-
-                val clientSegments = requestUri.split("/")
-                    .filter { it.isNotEmpty() }
-                    .toTypedArray()
-
-                val serverSegments = PathParser(lowercaseRoute.endpoint.path, config.router)
-                    .segments
-
-                serverSegments.forEachIndexed { index, serverSegment ->
-                    // this is also a "Normal" segment
-                    if (serverSegment is PathSegment.Normal) {
-                        clientSegments[index] = clientSegments[index].lowercase(Locale.ROOT)
-                    }
-
-                    // replace the non lowercased part of the segment with the lowercased version
-                    if (serverSegment is PathSegment.MultipleSegments) {
-                        serverSegment.innerSegments
-                            .filterIsInstance<PathSegment.Normal>()
-                            .forEach { innerServerSegment ->
-                                clientSegments[index] = clientSegments[index].replace(
-                                    innerServerSegment.content,
-                                    innerServerSegment.content.lowercase(Locale.ROOT),
-                                    ignoreCase = true
-                                )
-                            }
-                    }
-                }
-
-                ctx.redirect(
-                    location = "/" + clientSegments.joinToString("/") + (ctx.queryString()?.let { "?$it" } ?: ""), // lowercase path
-                    status = MOVED_PERMANENTLY
-                )
+            if (router.findHttpHandlerEntries(ctx.method(), requestUri).findFirst().isPresent) {
+                return@before // we found a route for this case, no need to redirect
             }
+
+            val lowercaseRoute = router.findHttpHandlerEntries(ctx.method(), requestUri.lowercase(Locale.ROOT))
+                .firstOrNull()
+                ?: return@before // lowercase route not found
+
+            val clientSegments = requestUri.split("/")
+                .filter { it.isNotEmpty() }
+                .toTypedArray()
+
+            val serverSegments = PathParser(lowercaseRoute.endpoint.path, state.router)
+                .segments
+
+            serverSegments.forEachIndexed { index, serverSegment ->
+                // this is also a "Normal" segment
+                if (serverSegment is PathSegment.Normal) {
+                    clientSegments[index] = clientSegments[index].lowercase(Locale.ROOT)
+                }
+
+                // replace the non lowercased part of the segment with the lowercased version
+                if (serverSegment is PathSegment.MultipleSegments) {
+                    serverSegment.innerSegments
+                        .filterIsInstance<PathSegment.Normal>()
+                        .forEach { innerServerSegment ->
+                            clientSegments[index] = clientSegments[index].replace(
+                                innerServerSegment.content,
+                                innerServerSegment.content.lowercase(Locale.ROOT),
+                                ignoreCase = true
+                            )
+                        }
+                }
+            }
+
+            ctx.redirect(
+                location = "/" + clientSegments.joinToString("/") + (ctx.queryString()?.let { "?$it" } ?: ""), // lowercase path
+                status = MOVED_PERMANENTLY
+            )
         }
     }
 

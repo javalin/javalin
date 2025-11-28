@@ -1,6 +1,6 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.Header
@@ -19,10 +19,8 @@ class RouteOverviewPlugin(userConfig: Consumer<Config>? = null) : Plugin<RouteOv
         @JvmField var roles: Array<out RouteRole> = emptyArray()
     }
 
-    override fun onStart(config: JavalinConfig) {
-        config.router.mount {
-            it.get(pluginConfig.path, { ctx -> handle(ctx, config.pvt.internalRouter) }, *pluginConfig.roles)
-        }
+    override fun onStart(state: JavalinState) {
+        state.routes.get(pluginConfig.path, { ctx -> handle(ctx, state.internalRouter) }, *pluginConfig.roles)
     }
 
     private fun handle(ctx: Context, internalRouter: InternalRouter) {

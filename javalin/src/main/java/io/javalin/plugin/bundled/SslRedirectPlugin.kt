@@ -1,6 +1,6 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Header.X_FORWARDED_PROTO
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.servlet.isLocalhost
@@ -18,31 +18,29 @@ class SslRedirectPlugin(userConfig: Consumer<Config>? = null) : Plugin<SslRedire
         @JvmField var sslPort: Int? = null
     }
 
-    override fun onStart(config: JavalinConfig) {
-        config.router.mount {
-            it.before { ctx ->
-                if (!pluginConfig.redirectOnLocalhost && ctx.isLocalhost()) {
-                    return@before
-                }
+    override fun onStart(state: JavalinState) {
+        state.routes.before { ctx ->
+            if (!pluginConfig.redirectOnLocalhost && ctx.isLocalhost()) {
+                return@before
+            }
 
-                val xForwardedProto = ctx.header(X_FORWARDED_PROTO)
+            val xForwardedProto = ctx.header(X_FORWARDED_PROTO)
 
-                if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
-                    val urlWithHttps = ctx.fullUrl().replace("http", "https")
+            if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
+                val urlWithHttps = ctx.fullUrl().replace("http", "https")
 
-                    val urlWithHttpsAndPort = config.pvt.jetty.server
-                        ?.takeIf { pluginConfig.sslPort != null }
-                        ?.connectors
-                        ?.filterIsInstance<ServerConnector>()
-                        ?.firstOrNull { server -> urlWithHttps.contains(":${server.usedPort()}/") }
-                        ?.let { server -> urlWithHttps.replaceFirst(":${server.usedPort()}/", ":${pluginConfig.sslPort}/") }
-                        ?: urlWithHttps
+                val urlWithHttpsAndPort = state.jettyInternal.server
+                    ?.takeIf { pluginConfig.sslPort != null }
+                    ?.connectors
+                    ?.filterIsInstance<ServerConnector>()
+                    ?.firstOrNull { server -> urlWithHttps.contains(":${server.usedPort()}/") }
+                    ?.let { server -> urlWithHttps.replaceFirst(":${server.usedPort()}/", ":${pluginConfig.sslPort}/") }
+                    ?: urlWithHttps
 
-                    ctx.redirect(
-                        location = urlWithHttpsAndPort,
-                        status = MOVED_PERMANENTLY
-                    )
-                }
+                ctx.redirect(
+                    location = urlWithHttpsAndPort,
+                    status = MOVED_PERMANENTLY
+                )
             }
         }
     }

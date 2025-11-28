@@ -6,7 +6,7 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
 import io.javalin.plugin.Plugin
@@ -22,9 +22,9 @@ import io.javalin.router.Endpoint
  */
 open class HttpAllowedMethodsPlugin : Plugin<Void>() {
 
-    override fun onStart(config: JavalinConfig) {
-        config.events.serverStarted {
-            config.pvt.internalRouter.allHttpHandlers()
+    override fun onStart(state: JavalinState) {
+        state.events.serverStarted {
+            state.internalRouter.allHttpHandlers()
                 .asSequence()
                 .map { it.endpoint }
                 .filter { it.method.isHttpMethod }
@@ -33,7 +33,7 @@ open class HttpAllowedMethodsPlugin : Plugin<Void>() {
                 .forEach { (path, handlers) ->
                     val allowedMethods = handlers.joinToString(",")
 
-                    config.pvt.internalRouter.addHttpEndpoint(
+                    state.internalRouter.addHttpEndpoint(
                         Endpoint(
                             method = OPTIONS,
                             path = path,

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2021 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -131,7 +131,7 @@ class TestGlobalGlobalHeaderConfigPlugin {
             })
         }
         TestUtil.test(testApp) { app, http ->
-            app.get("/") { it.status(OK) }
+            app.unsafe.routes.get("/") { it.status(OK) }
             val returnedHeaders = http.get("/").headers
             assertThat(returnedHeaders.getFirst(Header.X_CONTENT_TYPE_OPTIONS)).isEqualTo("nosniff")
             assertThat(returnedHeaders.getFirst(Header.CLEAR_SITE_DATA)).isEqualTo(""""*"""")

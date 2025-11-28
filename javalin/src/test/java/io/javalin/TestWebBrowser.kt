@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -6,6 +6,9 @@
 
 package io.javalin
 
+import io.javalin.compression.Brotli
+import io.javalin.compression.CompressionStrategy
+import io.javalin.compression.Gzip
 import io.javalin.http.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
 import io.javalin.plugin.bundled.DevLoggingPlugin
@@ -40,7 +43,7 @@ class TestWebBrowser {
 
     @Test
     fun `hello world works in chrome`() = TestUtil.test { app, http ->
-        app.get("/hello") { it.result("Hello, Selenium!") }
+        app.unsafe.routes.get("/hello") { it.result("Hello, Selenium!") }
         driver.get(http.origin + "/hello")
         assertThat(driver.pageSource).contains("Hello, Selenium")
     }
@@ -50,10 +53,10 @@ class TestWebBrowser {
         TestUtil.runAndCaptureLogs {
             val payload = "Hello, Selenium!".repeat(150)
             val app = Javalin.create {
-                it.http.brotliOnlyCompression()
+                it.http.compressionStrategy = CompressionStrategy(Brotli())
                 it.registerPlugin(DevLoggingPlugin())
             }.start(0)
-            app.get("/hello") { it.result(payload) }
+            app.unsafe.routes.get("/hello") { it.result(payload) }
             val logResult = captureStdOut {
                 driver.get("http://localhost:" + app.port() + "/hello")
             }
@@ -79,8 +82,8 @@ class TestWebBrowser {
             }
         }
         TestUtil.test(requestLoggerApp) { app, http ->
-            app.get("/file") { it.writeSeekableStream(file.inputStream(), "audio/mpeg") }
-            app.get("/audio-player") { it.html("""<audio src="/file"></audio>""") }
+            app.unsafe.routes.get("/file") { it.writeSeekableStream(file.inputStream(), "audio/mpeg") }
+            app.unsafe.routes.get("/audio-player") { it.html("""<audio src="/file"></audio>""") }
             driver.get(http.origin + "/audio-player")
             Thread.sleep(100) // so the logger has a chance to run
             assertThat(chunkCount).isEqualTo(expectedChunkCount)
@@ -90,7 +93,7 @@ class TestWebBrowser {
 
     @Test
     fun `chrome can handle precompressed files GH-1958`() = TestUtil.test(Javalin.create { config ->
-        config.http.brotliAndGzipCompression() // this is the default
+        config.http.compressionStrategy = CompressionStrategy(Brotli(), Gzip())
         config.staticFiles.add { staticFiles ->
             staticFiles.hostedPath = "/"
             staticFiles.directory = "/public"

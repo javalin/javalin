@@ -2,20 +2,20 @@ package io.javalin
 
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus
-import java.util.concurrent.atomic.AtomicReference
-import org.junit.jupiter.api.Test
 import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
 import io.javalin.json.JavalinJackson
 import io.mockk.every
+import io.mockk.mockk
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
-import io.mockk.mockk
 import java.lang.reflect.Type
+import java.util.concurrent.atomic.AtomicReference
 
 internal class TestMocking {
 

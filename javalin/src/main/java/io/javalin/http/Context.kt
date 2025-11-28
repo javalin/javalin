@@ -26,6 +26,8 @@ import io.javalin.http.util.SeekableWriter
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextPlugin
 import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
+import io.javalin.router.Endpoint
+import io.javalin.router.Endpoints
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.function.ThrowingRunnable
@@ -61,14 +63,11 @@ interface Context {
     /** Servlet response */
     fun res(): HttpServletResponse
 
-    /** Gets the handler type of the current handler */
-    fun handlerType(): HandlerType
+    /** Gets all endpoints visited during this request (in order) */
+    fun endpoints(): Endpoints
 
-    /** Gets the path that was used to match request (also includes before/after paths) */
-    fun matchedPath(): String
-
-    /** Gets the endpoint path that was used to match request (null in before, available in endpoint/after) */
-    fun endpointHandlerPath(): String
+    /** Gets the matched Endpoint */
+    fun endpoint(): Endpoint
 
     ///////////////////////////////////////////////////////////////
     // Config-ish methods
@@ -99,7 +98,7 @@ interface Context {
     fun contentType(): String? = req().contentType
 
     /** Gets the request method. */
-    fun method(): HandlerType = HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
+    fun method(): HandlerType = HandlerType.findOrCreate(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
 
     /** Gets the request path. */
     fun path(): String = req().requestURI
@@ -144,8 +143,8 @@ interface Context {
      * with status 413 CONTENT_TOO_LARGE.
      */
     fun bodyAsBytes(): ByteArray {
-        MaxRequestSize.throwContentTooLargeIfContentTooLarge(this)
-        return req().inputStream.readBytes()
+        val maxRequestSize = appData(MaxRequestSize.MaxRequestSizeKey)
+        return MaxRequestSize.readBytesWithLimit(req().inputStream, maxRequestSize)
     }
 
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.json.JsonMapper] */
@@ -189,10 +188,13 @@ interface Context {
 
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> = when {
-        isMultipartFormData() -> MultipartUtil.getFieldMap(req())
+        isMultipartFormData() -> MultipartUtil.fieldMap(req(), multipartConfig())
         isFormUrlencoded() || !strictContentTypes() -> splitKeyValueStringAndGroupByKey(body(), characterEncoding() ?: "UTF-8")
         else -> mapOf()
     }
+
+    /** Gets the multipart configuration for this context */
+    fun multipartConfig(): io.javalin.config.MultipartConfig
 
     fun strictContentTypes(): Boolean
 
@@ -274,7 +276,7 @@ interface Context {
     fun cookieStore(): CookieStore = CookieStore(this)
 
     /** Gets a request cookie by name, or null. */
-    fun cookie(name: String): String? = req().getCookie(name)
+    fun cookie(name: String): String? = req().cookies?.find { it.name == name }?.value
 
     /** Gets a map with all the cookie keys and values on the request(). */
     fun cookieMap(): Map<String, String> = req().cookies?.associate { it.name to it.value } ?: emptyMap()
@@ -314,13 +316,13 @@ interface Context {
 
     /** Gets a list of [UploadedFile]s for the specified name, or empty list. */
     fun uploadedFiles(fileName: String): List<UploadedFile> = when {
-        isMultipartFormData() -> MultipartUtil.getUploadedFiles(req(), fileName)
+        isMultipartFormData() -> MultipartUtil.uploadedFiles(req(), fileName, multipartConfig())
         else -> listOf()
     }
 
     /** Gets a list of [UploadedFile]s, or empty list. */
     fun uploadedFiles(): List<UploadedFile> = when {
-        isMultipartFormData() -> MultipartUtil.getUploadedFiles(req())
+        isMultipartFormData() -> MultipartUtil.uploadedFiles(req(), multipartConfig())
         else -> listOf()
     }
 
@@ -331,7 +333,7 @@ interface Context {
      * If called on a non-multipart request this returns an empty map
      */
     fun uploadedFileMap(): Map<String, List<UploadedFile>> = when {
-        isMultipartFormData() -> MultipartUtil.getUploadedFileMap(req())
+        isMultipartFormData() -> MultipartUtil.uploadedFileMap(req(), multipartConfig())
         else -> emptyMap()
     }
 
@@ -360,8 +362,14 @@ interface Context {
     fun minSizeForCompression(minSizeForCompression: Int): Context
 
     /**
+     * Disables compression for the response output stream.
+     * Equivalent to calling [minSizeForCompression] with [Integer.MAX_VALUE].
+     */
+    fun disableCompression(): Context = minSizeForCompression(Int.MAX_VALUE)
+
+    /**
      * Writes the specified inputStream as a seekable stream.
-     * You can change this default in [io.javalin.config.JavalinConfig].
+     * You can change this default in [io.javalin.config.JavalinState].
      *
      * @return the [CompletableFuture] used to write the seekable stream
      */

@@ -2,7 +2,7 @@ package io.javalin.community.ssl
 
 import io.javalin.Javalin
 import io.javalin.community.ssl.certs.Server
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -55,12 +55,10 @@ class SslPluginTest : IntegrationTestClass() {
             sslConfig.pemFromString(Server.NORWAY_CERTIFICATE_AS_STRING, Server.NON_ENCRYPTED_KEY_AS_STRING)
         }
         try {
-            Javalin.create { config: JavalinConfig ->
-                config.showJavalinBanner = false
+            Javalin.create { config ->
+                config.startup.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
-                config.router.mount{
-                    it.get("/") { ctx: Context -> ctx.result(SUCCESS) }
-                }
+                config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
 
                 // Initial connection
@@ -146,12 +144,10 @@ class SslPluginTest : IntegrationTestClass() {
             sslConfig.keystoreFromPath(norwayKeyStorePath, Server.KEY_STORE_PASSWORD)
         }
         try {
-            Javalin.create { config: JavalinConfig ->
-                config.showJavalinBanner = false
+            Javalin.create { config ->
+                config.startup.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
-                config.router.mount{
-                    it.get("/") { ctx: Context -> ctx.result(SUCCESS) }
-                }
+                config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
 
                 // Initial connection
@@ -207,12 +203,10 @@ class SslPluginTest : IntegrationTestClass() {
             sslConfig.insecurePort = insecurePort
         }
         try {
-            Javalin.create { config: JavalinConfig ->
-                config.showJavalinBanner = false
+            Javalin.create { config ->
+                config.startup.showJavalinBanner = false
                 config.registerPlugin(sslPlugin)
-                config.router.mount{
-                    it.get("/") { ctx: Context -> ctx.result(SUCCESS) }
-                }
+                config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
                 val res = OkHttpClient().newCall(Request.Builder().url(http).build()).execute()
                 Assertions.assertTrue(res.isSuccessful)

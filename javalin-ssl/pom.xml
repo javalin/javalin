@@ -4,13 +4,13 @@
     <parent>
         <groupId>io.javalin</groupId>
         <artifactId>javalin-parent</artifactId>
-        <version>6.3.1-SNAPSHOT</version>
+        <version>7.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>io.javalin.community.ssl</groupId>
-    <artifactId>ssl-plugin</artifactId>
+    <artifactId>javalin-ssl</artifactId>
+    <name>Javalin SSL</name>
 
-    <name>Javalin SSL Plugin</name>
     <description>Straightforward SSL Configuration for Javalin!</description>
     <url>https://javalin.io/plugins/ssl-helpers</url>
 
@@ -29,10 +29,6 @@
             <email>alberto@zugazagoitia.com</email>
         </developer>
     </developers>
-
-    <properties>
-        <copy-build-resources.skip>false</copy-build-resources.skip>
-    </properties>
 
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
@@ -71,27 +67,28 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
-            <artifactId>http2-server</artifactId>
+            <artifactId>jetty-http2-client-transport</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-alpn-conscrypt-server</artifactId>
+            <groupId>org.eclipse.jetty.http2</groupId>
+            <artifactId>jetty-http2-server</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-alpn-java-server</artifactId>
         </dependency>
         <dependency>
             <groupId>io.github.hakky54</groupId>
-            <artifactId>sslcontext-kickstart</artifactId>
+            <artifactId>ayza</artifactId>
         </dependency>
         <dependency>
             <groupId>io.github.hakky54</groupId>
-            <artifactId>sslcontext-kickstart-for-pem</artifactId>
+            <artifactId>ayza-for-pem</artifactId>
         </dependency>
         <dependency>
             <groupId>io.github.hakky54</groupId>
-            <artifactId>sslcontext-kickstart-for-jetty</artifactId>
+            <artifactId>ayza-for-jetty</artifactId>
         </dependency>
         <!-- BEGIN TEST DEPENDENCIES -->
         <dependency>
@@ -119,12 +116,17 @@
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
+            <artifactId>okhttp-jvm</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp-tls</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -7,7 +7,6 @@
 package io.javalin.config;
 
 import io.javalin.event.EventManager
-import io.javalin.event.LifecycleEventListener
 import io.javalin.event.HandlerMetaInfo
 import io.javalin.event.JavalinLifecycleEvent.SERVER_STARTED
 import io.javalin.event.JavalinLifecycleEvent.SERVER_STARTING
@@ -15,6 +14,7 @@ import io.javalin.event.JavalinLifecycleEvent.SERVER_START_FAILED
 import io.javalin.event.JavalinLifecycleEvent.SERVER_STOPPED
 import io.javalin.event.JavalinLifecycleEvent.SERVER_STOPPING
 import io.javalin.event.JavalinLifecycleEvent.SERVER_STOP_FAILED
+import io.javalin.event.LifecycleEventListener
 import io.javalin.event.WsHandlerMetaInfo
 import io.javalin.http.Handler
 import java.util.function.Consumer
@@ -23,9 +23,9 @@ import java.util.function.Consumer
  * Configures the events' listener.
  *
  * @param cfg the parent Javalin Configuration
- * @see [JavalinConfig.events]
+ * @see [JavalinState.events]
  */
-class EventConfig(private val cfg: JavalinConfig) {
+class EventConfig(private val cfg: JavalinState) {
 
     /** Adds a callback to react on the Server Starting event. */
     fun serverStarting(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STARTING, lifecycleEventListener)
@@ -51,6 +51,6 @@ class EventConfig(private val cfg: JavalinConfig) {
     }
 
     private val eventManager: EventManager
-        get() = cfg.pvt.eventManager
+        get() = cfg.eventManager
 
 }

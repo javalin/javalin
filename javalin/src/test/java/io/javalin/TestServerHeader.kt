@@ -1,4 +1,4 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
@@ -10,7 +10,7 @@ class TestServerHeader {
 
     @Test
     fun `server header is not set by default`() = TestUtil.test { app, http ->
-        app.get("/hello") { it.status(OK).result("Hello world") }
+        app.unsafe.routes.get("/hello") { it.status(OK).result("Hello world") }
         val response = http.call(HttpMethod.GET, "/hello")
         assertThat(response.headers.getFirst("Server")).isEqualTo("")
     }

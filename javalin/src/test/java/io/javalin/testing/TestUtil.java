@@ -9,10 +9,13 @@ package io.javalin.testing;
 import io.javalin.Javalin;
 import io.javalin.config.Key;
 import io.javalin.http.Handler;
+import io.javalin.http.HandlerType;
+import io.javalin.router.Endpoint;
 import io.javalin.util.JavalinLogger;
+import kong.unirest.HttpMethod;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import kong.unirest.HttpMethod;
 
 public class TestUtil {
 
@@ -39,11 +42,15 @@ public class TestUtil {
             app.start(0);
             HttpUtil http = new HttpUtil(app.port());
             userCode.accept(app, http);
-            app.delete("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
+            // Add cookie cleaner route directly to internal router
+            app.unsafe.internalRouter.addHttpEndpoint(
+                Endpoint.create(HandlerType.DELETE, "/x-test-cookie-cleaner")
+                    .handler(ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie))
+            );
             http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
             app.stop();
         });
-        app.unsafeConfig().appData(TestLogsKey, result.logs);
+        app.unsafe.appData(TestLogsKey, result.logs);
         if (result.exception != null) {
             JavalinLogger.error("TestUtil#test failed - full log output below:\n" + result.logs);
             throw new RuntimeException(result.exception);

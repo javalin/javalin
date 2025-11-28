@@ -1,11 +1,11 @@
 package io.javalin.router
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 
 interface RoutingApi
 
 fun interface RoutingApiInitializer<SETUP> {
-    fun initialize(cfg: JavalinConfig, internalRouter: InternalRouter, setup: RoutingSetupScope<SETUP>)
+    fun initialize(cfg: JavalinState, internalRouter: InternalRouter, setup: RoutingSetupScope<SETUP>)
 }
 
 fun interface RoutingSetupScope<SETUP> {

@@ -22,22 +22,21 @@ object DefaultTasks {
     }
 
     val BEFORE_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        val willMatch by javalinLazy {
-            ctx.setRouteRoles(servlet.matchedRoles(ctx, requestUri)) // set roles for the matched handler
-            servlet.willMatch(ctx, requestUri)
-        }
         val httpHandlerOrNull by javalinLazy {
             servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull()
         }
+        val isResourceHandler = httpHandlerOrNull == null && ctx.method() in setOf(HEAD, GET)
+        val matchedRouteRoles by javalinLazy { servlet.matchedRoles(ctx, requestUri) }
+        val resourceRouteRoles by javalinLazy { servlet.cfg.resourceHandler?.resourceRouteRoles(ctx) ?: emptySet() }
+        val willMatch by javalinLazy {
+            ctx.setRouteRoles(if (isResourceHandler) resourceRouteRoles else matchedRouteRoles)
+            servlet.willMatch(ctx, requestUri)
+        }
+
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
                 submitTask(LAST, Task(skipIfExceptionOccurred = true) {
-                    val httpHandler = httpHandlerOrNull
-                    if (httpHandler != null && !entry.endpoint.hasPathParams()) {
-                        entry.endpoint.handle(ctx.update(httpHandler, requestUri))
-                    } else {
-                        entry.handle(ctx, requestUri)
-                    }
+                    entry.handle(ctx, requestUri)
                 })
             }
         }
@@ -59,15 +58,14 @@ object DefaultTasks {
                 return@Task
             }
             if (ctx.method() == HEAD || ctx.method() == GET) { // check for static resources (will write response if found)
-                if (servlet.cfg.pvt.resourceHandler?.handle(ctx) == true) return@Task
-                if (servlet.cfg.pvt.singlePageHandler.handle(ctx)) return@Task
+                if (servlet.cfg.resourceHandler?.handle(ctx) == true) return@Task
+                if (servlet.cfg.singlePageHandler.handle(ctx)) return@Task
             }
-            if (ctx.handlerType() == HandlerType.BEFORE) { // no match, status will be 404 or 405 after this point
-                ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
-            }
+            // No match, status will be 404 or 405 after this point
+            // The endpoint will still be the placeholder with path ""
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(servlet.router, requestUri)
             if (servlet.cfg.http.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
-                throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
+                throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.availableHandlerTypes(ctx, availableHandlerTypes))
             }
             throw EndpointNotFound(method = ctx.method(), path = requestUri)
         })
@@ -95,8 +93,8 @@ object DefaultTasks {
     private fun JavalinServlet.willMatch(ctx: JavalinServletContext, requestUri: String) = when {
         ctx.method() == HEAD && this.router.hasHttpHandlerEntry(GET, requestUri) -> true
         this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() != null -> true
-        this.cfg.pvt.resourceHandler?.canHandle(ctx) == true -> true
-        this.cfg.pvt.singlePageHandler.canHandle(ctx) -> true
+        this.cfg.resourceHandler?.canHandle(ctx) == true -> true
+        this.cfg.singlePageHandler.canHandle(ctx) -> true
         else -> false
     }
 

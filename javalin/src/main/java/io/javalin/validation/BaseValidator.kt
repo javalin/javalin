@@ -6,13 +6,14 @@
 
 package io.javalin.validation
 
+import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
 
 typealias Check<T> = (T) -> Boolean
 
 data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: ValidationError<T>)
-class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : RuntimeException() //TODO: Extend JavalinException
+class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : JavalinException("Validation failed")
 data class ValidationError<T> @JvmOverloads constructor(
     val message: String,
     val args: Map<String, Any?> = mapOf(),
@@ -38,10 +39,8 @@ open class BaseValidator<T> internal constructor(protected val params: Params<T>
             params.valueSupplier()
         } catch (e: Exception) {
             if (this is BodyValidator) {
-                JavalinLogger.info("Couldn't deserialize body to ${params.clazz?.simpleName}", e)
                 return@javalinLazy mapOf(REQUEST_BODY to listOf(ValidationError("DESERIALIZATION_FAILED", value = params.stringValue, exception = e)))
             } else {
-                JavalinLogger.info("Couldn't convert param '${params.fieldName}' with value '${params.stringValue}' to ${params.clazz?.simpleName}")
                 return@javalinLazy mapOf(params.fieldName to listOf(ValidationError("TYPE_CONVERSION_FAILED", value = params.stringValue, exception = e)))
             }
         }

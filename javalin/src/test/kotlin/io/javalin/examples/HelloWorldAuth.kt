@@ -22,16 +22,14 @@ enum class KRole : RouteRole {
 
 fun main() {
     Javalin.create { cfg ->
-        cfg.router.mount {
-            it.beforeMatched { ctx ->
-                val userRole = ctx.queryParam("role")?.let { KRole.valueOf(it) } ?: throw UnauthorizedResponse()
-                val routeRoles = ctx.routeRoles()
-                if (userRole !in routeRoles) {
-                    throw UnauthorizedResponse()
-                }
+        cfg.routes.beforeMatched { ctx ->
+            val userRole = ctx.queryParam("role")?.let { KRole.valueOf(it) } ?: throw UnauthorizedResponse()
+            val routeRoles = ctx.routeRoles()
+            if (userRole !in routeRoles) {
+                throw UnauthorizedResponse()
             }
         }
-        cfg.router.apiBuilder {
+        cfg.routes.apiBuilder {
             get("/hello", { it.result("Hello World 1") }, ROLE_ONE)
             path("/api") {
                 get("/test", { it.result("Hello World 2") }, ROLE_TWO)

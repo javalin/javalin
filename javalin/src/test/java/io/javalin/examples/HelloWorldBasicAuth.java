@@ -25,8 +25,8 @@ public class HelloWorldBasicAuth {
                         basicAuthCfg.password = "bamboo";
                     })
                 );
+                config.routes.get("/hello", ctx -> ctx.result("Hello World 1"));
             })
-            .get("/hello", ctx -> ctx.result("Hello World 1"))
             .start(7070);
     }
 

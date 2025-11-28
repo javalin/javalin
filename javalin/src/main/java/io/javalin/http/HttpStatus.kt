@@ -110,6 +110,8 @@ enum class HttpStatus(val code: Int, val message: String) {
     REQUEST_HEADER_FIELDS_TOO_LARGE(431, "Request Header Fields Too Large"),
     /** The user agent requested a resource that cannot legally be provided, such as a web page censored by a government. */
     UNAVAILABLE_FOR_LEGAL_REASONS(451, "Unavailable for Legal Reason"),
+    /** The client has closed the connection prematurely, before the server could deliver a response. */
+    CLIENT_CLOSED_REQUEST(499, "Client Closed Request"),
 
     /** The server has encountered a situation it does not know how to handle. */
     INTERNAL_SERVER_ERROR(500, "Server Error"),
@@ -149,9 +151,10 @@ enum class HttpStatus(val code: Int, val message: String) {
 
     companion object {
 
+        private val statusMap = HttpStatus.entries.associateBy { it.code }
+
         @JvmStatic
-        fun forStatus(status: Int): HttpStatus =
-            HttpStatus.entries.find { it.code == status } ?: UNKNOWN
+        fun forStatus(status: Int): HttpStatus = statusMap[status] ?: UNKNOWN
 
     }
 

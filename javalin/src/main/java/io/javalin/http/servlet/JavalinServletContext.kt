@@ -6,26 +6,24 @@
 
 package io.javalin.http.servlet
 
-import io.javalin.config.AppDataManager
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
-import io.javalin.config.JavalinConfig
+import io.javalin.config.AppDataManager
+import io.javalin.config.JavalinState
 import io.javalin.config.Key
+import io.javalin.config.MultipartConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
-import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.Header
-import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
-import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
-import io.javalin.router.ParsedEndpoint
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.PluginManager
+import io.javalin.router.Endpoint
+import io.javalin.router.Endpoints
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
-import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
@@ -38,8 +36,9 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
-import kotlin.LazyThreadSafetyMode.*
 import java.util.stream.Stream
+import kotlin.LazyThreadSafetyMode.PUBLICATION
+import kotlin.LazyThreadSafetyMode.SYNCHRONIZED
 
 data class JavalinServletContextConfig(
     val appDataManager: AppDataManager,
@@ -48,23 +47,25 @@ data class JavalinServletContextConfig(
     val requestLoggerEnabled: Boolean,
     val defaultContentType: String,
     val jsonMapper: JsonMapper,
-    val strictContentTypes: Boolean
+    val strictContentTypes: Boolean,
+    val multipartConfig: MultipartConfig
 ) {
     companion object {
-        fun of(cfg: JavalinConfig): JavalinServletContextConfig =
+        fun of(cfg: JavalinState): JavalinServletContextConfig =
             JavalinServletContextConfig(
-                appDataManager = cfg.pvt.appDataManager,
-                pluginManager = cfg.pvt.pluginManager,
-                compressionStrategy = cfg.pvt.compressionStrategy,
-                requestLoggerEnabled = cfg.pvt.requestLogger != null,
+                appDataManager = cfg.appDataManager,
+                pluginManager = cfg.pluginManager,
+                compressionStrategy = cfg.http.compressionStrategy,
+                requestLoggerEnabled = cfg.httpRequestLogger != null,
                 defaultContentType = cfg.http.defaultContentType,
-                jsonMapper = cfg.pvt.jsonMapper.value,
+                jsonMapper = cfg.jsonMapper.value,
                 strictContentTypes = cfg.http.strictContentTypes,
+                multipartConfig = cfg.jetty.multipartConfig,
             )
     }
 }
 
-class JavalinServletContext(
+open class JavalinServletContext(
     private val cfg: JavalinServletContextConfig,
     val tasks: Deque<Task> = ArrayDeque(8),
     var exceptionOccurred: Boolean = false,
@@ -72,15 +73,13 @@ class JavalinServletContext(
     private var req: HttpServletRequest,
     private val res: HttpServletResponse,
     private val startTimeNanos: Long? = if (cfg.requestLoggerEnabled) System.nanoTime() else null,
-    private var handlerType: HandlerType = HandlerType.BEFORE,
     private var routeRoles: Set<RouteRole> = emptySet(),
-    private var matchedPath: String = "",
-    private var pathParamMap: Map<String, String> = emptyMap(),
-    internal var endpointHandlerPath: String = "",
     internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
     private var resultStream: InputStream? = null,
     private var minSizeForCompression: Int = cfg.compressionStrategy.defaultMinSizeForCompression,
 ) : Context {
+
+    private val endpoints: Endpoints = Endpoints()
 
     init {
         contentType(cfg.defaultContentType)
@@ -88,21 +87,8 @@ class JavalinServletContext(
 
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
 
-    fun changeBaseRequest(req: HttpServletRequest) = also {
-        this.req = req
-    }
-
-    fun update(parsedEndpoint: ParsedEndpoint, requestUri: String) = also {
-        handlerType = parsedEndpoint.endpoint.method
-        if (matchedPath != parsedEndpoint.endpoint.path) { // if the path has changed, we have to extract path params
-            matchedPath = parsedEndpoint.endpoint.path
-            if (parsedEndpoint.endpoint.hasPathParams()) {
-                pathParamMap = parsedEndpoint.extractPathParams(requestUri)
-            }
-        }
-        if (handlerType != AFTER) {
-            endpointHandlerPath = parsedEndpoint.endpoint.path
-        }
+    fun update(endpoint: Endpoint) = also {
+        endpoints.add(endpoint)
     }
 
     override fun req(): HttpServletRequest = req
@@ -114,10 +100,7 @@ class JavalinServletContext(
 
     override fun jsonMapper(): JsonMapper = cfg.jsonMapper
 
-    override fun endpointHandlerPath() = when {
-        handlerType() != HandlerType.BEFORE -> endpointHandlerPath
-        else -> throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
-    }
+    override fun multipartConfig(): MultipartConfig = cfg.multipartConfig
 
     private val characterEncoding by javalinLazy { super.characterEncoding() ?: "UTF-8" }
     override fun characterEncoding(): String = characterEncoding
@@ -128,8 +111,9 @@ class JavalinServletContext(
     private val method by javalinLazy { super.method() }
     override fun method(): HandlerType = method
 
-    override fun handlerType(): HandlerType = handlerType
-    override fun matchedPath(): String = matchedPath
+    override fun endpoints(): Endpoints = endpoints
+
+    override fun endpoint(): Endpoint = endpoints.current()
 
     /** has to be cached, because we can read input stream only once */
     private val body by javalinLazy(SYNCHRONIZED) { super.bodyAsBytes() }
@@ -143,8 +127,15 @@ class JavalinServletContext(
         return cfg.strictContentTypes
     }
 
-    override fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
-    override fun pathParam(key: String): String = pathParamOrThrow(pathParamMap, key, matchedPath)
+    override fun pathParamMap(): Map<String, String> {
+        val (_, pathParams) = endpoints.lastEndpointWithPathParams
+        return Collections.unmodifiableMap(pathParams)
+    }
+
+    override fun pathParam(key: String): String {
+        val (endpoint, pathParams) = endpoints.lastEndpointWithPathParams
+        return pathParamOrThrow(pathParams, key, endpoint?.path ?: "")
+    }
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
     private val queryParams by javalinLazy { super.queryParamMap() }
@@ -162,7 +153,7 @@ class JavalinServletContext(
 
     override fun redirect(location: String, status: HttpStatus) {
         header(Header.LOCATION, location).status(status).result("Redirected")
-        if (handlerType() == HandlerType.BEFORE) {
+        if (endpoint().method == HandlerType.BEFORE) {
             tasks.removeIf { it.skipIfExceptionOccurred }
         }
     }
@@ -196,7 +187,7 @@ class JavalinServletContext(
 
 // this header is semicolon separated, like: "text/html; charset=UTF-8"
 fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.let { value ->
-    value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
+    value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim().removeSurrounding("\"") }
 }
 
 fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> =
@@ -229,21 +220,8 @@ fun acceptsHtml(ctx: Context) =
 
 fun Context.isLocalhost() = try {
     URI.create(this.url()).toURL().host.let { it == "localhost" || it == "127.0.0.1" }
-} catch (e: Exception) {
+} catch (_: Exception) {
     false
-}
-
-internal object MaxRequestSize {
-    val MaxRequestSizeKey = Key<Long>("javalin-max-request-size")
-
-    fun throwContentTooLargeIfContentTooLarge(ctx: Context) {
-        val maxRequestSize = ctx.appData(MaxRequestSizeKey)
-
-        if (ctx.req().contentLength > maxRequestSize) {
-            JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
-            throw HttpResponseException(CONTENT_TOO_LARGE, CONTENT_TOO_LARGE.message)
-        }
-    }
 }
 
 const val SESSION_CACHE_KEY_PREFIX = "javalin-session-attribute-cache-"
@@ -273,11 +251,11 @@ fun <T> attributeOrCompute(callback: (Context) -> T, key: String, ctx: Context):
     if (ctx.attribute<T>(key) == null) {
         ctx.attribute(key, callback(ctx))
     }
-    return ctx.attribute<T>(key)
+    return ctx.attribute(key)
 }
 
 fun readAndResetStreamIfPossible(stream: InputStream?, charset: Charset) = try {
     stream?.apply { reset() }?.readBytes()?.toString(charset).also { stream?.reset() }
-} catch (e: Exception) {
+} catch (_: Exception) {
     "resultString unavailable (resultStream couldn't be reset)"
 }

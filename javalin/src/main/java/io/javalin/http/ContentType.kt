@@ -112,11 +112,11 @@ enum class ContentType(
         const val FORM_DATA = "multipart/form-data"
 
         @JvmStatic
-        fun getContentType(mimeType: String): ContentType? =
+        fun contentType(mimeType: String): ContentType? =
             values().find { it.mimeType.equals(mimeType, ignoreCase = true) }
 
         @JvmStatic
-        fun getContentTypeByExtension(extension: String): ContentType? =
+        fun contentTypeByExtension(extension: String): ContentType? =
             values().firstOrNull { type ->
                 type.extensions.any {
                     extension.equals(it, ignoreCase = true)
@@ -124,8 +124,8 @@ enum class ContentType(
             }
 
         @JvmStatic
-        fun getMimeTypeByExtension(extensions: String): String? =
-            getContentTypeByExtension(extensions)?.mimeType
+        fun mimeTypeByExtension(extensions: String): String? =
+            contentTypeByExtension(extensions)?.mimeType
 
     }
 

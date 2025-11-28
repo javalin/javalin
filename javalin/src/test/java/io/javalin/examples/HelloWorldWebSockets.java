@@ -8,12 +8,15 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 
+import static io.javalin.testing.JavalinTestUtil.get;
+import static io.javalin.testing.JavalinTestUtil.ws;
+
 // WebSockets also work with ssl,
 // see HelloWorldSecure for how to set that up
 public class HelloWorldWebSockets {
     public static void main(String[] args) {
         Javalin app = Javalin.create(cfg -> cfg.bundledPlugins.enableDevLogging());
-        app.ws("/websocket", ws -> {
+        ws(app, "/websocket", ws -> {
             ws.onConnect(ctx -> {
                 System.out.println("Connected");
                 ctx.send("[MESSAGE FROM SERVER] Connection established");
@@ -29,7 +32,7 @@ public class HelloWorldWebSockets {
                 System.out.println("Errored");
             });
         });
-        app.get("/", ctx -> {
+        get(app, "/", ctx -> {
             ctx.html("<h1>WebSocket example</h1>\n" +
                 "<script>\n" +
                 "   let ws = new WebSocket(\"ws://localhost:7070/websocket\");\n" +

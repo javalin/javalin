@@ -7,42 +7,34 @@
 
 package io.javalin;
 
-import io.javalin.http.ExceptionHandler;
-import io.javalin.http.Handler;
-import io.javalin.router.Endpoint;
-import io.javalin.router.JavalinDefaultRoutingApi;
 import io.javalin.config.JavalinConfig;
-import io.javalin.config.EventConfig;
+import io.javalin.config.JavalinState;
 import io.javalin.jetty.JettyServer;
-import io.javalin.security.RouteRole;
-import java.util.function.Consumer;
-import io.javalin.websocket.WsConfig;
-import io.javalin.websocket.WsExceptionHandler;
-import io.javalin.websocket.WsHandlerType;
 import jakarta.servlet.Servlet;
 import kotlin.Lazy;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 import static io.javalin.util.Util.createLazy;
 
-public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
+public class Javalin {
 
-    /**
-     * Do not use this field unless you know what you're doing.
-     * Application config should be declared in {@link Javalin#create(Consumer)}.
-     */
-    private final JavalinConfig cfg;
+    private final JavalinState state;
     protected final Lazy<JettyServer> jettyServer;
 
-    protected Javalin(JavalinConfig config) {
-        this.cfg = config;
-        this.jettyServer = createLazy(() -> new JettyServer(this.cfg));
+    protected Javalin(JavalinState state) {
+        this.state = state;
+        this.jettyServer = createLazy(() -> new JettyServer(this.state));
+        unsafe = this.state;
     }
 
+    /**
+     * Advanced/unsafe API providing access to internal Javalin configuration.
+     * This exposes powerful but potentially dangerous APIs. Use with caution.
+     */
     @NotNull
-    public JavalinConfig unsafeConfig() {
-        return cfg;
-    }
+    public JavalinState unsafe;
 
     public JettyServer jettyServer() {
         return jettyServer.getValue();
@@ -64,35 +56,22 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
      * Creates a new instance with the user provided configuration.
      * The server does not run until {@link Javalin#start()} is called.
      *
+     * @param config configuration consumer accepting {@link JavalinConfig}
      * @return application instance
      * @see Javalin#start()
      * @see Javalin#start(int)
      */
     public static Javalin create(Consumer<JavalinConfig> config) {
-        JavalinConfig cfg = new JavalinConfig();
-        JavalinConfig.applyUserConfig(cfg, config); // mutates app.config and app (adds http-handlers)
-        Javalin app = new Javalin(cfg);
+        JavalinState state = new JavalinState();
+        JavalinState.applyUserConfig(state, config); // mutates app.config and app (adds http-handlers)
+        Javalin app = new Javalin(state);
         app.jettyServer.getValue(); // initialize server if no plugin already did
         return app;
     }
 
-    /**
-     * Creates a new instance with the user provided configuration and starts it immediately.
-     *
-     * @return running application instance
-     * @see io.javalin.Javalin#create(java.util.function.Consumer)
-     * @see Javalin#start()
-     */
-    public static Javalin createAndStart(Consumer<JavalinConfig> config) {
-        return create(cfg -> {
-            cfg.startupWatcherEnabled = false;
-            config.accept(cfg);
-        }).start();
-    }
-
     // Get JavalinServlet (can be attached to other servlet containers)
     public Servlet javalinServlet() {
-        return cfg.pvt.servlet.getValue().getServlet();
+        return state.servlet.getValue().getServlet();
     }
 
     /**
@@ -126,7 +105,8 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
 
     /**
      * Synchronously starts the application instance on the configured port, or on
-     * the configured ServerConnectors if the Jetty server has been manually configured.
+     * the configured ServerConnectors if the Jetty server has been manually
+     * configured.
      * If no port or connector is configured, the instance will start on port 8080.
      *
      * @return running application instance.
@@ -150,11 +130,6 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
         return this;
     }
 
-    public Javalin events(Consumer<EventConfig> listener) {
-        listener.accept(cfg.events);
-        return this;
-    }
-
     /**
      * Get which port instance is running on
      * Mostly useful if you start the instance with port(0) (random port)
@@ -163,38 +138,4 @@ public class Javalin implements JavalinDefaultRoutingApi<Javalin> {
         return jettyServer.getValue().port();
     }
 
-    @NotNull
-    @Override
-    public <E extends Exception> Javalin exception(@NotNull Class<E> exceptionClass, @NotNull ExceptionHandler<? super E> exceptionHandler) {
-        cfg.pvt.internalRouter.addHttpExceptionHandler(exceptionClass, exceptionHandler);
-        return this;
-    }
-
-    @NotNull
-    @Override
-    public Javalin error(int status, @NotNull String contentType, @NotNull Handler handler) {
-        cfg.pvt.internalRouter.addHttpErrorHandler(status, contentType, handler);
-        return this;
-    }
-
-    @NotNull
-    @Override
-    public Javalin addEndpoint(@NotNull Endpoint endpoint) {
-        cfg.pvt.internalRouter.addHttpEndpoint(endpoint);
-        return this;
-    }
-
-    @NotNull
-    @Override
-    public <E extends Exception> Javalin wsException(@NotNull Class<E> exceptionClass, @NotNull WsExceptionHandler<? super E> exceptionHandler) {
-        cfg.pvt.internalRouter.addWsExceptionHandler(exceptionClass, exceptionHandler);
-        return this;
-    }
-
-    @NotNull
-    @Override
-    public Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole @NotNull ... roles) {
-        cfg.pvt.internalRouter.addWsHandler(handlerType, path, wsConfig, roles);
-        return this;
-    }
 }

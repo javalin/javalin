@@ -9,6 +9,7 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.http.sse.SseClient
 import io.javalin.http.staticfiles.Location
+
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -22,17 +23,17 @@ fun main() {
 
     Javalin.create {
         it.staticFiles.add("/public", Location.CLASSPATH)
-        it.pvt.jetty.server = Server(tp)
-    }.apply {
-        get("/") { it.redirect("/sse/sse-example.html") }
-        sse("/sse-counter") { client ->
+        it.routes.get("/") { it.redirect("/sse/sse-example.html") }
+        it.routes.sse("/sse-counter") { client ->
             counterClients.add(client)
             client.onClose { counterClients.remove(client) }
         }
-        sse("/sse-stats") { eventSource ->
+        it.routes.sse("/sse-stats") { eventSource ->
             statsClients.add(eventSource)
             eventSource.onClose { statsClients.remove(eventSource) }
         }
+    }.apply {
+        unsafe.jettyInternal.server = Server(tp)
     }.start(7000)
 
     for (counter in 1..999) {

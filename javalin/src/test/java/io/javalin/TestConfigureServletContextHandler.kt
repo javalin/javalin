@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -18,7 +18,7 @@ import jakarta.servlet.ServletContextListener
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.servlet.FilterHolder
+import org.eclipse.jetty.ee10.servlet.FilterHolder
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -76,7 +76,7 @@ class TestConfigureServletContextHandler {
         }
 
         TestUtil.test(filterJavalin) { app, http ->
-            app.get("/test") { it.result("Test") }
+            app.unsafe.routes.get("/test") { it.result("Test") }
             val response = http.get("/test")
             assertThat(response.body).isEqualTo("Test")
             assertThat(filter.initialized).isTrue()

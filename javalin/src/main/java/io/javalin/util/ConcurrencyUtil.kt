@@ -2,9 +2,6 @@ package io.javalin.util
 
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
-import java.lang.invoke.MethodHandle
-import java.lang.invoke.MethodHandles
-import java.lang.invoke.MethodType
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -19,7 +16,7 @@ object ConcurrencyUtil {
 
     @JvmStatic
     fun executorService(name: String, useLoom: Boolean): ExecutorService = when (useLoom && isLoomAvailable()) {
-        true -> LoomUtil.getExecutorService(name)
+        true -> LoomUtil.executorService(name)
         false -> Executors.newCachedThreadPool(NamedThreadFactory(name))
     }
 
@@ -29,7 +26,7 @@ object ConcurrencyUtil {
 
     @JvmStatic
     fun jettyThreadPool(name: String, minThreads: Int, maxThreads: Int, useLoom: Boolean): ThreadPool = when (useLoom && isLoomAvailable()) {
-        true -> LoomUtil.getThreadPool(name)
+        true -> LoomUtil.threadPool(name)
         false -> QueuedThreadPool(maxThreads, minThreads, 60_000).apply { this.name = name }
     }
 
@@ -46,14 +43,14 @@ internal object LoomUtil {
         factoryMethod.invoke(Executors::class.java) as ExecutorService // this *will* throw if preview is not enabled
     }.isSuccess
 
-    fun getExecutorService(name: String): ExecutorService {
+    fun executorService(name: String): ExecutorService {
         require(loomAvailable) { "Your Java version (${System.getProperty("java.version")}) doesn't support Loom" }
         val factoryMethod = Executors::class.java.getMethod("newThreadPerTaskExecutor", ThreadFactory::class.java)
         return factoryMethod.invoke(Executors::class.java, NamedVirtualThreadFactory(name)) as ExecutorService
     }
 
     private class LoomThreadPool(name: String) : ThreadPool {
-        private val executorService = getExecutorService(name)
+        private val executorService = executorService(name)
         override fun join() {}
         override fun getThreads() = 1
         override fun getIdleThreads() = 1
@@ -63,7 +60,7 @@ internal object LoomUtil {
         }
     }
 
-    fun getThreadPool(name: String): ThreadPool =
+    fun threadPool(name: String): ThreadPool =
         LoomThreadPool(name)
 
     fun isLoomThreadPool(threadPool: ThreadPool): Boolean =
@@ -128,34 +125,34 @@ open class NamedThreadFactory(protected val prefix: String) : ThreadFactory {
 }
 
 open class NamedVirtualThreadFactory(prefix: String) : NamedThreadFactory(prefix) {
-    override fun newThread(runnable: Runnable): Thread = ReflectiveVirtualThreadBuilder()
+    override fun newThread(runnable: Runnable): Thread = VirtualThreadBuilder.create()
         .name("$prefix-Virtual-${threadCount.getAndIncrement()}")
         .unstarted(runnable)
 }
 
-open class ReflectiveVirtualThreadBuilder {
+object VirtualThreadBuilder {
+    private val builderClass = Class.forName("java.lang.Thread\$Builder\$OfVirtual")
+    private val nameMethod = builderClass.getMethod("name", String::class.java)
+    private val unstartedMethod = builderClass.getMethod("unstarted", Runnable::class.java)
+    private val ofVirtualMethod = Thread::class.java.getMethod("ofVirtual")
 
-    protected companion object {
-        val OF_VIRTUAL: MethodHandle
-        val NAME: MethodHandle
-        val UNSTARTED: MethodHandle
+    interface Builder {
+        fun name(name: String): Builder
+        fun unstarted(runnable: Runnable): Thread
+    }
 
-        init {
-            val builderClass = Class.forName("java.lang.Thread\$Builder\$OfVirtual")
-            val handles = MethodHandles.publicLookup()
-            OF_VIRTUAL = handles.findStatic(Thread::class.java, "ofVirtual", MethodType.methodType(builderClass))
-            NAME = handles.findVirtual(builderClass, "name", MethodType.methodType(builderClass, String::class.java))
-            UNSTARTED = handles.findVirtual(builderClass, "unstarted", MethodType.methodType(Thread::class.java, Runnable::class.java))
+    private class BuilderImpl : Builder {
+        private val ofVirtual = ofVirtualMethod.invoke(null)
+
+        override fun name(name: String): Builder {
+            nameMethod.invoke(ofVirtual, name)
+            return this
+        }
+
+        override fun unstarted(runnable: Runnable): Thread {
+            return unstartedMethod.invoke(ofVirtual, runnable) as Thread
         }
     }
 
-    protected var virtualBuilder: Any = OF_VIRTUAL.invoke()
-
-    fun name(name: String): ReflectiveVirtualThreadBuilder = also {
-        this.virtualBuilder = NAME.invoke(virtualBuilder, name)
-    }
-
-    fun unstarted(runnable: Runnable): Thread =
-        UNSTARTED.invoke(virtualBuilder, runnable) as Thread
-
+    fun create(): Builder = BuilderImpl()
 }

@@ -3,8 +3,9 @@ package io.javalin.http.staticfiles
 import io.javalin.config.StaticFilesConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Header
+import io.javalin.security.RouteRole
 import jakarta.servlet.http.HttpServletRequest
-import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
+import org.eclipse.jetty.server.AliasCheck
 
 /** The static files location. */
 enum class Location {
@@ -37,7 +38,8 @@ data class StaticFileConfig(
     @JvmField var aliasCheck: AliasCheck? = null,
     @JvmField var headers: Map<String, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
     @JvmField var skipFileFunction: (HttpServletRequest) -> Boolean = { false },
-    @JvmField val mimeTypes: MimeTypesConfig = MimeTypesConfig()
+    @JvmField val mimeTypes: MimeTypesConfig = MimeTypesConfig(),
+    @JvmField var roles: Set<RouteRole> = emptySet()
 ) {
     internal fun refinedToString(): String {
         return this.toString().replace(", skipFileFunction=(jakarta.servlet.http.HttpServletRequest) -> kotlin.Boolean", "")
@@ -48,7 +50,7 @@ data class StaticFileConfig(
 class MimeTypesConfig {
     private val extensionToMimeType: MutableMap<String, String> = mutableMapOf()
 
-    fun getMapping(): Map<String, String> = extensionToMimeType.toMap()
+    fun mapping(): Map<String, String> = extensionToMimeType.toMap()
 
     /**
      * Adds a known content type to this configuration.

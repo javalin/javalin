@@ -27,9 +27,9 @@ import jakarta.servlet.FilterConfig
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.ServletResponseHttpWrapper
-import org.eclipse.jetty.server.handler.ContextHandler
-import org.eclipse.jetty.servlet.FilterHolder
+import org.eclipse.jetty.ee10.servlet.FilterHolder
+import org.eclipse.jetty.ee10.servlet.ServletResponseHttpWrapper
+import org.eclipse.jetty.server.AliasCheck
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -92,7 +92,7 @@ class TestStaticFiles {
     fun `alias checks for static files should work`() {
         val staticWithAliasResourceApp = Javalin.create { config ->
             // block aliases for txt files
-            val aliasCheck = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
+            val aliasCheck = AliasCheck { path, resource -> !path.endsWith(".txt") }
             config.staticFiles.add {
                 it.aliasCheck = aliasCheck
                 it.directory = workingDirectory.absolutePath
@@ -137,51 +137,65 @@ class TestStaticFiles {
 
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
-        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
-        assertThat(http.getBody("/html.html")).contains("HTML works")
+        val response = http.get("/html.html")
+        assertThat(response.httpCode()).isEqualTo(OK)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("HTML works")
     }
 
     @Test
     fun `serving JS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/script.js").httpCode()).isEqualTo(OK)
-        assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT)
-        assertThat(http.getBody("/script.js")).contains("JavaScript works")
+        val response = http.get("/script.js")
+        assertThat(response.httpCode()).isEqualTo(OK)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("JavaScript works")
     }
 
     @Test
     fun `serving mjs from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/module.mjs").httpCode()).isEqualTo(OK)
-        assertThat(http.get("/module.mjs").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT)
-        assertThat(http.getBody("/module.mjs")).contains("export function test()").contains("mjs works")
+        val response = http.get("/module.mjs")
+        assertThat(response.httpCode()).isEqualTo(OK)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("export function test()").contains("mjs works")
     }
 
     @Test
     fun `serving CSS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/styles.css").httpCode()).isEqualTo(OK)
-        assertThat(http.get("/styles.css").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
-        assertThat(http.getBody("/styles.css")).contains("CSS works")
+        val response = http.get("/styles.css")
+        assertThat(response.httpCode()).isEqualTo(OK)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("CSS works")
     }
 
     @Test
     fun `before-handler runs before static resources`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
-        app.before("/protected/*") { throw UnauthorizedResponse("Protected") }
-        assertThat(http.get("/protected/secret.html").httpCode()).isEqualTo(UNAUTHORIZED)
-        assertThat(http.getBody("/protected/secret.html")).isEqualTo("Protected")
+        app.unsafe.routes.before("/protected/*") { throw UnauthorizedResponse("Protected") }
+        val response = http.get("/protected/secret.html")
+        assertThat(response.httpCode()).isEqualTo(UNAUTHORIZED)
+        assertThat(response.status).isEqualTo(UNAUTHORIZED.code)
+        assertThat(response.body).isEqualTo("Protected")
     }
 
     @Test
     fun `directory root returns simple 404 if there is no welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/").httpCode()).isEqualTo(NOT_FOUND)
-        assertThat(http.getBody("/")).isEqualTo("Endpoint GET / not found")
+        val response = http.get("/")
+        assertThat(response.httpCode()).isEqualTo(NOT_FOUND)
+        assertThat(response.status).isEqualTo(NOT_FOUND.code)
+        assertThat(response.body).isEqualTo("Endpoint GET / not found")
     }
 
     @Test
     fun `directory root returns welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/subdir/").httpCode()).isEqualTo(OK)
-        assertThat(http.getBody("/subdir/")).isEqualTo("<h1>Welcome file</h1>")
-        assertThat(http.get("/subdir").httpCode()).isEqualTo(OK)
-        assertThat(http.getBody("/subdir")).isEqualTo("<h1>Welcome file</h1>")
+        assertThat(http.get("/subdir/"))
+            .extracting({ it.httpCode() }, { it.status }, { it.body })
+            .containsExactly(OK, OK.code, "<h1>Welcome file</h1>")
+        assertThat(http.get("/subdir"))
+            .extracting({ it.httpCode() }, { it.status }, { it.body })
+            .containsExactly(OK, OK.code, "<h1>Welcome file</h1>")
     }
 
     @Test
@@ -195,10 +209,12 @@ class TestStaticFiles {
         }
 
         TestUtil.test(staticWithCustomHostedPath) { _, http ->
-            assertThat(http.get("/subdir/").httpCode()).isEqualTo(OK)
-            assertThat(http.getBody("/subdir/")).isEqualTo("<h1>Welcome file</h1>")
-            assertThat(http.get("/subdir").httpCode()).isEqualTo(OK)
-            assertThat(http.getBody("/subdir")).isEqualTo("<h1>Welcome file</h1>")
+            assertThat(http.get("/subdir/"))
+                .extracting({ it.httpCode() }, { it.status }, { it.body })
+                .containsExactly(OK, OK.code, "<h1>Welcome file</h1>")
+            assertThat(http.get("/subdir"))
+                .extracting({ it.httpCode() }, { it.status }, { it.body })
+                .containsExactly(OK, OK.code, "<h1>Welcome file</h1>")
         }
     }
 
@@ -210,42 +226,54 @@ class TestStaticFiles {
             it.hostedPath = "/url-prefix"
         }
     }) { _, http ->
-        assertThat(http.get("/url-prefix/subdir").httpCode()).isEqualTo(OK)
-        assertThat(http.getBody("/url-prefix/subdir")).isEqualTo("<h1>Welcome file</h1>")
+        val response = http.get("/url-prefix/subdir")
+        assertThat(response.httpCode()).isEqualTo(OK)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).isEqualTo("<h1>Welcome file</h1>")
     }
 
     @Test
     fun `expires is set to max-age=0 by default`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/script.js").headers.getFirst(Header.CACHE_CONTROL)).isEqualTo("max-age=0")
+        assertThat(http.get("/script.js"))
+            .extracting({ it.status }, { it.headers.getFirst(Header.CACHE_CONTROL) })
+            .containsExactly(OK.code, "max-age=0")
     }
 
     @Test
     fun `can set custom headers`() = TestUtil.test(customHeaderApp) { _, http ->
-        assertThat(http.get("/immutable/library-1.0.0.min.js").headers.getFirst(Header.CACHE_CONTROL)).isEqualTo("max-age=31622400")
+        assertThat(http.get("/immutable/library-1.0.0.min.js"))
+            .extracting({ it.status }, { it.headers.getFirst(Header.CACHE_CONTROL) })
+            .containsExactly(OK.code, "max-age=31622400")
     }
 
     @Test
     fun `files in external locations are found`() = TestUtil.test(externalStaticResourceApp) { _, http ->
-        assertThat(http.get("/html.html").status).isEqualTo(200)
-        assertThat(http.getBody("/html.html")).contains("HTML works")
+        val response = http.get("/html.html")
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("HTML works")
     }
 
     @Test
     fun `one app can handle multiple static file locations`() = TestUtil.test(multiLocationStaticResourceApp) { _, http ->
-        assertThat(http.get("/html.html").status).isEqualTo(200) // src/test/external/html.html
-        assertThat(http.getBody("/html.html")).contains("HTML works")
-        assertThat(http.get("/").status).isEqualTo(200)
-        assertThat(http.getBody("/")).isEqualTo("<h1>Welcome file</h1>")
-        assertThat(http.get("/secret.html").status).isEqualTo(200)
-        assertThat(http.getBody("/secret.html")).isEqualTo("<h1>Secret file</h1>")
+        val response1 = http.get("/html.html")
+        assertThat(response1.status).isEqualTo(OK.code) // src/test/external/html.html
+        assertThat(response1.body).contains("HTML works")
+
+        assertThat(http.get("/"))
+            .extracting({ it.status }, { it.body })
+            .containsExactly(OK.code, "<h1>Welcome file</h1>")
+        assertThat(http.get("/secret.html"))
+            .extracting({ it.status }, { it.body })
+            .containsExactly(OK.code, "<h1>Secret file</h1>")
         assertThat(http.get("/styles.css").status).isEqualTo(404)
     }
 
     @Test
     fun `content type works in debugmmode`() = TestUtil.test(devLoggingApp) { _, http ->
-        assertThat(http.get("/html.html").status).isEqualTo(200)
-        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
-        assertThat(http.getBody("/html.html")).contains("HTML works")
+        val response = http.get("/html.html")
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(response.body).contains("HTML works")
         assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT)
         assertThat(http.get("/styles.css").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
     }
@@ -335,7 +363,7 @@ class TestStaticFiles {
     fun `logs handlers added on startup`() {
         TestUtil.test(multiLocationStaticResourceApp) { _, _ -> }
         assertThat(
-            multiLocationStaticResourceApp.unsafeConfig().pvt.appDataManager.get(TestLogsKey)
+            multiLocationStaticResourceApp.unsafe.appDataManager.get(TestLogsKey)
                 .split("Static file handler added")
                 .size - 1
         ).isEqualTo(4)
@@ -343,40 +371,48 @@ class TestStaticFiles {
 
     @Test
     fun `static files can be added after app creation`() = TestUtil.test(
-        Javalin.create().also { it.unsafeConfig().staticFiles.add("/public", Location.CLASSPATH) }
+        Javalin.create().also { it.unsafe.staticFiles.add("/public", Location.CLASSPATH) }
     ) { _, http ->
-        assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
-        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
-        assertThat(http.getBody("/html.html")).contains("HTML works")
+        val response = http.get("/html.html")
+        assertThat(response.httpCode()).isEqualTo(OK)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("HTML works")
     }
 
     @Test
     fun `static files can be added after app start with previous static files`() = TestUtil.test(
-        Javalin.create().also { it.unsafeConfig().staticFiles.add("/public", Location.CLASSPATH) }
+        Javalin.create().also { it.unsafe.staticFiles.add("/public", Location.CLASSPATH) }
     ) { app, http ->
-        app.unsafeConfig().staticFiles.add { staticFiles ->
+        app.unsafe.staticFiles.add { staticFiles ->
             staticFiles.hostedPath = "/url-prefix"
             staticFiles.directory = "/public"
             staticFiles.location = Location.CLASSPATH
         }
 
-        assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
-        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
-        assertThat(http.getBody("/html.html")).contains("HTML works")
+        val response1 = http.get("/html.html")
+        assertThat(response1.httpCode()).isEqualTo(OK)
+        assertThat(response1.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(response1.status).isEqualTo(OK.code)
+        assertThat(response1.body).contains("HTML works")
 
-        assertThat(http.get("/url-prefix/html.html").httpCode()).isEqualTo(OK)
-        assertThat(http.get("/url-prefix/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
-        assertThat(http.getBody("/url-prefix/html.html")).contains("HTML works")
+        val response2 = http.get("/url-prefix/html.html")
+        assertThat(response2.httpCode()).isEqualTo(OK)
+        assertThat(response2.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(response2.status).isEqualTo(OK.code)
+        assertThat(response2.body).contains("HTML works")
     }
 
     @Test
     fun `static files can be added after app start without previous static files`() = TestUtil.test(
         Javalin.create()
     ) { app, http ->
-        app.unsafeConfig().staticFiles.add("/public", Location.CLASSPATH)
-        assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
-        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
-        assertThat(http.getBody("/html.html")).contains("HTML works")
+        app.unsafe.staticFiles.add("/public", Location.CLASSPATH)
+        val response = http.get("/html.html")
+        assertThat(response.httpCode()).isEqualTo(OK)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("HTML works")
     }
 
     @Test
@@ -387,8 +423,11 @@ class TestStaticFiles {
             it.mimeTypes.add("application/x-javalin", "javalin")
         }
     }) { _, http ->
-        assertThat(http.get("/file.javalin").httpCode()).isEqualTo(OK)
-        assertThat(http.get("/file.javalin").headers.getFirst(Header.CONTENT_TYPE)).contains("application/x-javalin")
-        assertThat(http.getBody("/file.javalin")).contains("TESTFILE.javalin")
+        val response = http.get("/file.javalin")
+        assertThat(response.httpCode()).isEqualTo(OK)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains("application/x-javalin")
+        assertThat(response.status).isEqualTo(OK.code)
+        assertThat(response.body).contains("TESTFILE.javalin")
     }
+
 }

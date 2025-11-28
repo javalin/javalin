@@ -5,13 +5,20 @@
  */
 package io.javalin;
 
+import io.javalin.http.Context;
 import io.javalin.http.HandlerType;
+import io.javalin.router.Endpoint;
 import io.javalin.testing.TestUtil;
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
+
 import static io.javalin.http.HttpStatus.OK;
+import static io.javalin.testing.JavalinTestUtil.after;
+import static io.javalin.testing.JavalinTestUtil.before;
+import static io.javalin.testing.JavalinTestUtil.get;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestContextHandlerType {
 
@@ -19,12 +26,12 @@ public class TestContextHandlerType {
     public void testHandlerTypeCanBeAccessedInContext() {
         TestUtil.test(Javalin.create(), (app, http) -> {
             List<HandlerType> handlerTypes = new ArrayList<>();
-            app.before(ctx -> handlerTypes.add(ctx.handlerType()));
-            app.after(ctx -> handlerTypes.add(ctx.handlerType()));
-            app.get("/", ctx -> handlerTypes.add(ctx.handlerType()));
-
-            Assertions.assertThat(http.get("/").getStatus()).isEqualTo(OK.getCode());
-            Assertions.assertThat(handlerTypes).containsExactly(HandlerType.BEFORE, HandlerType.GET, HandlerType.AFTER);
+            before(app, ctx -> handlerTypes.add(ctx.endpoint().method));
+            get(app, "/", ctx -> handlerTypes.add(ctx.endpoint().method));
+            after(app, ctx -> handlerTypes.add(ctx.endpoint().method));
+            assertThat(http.get("/").getStatus()).isEqualTo(OK.getCode());
+            assertThat(handlerTypes).containsExactly(HandlerType.BEFORE, HandlerType.GET, HandlerType.AFTER);
         });
     }
+
 }

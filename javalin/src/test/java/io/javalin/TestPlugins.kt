@@ -1,6 +1,6 @@
-package io.javalin
+﻿package io.javalin
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.ContextPlugin
@@ -14,7 +14,6 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import java.lang.NullPointerException
 import java.util.function.Consumer
 
 class TestPlugins {
@@ -27,11 +26,11 @@ class TestPlugins {
     }
 
     open inner class TestPlugin : Plugin<Void>() {
-        override fun onInitialize(config: JavalinConfig) {
+        override fun onInitialize(state: JavalinState) {
             calls.add(Calls.INIT)
         }
 
-        override fun onStart(config: JavalinConfig) {
+        override fun onStart(state: JavalinState) {
             calls.add(Calls.START)
         }
     }
@@ -78,7 +77,7 @@ class TestPlugins {
 
         Javalin.create {
             it.registerPlugin(object : Plugin<Void>() {
-                override fun onStart(config: JavalinConfig) {
+                override fun onStart(state: JavalinState) {
                     called = true
                 }
             })
@@ -118,32 +117,32 @@ class TestPlugins {
 
         class EarlyPlugin : Plugin<Void>() {
             override fun priority() = EARLY
-            override fun onInitialize(config: JavalinConfig) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("early-init")
             }
 
-            override fun onStart(config: JavalinConfig) {
+            override fun onStart(state: JavalinState) {
                 calls.add("early-start")
             }
         }
 
         class NormalPlugin : Plugin<Void>() {
-            override fun onInitialize(config: JavalinConfig) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("normal-init")
             }
 
-            override fun onStart(config: JavalinConfig) {
+            override fun onStart(state: JavalinState) {
                 calls.add("normal-start")
             }
         }
 
         class LatePlugin : Plugin<Void>() {
             override fun priority() = LATE
-            override fun onInitialize(config: JavalinConfig) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("late-init")
             }
 
-            override fun onStart(config: JavalinConfig) {
+            override fun onStart(state: JavalinState) {
                 calls.add("late-start")
             }
         }
@@ -169,21 +168,21 @@ class TestPlugins {
         val calls = mutableListOf<String>()
 
         class Plugin3 : Plugin<Void>() {
-            override fun onInitialize(config: JavalinConfig) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("3")
             }
         }
 
         class Plugin2 : Plugin<Void>() {
-            override fun onInitialize(config: JavalinConfig) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("2")
             }
         }
 
         class Plugin1 : Plugin<Void>() {
-            override fun onInitialize(config: JavalinConfig) {
+            override fun onInitialize(state: JavalinState) {
                 calls.add("1")
-                config.registerPlugin(Plugin2())
+                state.registerPlugin(Plugin2())
             }
         }
 
@@ -202,7 +201,7 @@ class TestPlugins {
             val value = pluginConfig.value
         }
 
-        val myPlugin = JavalinConfig().registerPlugin(MyPlugin { it.value = "Hello" }) as MyPlugin
+        val myPlugin = JavalinState().registerPlugin(MyPlugin { it.value = "Hello" }) as MyPlugin
         assertThat(myPlugin.value).isEqualTo("Hello")
     }
 
@@ -210,7 +209,7 @@ class TestPlugins {
     @Test
     fun `pluginConfig throws if defaultConfig is null`() {
         class ThrowingPlugin : Plugin<List<String>>() {
-            override fun onStart(config: JavalinConfig) {
+            override fun onStart(state: JavalinState) {
                 pluginConfig[2] // should throw
             }
         }
@@ -222,13 +221,13 @@ class TestPlugins {
     fun `Context-extending plugins can be accessed through the Context by class`() = TestUtil.test(Javalin.create {
         it.registerPlugin(TestContextPlugin())
     }) { app, http ->
-        app.get("/abcd") { it.result(it.with(TestContextPlugin::class).fancyPath()) }
+        app.unsafe.routes.get("/abcd") { it.result(it.with(TestContextPlugin::class).fancyPath()) }
         assertThat(http.getBody("/abcd")).isEqualTo("/abcd_FANCY")
     }
 
     @Test
     fun `Context-extending plugins throw if they are not registered`() = TestUtil.test(Javalin.create {}) { app, http ->
-        app.get("/abcd") { it.result(it.with(TestContextPlugin::class).fancyPath()) }
+        app.unsafe.routes.get("/abcd") { it.result(it.with(TestContextPlugin::class).fancyPath()) }
         assertThat(http.get("/abcd").status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
     }
 
@@ -237,7 +236,7 @@ class TestPlugins {
         TestUtil.test(Javalin.create {
             it.registerPlugin(Rendy { it.directory = "src/test/resources" })
         }) { app, http ->
-            app.get("/") { it.with(Rendy::class).render("/template.tpl") }
+            app.unsafe.routes.get("/") { it.with(Rendy::class).render("/template.tpl") }
             assertThat(http.getBody("/")).isEqualTo("src/test/resources/template.tpl")
         }
     }

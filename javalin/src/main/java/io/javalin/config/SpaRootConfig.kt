@@ -15,15 +15,15 @@ import io.javalin.http.staticfiles.Location
  *
  * @see [SinglePageHandler]
  */
-class SpaRootConfig(private val cfg: JavalinConfig) {
+class SpaRootConfig(private val cfg: JavalinState) {
 
     @JvmOverloads
     fun addFile(hostedPath: String, filePath: String, location: Location = Location.CLASSPATH) {
-        cfg.pvt.singlePageHandler.add(hostedPath, filePath, location)
+        cfg.singlePageHandler.add(hostedPath, filePath, location)
     }
 
     fun addHandler(hostedPath: String, customHandler: Handler) {
-        cfg.pvt.singlePageHandler.add(hostedPath, customHandler)
+        cfg.singlePageHandler.add(hostedPath, customHandler)
     }
 
 }

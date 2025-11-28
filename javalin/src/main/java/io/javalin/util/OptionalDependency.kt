@@ -63,5 +63,6 @@ enum class CoreDependency(
     SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "2.0.16"),
 
     // Compression
-    BROTLI4J("Brotli4j", "com.aayushatharva.brotli4j.Brotli4jLoader", "com.aayushatharva.brotli4j", "brotli4j", "1.16.0"),
+    BROTLI4J("Brotli4j", "com.aayushatharva.brotli4j.Brotli4jLoader", "com.aayushatharva.brotli4j", "brotli4j", "1.20.0"),
+    ZSTD_JNI("Zstd-jni", "com.github.luben.zstd.Zstd", "com.github.luben", "zstd-jni", "1.5.7-4"),
 }

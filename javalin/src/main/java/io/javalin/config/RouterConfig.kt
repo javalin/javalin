@@ -2,27 +2,17 @@
 
 package io.javalin.config
 
-import io.javalin.apibuilder.ApiBuilder
-import io.javalin.apibuilder.EndpointGroup
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
-import io.javalin.router.InternalRouter
-import io.javalin.router.JavalinDefaultRouting
-import io.javalin.router.JavalinDefaultRouting.Companion.Default
-import io.javalin.router.RoutingApiInitializer
-import io.javalin.router.RoutingSetupScope
 import io.javalin.router.exception.JavaLangErrorHandler
-import io.javalin.router.invokeAsSamWithReceiver
 import io.javalin.util.JavalinLogger
-import java.util.function.Consumer
-import kotlin.internal.LowPriorityInOverloadResolution
 
 /**
  * Configuration for the Router.
  *
  * @param cfg the parent Javalin Configuration
- * @see [JavalinConfig.router]
+ * @see [JavalinState.router]
  */
-class RouterConfig(internal val cfg: JavalinConfig) {
+class RouterConfig() {
 
     // @formatter:off
     /** The context path (ex '/blog' if you are hosting an app on a subpath, like 'mydomain.com/blog') */
@@ -35,30 +25,14 @@ class RouterConfig(internal val cfg: JavalinConfig) {
     @JvmField var caseInsensitiveRoutes = false
     // @formatter:on
 
+    @JvmSynthetic
     internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->
         res.status = INTERNAL_SERVER_ERROR.code
         JavalinLogger.error("Fatal error occurred while servicing http-request", error)
     }
 
-    @LowPriorityInOverloadResolution
-    fun <SETUP> mount(initializer: RoutingApiInitializer<SETUP>, setup: Consumer<SETUP>): RouterConfig = also {
-        initializer.initialize(cfg, cfg.pvt.internalRouter) { setup.accept(this) }
-    }
-
-    @LowPriorityInOverloadResolution
-    fun mount(setup: Consumer<JavalinDefaultRouting>): RouterConfig =
-        mount(Default, setup)
-
-    fun apiBuilder(endpoints: EndpointGroup): RouterConfig {
-        val apiBuilderInitializer = { cfg: JavalinConfig, _: InternalRouter, setup: RoutingSetupScope<Void?> ->
-            try {
-                ApiBuilder.setStaticJavalin(JavalinDefaultRouting(cfg))
-                setup.invokeAsSamWithReceiver(null)
-            } finally {
-                ApiBuilder.clearStaticJavalin()
-            }
-        }
-        return mount(apiBuilderInitializer) { endpoints.addEndpoints() }
+    fun javaLangErrorHandler(handler: JavaLangErrorHandler) = also {
+        this.javaLangErrorHandler = handler
     }
 
 }

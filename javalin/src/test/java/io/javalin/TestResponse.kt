@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -16,6 +16,7 @@ import io.javalin.http.HttpStatus.SEE_OTHER
 import io.javalin.http.util.SeekableWriter
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.testing.TestUtil
+
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
 import kong.unirest.Unirest
@@ -42,7 +43,7 @@ class TestResponse {
             It's changed a lot since it was new. It's done stuff it wasn't built to do.
             I often try to fill if up with wine. - Tim Minchin
         """
-        app.get("/hello") { ctx ->
+        app.unsafe.routes.get("/hello") { ctx ->
             ctx.status(IM_A_TEAPOT).result(myBody).header("X-HEADER-1", "my-header-1").header("X-HEADER-2", "my-header-2")
         }
         val response = http.call(HttpMethod.GET, "/hello")
@@ -60,8 +61,9 @@ class TestResponse {
             bytes[i] = (i % 256).toByte()
         }
 
-        app.get("/hello") { it.result(bytes) }
+        app.unsafe.routes.get("/hello") { it.result(bytes) }
         val response = Unirest.get("${http.origin}/hello").asBytes()
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body.size).isEqualTo(bytes.size)
         assertThat(bytes).isEqualTo(response.body)
     }
@@ -70,8 +72,9 @@ class TestResponse {
     fun `setting an InputStream result works`() = TestUtil.test { app, http ->
         val buf = ByteArray(65537) // big and not on a page boundary
         Random().nextBytes(buf)
-        app.get("/stream") { it.result(ByteArrayInputStream(buf)) }
+        app.unsafe.routes.get("/stream") { it.result(ByteArrayInputStream(buf)) }
         val response = Unirest.get("${http.origin}/stream").asBytes()
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body.size).isEqualTo(buf.size)
         assertThat(buf).isEqualTo(response.body)
     }
@@ -85,11 +88,13 @@ class TestResponse {
         }
         val inputStream = file.inputStream()
 
-        app.get("/file") { ctx ->
+        app.unsafe.routes.get("/file") { ctx ->
             ctx.result(inputStream)
         }
 
-        assertThat(http.getBody("/file")).isEqualTo("Hello, World!")
+        val response = http.get("/file")
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.body).isEqualTo("Hello, World!")
         // Expecting an IOException for reading a closed stream
         assertThatIOException()
             .isThrownBy { inputStream.read() }
@@ -98,18 +103,13 @@ class TestResponse {
     @Disabled("https://github.com/tipsy/javalin/pull/1413")
     @Test
     fun `gh-1409 entrypoint to analyze compression strategy lifecycle`() {
+        val longString = Array(Short.MAX_VALUE.toInt()) { "0" }.joinToString()
         val javalin = Javalin.create { javalinConfig ->
             javalinConfig.registerPlugin(CorsPlugin { cors -> cors.addRule { it.reflectClientOrigin = true } })
-            javalinConfig.showJavalinBanner = false
+            javalinConfig.startup.showJavalinBanner = false
             javalinConfig.http.maxRequestSize = 5_000_000
+            javalinConfig.routes.get("/route") { ctx -> ctx.result(longString) }
         }.start(9005)
-
-        val longString = Array(Short.MAX_VALUE.toInt()) { "0" }.joinToString()
-
-        javalin.get("/route") { ctx ->
-            ctx.result(longString)
-        }
-
         while (true) {
             // should be requested by external tool
         }
@@ -118,42 +118,46 @@ class TestResponse {
     @Test
     fun `setting a header works`() = TestUtil.test { app, http ->
         val headerValue = UUID.randomUUID().toString()
-        app.get("/") { it.header(Header.EXPIRES, headerValue) }
-        val responseHeader = http.get("/").headers.getFirst(Header.EXPIRES)
-        assertThat(responseHeader).isEqualTo(headerValue)
+        app.unsafe.routes.get("/") { it.header(Header.EXPIRES, headerValue) }
+        val response = http.get("/")
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.headers.getFirst(Header.EXPIRES)).isEqualTo(headerValue)
     }
 
     @Test
     fun `removing a set header works`() = TestUtil.test { app, http ->
         val headerValue = UUID.randomUUID().toString()
-        app.get("/") {
+        app.unsafe.routes.get("/") {
             it.header(Header.EXPIRES, headerValue)
             it.removeHeader(Header.EXPIRES)
         }
-        val responseHeader = http.get("/").headers.getFirst(Header.EXPIRES)
-        assertThat(responseHeader).isBlank()
+        val response = http.get("/")
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.headers.getFirst(Header.EXPIRES)).isBlank()
     }
 
     @Test
     fun `redirect in before-handler works`() = TestUtil.test { app, http ->
-        app.before("/before") { it.redirect("/redirected") }
-        app.get("/redirected") { it.result("Redirected") }
+        app.unsafe.routes.before("/before") { it.redirect("/redirected") }
+        app.unsafe.routes.get("/redirected") { it.result("Redirected") }
+        assertThat(http.getStatus("/before")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/before")).isEqualTo("Redirected")
     }
 
     @Test
     fun `redirect in exception-mapper works`() = TestUtil.test { app, http ->
-        app.get("/get") { throw Exception() }
-        app.exception(Exception::class.java) { _, ctx -> ctx.redirect("/redirected") }
-        app.get("/redirected") { it.result("Redirected") }
+        app.unsafe.routes.get("/get") { throw Exception() }
+        app.unsafe.routes.exception(Exception::class.java) { _, ctx -> ctx.redirect("/redirected") }
+        app.unsafe.routes.get("/redirected") { it.result("Redirected") }
+        assertThat(http.getStatus("/get")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/get")).isEqualTo("Redirected")
     }
 
     @Test
     fun `redirect in normal handler works`() = TestUtil.test { app, http ->
         http.disableUnirestRedirects()
-        app.get("/hello") { it.redirect("/hello-2") }
-        app.get("/hello-2") { it.result("Woop!") }
+        app.unsafe.routes.get("/hello") { it.redirect("/hello-2") }
+        app.unsafe.routes.get("/hello-2") { it.result("Woop!") }
         val response = http.get("/hello")
         assertThat(response.body).isEqualTo("Redirected")
         assertThat(response.status).isEqualTo(HttpStatus.FOUND.code)
@@ -163,8 +167,8 @@ class TestResponse {
     @Test
     fun `redirect with status works`() = TestUtil.test { app, http ->
         http.disableUnirestRedirects()
-        app.get("/hello") { it.redirect("/hello-2", MOVED_PERMANENTLY) }
-        app.get("/hello-2") { it.result("Redirected") }
+        app.unsafe.routes.get("/hello") { it.redirect("/hello-2", MOVED_PERMANENTLY) }
+        app.unsafe.routes.get("/hello-2") { it.result("Redirected") }
         assertThat(http.call(HttpMethod.GET, "/hello").httpCode()).isEqualTo(MOVED_PERMANENTLY)
         assertThat(http.call(HttpMethod.GET, "/hello").body).isEqualTo("Redirected")
         http.enableUnirestRedirects()
@@ -172,8 +176,8 @@ class TestResponse {
 
     @Test
     fun `redirect to absolute path works`() = TestUtil.test { app, http ->
-        app.get("/hello-abs") { it.redirect("${http.origin}/hello-abs-2", SEE_OTHER) }
-        app.get("/hello-abs-2") { it.result("Redirected") }
+        app.unsafe.routes.get("/hello-abs") { it.redirect("${http.origin}/hello-abs-2", SEE_OTHER) }
+        app.unsafe.routes.get("/hello-abs-2") { it.result("Redirected") }
         http.disableUnirestRedirects()
         assertThat(http.call(HttpMethod.GET, "/hello-abs").httpCode()).isEqualTo(SEE_OTHER)
         http.enableUnirestRedirects()
@@ -185,11 +189,12 @@ class TestResponse {
     fun `reading the result string resets the stream`() = TestUtil.test { app, http ->
         val result = "Hello World"
 
-        app.get("/test") { context ->
+        app.unsafe.routes.get("/test") { context ->
             context.result(result)
             context.result()
         }
 
+        assertThat(http.getStatus("/test")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/test")).isEqualTo(result)
     }
 
@@ -205,9 +210,36 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - range works and input stream closed`() = TestUtil.test { app, http ->
+    fun `seekable - non audio and video downloading from start works`() = TestUtil.test { app, http ->
+        val input = getSeekableInput(1)
+        app.unsafe.routes.get("/seekable-noaudiovideo") { it.writeSeekableStream(input, ContentType.APPLICATION_OCTET_STREAM.toString()) }
+        val response = Unirest.get(http.origin + "/seekable-noaudiovideo").asString()
+
+        assertThat(response.body).isEqualTo("abc")
+        assertThat(input.closedLatch.await(2, TimeUnit.SECONDS)).isTrue()
+        assertThat(response.httpCode()).isEqualTo(HttpStatus.OK)
+    }
+
+    @Test
+    fun `seekable - non audio and video download resuming works`() = TestUtil.test { app, http ->
         val input = getSeekableInput()
-        app.get("/seekable") { it.writeSeekableStream(input, ContentType.PLAIN) }
+        val avaliable = input.available()
+
+        app.unsafe.routes.get("/seekable-noaudiovideo-2") { it.writeSeekableStream(input, ContentType.APPLICATION_OCTET_STREAM.toString()) }
+        val response = Unirest.get(http.origin + "/seekable-noaudiovideo-2")
+            .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-"))
+            .asString()
+
+        assertThat(response.headers.getFirst(Header.CONTENT_RANGE)).isEqualTo("bytes ${SeekableWriter.chunkSize}-${avaliable-1}/${avaliable}")
+        assertThat(response.headers.getFirst(Header.CONTENT_LENGTH).toInt()).isEqualTo(avaliable-SeekableWriter.chunkSize)
+        assertThat(input.closedLatch.await(2, TimeUnit.SECONDS)).isTrue()
+        assertThat(response.httpCode()).isEqualTo(HttpStatus.OK)
+    }
+
+    @Test
+    fun `seekable - audio, video range works and input stream closed`() = TestUtil.test { app, http ->
+        val input = getSeekableInput()
+        app.unsafe.routes.get("/seekable") { it.writeSeekableStream(input, ContentType.VIDEO_MPEG.toString()) }
         val response = Unirest.get(http.origin + "/seekable")
             .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
             .asString()
@@ -217,10 +249,10 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - no-range works and input stream closed`() = TestUtil.test { app, http ->
+    fun `seekable - audio, video no-range works and input stream closed`() = TestUtil.test { app, http ->
         val input = getSeekableInput()
         val available = input.available()
-        app.get("/seekable-2") { it.writeSeekableStream(input, ContentType.PLAIN) }
+        app.unsafe.routes.get("/seekable-2") { it.writeSeekableStream(input, ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-2").asString()
         assertThat(response.body.length).isEqualTo(available)
         assertThat(input.closedLatch.await(2, TimeUnit.SECONDS)).isTrue()
@@ -228,8 +260,8 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - overreaching range works`() = TestUtil.test { app, http ->
-        app.get("/seekable-3") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
+    fun `seekable - audio, video overreaching range works`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/seekable-3") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-3")
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize * 4}"))
             .asBytes()
@@ -237,8 +269,8 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - file smaller than chunksize works`() = TestUtil.test { app, http ->
-        app.get("/seekable-4") { it.writeSeekableStream(getSeekableInput(repeats = 50), ContentType.PLAIN) }
+    fun `seekable - audio, video file smaller than chunksize works`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/seekable-4") { it.writeSeekableStream(getSeekableInput(repeats = 50), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-4")
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize}"))
             .asString().body
@@ -246,10 +278,10 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - large file works`() = TestUtil.test { app, http ->
+    fun `seekable - audio, video large file works`() = TestUtil.test { app, http ->
         val prefixSize = 1L shl 31 //2GB
         val contentSize = 100L
-        app.get("/seekable-5") { it.writeSeekableStream(LargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
+        app.unsafe.routes.get("/seekable-5") { it.writeSeekableStream(LargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
         val response = Unirest.get(http.origin + "/seekable-5")
             .headers(mapOf(Header.RANGE to "bytes=${prefixSize}-${prefixSize + contentSize - 1}"))
             .asString()
@@ -262,7 +294,7 @@ class TestResponse {
 
     @Test
     fun `GH-1956 seekable request with no RANGE header contains Content-Length and Accept-Ranges`() = TestUtil.test { app, http ->
-        app.get("/seekable-6") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
+        app.unsafe.routes.get("/seekable-6") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-6").asString()
         assertThat(response.headers[Header.CONTENT_LENGTH]?.get(0)).isGreaterThan("0")
         assertThat(response.headers[Header.ACCEPT_RANGES]?.get(0)).isEqualTo("bytes")

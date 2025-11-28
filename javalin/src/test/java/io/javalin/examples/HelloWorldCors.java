@@ -21,16 +21,16 @@ public class HelloWorldCors {
                     corsConfig.allowHost("http://localhost:7001/", "http://localhost:7002");
                 });
             });
-            config.router.apiBuilder(() -> {
+            config.routes.apiBuilder(() -> {
                 get(ctx -> ctx.json("Hello Get"));
                 post(ctx -> ctx.json("Hello Post"));
                 patch(ctx -> ctx.json("Hello Patch"));
             });
         }).start(7070);
 
-        Javalin.create().start(7001).get("/", ctx -> ctx.html("Try some CORS"));
-        Javalin.create().start(7002).get("/", ctx -> ctx.html("Try some CORS"));
-        Javalin.create().start(7003).get("/", ctx -> ctx.html("No CORS here"));
+        Javalin.create(config -> config.routes.get("/", ctx -> ctx.html("Try some CORS"))).start(7001);
+        Javalin.create(config -> config.routes.get("/", ctx -> ctx.html("Try some CORS"))).start(7002);
+        Javalin.create(config -> config.routes.get("/", ctx -> ctx.html("No CORS here"))).start(7003);
     }
 
 }

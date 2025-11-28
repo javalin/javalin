@@ -6,10 +6,12 @@
 
 package io.javalin.http
 
+import io.javalin.util.JavalinException
 import io.javalin.http.HttpStatus.ACCEPTED
 import io.javalin.http.HttpStatus.ALREADY_REPORTED
 import io.javalin.http.HttpStatus.BAD_GATEWAY
 import io.javalin.http.HttpStatus.BAD_REQUEST
+import io.javalin.http.HttpStatus.CLIENT_CLOSED_REQUEST
 import io.javalin.http.HttpStatus.CONFLICT
 import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
 import io.javalin.http.HttpStatus.CONTINUE
@@ -72,7 +74,7 @@ open class HttpResponseException @JvmOverloads constructor(
     val status: Int,
     message: String = "",
     val details: Map<String, String> = mapOf()
-) : RuntimeException(message) {
+) : JavalinException(message) {
     constructor(
         status: HttpStatus,
         message: String = status.message,
@@ -345,6 +347,11 @@ open class UnavailableForLegalReasonsResponse @JvmOverloads constructor(
     message: String = UNAVAILABLE_FOR_LEGAL_REASONS.message,
     details: Map<String, String> = mapOf()
 ) : HttpResponseException(UNAVAILABLE_FOR_LEGAL_REASONS, message, details)
+
+open class ClientClosedRequestResponse @JvmOverloads constructor(
+    message: String = CLIENT_CLOSED_REQUEST.message,
+    details: Map<String, String> = mapOf()
+) : HttpResponseException(CLIENT_CLOSED_REQUEST, message, details)
 
 open class InternalServerErrorResponse @JvmOverloads constructor(
     message: String = INTERNAL_SERVER_ERROR.message,

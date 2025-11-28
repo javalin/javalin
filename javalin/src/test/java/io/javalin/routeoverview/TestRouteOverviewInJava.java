@@ -12,6 +12,7 @@ import io.javalin.plugin.bundled.RouteOverviewUtil;
 import io.javalin.routeoverview.VisualTest.HandlerImplementation;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class TestRouteOverviewInJava {

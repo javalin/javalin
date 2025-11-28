@@ -2,14 +2,11 @@ package io.javalin.jetty
 
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Compressor
-import io.javalin.compression.forType
 import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.util.JavalinLogger
-import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream
-import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
 
 object JettyPrecompressingResourceHandler {
@@ -20,32 +17,37 @@ object JettyPrecompressingResourceHandler {
     fun clearCache() = compressedFiles.clear()
 
     @JvmField
-    var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
+    var resourceMaxSize: Int = 2 * 1024 * 1024
 
-    fun handle(target: String, resource: Resource, ctx: Context, compStrat: CompressionStrategy): Boolean {
-        var compressor = findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "", compStrat)
-        val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
-        if (contentType == null || excludedMimeType(contentType, compStrat)) {
-            compressor = null
-        }
-        val resultByteArray = getStaticResourceByteArray(resource, target, compressor) ?: return false
-        if (compressor != null) {
-            ctx.header(Header.CONTENT_ENCODING, compressor.encoding())
-        }
+    fun handle(resourcePath: String, ctx: Context, compressionStrategy: CompressionStrategy, handler: ConfigurableHandler): Boolean {
+        val resource = handler.getResource(resourcePath) ?: return false
+        val contentType = handler.resolveContentType(resourcePath)
+        val compressor = compressionStrategy.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")
+            .takeUnless { contentType == null || excludedMimeType(contentType, compressionStrategy) }
+
+        val resultByteArray = getCachedResourceBytes(resource, resourcePath, compressor) ?: return false
+
         ctx.header(Header.CONTENT_LENGTH, resultByteArray.size.toString())
         ctx.header(Header.CONTENT_TYPE, contentType ?: "")
-        ctx.header(Header.IF_NONE_MATCH)?.let { requestEtag ->
-            if (requestEtag == resource.weakETag) { // jetty resource use weakETag too
-                ctx.status(304)
-                return true // return early if resource is same as client cached version
-            }
+
+        if (compressor != null) {
+            ctx.disableCompression()
+            ctx.header(Header.CONTENT_ENCODING, compressor.encoding())
         }
-        ctx.header(Header.ETAG, resource.weakETag)
+
+        if (handler.tryHandleAsEtags(resource, ctx)) return true
+
         ctx.result(resultByteArray)
         return true
     }
 
-    private fun getStaticResourceByteArray(resource: Resource, target: String, compressor: Compressor?): ByteArray? {
+    private fun excludedMimeType(mimeType: String, compressionStrategy: CompressionStrategy) = when {
+        mimeType.isEmpty() -> false
+        compressionStrategy.allowedMimeTypes.contains(mimeType) -> false
+        else -> compressionStrategy.excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
+    }
+
+    private fun getCachedResourceBytes(resource: Resource, target: String, compressor: Compressor?): ByteArray? {
         if (resource.length() > resourceMaxSize) {
             JavalinLogger.warn(
                 "Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
@@ -53,35 +55,13 @@ object JettyPrecompressingResourceHandler {
             )
             return null
         }
-        val ext = compressor?.extension() ?: ""
-        return compressedFiles.computeIfAbsent(target + ext) { getCompressedByteArray(resource, compressor) }
+        return compressedFiles.computeIfAbsent(target + (compressor?.extension() ?: "")) {
+            ByteArrayOutputStream().also { output ->
+                resource.newInputStream().use { input ->
+                    (compressor?.compress(output) ?: output).use { input.copyTo(it) }
+                }
+            }.toByteArray()
+        }
     }
 
-    private fun getCompressedByteArray(resource: Resource, compressor: Compressor?): ByteArray {
-        val fileInput = resource.inputStream
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        val outputStream: OutputStream =
-            compressor?.compress(byteArrayOutputStream)
-                ?: byteArrayOutputStream
-
-        fileInput.copyTo(outputStream)
-        fileInput.close()
-        outputStream.close()
-        return byteArrayOutputStream.toByteArray()
-    }
-
-    private fun excludedMimeType(mimeType: String, compressionStrategy: CompressionStrategy) = when {
-        mimeType == "" -> false
-        compressionStrategy.allowedMimeTypes.contains(mimeType) -> false
-        else -> compressionStrategy.excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
-    }
-
-    private fun findMatchingCompressor(
-        contentTypeHeader: String,
-        compressionStrategy: CompressionStrategy
-    ): Compressor? =
-        contentTypeHeader
-            .split(",")
-            .map { it.trim() }
-            .firstNotNullOfOrNull { compressionStrategy.compressors.forType(it) }
 }

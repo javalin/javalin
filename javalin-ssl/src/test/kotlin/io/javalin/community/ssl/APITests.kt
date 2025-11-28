@@ -15,9 +15,8 @@ class APITests : IntegrationTestClass(){
                 it.insecurePort = 9999
                 it.secure = false
             })
-        }
-            .get("/") { ctx -> ctx.result("Hello World") }
-            .start()
+            config.routes.get("/") { ctx -> ctx.result("Hello World") }
+        }.start()
 
         untrustedClient.newCall(Request.Builder().url("http://localhost:9999/").build()).execute().use {
             assert(it.isSuccessful)

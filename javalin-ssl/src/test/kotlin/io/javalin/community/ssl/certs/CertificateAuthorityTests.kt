@@ -5,7 +5,7 @@ import io.javalin.community.ssl.IntegrationTestClass
 import io.javalin.community.ssl.SslConfig
 import io.javalin.community.ssl.SslPlugin
 import io.javalin.community.ssl.TrustConfig
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import nl.altindag.ssl.SSLFactory
 import nl.altindag.ssl.pem.util.PemUtils
@@ -119,12 +119,10 @@ class CertificateAuthorityTests : IntegrationTestClass() {
             config.withTrustConfig { trustConfig: TrustConfig -> trustConfig.certificateFromClasspath(ROOT_CERT_NAME) }
         }
         try {
-            Javalin.create { javalinConfig: JavalinConfig ->
-                javalinConfig.showJavalinBanner = false
-                javalinConfig.registerPlugin(sslPlugin)
-                javalinConfig.router.mount {
-                    it.get("/") { ctx: Context -> ctx.result(SUCCESS) }
-                }
+            Javalin.create { config  ->
+                config.startup.showJavalinBanner = false
+                config.registerPlugin(sslPlugin)
+                config.routes.get("/") { ctx: Context -> ctx.result(SUCCESS) }
             }.start().let { _ ->
                 testSuccessfulEndpoint(url, client.get()) // works
                 sslPlugin.reload { config: SslConfig ->

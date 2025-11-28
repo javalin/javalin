@@ -1,3 +1,0 @@
-@param one:String
-@param two:String
-<h1>${one} ${two}!</h1>

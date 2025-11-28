@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
@@ -45,7 +45,7 @@ class TestContextPath {
     fun `router works with context-path`() {
         val javalin = Javalin.create { it.router.contextPath = "/context-path" }
         TestUtil.test(javalin) { app, http ->
-            app.get("/hello") { it.result("Hello World") }
+            app.unsafe.routes.get("/hello") { it.result("Hello World") }
             assertThat(http.get("/hello").httpCode()).isEqualTo(NOT_FOUND)
             assertThat(http.getBody("/context-path/hello")).isEqualTo("Hello World")
         }
@@ -55,7 +55,7 @@ class TestContextPath {
     fun `router works with multi-level context-path`() {
         val javalin = Javalin.create { it.router.contextPath = "/context-path/path-context" }
         TestUtil.test(javalin) { app, http ->
-            app.get("/hello") { it.result("Hello World") }
+            app.unsafe.routes.get("/hello") { it.result("Hello World") }
             assertThat(http.get("/context-path/").httpCode()).isEqualTo(NOT_FOUND)
             assertThat(http.getBody("/context-path/path-context/hello")).isEqualTo("Hello World")
         }

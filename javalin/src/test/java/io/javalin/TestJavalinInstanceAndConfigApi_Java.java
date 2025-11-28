@@ -6,8 +6,20 @@ import io.javalin.config.Key;
 import io.javalin.config.MultipartConfig;
 import io.javalin.json.JavalinJackson;
 import io.javalin.plugin.Plugin;
+import io.javalin.websocket.WsConfig;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+
+import java.util.function.Consumer;
+
+import static io.javalin.testing.JavalinTestUtil.after;
+import static io.javalin.testing.JavalinTestUtil.before;
+import static io.javalin.testing.JavalinTestUtil.error;
+import static io.javalin.testing.JavalinTestUtil.exception;
+import static io.javalin.testing.JavalinTestUtil.get;
+import static io.javalin.testing.JavalinTestUtil.post;
+import static io.javalin.testing.JavalinTestUtil.sse;
+import static io.javalin.testing.JavalinTestUtil.ws;
 
 public class TestJavalinInstanceAndConfigApi_Java {
 
@@ -31,11 +43,7 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.http.generateEtags = true;
             app.http.prefer405over404 = true;
             app.http.strictContentTypes = true;
-            app.http.customCompression(new CompressionStrategy());
-            app.http.brotliAndGzipCompression(3);
-            app.http.brotliOnlyCompression(3);
-            app.http.gzipOnlyCompression(3);
-            app.http.disableCompression();
+            app.http.compressionStrategy = new CompressionStrategy();
             // Static files
             app.staticFiles.add("/public");
             app.staticFiles.enableWebjars();
@@ -44,17 +52,15 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.router.caseInsensitiveRoutes = true;
             app.router.ignoreTrailingSlashes = true;
             app.router.treatMultipleSlashesAsSingleSlash = true;
-            app.router.mount(router -> {
-                router.before("/hello", ctx -> {});
-                router.get("/hello", ctx -> ctx.result("Hello, World!"));
-                router.post("/hello", ctx -> ctx.result("Hello, World!"));
-                router.exception(Exception.class, (e, ctx) -> {});
-                router.error(404, ctx -> ctx.result("Not found"));
-                router.after("/hello", ctx -> {});
-                router.sse("/sse", client -> {});
-                router.ws("/ws", ws -> {});
-            });
-            app.router.apiBuilder(() -> {
+            app.routes.before("/hello", ctx -> {});
+            app.routes.get("/hello", ctx -> ctx.result("Hello, World!"));
+            app.routes.post("/hello", ctx -> ctx.result("Hello, World!"));
+            app.routes.exception(Exception.class, (e, ctx) -> {});
+            app.routes.error(404, ctx -> ctx.result("Not found"));
+            app.routes.after("/hello", ctx -> {});
+            app.routes.sse("/sse", client -> {});
+            app.routes.ws("/ws", ws -> {});
+            app.routes.apiBuilder(() -> {
                 ApiBuilder.get("/hello", ctx -> ctx.result("Hello, World!"));
             });
             // Context resolver
@@ -68,67 +74,48 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.bundledPlugins.enableRouteOverview("/overview");
             app.bundledPlugins.enableSslRedirects();
             // Events
-            app.events(event -> {
-                event.serverStarting(() -> System.out.println("Server is starting"));
-                event.serverStartFailed(() -> System.out.println("Server start failed"));
-                event.serverStarted(() -> System.out.println("Server is started"));
-                event.serverStopping(() -> System.out.println("Server is stopping"));
-                event.serverStopFailed(() -> System.out.println("Server stop failed"));
-                event.serverStopped(() -> System.out.println("Server is stopped"));
-                event.handlerAdded(handlerMetaInfo -> {});
-                event.wsHandlerAdded(wsHandlerMetaInfo -> {});
-            });
+            app.events.serverStarting(() -> System.out.println("Server is starting"));
+            app.events.serverStartFailed(() -> System.out.println("Server start failed"));
+            app.events.serverStarted(() -> System.out.println("Server is started"));
+            app.events.serverStopping(() -> System.out.println("Server is stopping"));
+            app.events.serverStopFailed(() -> System.out.println("Server stop failed"));
+            app.events.serverStopped(() -> System.out.println("Server is stopped"));
+            app.events.handlerAdded(handlerMetaInfo -> {});
+            app.events.wsHandlerAdded(wsHandlerMetaInfo -> {});
             // Request logger
             app.requestLogger.http((ctx, ms) -> {});
-            app.requestLogger.ws(ctx -> {});
+            Consumer<WsConfig> requestLogger = ws -> {};
+            app.routes.ws("/path", requestLogger);
             // Validation
             app.validation.register(Object.class, o -> new Object());
-            // Vue
-            app.vue.cacheControl = "Test";
-            app.vue.enableCspAndNonces = true;
-            app.vue.vueInstanceNameInJs = "Test";
-            app.vue.isDevFunction = ctx -> true;
-            app.vue.optimizeDependencies = true;
-            app.vue.stateFunction = ctx -> "Test";
-            app.vue.rootDirectory("Test");
             // Spa root
             app.spaRoot.addFile("/", "index.html");
             app.spaRoot.addHandler("/", ctx -> {});
             // Other
-            app.showJavalinBanner = false;
-            app.startupWatcherEnabled = false;
-            app.useVirtualThreads = true;
+            app.startup.showJavalinBanner = false;
+            app.startup.startupWatcherEnabled = false;
+            app.concurrency.useVirtualThreads = true;
             app.jsonMapper(new JavalinJackson());
             app.appData(new Key<>("Test"), "Test");
             app.fileRenderer((filePath, model, ctx) -> "Test");
             app.registerPlugin(new Plugin<>() {});
         });
 
-        javalin.events(event -> {
-            event.serverStarting(() -> System.out.println("Server is starting"));
-            event.serverStartFailed(() -> System.out.println("Server start failed"));
-            event.serverStarted(() -> System.out.println("Server is started"));
-            event.serverStopping(() -> System.out.println("Server is stopping"));
-            event.serverStopFailed(() -> System.out.println("Server stop failed"));
-            event.serverStopped(() -> System.out.println("Server is stopped"));
-            event.handlerAdded(handlerMetaInfo -> {});
-            event.wsHandlerAdded(wsHandlerMetaInfo -> {});
-        });
-        javalin.before("/hello", ctx -> {});
-        javalin.get("/hello", ctx -> ctx.result("Hello, World!"));
-        javalin.post("/hello", ctx -> ctx.result("Hello, World!"));
-        javalin.exception(Exception.class, (e, ctx) -> {});
-        javalin.error(404, ctx -> ctx.result("Not found"));
-        javalin.after("/hello", ctx -> {});
-        javalin.sse("/sse", client -> {});
-        javalin.ws("/ws", ws -> {});
+        // Events are now configured in the config block above (lines 81-90)
+        // The events() method on Javalin instance has been removed as part of Javalin 7 API redesign
+        before(javalin, "/hello", ctx -> {});
+        get(javalin, "/hello", ctx -> ctx.result("Hello, World!"));
+        post(javalin, "/hello", ctx -> ctx.result("Hello, World!"));
+        exception(javalin, Exception.class, (e, ctx) -> {});
+        error(javalin, 404, ctx -> ctx.result("Not found"));
+        after(javalin, "/hello", ctx -> {});
+        sse(javalin, "/sse", client -> {});
+        ws(javalin, "/ws", ws -> {});
         javalin.start();
         javalin.javalinServlet();
         javalin.jettyServer();
         javalin.port();
-        javalin.unsafeConfig();
         javalin.stop();
-
     }
 
 }

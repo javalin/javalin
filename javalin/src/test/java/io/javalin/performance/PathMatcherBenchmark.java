@@ -1,27 +1,22 @@
 package io.javalin.performance;
 
-import io.javalin.config.JavalinConfig;
+import io.javalin.config.JavalinState;
 import io.javalin.config.RouterConfig;
-import static io.javalin.http.HandlerType.GET;
-
 import io.javalin.http.HandlerType;
 import io.javalin.router.Endpoint;
 import io.javalin.router.ParsedEndpoint;
 import io.javalin.router.matcher.PathMatcher;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static io.javalin.http.HandlerType.GET;
 
 @State(Scope.Benchmark)
 @Fork(value = 1)
@@ -44,10 +39,10 @@ public class PathMatcherBenchmark {
     public void setup() {
         this.oldPathMatcher = new OldPathMatcher();
         this.pathMatcher = new PathMatcher();
-        var routingConfig = new RouterConfig(new JavalinConfig());
+        var routingConfig = new RouterConfig();
         for (int i = 0; i < 50; i++) {
-            this.pathMatcher.add(new ParsedEndpoint(new Endpoint(GET, "/hello" + i, (ctx) -> {}), routingConfig));
-            this.oldPathMatcher.add(new ParsedEndpoint(new Endpoint(GET, "/hello" + i, (ctx) -> {}), routingConfig));
+            this.pathMatcher.add(new ParsedEndpoint(Endpoint.create(GET, "/hello" + i).handler((ctx) -> {}), routingConfig));
+            this.oldPathMatcher.add(new ParsedEndpoint(Endpoint.create(GET, "/hello" + i).handler((ctx) -> {}), routingConfig));
         }
     }
 
@@ -75,12 +70,12 @@ public class PathMatcherBenchmark {
 
 final class OldPathMatcher {
     @SuppressWarnings("Convert2Diamond")
-    private final EnumMap<HandlerType, ArrayList<ParsedEndpoint>> handlerEntries = new EnumMap<HandlerType, ArrayList<ParsedEndpoint>>(
-        HandlerType.getEntries().stream().collect(Collectors.toMap((handler) -> handler, (handler) -> new ArrayList<>()))
+    private final HashMap<HandlerType, ArrayList<ParsedEndpoint>> handlerEntries = new HashMap<HandlerType, ArrayList<ParsedEndpoint>>(
+        HandlerType.values().stream().collect(Collectors.toMap((handler) -> handler, (handler) -> new ArrayList<>()))
     );
 
     public void add(ParsedEndpoint entry) {
-        handlerEntries.get(entry.getEndpoint().getMethod()).add(entry);
+        handlerEntries.get(entry.endpoint.method).add(entry);
     }
 
     public List<ParsedEndpoint> findEntries(HandlerType handlerType, String requestUri) {
@@ -94,8 +89,8 @@ final class OldPathMatcher {
     }
 
     private boolean match(ParsedEndpoint entry, String requestPath) {
-        if (entry.getEndpoint().getPath().equals("*")) return true;
-        if (entry.getEndpoint().getPath().equals(requestPath)) return true;
+        if (entry.endpoint.path.equals("*")) return true;
+        if (entry.endpoint.path.equals(requestPath)) return true;
         return entry.matches(requestPath);
     }
 }

@@ -8,8 +8,6 @@
 
 package io.javalin;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.eclipse.jetty.server.Server;
@@ -18,7 +16,12 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import static io.javalin.http.HttpStatus.OK;
+import static io.javalin.testing.JavalinTestUtil.get;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -41,15 +44,19 @@ public class TestGracefulShutdown {
     public void t2_shutdown_is_graceful_when_custom_server_has_statisticshandler() throws Exception {
         Server server = new Server();
         server.insertHandler(new StatisticsHandler());
-        Javalin app = Javalin.create(c -> c.pvt.jetty.server = server).start(0);
+        Javalin app = Javalin.create();
+        app.unsafe.jettyInternal.server = server;
         addEndpoints(app);
+        app.start(0);
         testIfShutdownIsGraceful(app);
     }
 
     @Test
     public void t3_shutdown_is_not_graceful_when_custom_server_has_no_statisticshandler() {
-        Javalin app = Javalin.create(c -> c.pvt.jetty.server = new Server()).start(0);
+        Javalin app = Javalin.create();
+        app.unsafe.jettyInternal.server = new Server();
         addEndpoints(app);
+        app.start(0);
         assertThrows(ExecutionException.class, () -> testIfShutdownIsGraceful(app));
     }
 
@@ -61,8 +68,8 @@ public class TestGracefulShutdown {
     }
 
     private void addEndpoints(Javalin app) {
-        app.get("/immediate-response", context -> context.status(OK));
-        app.get("/delayed-response", context -> Thread.sleep(LONG_WAIT_TIME_IN_MSECS));
+        get(app, "/immediate-response", context -> context.status(OK));
+        get(app, "/delayed-response", context -> Thread.sleep(LONG_WAIT_TIME_IN_MSECS));
     }
 
     private void performBlockingRequest(Javalin app) throws Exception {

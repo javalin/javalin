@@ -31,11 +31,7 @@ class TestJavalinInstanceAndConfigApi {
             app.http.generateEtags = true
             app.http.prefer405over404 = true
             app.http.strictContentTypes = true
-            app.http.customCompression(CompressionStrategy())
-            app.http.brotliAndGzipCompression(3)
-            app.http.brotliOnlyCompression(3)
-            app.http.gzipOnlyCompression(3)
-            app.http.disableCompression()
+            app.http.compressionStrategy = CompressionStrategy()
             // Static files
             app.staticFiles.add("/public")
             app.staticFiles.enableWebjars()
@@ -44,17 +40,16 @@ class TestJavalinInstanceAndConfigApi {
             app.router.caseInsensitiveRoutes = true
             app.router.ignoreTrailingSlashes = true
             app.router.treatMultipleSlashesAsSingleSlash = true
-            app.router.mount { router ->
-                router.before("/hello") { ctx -> }
-                router.get("/hello") { ctx -> ctx.result("Hello, World!") }
-                router.post("/hello") { ctx -> ctx.result("Hello, World!") }
-                router.exception(Exception::class.java) { e, ctx -> }
-                router.error(404) { ctx -> ctx.result("Not found") }
-                router.after("/hello") { ctx -> }
-                router.sse("/sse") { client -> }
-                router.ws("/ws") { ws -> }
-            }
-            app.router.apiBuilder {
+            // Routes using new API
+            app.routes.before("/hello") { ctx -> }
+            app.routes.get("/hello") { ctx -> ctx.result("Hello, World!") }
+            app.routes.post("/hello") { ctx -> ctx.result("Hello, World!") }
+            app.routes.exception(Exception::class.java) { e, ctx -> }
+            app.routes.error(404) { ctx -> ctx.result("Not found") }
+            app.routes.after("/hello") { ctx -> }
+            app.routes.sse("/sse") { client -> }
+            app.routes.ws("/ws") { ws -> }
+            app.routes.apiBuilder {
                 get("/hello") { ctx -> ctx.result("Hello, World!") }
             }
             // Context resolver
@@ -69,65 +64,39 @@ class TestJavalinInstanceAndConfigApi {
             app.bundledPlugins.enableSslRedirects()
             app.bundledPlugins // etc etc
             // Events
-            app.events { event ->
-                event.serverStarting { println("Server is starting") }
-                event.serverStartFailed { println("Server start failed") }
-                event.serverStarted { println("Server is started") }
-                event.serverStopping { println("Server is stopping") }
-                event.serverStopFailed { println("Server stop failed") }
-                event.serverStopped { println("Server is stopped") }
-                event.handlerAdded {}
-                event.wsHandlerAdded {}
-            }
+            app.events.serverStarting { println("Server is starting") }
+            app.events.serverStartFailed { println("Server start failed") }
+            app.events.serverStarted { println("Server is started") }
+            app.events.serverStopping { println("Server is stopping") }
+            app.events.serverStopFailed { println("Server stop failed") }
+            app.events.serverStopped { println("Server is stopped") }
+            app.events.handlerAdded {}
+            app.events.wsHandlerAdded {}
             // Request logger
             app.requestLogger.http { ctx, ms -> }
             app.requestLogger.ws { ctx -> }
             // Validation
             app.validation.register(Any::class.java) { }
-            // Vue
-            app.vue.cacheControl = "Test"
-            app.vue.enableCspAndNonces = true
-            app.vue.vueInstanceNameInJs = "Test"
-            app.vue.isDevFunction = { true }
-            app.vue.optimizeDependencies = true
-            app.vue.stateFunction = { "Test" }
-            app.vue.rootDirectory("Test")
             // Spa root
             app.spaRoot.addFile("/", "index.html")
             app.spaRoot.addHandler("/") { ctx -> }
             // Other
-            app.showJavalinBanner = false
-            app.startupWatcherEnabled = false
-            app.useVirtualThreads = true
+            app.startup.showJavalinBanner = false
+            app.startup.startupWatcherEnabled = false
+            app.concurrency.useVirtualThreads = true
             app.jsonMapper(JavalinJackson())
             app.appData(Key("Test"), "Test")
             app.fileRenderer { filePath, model, ctx -> "Test" }
             app.registerPlugin(object : Plugin<Any>() {})
         }
 
-        app.events { event ->
-            event.serverStarting { println("Server is starting") }
-            event.serverStartFailed { println("Server start failed") }
-            event.serverStarted { println("Server is started") }
-            event.serverStopping { println("Server is stopping") }
-            event.serverStopFailed { println("Server stop failed") }
-            event.serverStopped { println("Server is stopped") }
-            event.handlerAdded {}
-            event.wsHandlerAdded {}
-        }
-        app.before("/hello") { ctx -> }
-        app.get("/hello") { ctx -> ctx.result("Hello, World!") }
-        app.post("/hello") { ctx -> ctx.result("Hello, World!") }
-        app.exception(Exception::class.java) { e, ctx -> }
-        app.error(404) { ctx -> ctx.result("Not found") }
-        app.after("/hello") { ctx -> }
-        app.sse("/sse") { client -> }
-        app.ws("/ws") { ws -> }
+        // Events are now configured in the config block above (lines 81-90)
+        // The events() method on Javalin instance has been removed as part of Javalin 7 API redesign
         app.start()
         app.javalinServlet()
         app.jettyServer()
         app.port()
-        app.unsafeConfig()
+        app.unsafe
         app.stop()
 
     }

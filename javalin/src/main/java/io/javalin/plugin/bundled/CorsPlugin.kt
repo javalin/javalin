@@ -1,6 +1,6 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header
@@ -77,33 +77,31 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
         }
     }
 
-    override fun onStart(config: JavalinConfig) {
-        config.router.mount {
-            pluginConfig.rules.forEach { corsRule ->
-                val origins = corsRule.allowedOrigins()
+    override fun onStart(state: JavalinState) {
+        pluginConfig.rules.forEach { corsRule ->
+            val origins = corsRule.allowedOrigins()
 
-                require(origins.isNotEmpty() || corsRule.reflectClientOrigin) {
-                    "Origins cannot be empty if `reflectClientOrigin` is false."
-                }
-                require(origins.isEmpty() || !corsRule.reflectClientOrigin) {
-                    "Cannot set `allowedOrigins` if `reflectClientOrigin` is true"
-                }
-                require(!("*" in origins && corsRule.allowCredentials)) {
-                    """
-                        |Cannot use `anyHost()` / Origin: * if `allowCredentials` is true as that is rejected by all browsers.
-                        |Please use either an explicit list of allowed origins via `allowHost()` or use `reflectClientOrigin = true` without any origins.
-                        |Docs: https://javalin.io/plugins/cors""".trimMargin()
-                }
+            require(origins.isNotEmpty() || corsRule.reflectClientOrigin) {
+                "Origins cannot be empty if `reflectClientOrigin` is false."
+            }
+            require(origins.isEmpty() || !corsRule.reflectClientOrigin) {
+                "Cannot set `allowedOrigins` if `reflectClientOrigin` is true"
+            }
+            require(!("*" in origins && corsRule.allowCredentials)) {
+                """
+                    |Cannot use `anyHost()` / Origin: * if `allowCredentials` is true as that is rejected by all browsers.
+                    |Please use either an explicit list of allowed origins via `allowHost()` or use `reflectClientOrigin = true` without any origins.
+                    |Docs: https://javalin.io/plugins/cors""".trimMargin()
+            }
 
-                val validOptionStatusCodes = listOf(HttpStatus.NOT_FOUND, HttpStatus.METHOD_NOT_ALLOWED)
+            val validOptionStatusCodes = listOf(HttpStatus.NOT_FOUND, HttpStatus.METHOD_NOT_ALLOWED)
 
-                it.before(corsRule.path) { ctx ->
-                    handleCors(ctx, corsRule)
-                }
-                it.after(corsRule.path) { ctx ->
-                    if (ctx.method() == OPTIONS && ctx.status() in validOptionStatusCodes) {
-                        ctx.result("").status(200) // CORS is enabled, so we return 200 for OPTIONS
-                    }
+            state.routes.before(corsRule.path) { ctx ->
+                handleCors(ctx, corsRule)
+            }
+            state.routes.after(corsRule.path) { ctx ->
+                if (ctx.method() == OPTIONS && ctx.status() in validOptionStatusCodes) {
+                    ctx.result("").status(200) // CORS is enabled, so we return 200 for OPTIONS
                 }
             }
         }

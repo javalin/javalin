@@ -6,13 +6,14 @@
 
 package io.javalin.validation
 
-import io.javalin.config.JavalinConfig
-import io.javalin.config.ValidationConfig
+import io.javalin.config.JavalinState
 import io.javalin.config.Key
+import io.javalin.config.ValidationConfig
 import io.javalin.http.HttpStatus
+import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 
-class MissingConverterException(val className: String) : RuntimeException()
+class MissingConverterException(val className: String) : JavalinException("No converter registered for class: $className")
 
 class Validation(private val validationConfig: ValidationConfig = ValidationConfig()) {
 
@@ -47,8 +48,8 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
             validators.flatMap { it.errors().entries }.associate { it.key to it.value }
 
         @JvmStatic
-        fun addValidationExceptionMapper(cfg: JavalinConfig) {
-            cfg.pvt.internalRouter.addHttpExceptionHandler(ValidationException::class.java) { e, ctx ->
+        fun addValidationExceptionMapper(cfg: JavalinState) {
+            cfg.internalRouter.addHttpExceptionHandler(ValidationException::class.java) { e, ctx ->
                 ctx.json(e.errors).status(HttpStatus.BAD_REQUEST)
             }
         }

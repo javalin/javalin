@@ -1,4 +1,4 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
@@ -15,20 +15,16 @@ class TestMultipleSlashes {
     private val multipleSlashesWithSignificantTrailingSlashesApp = Javalin.create {
         it.router.treatMultipleSlashesAsSingleSlash = true
         it.router.ignoreTrailingSlashes = false
-    }.get("/a") {
-        it.result("a")
-    }.get("/a/") {
-        it.result("a/")
-    }.get("/a/b") {
-        it.result("b")
-    }.get("/a/b/") {
-        it.result("b/")
+        it.routes.get("/a") { ctx -> ctx.result("a") }
+        it.routes.get("/a/") { ctx -> ctx.result("a/") }
+        it.routes.get("/a/b") { ctx -> ctx.result("b") }
+        it.routes.get("/a/b/") { ctx -> ctx.result("b/") }
     }
 
     @Test
     fun `multiple slashes at the start are okay when multipleSlashes is enabled`() =
         TestUtil.test(multipleSlashesApp) { app, http ->
-            app.get("/hello") { it.result("ok") }
+            app.unsafe.routes.get("/hello") { it.result("ok") }
             val res = http.get("//hello")
             assertThat(res.httpCode()).isEqualTo(OK)
             assertThat(res.body).isEqualTo("ok")
@@ -37,7 +33,7 @@ class TestMultipleSlashes {
     @Test
     fun `multiple slashes in the middle are okay when multipleSlashes is enabled`() =
         TestUtil.test(multipleSlashesApp) { app, http ->
-            app.get("/hello/world") { it.result("ok") }
+            app.unsafe.routes.get("/hello/world") { it.result("ok") }
             val res = http.get("/hello//world")
             assertThat(res.httpCode()).isEqualTo(OK)
             assertThat(res.body).isEqualTo("ok")
@@ -46,7 +42,7 @@ class TestMultipleSlashes {
     @Test
     fun `multiple slashes at the end are okay when multipleSlashes is enabled`() =
         TestUtil.test(multipleSlashesApp) { app, http ->
-            app.get("/hello") { it.result("ok") }
+            app.unsafe.routes.get("/hello") { it.result("ok") }
             val res = http.get("/hello//")
             assertThat(res.httpCode()).isEqualTo(OK)
             assertThat(res.body).isEqualTo("ok")
@@ -55,7 +51,7 @@ class TestMultipleSlashes {
     @Test
     fun `multiple slashes together with match sub path`() =
         TestUtil.test(multipleSlashesApp) { app, http ->
-            app.get("/{name}*") { it.result(it.pathParam("name")) }
+            app.unsafe.routes.get("/{name}*") { it.result(it.pathParam("name")) }
             assertThat(http.getBody("/text")).isEqualTo("text")
             assertThat(http.getBody("/text//two")).isEqualTo("text")
         }
@@ -83,7 +79,7 @@ class TestMultipleSlashes {
 
     @Test
     fun `multiple slashes are not accepted when not enabled`() = TestUtil.test { app, http ->
-        app.get("/hello/world") { it.result("ok") }
+        app.unsafe.routes.get("/hello/world") { it.result("ok") }
         listOf(
             "//hello/world",
             "/hello//world",

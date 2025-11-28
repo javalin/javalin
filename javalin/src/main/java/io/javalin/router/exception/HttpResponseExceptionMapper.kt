@@ -10,8 +10,6 @@ import io.javalin.http.BadGatewayResponse
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.ConflictResponse
 import io.javalin.http.ContentType
-import io.javalin.http.ContentType.APPLICATION_JSON
-import io.javalin.http.ContentType.TEXT_PLAIN
 import io.javalin.http.Context
 import io.javalin.http.ForbiddenResponse
 import io.javalin.http.GatewayTimeoutResponse
@@ -30,10 +28,23 @@ import java.util.*
 object HttpResponseExceptionMapper {
 
     fun handle(e: HttpResponseException, ctx: Context) = when {
-        ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true || ctx.res().contentType == ContentType.HTML -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN)
-        ctx.header(Header.ACCEPT)?.contains(ContentType.JSON) == true || ctx.res().contentType == ContentType.JSON -> ctx.status(e.status).result(jsonResult(e)).contentType(APPLICATION_JSON)
-        else -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN)
+        ctx.accepts(ContentType.HTML) -> ctx.answer(e, ::plainResult).contentType(ContentType.HTML)
+        ctx.accepts(ContentType.JSON) -> ctx.answer(e, ::jsonResult).contentType(ContentType.JSON)
+        else -> ctx.answer(e, ::plainResult).contentType(ContentType.PLAIN)
     }
+
+    private fun Context.accepts(contentType: String) =
+        this.header(Header.ACCEPT)?.contains(contentType) == true || res().contentType == contentType
+
+    private fun Context.answer(e: HttpResponseException, body: (HttpResponseException) -> String) = status(e.status)
+        .result(body(e))
+        .also {
+            if (e !is MethodNotAllowedResponse) return@also
+            val allowedMethods = e.details["availableMethods"] ?: e.details["Available methods"]
+            if (allowedMethods != null) {
+                header(Header.ALLOW, allowedMethods)
+            }
+        }
 
     internal fun jsonResult(e: HttpResponseException) =
         """|{

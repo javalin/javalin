@@ -1,7 +1,8 @@
-package io.javalin
+﻿package io.javalin
 
 import io.javalin.http.Cookie
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.SameSite
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
@@ -12,7 +13,7 @@ class TestCookie {
 
     @Test
     fun `cookie set on unspecified path is set to root URL`() = TestUtil.test { app, http ->
-        app.get("/cookie") { it.cookie(Cookie("key", "value")) }
+        app.unsafe.routes.get("/cookie") { it.cookie(Cookie("key", "value")) }
 
         val setCookieResponse = http.get("/cookie")
         val cookiePath = setCookieResponse.headers.getFirst(Header.SET_COOKIE).split(";")[1].replaceFirst(" ", "")
@@ -23,8 +24,8 @@ class TestCookie {
     @Test
     fun `removing cookie without specifying path will remove cookie set to root URL`() = TestUtil.test { app, http ->
         val cookie = Cookie("key", "value")
-        app.get("/cookie") { it.cookie(cookie) }
-        app.get("/cookie-remove") { it.removeCookie(cookie.name) }
+        app.unsafe.routes.get("/cookie") { it.cookie(cookie) }
+        app.unsafe.routes.get("/cookie-remove") { it.removeCookie(cookie.name) }
         val setCookieResponse = http.get("/cookie")
         assertThat(setCookieResponse.headers.getFirst(Header.SET_COOKIE)).isEqualTo("key=value; Path=/")
 
@@ -36,8 +37,8 @@ class TestCookie {
     @Test
     fun `removing cookie without specifying path will not remove cookie set to non-root URL`() = TestUtil.test { app, http ->
         val cookie = Cookie("key", "value", path = "/some-path")
-        app.get("/cookie") { it.cookie(cookie) }
-        app.get("/cookie-remove") { it.removeCookie(cookie.name) }
+        app.unsafe.routes.get("/cookie") { it.cookie(cookie) }
+        app.unsafe.routes.get("/cookie-remove") { it.removeCookie(cookie.name) }
         val setCookieResponse = http.get("/cookie")
         assertThat(setCookieResponse.headers.getFirst(Header.SET_COOKIE)).isEqualTo("key=value; Path=/some-path")
 
@@ -51,26 +52,28 @@ class TestCookie {
      */
     @Test
     fun `single cookie returns null when missing`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-1") { it.result("" + it.cookie("my-cookie")) }
+        app.unsafe.routes.get("/read-cookie-1") { it.result("" + it.cookie("my-cookie")) }
+        assertThat(http.getStatus("/read-cookie-1")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/read-cookie-1")).isEqualTo("null")
     }
 
     @Test
     fun `single cookie works`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-2") { it.result(it.cookie("my-cookie")!!) }
+        app.unsafe.routes.get("/read-cookie-2") { it.result(it.cookie("my-cookie")!!) }
         val response = Unirest.get("${http.origin}/read-cookie-2").header(Header.COOKIE, "my-cookie=my-cookie-value").asString()
         assertThat(response.body).isEqualTo("my-cookie-value")
     }
 
     @Test
     fun `cookie-map returns empty when no cookies are set`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-3") { it.result(it.cookieMap().toString()) }
+        app.unsafe.routes.get("/read-cookie-3") { it.result(it.cookieMap().toString()) }
+        assertThat(http.getStatus("/read-cookie-3")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/read-cookie-3")).isEqualTo("{}")
     }
 
     @Test
     fun `cookie-map returns all cookies if cookies are set`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-4") { it.result(it.cookieMap().toString()) }
+        app.unsafe.routes.get("/read-cookie-4") { it.result(it.cookieMap().toString()) }
         val response = Unirest.get("${http.origin}/read-cookie-4").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString()
         assertThat(response.body).isEqualTo("{k1=v1, k2=v2, k3=v3}")
     }
@@ -80,22 +83,23 @@ class TestCookie {
      */
     @Test
     fun `setting a cookie works`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { it.cookie("Test", "Tast") }
-        app.get("/get-cookie") { it.result(it.cookie("Test")!!) }
+        app.unsafe.routes.get("/create-cookie") { it.cookie("Test", "Tast") }
+        app.unsafe.routes.get("/get-cookie") { it.result(it.cookie("Test")!!) }
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).isEqualTo("Test=Tast; Path=/")
+        assertThat(http.getStatus("/get-cookie")).isEqualTo(HttpStatus.OK)
         assertThat(http.getBody("/get-cookie")).isEqualTo("Tast")
     }
 
     @Test
     fun `setting a Cookie object works`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { it.cookie(Cookie("Hest", "Hast", maxAge = 7)) }
+        app.unsafe.routes.get("/create-cookie") { it.cookie(Cookie("Hest", "Hast", maxAge = 7)) }
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Hest=Hast")
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Max-Age=7")
     }
 
     @Test
     fun `can't set duplicate cookies when other cookies set`() = TestUtil.test { app, http ->
-        app.get("/create-cookies") {
+        app.unsafe.routes.get("/create-cookies") {
             it.cookie("Test-1", "1")
             it.cookie("Test-2", "2")
             it.cookie("Test-3", "3")
@@ -110,7 +114,7 @@ class TestCookie {
 
     @Test
     fun `can't set duplicate cookies when no other cookies set`() = TestUtil.test { app, http ->
-        app.get("/create-cookies") {
+        app.unsafe.routes.get("/create-cookies") {
             it.cookie("MyCookie", "A")
             it.cookie("MyCookie", "B")  // duplicate
         }
@@ -121,22 +125,23 @@ class TestCookie {
 
     @Test
     fun `can set samesite easily`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.STRICT)) }
+        app.unsafe.routes.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.STRICT)) }
         val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)
         assertThat(cookie).isEqualTo("Test=Tast; Path=/; SameSite=Strict")
     }
 
     @Test
     fun `can set samesite and other properties`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.NONE, isHttpOnly = true, domain = "localhost")) }
+        app.unsafe.routes.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.NONE, isHttpOnly = true, domain = "localhost")) }
         val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)
         assertThat(cookie).isEqualTo("Test=Tast; Path=/; Domain=localhost; HttpOnly; SameSite=None")
     }
 
     private fun cookieIsEffectivelyRemoved(cookie: String, path: String): Boolean {
-        val pathMatches = cookie.split(";")[1].split("=")[1] == path
-        val expiresEpoch = cookie.split(";")[2] == " Expires=Thu, 01-Jan-1970 00:00:00 GMT"
-        val maxAgeZero = cookie.split(";")[3] == " Max-Age=0"
-        return pathMatches && expiresEpoch && maxAgeZero
+        val parts = cookie.split(";")
+        val pathMatches = parts[1].split("=")[1].trim() == path
+        val expiresEpoch = parts[2].trim() == "Expires=Thu, 01 Jan 1970 00:00:00 GMT"
+        val maxAgeZero = parts.size > 3 && parts[3].trim() == "Max-Age=0"
+        return pathMatches && (expiresEpoch || maxAgeZero)
     }
 }

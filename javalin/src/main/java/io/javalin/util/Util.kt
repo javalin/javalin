@@ -66,28 +66,28 @@ object Util {
     }
 
     @JvmStatic
-    fun logJavalinVersion() = try {
+    fun logJavalinVersion(showVersionWarning: Boolean = true) = try {
         val properties = Properties().also {
             val propertiesPath = "META-INF/maven/io.javalin/javalin/pom.properties"
             it.load(this.javaClass.classLoader.getResourceAsStream(propertiesPath))
         }
         val (version, buildTime) = listOf(properties.getProperty("version")!!, properties.getProperty("buildTime")!!)
-        JavalinLogger.startup("You are running Javalin $version (released ${formatBuildTime(buildTime)}).")
+        JavalinLogger.startup("You are running Javalin $version (released ${formatBuildTime(buildTime, showVersionWarning)}).")
     } catch (e: Exception) {
         // it's not that important
     }
 
-    private fun formatBuildTime(buildTime: String): String? = try {
+    private fun formatBuildTime(buildTime: String, showVersionWarning: Boolean = true): String? = try {
         val (release, now) = listOf(Instant.parse(buildTime), Instant.now())
         val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.US).withZone(ZoneId.of("Z"))
-        formatter.format(release) + if (now.isAfter(release.plus(90, ChronoUnit.DAYS))) {
+        formatter.format(release) + if (showVersionWarning && now.isAfter(release.plus(120, ChronoUnit.DAYS))) {
             ". Your Javalin version is ${ChronoUnit.DAYS.between(release, now)} days old. Consider checking for a newer version."
         } else ""
     } catch (e: Exception) {
         null // it's not that important
     }
 
-    fun getChecksumAndReset(inputStream: ByteArrayInputStream): String {
+    fun checksumAndReset(inputStream: ByteArrayInputStream): String {
         val cis = CheckedInputStream(inputStream, Adler32())
         var byte = cis.read()
         while (byte > -1) {
@@ -98,12 +98,12 @@ object Util {
     }
 
     @JvmStatic
-    fun getResourceUrl(path: String): URL? = this.javaClass.classLoader.getResource(path)
+    fun resourceUrl(path: String): URL? = this.javaClass.classLoader.getResource(path)
 
-    fun getFileUrl(path: String): URL? = if (File(path).exists()) File(path).toURI().toURL() else null
+    fun fileUrl(path: String): URL? = if (File(path).exists()) File(path).toURI().toURL() else null
 
     @JvmStatic
-    fun getPort(e: Exception) = e.message!!.takeLastWhile { it != ':' }
+    fun port(e: Exception) = e.message!!.takeLastWhile { it != ':' }
 
     fun <T : Any?> findByClass(map: Map<Class<out Exception>, T>, exceptionClass: Class<out Exception>): T? = map.getOrElse(exceptionClass) {
         var superclass = exceptionClass.superclass

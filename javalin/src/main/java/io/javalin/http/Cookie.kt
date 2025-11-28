@@ -1,6 +1,5 @@
 package io.javalin.http
 
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.Cookie as ServletCookie
 
@@ -43,14 +42,13 @@ enum class SameSite(val value: String) {
  * @param path indicates the path that must exist in the requested URL for the browser to
  * send the Cookie header. (default = "/")
  * @param maxAge indicates the number of seconds until the cookie expires.
- * A zero or negative number will expire the cookie immediately. (default = -1)
+ * A negative value means that the cookie is not stored persistently and will be deleted
+ * when the Web browser exits. A zero value causes the cookie to be deleted. (default = -1)
  * @param secure indicates that the cookie is sent to the server only when a request is
  * made with the https: scheme (except on localhost), and therefore, is more resistant
  * to man-in-the-middle attacks (default: false)
- * @param version the version of the protocol this cookie complies with (default: 0)
  * @param isHttpOnly if true, forbids JavaScript from accessing the cookie, for example,
  * through the `Document.cookie` property. (default: false)
- * @param comment a comment that describes a cookie's purpose (default: null)
  * @param domain defines the host to which the cookie will be sent. If null this attribute
  * defaults to the host of the current document URL, not including subdomains. (default: null)
  * @param sameSite controls whether or not a cookie is sent with cross-site requests,
@@ -62,9 +60,7 @@ data class Cookie @JvmOverloads constructor(
     var path: String = "/",
     var maxAge: Int = -1,
     var secure: Boolean = false,
-    var version: Int = 0,
     var isHttpOnly: Boolean = false,
-    var comment: String? = null,
     var domain: String? = null,
     var sameSite: SameSite? = null
 )
@@ -74,9 +70,7 @@ fun HttpServletResponse.setJavalinCookie(javalinCookie: Cookie) {
         this.path = javalinCookie.path
         this.maxAge = javalinCookie.maxAge
         this.secure = javalinCookie.secure
-        this.version = javalinCookie.version
         this.isHttpOnly = javalinCookie.isHttpOnly
-        this.comment = javalinCookie.comment
         if (javalinCookie.domain != null) {
             // Null check required as Servlet API does domain.toLowerCase()
             // with the amusing comment "IE allegedly needs this"
@@ -97,9 +91,6 @@ fun HttpServletResponse.removeCookie(name: String, path: String?) =
         this.path = path
         this.maxAge = 0
     })
-
-fun HttpServletRequest.getCookie(name: String): String? =
-    this.cookies?.find { it.name == name }?.value
 
 fun String.addSameSite(cookie: Cookie): String {
     if (cookie.sameSite == null || this.contains(SAME_SITE)) return this

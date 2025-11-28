@@ -9,10 +9,10 @@ import java.util.function.Consumer
 fun main() {
     val app = Javalin.create {
         it.registerPlugin(KRate { it.limit = 3 })
-    }
-    app.get("/") { ctx ->
-        ctx.with(KRate::class).tryConsume(cost = 5) // will throw because limit is 3
-        ctx.result("Hello World")
+        it.routes.get("/") { ctx ->
+            ctx.with(KRate::class).tryConsume(cost = 5) // will throw because limit is 3
+            ctx.result("Hello World")
+        }
     }
 }
 

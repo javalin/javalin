@@ -31,8 +31,8 @@ class SinglePageHandler {
 
     fun add(hostedPath: String, filePath: String, location: Location) {
         val url = when (location) {
-            Location.CLASSPATH -> Util.getResourceUrl(filePath.removePrefix("/")) ?: throw IllegalArgumentException("File at '$filePath' not found. Path should be relative to resource folder.")
-            Location.EXTERNAL -> Util.getFileUrl(filePath) ?: throw IllegalArgumentException("External file at '$filePath' not found.")
+            Location.CLASSPATH -> Util.resourceUrl(filePath.removePrefix("/")) ?: throw IllegalArgumentException("File at '$filePath' not found. Path should be relative to resource folder.")
+            Location.EXTERNAL -> Util.fileUrl(filePath) ?: throw IllegalArgumentException("External file at '$filePath' not found.")
         }
         pathPageMap[hostedPath] = Page(url, url.readText())
     }
