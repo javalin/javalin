@@ -6,7 +6,7 @@
 
 package io.javalin.jetty
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.event.JavalinLifecycleEvent
 import io.javalin.http.ContentType
 import io.javalin.util.ConcurrencyUtil
@@ -30,13 +30,13 @@ import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.ThreadPool
 
-class JettyServer(private val cfg: JavalinConfig) {
+class JettyServer(private val cfg: JavalinState) {
 
     // MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
 
     init {
 
-        if (cfg.startupWatcherEnabled) {
+        if (cfg.startup.startupWatcherEnabled) {
             Thread {
                 Thread.sleep(5000)
                 if (!started) {
@@ -48,14 +48,14 @@ class JettyServer(private val cfg: JavalinConfig) {
         }
     }
 
-    fun threadPool() = cfg.jetty.threadPool ?: defaultThreadPool(cfg.useVirtualThreads).also { cfg.jetty.threadPool = it } // make sure config has access to the thread pool instance
-    fun server() = cfg.pvt.jetty.server ?: defaultServer(threadPool()).also { cfg.pvt.jetty.server = it } // make sure config has access to the update server instance
+    fun threadPool() = cfg.jetty.threadPool ?: defaultThreadPool(cfg.concurrency.useVirtualThreads).also { cfg.jetty.threadPool = it } // make sure config has access to the thread pool instance
+    fun server() = cfg.jettyInternal.server ?: defaultServer(threadPool()).also { cfg.jettyInternal.server = it } // make sure config has access to the update server instance
     fun port() = (server().connectors[0] as ServerConnector).localPort
 
     private var started = false
     fun started() = started
 
-    private val eventManager by lazy { cfg.pvt.eventManager }
+    private val eventManager by lazy { cfg.eventManager }
 
     @Throws(JavalinException::class)
     fun start(host: String?, port: Int?) {
@@ -66,22 +66,22 @@ class JettyServer(private val cfg: JavalinConfig) {
         started = true
         val startupTimer = System.currentTimeMillis()
         server().apply {
-            cfg.pvt.jetty.serverConsumers.forEach { it.accept(this) } // apply user config
+            cfg.jettyInternal.serverConsumers.forEach { it.accept(this) } // apply user config
             handler = handler.attachHandler(ServletContextHandler(SESSIONS).apply {
-                val (initializer, servlet) = cfg.pvt.servlet.value
+                val (initializer, servlet) = cfg.servlet.value
                 if (initializer != null) this.addServletContainerInitializer(initializer)
                 contextPath = Util.normalizeContextPath(cfg.router.contextPath)
                 sessionHandler = defaultSessionHandler()
                 addServlet(ServletHolder(servlet), "/*")
-                cfg.pvt.jetty.servletContextHandlerConsumers.forEach { it.accept(this) } // apply user config
+                cfg.jettyInternal.servletContextHandlerConsumers.forEach { it.accept(this) } // apply user config
             })
             val httpConfiguration = defaultHttpConfiguration()
-            cfg.pvt.jetty.httpConfigurationConfigs.forEach { it.accept(httpConfiguration) } // apply user config (before connectors)
+            cfg.jettyInternal.httpConfigurationConfigs.forEach { it.accept(httpConfiguration) } // apply user config (before connectors)
             // use the jetty value, either the default or something the user has specified with the cfg.jetty.modifyHttpConfiguration option if there is no value set with the new api.
             if (cfg.http.responseBufferSize == null) {
                 cfg.http.responseBufferSize = httpConfiguration.outputBufferSize
             }
-            cfg.pvt.jetty.connectors.map { it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
+            cfg.jettyInternal.connectors.map { it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
             if (connectors.isEmpty()) { // add default connector if no connectors are specified
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
                     this.host = host ?: cfg.jetty.defaultHost
@@ -106,7 +106,7 @@ class JettyServer(private val cfg: JavalinConfig) {
             }
             throw JavalinException(e)
         }
-        if (cfg.showJavalinBanner) JavalinLogger.startup(
+        if (cfg.startup.showJavalinBanner) JavalinLogger.startup(
             """|
                |       __                  ___          _____
                |      / /___ __   ______ _/ (_)___     /__  /
@@ -118,14 +118,14 @@ class JettyServer(private val cfg: JavalinConfig) {
                |""".trimMargin() // banner generated at https://patorjk.com/software/taag (slant)
         )
         JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/")
-        (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // log resource handler info
+        (cfg.resourceHandler as? JettyResourceHandler)?.init() // log resource handler info
         server().connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.baseUrl}")
         }
         server().connectors.filter { it !is ServerConnector }.forEach {
             JavalinLogger.startup("Binding to: $it")
         }
-        Util.logJavalinVersion(cfg.showOldJavalinVersionWarning)
+        Util.logJavalinVersion(cfg.startup.showOldJavalinVersionWarning)
         eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STARTED)
     }
 

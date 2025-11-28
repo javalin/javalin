@@ -339,7 +339,7 @@ class TestBeforeAfterMatched {
                 it.location = Location.CLASSPATH
                 it.aliasCheck = AliasCheck { _, _ -> true }
             }
-            config.pvt.servletRequestLifecycle = mutableListOf(BEFORE, HTTP, AFTER_MATCHED, ERROR, AFTER)
+            config.requestLifeCycle(BEFORE, HTTP, AFTER_MATCHED, ERROR, AFTER)
         }) { app, http ->
             app.unsafe.routes.afterMatched { it.header("X-After", "true") }
 

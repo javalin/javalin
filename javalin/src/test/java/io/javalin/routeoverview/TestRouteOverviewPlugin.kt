@@ -54,7 +54,7 @@ class TestRouteOverviewPlugin {
     }
 
     private fun assertAllPathsPresent(app: Javalin, http: HttpUtil) {
-        val router = app.unsafe.pvt.internalRouter
+        val router = app.unsafe.internalRouter
         val allPaths = router.allHttpHandlers().map { it.endpoint.path } + router.allWsHandlers().map { it.path }
         val overviewHtml = http.getBody("/overview")
         allPaths.forEach { assertThat(overviewHtml).contains(it) }

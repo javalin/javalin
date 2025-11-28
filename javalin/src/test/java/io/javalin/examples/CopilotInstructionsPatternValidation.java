@@ -4,7 +4,7 @@ import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.Context;
 import io.javalin.plugin.Plugin;
-import io.javalin.config.JavalinConfig;
+import io.javalin.config.JavalinState;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -23,7 +23,7 @@ public class CopilotInstructionsPatternValidation {
         var app = Javalin.create(config -> {
             config.http.asyncTimeout = 10_000L;
             config.staticFiles.add("/public");
-            config.useVirtualThreads = true;
+            config.concurrency.useVirtualThreads = true;
         });
     }
 
@@ -38,11 +38,8 @@ public class CopilotInstructionsPatternValidation {
             config.router.treatMultipleSlashesAsSingleSlash = true;
             config.staticFiles.add("/public");
             config.staticFiles.enableWebjars();
-            
-            config.events(events -> {
-                events.serverStarting(() -> System.out.println("Starting..."));
-                events.serverStarted(() -> System.out.println("Started!"));
-            });
+            config.events.serverStarting(() -> System.out.println("Starting..."));
+            config.events.serverStarted(() -> System.out.println("Started!"));
         });
     }
 
@@ -53,17 +50,17 @@ public class CopilotInstructionsPatternValidation {
         Javalin.create(config -> {
             // Lambda handler
             config.routes.get("/hello", ctx -> ctx.result("Hello"));
-            
+
             // Multi-line lambda
             config.routes.post("/users", ctx -> {
                 ctx.status(201).json(Map.of("id", "1"));
             });
-            
+
             // Method reference
             config.routes.get("/data", CopilotInstructionsPatternValidation::handleData);
         });
     }
-    
+
     private static void handleData(Context ctx) {
         ctx.json(Map.of("data", "value"));
     }
@@ -106,15 +103,15 @@ public class CopilotInstructionsPatternValidation {
             config.routes.before(ctx -> {
                 ctx.header("X-Request-Id", "test-id");
             });
-            
+
             config.routes.before("/api/*", ctx -> {
                 // Auth check
             });
-            
+
             config.routes.beforeMatched(ctx -> {
                 // After routing is resolved
             });
-            
+
             config.routes.after(ctx -> {
                 // Cleanup
             });
@@ -129,7 +126,7 @@ public class CopilotInstructionsPatternValidation {
             config.routes.exception(IllegalArgumentException.class, (e, ctx) -> {
                 ctx.status(400).json(Map.of("error", e.getMessage()));
             });
-            
+
             config.routes.exception(Exception.class, (e, ctx) -> {
                 ctx.status(500).json(Map.of("error", "Internal server error"));
             });
@@ -144,7 +141,7 @@ public class CopilotInstructionsPatternValidation {
             config.routes.error(404, ctx -> {
                 ctx.json(Map.of("error", "Page not found"));
             });
-            
+
             config.routes.error(500, ctx -> {
                 ctx.json(Map.of("error", "Server error"));
             });
@@ -159,16 +156,16 @@ public class CopilotInstructionsPatternValidation {
             config.routes.get("/context/{id}", ctx -> {
                 // Path parameters
                 String id = ctx.pathParam("id");
-                
+
                 // Query parameters
                 String query = ctx.queryParam("q");
-                
+
                 // Headers
                 String auth = ctx.header("Authorization");
-                
+
                 // Cookies
                 String session = ctx.cookie("session");
-                
+
                 // Response building
                 ctx.status(200);
                 ctx.header("X-Custom", "value");
@@ -181,20 +178,20 @@ public class CopilotInstructionsPatternValidation {
      * Validates: Custom plugin pattern with consumer-based configuration
      */
     static class TestPlugin extends Plugin<TestPlugin.Config> {
-        
+
         TestPlugin(Consumer<Config> userConfig) {
             super(userConfig, new Config());
         }
-        
+
         @Override
-        public void onStart(JavalinConfig config) {
-            config.routes.before(ctx -> {
+        public void onStart(JavalinState state) {
+            state.routes.before(ctx -> {
                 if (pluginConfig.enabled) {
                     // Plugin logic
                 }
             });
         }
-        
+
         public static class Config {
             public boolean enabled = true;
             public int timeout = 5000;
@@ -222,16 +219,16 @@ public class CopilotInstructionsPatternValidation {
                 ws.onConnect(ctx -> {
                     ctx.send("Welcome!");
                 });
-                
+
                 ws.onMessage(ctx -> {
                     String message = ctx.message();
                     ctx.send("Echo: " + message);
                 });
-                
+
                 ws.onClose(ctx -> {
                     // Cleanup
                 });
-                
+
                 ws.onError(ctx -> {
                     // Error handling
                 });
@@ -262,7 +259,7 @@ public class CopilotInstructionsPatternValidation {
      */
     public static void validateVirtualThreads() {
         Javalin.create(config -> {
-            config.useVirtualThreads = true;
+            config.concurrency.useVirtualThreads = true;
         });
     }
 
@@ -274,7 +271,7 @@ public class CopilotInstructionsPatternValidation {
             config.routes.get("/users", ctx -> {
                 ctx.json(Map.of("users", "list"));
             });
-            
+
             config.routes.post("/users", ctx -> {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> user = ctx.bodyAsClass(Map.class);

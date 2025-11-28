@@ -173,7 +173,7 @@ internal class TestMockContext {
             val mockedCtx = Endpoint(POST, endpointUrl) { it.result("Passed") }
                 .handle(mock.build(requestedUrl, Body.ofObject(PandaDto("Kim"))))
 
-            app.unsafe.pvt.internalRouter.addHttpEndpoint(Endpoint(POST, endpointUrl) { ctx ->
+            app.unsafe.internalRouter.addHttpEndpoint(Endpoint(POST, endpointUrl) { ctx ->
                 // Jetty
 
                 assertThat(mockedCtx.req().remoteAddr).isEqualTo(ctx.req().remoteAddr)

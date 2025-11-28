@@ -43,7 +43,7 @@ public class TestUtil {
             HttpUtil http = new HttpUtil(app.port());
             userCode.accept(app, http);
             // Add cookie cleaner route directly to internal router
-            app.unsafe.pvt.internalRouter.addHttpEndpoint(
+            app.unsafe.internalRouter.addHttpEndpoint(
                 Endpoint.create(HandlerType.DELETE, "/x-test-cookie-cleaner")
                     .handler(ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie))
             );

@@ -1,8 +1,8 @@
 package io.javalin.plugin
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 
-class PluginManager internal constructor(private val cfg: JavalinConfig) {
+class PluginManager internal constructor(private val cfg: JavalinState) {
 
     private val plugins = mutableListOf<Plugin<*>>()
     private val initializedPlugins = mutableListOf<Plugin<*>>()

@@ -43,11 +43,7 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.http.generateEtags = true;
             app.http.prefer405over404 = true;
             app.http.strictContentTypes = true;
-            app.http.customCompression(new CompressionStrategy());
-            app.http.brotliAndGzipCompression(3);
-            app.http.brotliOnlyCompression(3);
-            app.http.gzipOnlyCompression(3);
-            app.http.disableCompression();
+            app.http.compressionStrategy = new CompressionStrategy();
             // Static files
             app.staticFiles.add("/public");
             app.staticFiles.enableWebjars();
@@ -78,16 +74,14 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.bundledPlugins.enableRouteOverview("/overview");
             app.bundledPlugins.enableSslRedirects();
             // Events
-            app.events(event -> {
-                event.serverStarting(() -> System.out.println("Server is starting"));
-                event.serverStartFailed(() -> System.out.println("Server start failed"));
-                event.serverStarted(() -> System.out.println("Server is started"));
-                event.serverStopping(() -> System.out.println("Server is stopping"));
-                event.serverStopFailed(() -> System.out.println("Server stop failed"));
-                event.serverStopped(() -> System.out.println("Server is stopped"));
-                event.handlerAdded(handlerMetaInfo -> {});
-                event.wsHandlerAdded(wsHandlerMetaInfo -> {});
-            });
+            app.events.serverStarting(() -> System.out.println("Server is starting"));
+            app.events.serverStartFailed(() -> System.out.println("Server start failed"));
+            app.events.serverStarted(() -> System.out.println("Server is started"));
+            app.events.serverStopping(() -> System.out.println("Server is stopping"));
+            app.events.serverStopFailed(() -> System.out.println("Server stop failed"));
+            app.events.serverStopped(() -> System.out.println("Server is stopped"));
+            app.events.handlerAdded(handlerMetaInfo -> {});
+            app.events.wsHandlerAdded(wsHandlerMetaInfo -> {});
             // Request logger
             app.requestLogger.http((ctx, ms) -> {});
             Consumer<WsConfig> requestLogger = ws -> {};
@@ -98,9 +92,9 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.spaRoot.addFile("/", "index.html");
             app.spaRoot.addHandler("/", ctx -> {});
             // Other
-            app.showJavalinBanner = false;
-            app.startupWatcherEnabled = false;
-            app.useVirtualThreads = true;
+            app.startup.showJavalinBanner = false;
+            app.startup.startupWatcherEnabled = false;
+            app.concurrency.useVirtualThreads = true;
             app.jsonMapper(new JavalinJackson());
             app.appData(new Key<>("Test"), "Test");
             app.fileRenderer((filePath, model, ctx) -> "Test");

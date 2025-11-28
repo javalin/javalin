@@ -23,7 +23,6 @@ fun main() {
 
     Javalin.create {
         it.staticFiles.add("/public", Location.CLASSPATH)
-        it.pvt.jetty.server = Server(tp)
         it.routes.get("/") { it.redirect("/sse/sse-example.html") }
         it.routes.sse("/sse-counter") { client ->
             counterClients.add(client)
@@ -33,6 +32,8 @@ fun main() {
             statsClients.add(eventSource)
             eventSource.onClose { statsClients.remove(eventSource) }
         }
+    }.apply {
+        unsafe.jettyInternal.server = Server(tp)
     }.start(7000)
 
     for (counter in 1..999) {

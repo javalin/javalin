@@ -9,6 +9,9 @@ package io.javalin.staticfiles
 import com.aayushatharva.brotli4j.Brotli4jLoader
 import com.aayushatharva.brotli4j.decoder.BrotliInputStream
 import io.javalin.Javalin
+import io.javalin.compression.Brotli
+import io.javalin.compression.CompressionStrategy
+import io.javalin.compression.Gzip
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
@@ -32,7 +35,7 @@ class TestStaticFilesPrecompressor {
 
     private val configPrecompressionStaticResourceApp: Javalin by lazy {
         Javalin.create { javalin ->
-            javalin.http.brotliAndGzipCompression()
+            javalin.http.compressionStrategy = CompressionStrategy(Brotli(), Gzip())
             javalin.staticFiles.add { staticFiles ->
                 staticFiles.hostedPath = "/webjars"
                 staticFiles.directory = "META-INF/resources/webjars"
@@ -164,7 +167,7 @@ class TestStaticFilesPrecompressor {
 
     @Test
     fun `compression strategy is used`() = TestUtil.test(Javalin.create { config ->
-        config.http.brotliOnlyCompression()
+        config.http.compressionStrategy = CompressionStrategy(Brotli())
         config.staticFiles.add { staticFiles ->
             staticFiles.hostedPath = "/"
             staticFiles.directory = "/public"

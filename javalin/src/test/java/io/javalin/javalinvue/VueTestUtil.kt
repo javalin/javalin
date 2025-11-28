@@ -2,6 +2,7 @@
 
 import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.JavalinVuePlugin
 import io.javalin.testing.HttpUtil

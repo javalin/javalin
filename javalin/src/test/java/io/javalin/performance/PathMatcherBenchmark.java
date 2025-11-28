@@ -1,6 +1,6 @@
 package io.javalin.performance;
 
-import io.javalin.config.JavalinConfig;
+import io.javalin.config.JavalinState;
 import io.javalin.config.RouterConfig;
 import io.javalin.http.HandlerType;
 import io.javalin.router.Endpoint;
@@ -39,7 +39,7 @@ public class PathMatcherBenchmark {
     public void setup() {
         this.oldPathMatcher = new OldPathMatcher();
         this.pathMatcher = new PathMatcher();
-        var routingConfig = new RouterConfig(new JavalinConfig());
+        var routingConfig = new RouterConfig();
         for (int i = 0; i < 50; i++) {
             this.pathMatcher.add(new ParsedEndpoint(Endpoint.create(GET, "/hello" + i).handler((ctx) -> {}), routingConfig));
             this.oldPathMatcher.add(new ParsedEndpoint(Endpoint.create(GET, "/hello" + i).handler((ctx) -> {}), routingConfig));

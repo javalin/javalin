@@ -56,7 +56,7 @@ class TestLifecycleEvents {
     fun `handlerAdded event works for router`() {
         var routerLog = ""
         TestUtil.test(Javalin.create { config ->
-            config.events { it.handlerAdded { handlerMetaInfo -> routerLog += handlerMetaInfo.path } }
+            config.events.handlerAdded { handlerMetaInfo -> routerLog += handlerMetaInfo.path }
             config.routes.get("/test") {}
             config.routes.post("/tast") {}
         }) { app, _ ->
@@ -68,8 +68,8 @@ class TestLifecycleEvents {
     fun `wsHandlerAdded event works`() {
         var log = ""
         TestUtil.test(Javalin.create { config ->
-            config.events { it.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }
-            config.events { it.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }
+            config.events.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
+            config.events.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
             config.routes.ws("/test-path-ws") {}
         }) { _, _ ->
             assertThat(log).isEqualTo("/test-path-ws/test-path-ws")

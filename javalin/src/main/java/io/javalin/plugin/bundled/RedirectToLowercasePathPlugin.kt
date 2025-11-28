@@ -6,7 +6,7 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginPriority
@@ -24,13 +24,13 @@ import java.util.*
  */
 open class RedirectToLowercasePathPlugin : Plugin<Void>() {
 
-    override fun onInitialize(config: JavalinConfig) {
-        if (config.router.caseInsensitiveRoutes) {
+    override fun onInitialize(state: JavalinState) {
+        if (state.router.caseInsensitiveRoutes) {
             throw IllegalStateException("RedirectToLowercasePathPlugin is not compatible with caseInsensitiveRoutes")
         }
 
-        config.events.handlerAdded { handlerMetaInfo ->
-            val parser = PathParser(handlerMetaInfo.path, config.router)
+        state.events.handlerAdded { handlerMetaInfo ->
+            val parser = PathParser(handlerMetaInfo.path, state.router)
 
             parser.segments.asSequence()
                 .filterIsInstance<PathSegment.Normal>()
@@ -48,10 +48,10 @@ open class RedirectToLowercasePathPlugin : Plugin<Void>() {
         }
     }
 
-    override fun onStart(config: JavalinConfig) {
-        config.routes.before { ctx ->
+    override fun onStart(state: JavalinState) {
+        state.routes.before { ctx ->
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
-            val router = config.pvt.internalRouter
+            val router = state.internalRouter
 
             if (router.findHttpHandlerEntries(ctx.method(), requestUri).findFirst().isPresent) {
                 return@before // we found a route for this case, no need to redirect
@@ -65,7 +65,7 @@ open class RedirectToLowercasePathPlugin : Plugin<Void>() {
                 .filter { it.isNotEmpty() }
                 .toTypedArray()
 
-            val serverSegments = PathParser(lowercaseRoute.endpoint.path, config.router)
+            val serverSegments = PathParser(lowercaseRoute.endpoint.path, state.router)
                 .segments
 
             serverSegments.forEachIndexed { index, serverSegment ->

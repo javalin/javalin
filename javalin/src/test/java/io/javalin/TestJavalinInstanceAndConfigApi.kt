@@ -31,11 +31,7 @@ class TestJavalinInstanceAndConfigApi {
             app.http.generateEtags = true
             app.http.prefer405over404 = true
             app.http.strictContentTypes = true
-            app.http.customCompression(CompressionStrategy())
-            app.http.brotliAndGzipCompression(3)
-            app.http.brotliOnlyCompression(3)
-            app.http.gzipOnlyCompression(3)
-            app.http.disableCompression()
+            app.http.compressionStrategy = CompressionStrategy()
             // Static files
             app.staticFiles.add("/public")
             app.staticFiles.enableWebjars()
@@ -68,16 +64,14 @@ class TestJavalinInstanceAndConfigApi {
             app.bundledPlugins.enableSslRedirects()
             app.bundledPlugins // etc etc
             // Events
-            app.events { event ->
-                event.serverStarting { println("Server is starting") }
-                event.serverStartFailed { println("Server start failed") }
-                event.serverStarted { println("Server is started") }
-                event.serverStopping { println("Server is stopping") }
-                event.serverStopFailed { println("Server stop failed") }
-                event.serverStopped { println("Server is stopped") }
-                event.handlerAdded {}
-                event.wsHandlerAdded {}
-            }
+            app.events.serverStarting { println("Server is starting") }
+            app.events.serverStartFailed { println("Server start failed") }
+            app.events.serverStarted { println("Server is started") }
+            app.events.serverStopping { println("Server is stopping") }
+            app.events.serverStopFailed { println("Server stop failed") }
+            app.events.serverStopped { println("Server is stopped") }
+            app.events.handlerAdded {}
+            app.events.wsHandlerAdded {}
             // Request logger
             app.requestLogger.http { ctx, ms -> }
             app.requestLogger.ws { ctx -> }
@@ -87,9 +81,9 @@ class TestJavalinInstanceAndConfigApi {
             app.spaRoot.addFile("/", "index.html")
             app.spaRoot.addHandler("/") { ctx -> }
             // Other
-            app.showJavalinBanner = false
-            app.startupWatcherEnabled = false
-            app.useVirtualThreads = true
+            app.startup.showJavalinBanner = false
+            app.startup.startupWatcherEnabled = false
+            app.concurrency.useVirtualThreads = true
             app.jsonMapper(JavalinJackson())
             app.appData(Key("Test"), "Test")
             app.fileRenderer { filePath, model, ctx -> "Test" }

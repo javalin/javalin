@@ -1,6 +1,6 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header
@@ -86,7 +86,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
         }
     }
 
-    override fun onStart(config: JavalinConfig) {
+    override fun onStart(state: JavalinState) {
         pluginConfig.rules.forEach { corsRule ->
             val origins = corsRule.allowedOrigins()
 
@@ -105,10 +105,10 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>? = null) : Plugin<CorsPl
 
             val validOptionStatusCodes = listOf(HttpStatus.NOT_FOUND, HttpStatus.METHOD_NOT_ALLOWED)
 
-            config.routes.before(corsRule.path) { ctx ->
+            state.routes.before(corsRule.path) { ctx ->
                 handleCors(ctx, corsRule)
             }
-            config.routes.after(corsRule.path) { ctx ->
+            state.routes.after(corsRule.path) { ctx ->
                 if (ctx.method() == OPTIONS && ctx.status() in validOptionStatusCodes) {
                     ctx.result("").status(200) // CORS is enabled, so we return 200 for OPTIONS
                 }

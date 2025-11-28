@@ -1,6 +1,6 @@
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
@@ -25,10 +25,10 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
         var skipStaticFiles = false
     }
 
-    override fun onInitialize(config: JavalinConfig) {
-        config.requestLogger.http { ctx, ms -> httpDevLogger(config.pvt.internalRouter, ctx, ms) }
-        config.requestLogger.ws { wsDevLogger(it) }
-        config.events.handlerAdded { handlerMetaInfo ->
+    override fun onInitialize(state: JavalinState) {
+        state.requestLogger.http { ctx, ms -> httpDevLogger(state.internalRouter, ctx, ms) }
+        state.requestLogger.ws { wsDevLogger(it) }
+        state.events.handlerAdded { handlerMetaInfo ->
             JavalinLogger.info("JAVALIN HANDLER REGISTRATION DEBUG LOG: ${handlerMetaInfo.httpMethod}[${handlerMetaInfo.path}]")
         }
     }

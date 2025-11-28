@@ -369,7 +369,7 @@ interface Context {
 
     /**
      * Writes the specified inputStream as a seekable stream.
-     * You can change this default in [io.javalin.config.JavalinConfig].
+     * You can change this default in [io.javalin.config.JavalinState].
      *
      * @return the [CompletableFuture] used to write the seekable stream
      */

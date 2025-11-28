@@ -20,28 +20,28 @@ import java.util.function.Consumer
  * This is the new preferred way to define routes in Javalin 7.
  *
  * @param cfg the parent Javalin Configuration
- * @see [JavalinConfig.routes]
+ * @see [JavalinState.routes]
  */
-class RoutesConfig(internal val cfg: JavalinConfig) : JavalinDefaultRoutingApi<RoutesConfig> {
+class RoutesConfig(internal val cfg: JavalinState) : JavalinDefaultRoutingApi<RoutesConfig> {
 
     override fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): RoutesConfig = apply {
-        cfg.pvt.internalRouter.addHttpExceptionHandler(exceptionClass, exceptionHandler)
+        cfg.internalRouter.addHttpExceptionHandler(exceptionClass, exceptionHandler)
     }
 
     override fun error(status: Int, contentType: String, handler: Handler): RoutesConfig = apply {
-        cfg.pvt.internalRouter.addHttpErrorHandler(status, contentType, handler)
+        cfg.internalRouter.addHttpErrorHandler(status, contentType, handler)
     }
 
     override fun addEndpoint(endpoint: Endpoint): RoutesConfig = apply {
-        cfg.pvt.internalRouter.addHttpEndpoint(endpoint)
+        cfg.internalRouter.addHttpEndpoint(endpoint)
     }
 
     override fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): RoutesConfig = apply {
-        cfg.pvt.internalRouter.addWsExceptionHandler(exceptionClass, exceptionHandler)
+        cfg.internalRouter.addWsExceptionHandler(exceptionClass, exceptionHandler)
     }
 
     override fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, vararg roles: RouteRole): RoutesConfig = apply {
-        cfg.pvt.internalRouter.addWsHandler(handlerType, path, wsConfig, *roles)
+        cfg.internalRouter.addWsHandler(handlerType, path, wsConfig, *roles)
     }
 
     /**

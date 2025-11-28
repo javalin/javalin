@@ -8,6 +8,7 @@ package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.config.Key
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
@@ -57,7 +58,7 @@ class TestWebSocket {
 
     private fun Javalin.logger(): TestLogger {
         val logger = TestLogger()
-        val componentManager = this.unsafe.pvt.appDataManager
+        val componentManager = this.unsafe.appDataManager
         componentManager.registerResolverIfAbsent(testLoggerKey, logger)
         return componentManager.get(testLoggerKey)
     }
@@ -797,7 +798,7 @@ class TestWebSocket {
         var onPong: ((Framedata?) -> Unit)? = null,
         val logger: TestLogger = run {
             val testLogger = TestLogger()
-            val componentManager = app.unsafe.pvt.appDataManager
+            val componentManager = app.unsafe.appDataManager
             val key = Key<TestLogger>("test-logger")
             componentManager.registerResolverIfAbsent(key, testLogger)
             componentManager.get(key)

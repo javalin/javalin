@@ -45,8 +45,8 @@ class TestConfiguration {
             it.http.strictContentTypes = true
             it.requestLogger.http { ctx, timeInMs -> }
             it.requestLogger.ws { ws -> }
-            it.showJavalinBanner = false
-            it.showOldJavalinVersionWarning = false
+            it.startup.showJavalinBanner = false
+            it.startup.showOldJavalinVersionWarning = false
             it.router.contextPath = "/"
             it.jetty.defaultHost = "localhost"
             it.jetty.defaultPort = 1234
@@ -64,16 +64,16 @@ class TestConfiguration {
     @Test
     fun `compression strategy is set to gzip by default`() {
         val app = Javalin.create()
-        assertThat(app.unsafe.pvt.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
+        assertThat(app.unsafe.http.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
     }
 
     @Test
     fun `compression strategy can be customized by user`() {
         val app = Javalin.create {
-            it.http.customCompression(CompressionStrategy(null, Gzip(2)))
+            it.http.compressionStrategy = CompressionStrategy(null, Gzip(2))
         }
-        assertThat((app.unsafe.pvt.compressionStrategy.compressors.forType(GZIP.typeName) as GzipCompressor).level).isEqualTo(2)
-        assertThat(app.unsafe.pvt.compressionStrategy.compressors.forType(BR.typeName)).isNull()
+        assertThat((app.unsafe.http.compressionStrategy.compressors.forType(GZIP.typeName) as GzipCompressor).level).isEqualTo(2)
+        assertThat(app.unsafe.http.compressionStrategy.compressors.forType(BR.typeName)).isNull()
     }
 
     @Test
@@ -116,12 +116,12 @@ class TestConfiguration {
     @Test
     fun `showOldJavalinVersionWarning config option exists and defaults to true`() {
         val app = Javalin.create()
-        assertThat(app.unsafe.showOldJavalinVersionWarning).isTrue()
+        assertThat(app.unsafe.startup.showOldJavalinVersionWarning).isTrue()
     }
 
     @Test
     fun `showOldJavalinVersionWarning can be disabled`() {
-        val app = Javalin.create { it.showOldJavalinVersionWarning = false }
-        assertThat(app.unsafe.showOldJavalinVersionWarning).isFalse()
+        val app = Javalin.create { it.startup.showOldJavalinVersionWarning = false }
+        assertThat(app.unsafe.startup.showOldJavalinVersionWarning).isFalse()
     }
 }

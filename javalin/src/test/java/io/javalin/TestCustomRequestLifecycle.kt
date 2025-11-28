@@ -1,5 +1,6 @@
 ﻿package io.javalin
 
+import io.javalin.http.Context
 import io.javalin.http.servlet.DefaultTasks.HTTP
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.servlet.Task
@@ -11,19 +12,21 @@ import org.junit.jupiter.api.Test
 
 class TestCustomRequestLifecycle {
 
+    private fun Context.accumulatingResult(s: String) = this.result((result() ?: "") + s)
+
     @Test
     fun `can remove lifecycle stage`() = TestUtil.test(Javalin.create { config ->
-        config.pvt.servletRequestLifecycle = mutableListOf(HTTP)
-        config.routes.before { it.result("Overridden") }
-        config.routes.get("/") { it.result("Hello!") }
-        config.routes.after { it.result("Overridden") }
+        config.requestLifeCycle(HTTP)
+        config.routes.before { it.accumulatingResult("Overridden") }
+        config.routes.get("/") { it.accumulatingResult("Hello!") }
+        config.routes.after { it.accumulatingResult("Overridden") }
     }) { app, http ->
         assertThat(http.getBody("/")).isEqualTo("Hello!")
     }
 
     @Test
     fun `can add custom lifecycle stage`() = TestUtil.test(Javalin.create { config ->
-        config.pvt.servletRequestLifecycle = mutableListOf(
+        config.requestLifeCycle(
             HTTP,
             TaskInitializer { submitTask, _, ctx, _ ->
                 submitTask(LAST, Task {

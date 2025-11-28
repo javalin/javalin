@@ -45,7 +45,7 @@ internal class TestAppData {
     fun `data can be accessed through the app`() = TestUtil.test(Javalin.create {
         it.appData(myOtherKey, MyOtherThing())
     }) { app, _ ->
-        assertThat(app.unsafe.pvt.appDataManager.get(myOtherKey).test).isEqualTo("Test")
+        assertThat(app.unsafe.appDataManager.get(myOtherKey).test).isEqualTo("Test")
     }
 
     private class MyJson {

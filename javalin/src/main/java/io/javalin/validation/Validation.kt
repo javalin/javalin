@@ -6,7 +6,7 @@
 
 package io.javalin.validation
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.config.Key
 import io.javalin.config.ValidationConfig
 import io.javalin.http.HttpStatus
@@ -48,8 +48,8 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
             validators.flatMap { it.errors().entries }.associate { it.key to it.value }
 
         @JvmStatic
-        fun addValidationExceptionMapper(cfg: JavalinConfig) {
-            cfg.pvt.internalRouter.addHttpExceptionHandler(ValidationException::class.java) { e, ctx ->
+        fun addValidationExceptionMapper(cfg: JavalinState) {
+            cfg.internalRouter.addHttpExceptionHandler(ValidationException::class.java) { e, ctx ->
                 ctx.json(e.errors).status(HttpStatus.BAD_REQUEST)
             }
         }

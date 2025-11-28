@@ -85,7 +85,7 @@ class ContextMock private constructor(
         // apply defaults values
         mockConfig.req.also { req ->
             req.method = endpoint.method.name()
-            req.contextPath = mockConfig.javalinConfig.router.contextPath.takeIf { it != "/" } ?: ""
+            req.contextPath = mockConfig.javalinState.router.contextPath.takeIf { it != "/" } ?: ""
             req.requestURI = uri
             req.requestURL = "${req.scheme}://${req.serverName}:${req.serverPort}${req.contextPath}${req.requestURI}"
             req.inputStream = body?.toInputStream() ?: req.inputStream
@@ -99,13 +99,13 @@ class ContextMock private constructor(
             req.headers.computeIfAbsent(Header.CONNECTION) { mutableListOf("keep-alive") }
             req.headers.computeIfAbsent(Header.HOST) { mutableListOf("localhost:${req.serverPort}") }
             req.headers.computeIfAbsent(Header.USER_AGENT) { mutableListOf("javalin-mock/1.0") }
-            req.headers.computeIfAbsent(Header.ACCEPT_ENCODING) { mockConfig.javalinConfig.pvt.compressionStrategy.compressors.mapTo(ArrayList()) { it.encoding() } }
+            req.headers.computeIfAbsent(Header.ACCEPT_ENCODING) { mockConfig.javalinState.http.compressionStrategy.compressors.mapTo(ArrayList()) { it.encoding() } }
             req.headers.computeIfAbsent(Header.CONTENT_TYPE) { req.contentType?.let { mutableListOf(it) } ?: mutableListOf() }
             req.headers.computeIfAbsent(Header.CONTENT_LENGTH) { req.contentLength.takeIf { it > 0 }?.let { mutableListOf(it.toString()) } ?: mutableListOf() }
         }
 
         val await = CountDownLatch(1)
-        val javalinServlet = JavalinServlet(mockConfig.javalinConfig)
+        val javalinServlet = JavalinServlet(mockConfig.javalinState)
         (javalinServlet.requestLifecycle as MutableList<TaskInitializer<JavalinServletContext>>).add(
             TaskInitializer { submitTask, _, _, _ ->
                 submitTask(LAST, Task(skipIfExceptionOccurred = false) {
@@ -129,14 +129,14 @@ class ContextMock private constructor(
 
     private fun createServletContextConfig(): JavalinServletContextConfig =
         JavalinServletContextConfig(
-            appDataManager = mockConfig.javalinConfig.pvt.appDataManager,
-            pluginManager = mockConfig.javalinConfig.pvt.pluginManager,
-            compressionStrategy = mockConfig.javalinConfig.pvt.compressionStrategy,
-            defaultContentType = mockConfig.javalinConfig.http.defaultContentType,
-            jsonMapper = mockConfig.javalinConfig.pvt.jsonMapper.value,
+            appDataManager = mockConfig.javalinState.appDataManager,
+            pluginManager = mockConfig.javalinState.pluginManager,
+            compressionStrategy = mockConfig.javalinState.http.compressionStrategy,
+            defaultContentType = mockConfig.javalinState.http.defaultContentType,
+            jsonMapper = mockConfig.javalinState.jsonMapper.value,
             requestLoggerEnabled = false,
             strictContentTypes = false,
-            multipartConfig = mockConfig.javalinConfig.jetty.multipartConfig,
+            multipartConfig = mockConfig.javalinState.jetty.multipartConfig,
         )
 
 }

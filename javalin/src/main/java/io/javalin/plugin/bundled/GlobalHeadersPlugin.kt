@@ -6,7 +6,7 @@
 
 package io.javalin.plugin.bundled
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.JavalinState
 import io.javalin.http.Header
 import io.javalin.plugin.Plugin
 import java.time.Duration
@@ -19,8 +19,8 @@ import java.util.function.Consumer
  */
 class GlobalHeadersPlugin(userConfig: Consumer<GlobalHeadersConfig>? = null) : Plugin<GlobalHeadersConfig>(userConfig, GlobalHeadersConfig()) {
 
-    override fun onStart(config: JavalinConfig) {
-        config.routes.before { ctx ->
+    override fun onStart(state: JavalinState) {
+        state.routes.before { ctx ->
             pluginConfig.headers.forEach { (name, value) ->
                 ctx.header(name, value)
             }

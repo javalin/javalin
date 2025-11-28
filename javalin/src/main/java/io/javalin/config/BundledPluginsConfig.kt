@@ -16,9 +16,9 @@ import java.util.function.Consumer
 /**
  * Configuration to enable bundled plugins or add custom ones.
  *
- * @see [JavalinConfig.bundledPlugins]
+ * @see [JavalinState.bundledPlugins]
  */
-class BundledPluginsConfig(private val cfg: JavalinConfig) {
+class BundledPluginsConfig(private val cfg: JavalinState) {
 
     /**
      * Enables the RouteOverview plugin.

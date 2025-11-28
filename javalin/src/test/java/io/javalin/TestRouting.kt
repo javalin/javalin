@@ -62,10 +62,10 @@ class TestRouting {
             config.routes.get("/1") { it.result("Hello World") }
             config.routes.before("/2") { }
         }
-        val handler1 = app.unsafe.pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/1" }!!
+        val handler1 = app.unsafe.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/1" }!!
         assertThat(handler1.path).isEqualTo("/1")
         assertThat(handler1.method).isEqualTo(HandlerType.GET)
-        val handler2 = app.unsafe.pvt.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/2" }!!
+        val handler2 = app.unsafe.internalRouter.allHttpHandlers().map { it.endpoint }.find { it.path == "/2" }!!
         assertThat(handler2.method).isEqualTo(HandlerType.BEFORE)
     }
 
@@ -81,7 +81,7 @@ class TestRouting {
             )
         }
 
-        val endpoint = app.unsafe.pvt.internalRouter.allHttpHandlers().first { it.endpoint.path == "/hello" }.endpoint
+        val endpoint = app.unsafe.internalRouter.allHttpHandlers().first { it.endpoint.path == "/hello" }.endpoint
         assertThat(endpoint.metadata(TestMetadata::class.java)).isEqualTo(TestMetadata)
     }
 
@@ -91,10 +91,10 @@ class TestRouting {
             config.routes.ws("/1") { }
             config.routes.wsBefore("/2") { }
         }
-        val handler1 = app.unsafe.pvt.internalRouter.allWsHandlers().find { it.path == "/1" }!!
+        val handler1 = app.unsafe.internalRouter.allWsHandlers().find { it.path == "/1" }!!
         assertThat(handler1.path).isEqualTo("/1")
         assertThat(handler1.type).isEqualTo(WsHandlerType.WEBSOCKET)
-        val handler2 = app.unsafe.pvt.internalRouter.allWsHandlers().find { it.path == "/2" }!!
+        val handler2 = app.unsafe.internalRouter.allWsHandlers().find { it.path == "/2" }!!
         assertThat(handler2.type).isEqualTo(WsHandlerType.WEBSOCKET_BEFORE)
     }
 

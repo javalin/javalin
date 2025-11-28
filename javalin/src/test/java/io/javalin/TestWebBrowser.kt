@@ -6,6 +6,9 @@
 
 package io.javalin
 
+import io.javalin.compression.Brotli
+import io.javalin.compression.CompressionStrategy
+import io.javalin.compression.Gzip
 import io.javalin.http.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
 import io.javalin.plugin.bundled.DevLoggingPlugin
@@ -50,7 +53,7 @@ class TestWebBrowser {
         TestUtil.runAndCaptureLogs {
             val payload = "Hello, Selenium!".repeat(150)
             val app = Javalin.create {
-                it.http.brotliOnlyCompression()
+                it.http.compressionStrategy = CompressionStrategy(Brotli())
                 it.registerPlugin(DevLoggingPlugin())
             }.start(0)
             app.unsafe.routes.get("/hello") { it.result(payload) }
@@ -90,7 +93,7 @@ class TestWebBrowser {
 
     @Test
     fun `chrome can handle precompressed files GH-1958`() = TestUtil.test(Javalin.create { config ->
-        config.http.brotliAndGzipCompression() // this is the default
+        config.http.compressionStrategy = CompressionStrategy(Brotli(), Gzip())
         config.staticFiles.add { staticFiles ->
             staticFiles.hostedPath = "/"
             staticFiles.directory = "/public"
