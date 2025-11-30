@@ -54,9 +54,9 @@ class TestCorsUtils {
 
         @ParameterizedTest
         @CsvSource(value = ["example.com", "no-#://example.com"])
-        fun `scheme is required`() {
+        fun `scheme is required`(scheme: String) {
             assertThatIllegalArgumentException().isThrownBy {
-                CorsUtils.parseAsOriginParts("example.com")
+                CorsUtils.parseAsOriginParts(scheme)
             }.withMessage("Scheme is required!")
         }
 

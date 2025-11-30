@@ -267,7 +267,7 @@ class TestCors {
                 cors.addRule { rule -> rule.allowHost("127.0.0.1") }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             assertThat(http.get("/", mapOf(ORIGIN to "https://127.0.0.1")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://127.0.0.1")
         }
 
@@ -277,7 +277,7 @@ class TestCors {
                 cors.addRule { rule -> rule.allowHost("*.example.com", "127.0.0.1") }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             assertThat(http.get("/", mapOf(ORIGIN to "https://127.0.0.1")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://127.0.0.1")
         }
 
@@ -288,7 +288,7 @@ class TestCors {
                     cors.addRule { rule -> rule.allowHost("[0:0:0:0:0:0:0:1]") }
                 })
             }) { app, http ->
-                app.get("/") { it.result("Hello") }
+                app.unsafe.routes.get("/") { it.result("Hello") }
                 assertThat(http.get("/", mapOf(ORIGIN to "https://[0:0:0:0:0:0:0:1]")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://[0:0:0:0:0:0:0:1]")
             }
         }
@@ -300,7 +300,7 @@ class TestCors {
                     cors.addRule { rule -> rule.allowHost("*.example.com", "[::1]") }
                 })
             }) { app, http ->
-                app.get("/") { it.result("Hello") }
+                app.unsafe.routes.get("/") { it.result("Hello") }
                 assertThat(http.get("/", mapOf(ORIGIN to "https://[::1]")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://[::1]")
             }
         }
@@ -315,10 +315,10 @@ class TestCors {
                 // Workaround: call onStart directly
                 // onStart would otherwise be called on startup if we go the regular route of registerPlugin
                 // we register the routes here early so there are chronologically before the other before handlers
-                corsPlugin.onStart(config)
+                corsPlugin.onStart(config.state)
             }
             val routesApiBuilder = Consumer<JavalinConfig> { config ->
-                config.router.apiBuilder {
+                config.routes.apiBuilder {
                     path("/") {
                         before { _ ->
                             throw TooManyRequestsResponse()
@@ -382,7 +382,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "https://example.com:2B")
                 .asString()
@@ -398,7 +398,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "https://*.example.com:8443")
                 .asString()
@@ -413,7 +413,7 @@ class TestCors {
                 }
             })
         }) { app, http ->
-            app.get("/") { it.result("Hello") }
+            app.unsafe.routes.get("/") { it.result("Hello") }
             val response = Unirest.get(http.origin)
                 .header(ORIGIN, "null")
                 .asString()
