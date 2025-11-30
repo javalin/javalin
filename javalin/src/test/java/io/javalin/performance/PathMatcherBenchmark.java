@@ -1,6 +1,5 @@
 package io.javalin.performance;
 
-import io.javalin.config.JavalinState;
 import io.javalin.config.RouterConfig;
 import io.javalin.http.HandlerType;
 import io.javalin.router.Endpoint;

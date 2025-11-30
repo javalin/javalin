@@ -1,6 +1,9 @@
 package io.javalin
 
-import io.javalin.util.*
+import io.javalin.util.NamedThreadFactory
+import io.javalin.util.NamedVirtualThreadFactory
+import io.javalin.util.Util
+import io.javalin.util.VirtualThreadBuilder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledForJreRange

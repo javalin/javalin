@@ -5,9 +5,7 @@
  */
 package io.javalin;
 
-import io.javalin.http.Context;
 import io.javalin.http.HandlerType;
-import io.javalin.router.Endpoint;
 import io.javalin.testing.TestUtil;
 import org.junit.jupiter.api.Test;
 

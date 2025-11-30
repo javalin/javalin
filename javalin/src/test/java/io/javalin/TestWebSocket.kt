@@ -8,7 +8,6 @@ package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.config.JavalinConfig
-import io.javalin.config.JavalinState
 import io.javalin.config.Key
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
@@ -20,14 +19,12 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.testing.fasterJacksonMapper
-
 import io.javalin.websocket.WsCloseStatus
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.pingFutures
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.util.BufferUtil
-
 import org.eclipse.jetty.websocket.api.StatusCode
 import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.util.WebSocketConstants

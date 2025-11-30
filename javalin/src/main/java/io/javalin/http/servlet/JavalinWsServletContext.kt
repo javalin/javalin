@@ -1,6 +1,5 @@
 package io.javalin.http.servlet
 
-import io.javalin.router.Endpoint
 import io.javalin.security.RouteRole
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

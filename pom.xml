@@ -68,7 +68,7 @@
 
         <!-- PLUGINS -->
         <compiler.plugin.version>3.14.1</compiler.plugin.version>
-        <dokka.plugin.version>2.1.0</dokka.plugin.version>
+        <dokka.plugin.version>2.0.0</dokka.plugin.version>
         <javadoc.plugin.version>3.6.0</javadoc.plugin.version>
         <gpg.plugin.version>3.2.8</gpg.plugin.version>
         <jar.plugin.version>3.4.2</jar.plugin.version>

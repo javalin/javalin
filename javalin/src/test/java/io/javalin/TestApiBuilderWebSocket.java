@@ -9,7 +9,9 @@ package io.javalin;
 import io.javalin.websocket.WsHandlerType;
 import org.junit.jupiter.api.Test;
 
-import static io.javalin.apibuilder.ApiBuilder.*;
+import static io.javalin.apibuilder.ApiBuilder.ws;
+import static io.javalin.apibuilder.ApiBuilder.wsAfter;
+import static io.javalin.apibuilder.ApiBuilder.wsBefore;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestApiBuilderWebSocket {

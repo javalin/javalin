@@ -1,6 +1,5 @@
 package io.javalin.config
 
-import io.javalin.http.util.MultipartUtil
 import jakarta.servlet.MultipartConfigElement
 
 /**

@@ -1,6 +1,9 @@
 package io.javalin
 
-import io.javalin.event.*
+import io.javalin.event.EventManager
+import io.javalin.event.HandlerMetaInfo
+import io.javalin.event.JavalinLifecycleEvent
+import io.javalin.event.WsHandlerMetaInfo
 import io.javalin.http.HandlerType
 import io.javalin.security.RouteRole
 import io.javalin.websocket.WsHandlerType
@@ -23,10 +26,10 @@ class TestEventManager {
         val calls = mutableListOf<HandlerMetaInfo>()
         manager.handlerAddedHandlers.add(Consumer { calls.add(it) })
         manager.handlerAddedHandlers.add(Consumer { calls.add(it) })
-        
+
         val meta = HandlerMetaInfo(HandlerType.POST, "/api", {}, setOf(TestRole()))
         manager.fireHandlerAddedEvent(meta)
-        
+
         assertThat(calls).hasSize(2).allMatch { it == meta }
     }
 
@@ -36,10 +39,10 @@ class TestEventManager {
         val calls = mutableListOf<WsHandlerMetaInfo>()
         manager.wsHandlerAddedHandlers.add(Consumer { calls.add(it) })
         manager.wsHandlerAddedHandlers.add(Consumer { calls.add(it) })
-        
+
         val meta = WsHandlerMetaInfo(WsHandlerType.WEBSOCKET, "/ws", Consumer {}, setOf(TestRole()))
         manager.fireWsHandlerAddedEvent(meta)
-        
+
         assertThat(calls).hasSize(2).allMatch { it == meta }
     }
 
@@ -62,7 +65,7 @@ class TestEventManager {
     @Test
     fun `EventManager initializes handlers for all events`() {
         val manager = EventManager()
-        JavalinLifecycleEvent.entries.forEach { 
+        JavalinLifecycleEvent.entries.forEach {
             assertThat(manager.lifecycleHandlers[it]).isNotNull().isEmpty()
         }
     }

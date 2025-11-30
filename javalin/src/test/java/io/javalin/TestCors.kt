@@ -6,7 +6,9 @@
 
 package io.javalin
 
-import io.javalin.apibuilder.ApiBuilder.*
+import io.javalin.apibuilder.ApiBuilder.before
+import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_HEADERS

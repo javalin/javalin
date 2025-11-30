@@ -27,8 +27,8 @@ import io.javalin.http.HttpStatus.CREATED
 import io.javalin.http.HttpStatus.NO_CONTENT
 import io.javalin.http.HttpStatus.OK
 import io.javalin.router.Endpoint
-import io.javalin.security.RouteRole
 import io.javalin.security.Roles
+import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod

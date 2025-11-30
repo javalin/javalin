@@ -21,8 +21,8 @@ import java.util.Locale.getDefault
  */
 class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null, zstd: Zstd? = null) {
 
-    /** 
-     * Backward compatibility constructor for existing code 
+    /**
+     * Backward compatibility constructor for existing code
      */
     constructor(brotli: Brotli?, gzip: Gzip?) : this(brotli, gzip, null)
 
@@ -45,7 +45,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null, zstd: Zstd
         }
 
         /** @returns true if brotli is can be used */
-        fun brotliImplAvailable() =  brotli4jPresent() && brotli4jAvailable()
+        fun brotliImplAvailable() = brotli4jPresent() && brotli4jAvailable()
 
         // Check if the zstd-jni dependency is present
         fun zstdJniPresent() = Util.classExists(CoreDependency.ZSTD_JNI.testClass)
@@ -154,13 +154,12 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null, zstd: Zstd
         }
     }
 
-    private fun getPreferredCompressorForSupportedCompressors(supportedCompressors: List<String>): Compressor?
-    {
+    private fun getPreferredCompressorForSupportedCompressors(supportedCompressors: List<String>): Compressor? {
         for (preferredCompressor in preferredCompressors) {
-            if(supportedCompressors.contains(preferredCompressor.typeName)) {
+            if (supportedCompressors.contains(preferredCompressor.typeName)) {
                 val compressor = compressors.forType(preferredCompressor.typeName)
 
-                if(compressor != null) {
+                if (compressor != null) {
                     return compressor
                 }
             }
@@ -169,8 +168,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null, zstd: Zstd
         return null;
     }
 
-    fun findMatchingCompressor(encodingHeaderValue: String): Compressor?
-    {
+    fun findMatchingCompressor(encodingHeaderValue: String): Compressor? {
         val supportedCompressors = encodingHeaderValue
             .split(",")
             .map { it.trim() }

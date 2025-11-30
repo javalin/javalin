@@ -17,7 +17,6 @@ import io.javalin.http.servlet.MaxRequestSize.MaxRequestSizeKey
 import io.javalin.http.servlet.ServletEntry
 import io.javalin.http.servlet.TaskInitializer
 import io.javalin.http.staticfiles.ResourceHandler
-import io.javalin.http.util.AsyncExecutor
 import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
 import io.javalin.jetty.JettyUtil.createJettyServletWithWebsocketsIfAvailable
 import io.javalin.json.JavalinJackson
@@ -28,7 +27,6 @@ import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.FileRenderer.Companion.FileRendererKey
 import io.javalin.rendering.NotImplementedRenderer
 import io.javalin.router.InternalRouter
-import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.javalinLazy
 import io.javalin.validation.Validation
 import io.javalin.validation.Validation.Companion.ValidationKey

@@ -1,8 +1,6 @@
 package io.javalin.config
 
-import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
-import io.javalin.compression.Gzip
 import io.javalin.http.ContentType
 
 /**

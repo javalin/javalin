@@ -1,7 +1,6 @@
 ﻿package io.javalin
 
 import io.javalin.config.HttpConfig
-import io.javalin.config.JavalinState
 import io.javalin.http.HttpStatus.CONTENT_TOO_LARGE
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil

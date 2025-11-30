@@ -1,6 +1,10 @@
 package io.javalin
 
-import io.javalin.json.*
+import io.javalin.json.JsonMapper
+import io.javalin.json.fromJsonStream
+import io.javalin.json.fromJsonString
+import io.javalin.json.toJsonStream
+import io.javalin.json.toJsonString
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.InputStream

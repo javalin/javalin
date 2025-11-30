@@ -6,7 +6,6 @@
 
 package io.javalin
 
-import io.javalin.http.HttpStatus
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

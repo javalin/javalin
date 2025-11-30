@@ -12,8 +12,8 @@ import io.javalin.http.HandlerType;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.router.Endpoint;
-import io.javalin.security.RouteRole;
 import io.javalin.security.Roles;
+import io.javalin.security.RouteRole;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsHandlerType;
 

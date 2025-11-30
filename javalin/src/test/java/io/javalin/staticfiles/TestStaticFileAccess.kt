@@ -2,7 +2,6 @@ package io.javalin.staticfiles
 
 import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
-import io.javalin.config.JavalinState
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus

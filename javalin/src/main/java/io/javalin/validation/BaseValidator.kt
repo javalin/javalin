@@ -7,7 +7,6 @@
 package io.javalin.validation
 
 import io.javalin.util.JavalinException
-import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
 
 typealias Check<T> = (T) -> Boolean

@@ -10,7 +10,6 @@ import io.javalin.http.HandlerType
 import io.javalin.http.servlet.DefaultTasks
 import io.javalin.router.Endpoint
 import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

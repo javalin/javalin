@@ -6,7 +6,6 @@
 
 package io.javalin.http
 
-import io.javalin.util.JavalinException
 import io.javalin.http.HttpStatus.ACCEPTED
 import io.javalin.http.HttpStatus.ALREADY_REPORTED
 import io.javalin.http.HttpStatus.BAD_GATEWAY
@@ -69,6 +68,7 @@ import io.javalin.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE
 import io.javalin.http.HttpStatus.UPGRADE_REQUIRED
 import io.javalin.http.HttpStatus.URI_TOO_LONG
 import io.javalin.http.HttpStatus.USE_PROXY
+import io.javalin.util.JavalinException
 
 open class HttpResponseException @JvmOverloads constructor(
     val status: Int,

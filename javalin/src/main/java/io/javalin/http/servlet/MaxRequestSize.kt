@@ -1,7 +1,6 @@
 package io.javalin.http.servlet
 
 import io.javalin.config.Key
-import io.javalin.http.Context
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
 import io.javalin.util.JavalinLogger

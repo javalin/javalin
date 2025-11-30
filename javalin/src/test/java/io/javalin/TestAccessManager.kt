@@ -13,7 +13,6 @@ import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.config.JavalinConfig
-import io.javalin.config.JavalinState
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.security.RouteRole

@@ -2,13 +2,13 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
+import io.javalin.config.JavalinState;
 import io.javalin.http.Context;
 import io.javalin.plugin.Plugin;
-import io.javalin.config.JavalinState;
 
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * This file validates that the patterns described in .github/copilot-instructions.md
