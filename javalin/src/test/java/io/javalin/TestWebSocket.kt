@@ -21,7 +21,7 @@ import io.javalin.testing.TypedException
 import io.javalin.testing.fasterJacksonMapper
 import io.javalin.websocket.WsCloseStatus
 import io.javalin.websocket.WsContext
-import io.javalin.websocket.pingFutures
+import io.javalin.websocket.PingManager.pingFutures
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.util.BufferUtil
@@ -36,7 +36,6 @@ import org.java_websocket.handshake.ServerHandshake
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import java.net.URI
-import java.nio.ByteBuffer
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -643,7 +642,7 @@ class TestWebSocket {
 
     private fun pingingApp() = Javalin.create().apply {
         this.unsafe.routes.ws("/ws") { ws ->
-            ws.onConnect { it.enableAutomaticPings(5, TimeUnit.MILLISECONDS, ByteBuffer.wrap(byteArrayOf(0, 0, 0))) }
+            ws.onConnect { it.enableAutomaticPings(5, TimeUnit.MILLISECONDS) }
             ws.onMessage {
                 it.disableAutomaticPings()
                 this.logger().log.clear()

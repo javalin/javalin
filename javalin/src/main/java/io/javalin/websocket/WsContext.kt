@@ -48,23 +48,16 @@ abstract class WsContext(@JvmSynthetic internal val upgradeCtx: JavalinWsServlet
 
     /** Sends a ping over the socket */
     @JvmOverloads
-    fun sendPing(applicationData: ByteBuffer? = null) = session.sendPing(applicationData ?: ByteBuffer.allocate(0), Callback.NOOP)
+    fun sendPing(applicationData: ByteBuffer? = ByteBuffer.wrap(byteArrayOf(0, 0, 0))) = session.sendPing(applicationData, Callback.NOOP)
 
     /** Enables automatic pings at a 15-second interval, preventing the connection from timing out */
-    fun enableAutomaticPings() {
-        enableAutomaticPings(15, TimeUnit.SECONDS, null)
-    }
+    fun enableAutomaticPings() = enableAutomaticPings(15, TimeUnit.SECONDS)
 
     /** Enables automatic pings at the specified interval, preventing the connection from timing out */
-    @JvmOverloads
-    fun enableAutomaticPings(interval: Long, unit: TimeUnit, applicationData: ByteBuffer? = null) {
-        enableAutomaticPings(this, interval, unit, applicationData)
-    }
+    fun enableAutomaticPings(interval: Long, unit: TimeUnit) = PingManager.enableAutomaticPings(this, interval, unit)
 
     /** Disables automatic pings */
-    fun disableAutomaticPings() {
-        disableAutomaticPings(this)
-    }
+    fun disableAutomaticPings() = PingManager.disableAutomaticPings(this)
 
     /** Returns the full query [String], or null if no query is present */
     fun queryString(): String? = upgradeCtx.queryString()
