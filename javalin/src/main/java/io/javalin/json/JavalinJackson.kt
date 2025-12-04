@@ -27,7 +27,7 @@ class JavalinJackson(
 
     private val pipedStreamExecutor: PipedStreamExecutor by javalinLazy { PipedStreamExecutor(useVirtualThreads) }
 
-    val mapper by javalinLazy {
+    private val mapperDelegate: Lazy<Any> = javalinLazy {
         if (!Util.classExists(CoreDependency.JACKSON.testClass)) {
             val message =
                 """|It looks like you don't have an object mapper configured.
@@ -41,8 +41,10 @@ class JavalinJackson(
             JavalinLogger.warn(DependencyUtil.wrapInSeparators(message))
             throw InternalServerErrorResponse(message)
         }
-        objectMapper ?: defaultMapper()
+        (objectMapper ?: defaultMapper()) as Any
     }
+
+    val mapper: ObjectMapper get() = mapperDelegate.value as ObjectMapper
 
     override fun toJsonString(obj: Any, type: Type): String = when (obj) {
         is String -> obj // the default mapper treats strings as if they are already JSON
