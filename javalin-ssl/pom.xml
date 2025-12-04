@@ -47,8 +47,7 @@
                         <configuration>
                             <overwriteExistingFiles>true</overwriteExistingFiles>
                             <module>
-                                <moduleInfoFile>./src/main/module-info.java
-                                </moduleInfoFile>
+                                <moduleInfoFile>./src/main/module-info.java</moduleInfoFile>
                             </module>
                             <failOnWarning>false</failOnWarning>
                         </configuration>
