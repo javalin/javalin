@@ -263,7 +263,7 @@ class TestBeforeAfterMatched {
         config.staticFiles.add {
             it.directory = "public"
             it.location = Location.CLASSPATH
-            it.precompress = true
+            it.precompressMaxSize = 2 * 1024 * 1024
         }
     }) { app, http ->
         var afterMatchedRan = false

@@ -23,7 +23,7 @@ enum class Location {
  * @param hostedPath change to host files on a subpath, like '/assets' (default: '/')
  * @param directory the directory where your files are located
  * @param location Location.CLASSPATH (jar) or Location.EXTERNAL (file system) (default: CLASSPATH)
- * @param precompress if the files should be pre-compressed and cached in memory (default: false)
+ * @param precompressMaxSize if the files should be pre-compressed and cached in memory (default: -1, disabled)
  * @param aliasCheck can be used to configure SymLinks
  * @param headers headers that will be set for the static files
  * @param skipFileFunction lambda to skip certain files in the dir, based on the HttpServletRequest
@@ -34,7 +34,7 @@ data class StaticFileConfig(
     @JvmField var hostedPath: String = "/",
     @JvmField var directory: String = "/public",
     @JvmField var location: Location = Location.CLASSPATH,
-    @JvmField var precompress: Boolean = false,
+    @JvmField var precompressMaxSize: Int = -1, // -1 means disabled, otherwise set the max size for pre-compression
     @JvmField var aliasCheck: AliasCheck? = null,
     @JvmField var headers: Map<String, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
     @JvmField var skipFileFunction: (HttpServletRequest) -> Boolean = { false },

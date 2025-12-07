@@ -9,15 +9,11 @@ import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ConcurrentHashMap
 
-object JettyPrecompressingResourceHandler {
+class JettyPrecompressingResourceHandler {
 
-    val compressedFiles = ConcurrentHashMap<String, ByteArray>()
+    private val compressedFiles = ConcurrentHashMap<String, ByteArray>()
 
-    @JvmStatic
-    fun clearCache() = compressedFiles.clear()
-
-    @JvmField
-    var resourceMaxSize: Int = 2 * 1024 * 1024
+    internal fun getCacheSize() = compressedFiles.size
 
     fun handle(resourcePath: String, ctx: Context, compressionStrategy: CompressionStrategy, handler: ConfigurableHandler): Boolean {
         val resource = handler.getResource(resourcePath) ?: return false
@@ -25,7 +21,7 @@ object JettyPrecompressingResourceHandler {
         val compressor = compressionStrategy.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")
             .takeUnless { contentType == null || excludedMimeType(contentType, compressionStrategy) }
 
-        val resultByteArray = getCachedResourceBytes(resource, resourcePath, compressor) ?: return false
+        val resultByteArray = getCachedResourceBytes(resource, resourcePath, compressor, handler.config.precompressMaxSize) ?: return false
 
         ctx.header(Header.CONTENT_LENGTH, resultByteArray.size.toString())
         ctx.header(Header.CONTENT_TYPE, contentType ?: "")
@@ -47,11 +43,11 @@ object JettyPrecompressingResourceHandler {
         else -> compressionStrategy.excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
     }
 
-    private fun getCachedResourceBytes(resource: Resource, target: String, compressor: Compressor?): ByteArray? {
+    private fun getCachedResourceBytes(resource: Resource, target: String, compressor: Compressor?, resourceMaxSize: Int): ByteArray? {
         if (resource.length() > resourceMaxSize) {
             JavalinLogger.warn(
                 "Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
-                    "You can configure the max size with `JettyPrecompressingResourceHandler.resourceMaxSize = newMaxSize`."
+                    "You can configure the max size in the static files config: `staticFiles.precompressMaxSize = newMaxSize`."
             )
             return null
         }

@@ -33,6 +33,7 @@ class JettyResourceHandler(val cfg: JavalinState) : JavalinResourceHandler {
 
     private val lateInitConfigs = mutableListOf<StaticFileConfig>()
     private val handlers = mutableListOf<ConfigurableHandler>()
+    internal val precompressingHandler = JettyPrecompressingResourceHandler()
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
         if (cfg.jettyInternal.server?.isStarted == true) handlers.add(ConfigurableHandler(config, cfg.jettyInternal.server!!)) else lateInitConfigs.add(config)
@@ -43,8 +44,8 @@ class JettyResourceHandler(val cfg: JavalinState) : JavalinResourceHandler {
         val (handler, resourcePath) = findHandler(ctx) ?: return false
         try {
             handler.config.headers.forEach { ctx.header(it.key, it.value) }
-            return if (handler.config.precompress) {
-                JettyPrecompressingResourceHandler.handle(resourcePath, ctx, cfg.http.compressionStrategy, handler)
+            return if (handler.config.precompressMaxSize > 0) {
+                precompressingHandler.handle(resourcePath, ctx, cfg.http.compressionStrategy, handler)
             } else {
                 handler.handleResource(resourcePath, ctx)
             }

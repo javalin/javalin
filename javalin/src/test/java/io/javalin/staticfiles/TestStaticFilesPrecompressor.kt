@@ -33,21 +33,23 @@ class TestStaticFilesPrecompressor {
 
     private val swaggerBasePath = "/webjars/swagger-ui/${TestDependency.swaggerVersion}"
 
+    val precompressMaxSize = 2 * 1024 * 1024
+
     private val configPrecompressionStaticResourceApp: Javalin by lazy {
         Javalin.create { javalin ->
             javalin.http.compressionStrategy = CompressionStrategy(Brotli(), Gzip())
             javalin.staticFiles.add { staticFiles ->
                 staticFiles.hostedPath = "/webjars"
                 staticFiles.directory = "META-INF/resources/webjars"
-                staticFiles.precompress = true
+                staticFiles.precompressMaxSize = precompressMaxSize
             }
             javalin.staticFiles.add { staticFiles ->
                 staticFiles.directory = "/public/immutable"
-                staticFiles.precompress = true
+                staticFiles.precompressMaxSize = precompressMaxSize
             }
             javalin.staticFiles.add { staticFiles ->
                 staticFiles.directory = "/public/protected"
-                staticFiles.precompress = true
+                staticFiles.precompressMaxSize = precompressMaxSize
             }
         }
     }
@@ -94,8 +96,9 @@ class TestStaticFilesPrecompressor {
     }
 
     @Test
-    fun `only creates one compressed version even if query params are present`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
-        val oldSize = JettyPrecompressingResourceHandler.compressedFiles.size
+    fun `only creates one compressed version even if query params are present`() = TestUtil.test(configPrecompressionStaticResourceApp) { app, http ->
+        val handler = app.unsafe.resourceHandler as io.javalin.jetty.JettyResourceHandler
+        val oldSize = handler.precompressingHandler.getCacheSize()
         assertThat(http.getFile("/secret.html", "gzip"))
             .extracting({ it.code }, { it.contentEncoding() })
             .containsExactly(HttpStatus.OK.code, "gzip")
@@ -105,7 +108,7 @@ class TestStaticFilesPrecompressor {
         assertThat(http.getFile("/secret.html?qp=2", "gzip"))
             .extracting({ it.code }, { it.contentEncoding() })
             .containsExactly(HttpStatus.OK.code, "gzip")
-        assertThat(JettyPrecompressingResourceHandler.compressedFiles.size <= oldSize + 1)
+        assertThat(handler.precompressingHandler.getCacheSize() <= oldSize + 1).isTrue()
     }
 
     @Test
@@ -171,7 +174,7 @@ class TestStaticFilesPrecompressor {
         config.staticFiles.add { staticFiles ->
             staticFiles.hostedPath = "/"
             staticFiles.directory = "/public"
-            staticFiles.precompress = true
+            staticFiles.precompressMaxSize = precompressMaxSize
         }
     }) { _, http ->
         assumeTrue(Brotli4jLoader.isAvailable())
@@ -194,7 +197,7 @@ class TestStaticFilesPrecompressor {
         config.staticFiles.add {
             it.directory = "public"
             it.location = Location.CLASSPATH
-            it.precompress = true
+            it.precompressMaxSize = precompressMaxSize
         }
     }) { app, http ->
         app.unsafe.routes.after { it.header("X-After", "true") }

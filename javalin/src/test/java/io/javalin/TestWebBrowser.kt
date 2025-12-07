@@ -97,7 +97,7 @@ class TestWebBrowser {
         config.staticFiles.add { staticFiles ->
             staticFiles.hostedPath = "/"
             staticFiles.directory = "/public"
-            staticFiles.precompress = true
+            staticFiles.precompressMaxSize = 2 * 1024 * 1024
         }
     }) { _, http ->
         driver.get(http.origin + "/html.html")

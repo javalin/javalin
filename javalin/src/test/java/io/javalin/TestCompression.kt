@@ -493,7 +493,7 @@ class TestCompression {
             it.http.compressionStrategy = CompressionStrategy.GZIP
             it.staticFiles.enableWebjars()
             it.staticFiles.add { staticFiles ->
-                staticFiles.precompress = true
+                staticFiles.precompressMaxSize = 2 * 1024 * 1024
                 staticFiles.directory = "/public"
                 staticFiles.location = Location.CLASSPATH
             }
