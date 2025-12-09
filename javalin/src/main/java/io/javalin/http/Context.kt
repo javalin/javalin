@@ -446,10 +446,10 @@ interface Context {
     /** Remove header by name. */
     fun removeHeader(name: String): Context = also { res().setHeader(name, null) }
 
-    /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
+    /** Redirects to location with given status. Skips HTTP handler if called in before/beforeMatched handler */
     fun redirect(location: String, status: HttpStatus)
 
-    /** Redirects to location with status [HttpStatus.FOUND]. Skips HTTP handler if called in before-handler */
+    /** Redirects to location with status [HttpStatus.FOUND]. Skips HTTP handler if called in before/beforeMatched handler */
     fun redirect(location: String) = redirect(location, HttpStatus.FOUND)
 
     /** Sets the response status. */

@@ -153,8 +153,8 @@ open class JavalinServletContext(
 
     override fun redirect(location: String, status: HttpStatus) {
         header(Header.LOCATION, location).status(status).result("Redirected")
-        if (endpoint().method == HandlerType.BEFORE) {
-            tasks.removeIf { it.skipIfExceptionOccurred }
+        if (endpoint().method == HandlerType.BEFORE || endpoint().method == HandlerType.BEFORE_MATCHED) {
+            tasks.removeIf { it.skipOnExceptionAndRedirect }
         }
     }
 

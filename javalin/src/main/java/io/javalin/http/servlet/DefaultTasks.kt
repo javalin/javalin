@@ -17,7 +17,7 @@ object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
-            submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+            submitTask(LAST, Task(skipOnExceptionAndRedirect = true) { entry.handle(ctx, requestUri) })
         }
     }
 
@@ -35,7 +35,7 @@ object DefaultTasks {
 
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
-                submitTask(LAST, Task(skipIfExceptionOccurred = true) {
+                submitTask(LAST, Task(skipOnExceptionAndRedirect = true) {
                     entry.handle(ctx, requestUri)
                 })
             }
@@ -75,18 +75,18 @@ object DefaultTasks {
         val didMatch by javalinLazy { servlet.willMatch(ctx, requestUri) }
         servlet.router.findHttpHandlerEntries(HandlerType.AFTER_MATCHED, requestUri).forEach { entry ->
             if (didMatch) {
-                submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
+                submitTask(LAST, Task(skipOnExceptionAndRedirect = false) { entry.handle(ctx, requestUri) })
             }
         }
     }
 
     val ERROR = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, _ ->
-        submitTask(LAST, Task(skipIfExceptionOccurred = false) { servlet.router.handleHttpError(ctx.statusCode(), ctx) })
+        submitTask(LAST, Task(skipOnExceptionAndRedirect = false) { servlet.router.handleHttpError(ctx.statusCode(), ctx) })
     }
 
     val AFTER = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.router.findHttpHandlerEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-            submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
+            submitTask(LAST, Task(skipOnExceptionAndRedirect = false) { entry.handle(ctx, requestUri) })
         }
     }
 

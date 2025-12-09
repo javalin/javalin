@@ -108,7 +108,7 @@ class ContextMock private constructor(
         val javalinServlet = JavalinServlet(mockConfig.javalinState)
         (javalinServlet.requestLifecycle as MutableList<TaskInitializer<JavalinServletContext>>).add(
             TaskInitializer { submitTask, _, _, _ ->
-                submitTask(LAST, Task(skipIfExceptionOccurred = false) {
+                submitTask(LAST, Task(skipOnExceptionAndRedirect = false) {
                     await.countDown()
                 })
             }
