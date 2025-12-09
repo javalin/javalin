@@ -12,7 +12,18 @@ fun interface TaskInitializer<CTX : Context> {
 }
 
 data class Task(
-    val skipIfExceptionOccurred: Boolean = true, // tasks in this stage can be aborted by throwing an exception
+    /**
+     * Determines if this task should be skipped when an exception has occurred during request processing.
+     *
+     * This flag serves two purposes:
+     * 1. Exception handling: When an exception is thrown, tasks with skipIfExceptionOccurred=true are skipped
+     *    to avoid executing handlers that depend on successful prior execution.
+     * 2. Early termination: Used by Context#redirect when called from a BEFORE handler to skip the HTTP handler
+     *    and any remaining BEFORE/BEFORE_MATCHED handlers.
+     *
+     * Tasks that should always run (like error handlers and after handlers) have skipIfExceptionOccurred=false.
+     */
+    val skipIfExceptionOccurred: Boolean = true,
     val handler: TaskHandler<Unit>
 )
 

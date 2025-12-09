@@ -449,7 +449,13 @@ interface Context {
     /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
     fun redirect(location: String, status: HttpStatus)
 
-    /** Redirects to location with status [HttpStatus.FOUND]. Skips HTTP handler if called in before-handler */
+    /**
+     * Redirects to location with status [HttpStatus.FOUND].
+     * When called from a BEFORE handler, this will skip the matched HTTP endpoint and any remaining
+     * BEFORE/BEFORE_MATCHED handlers, but AFTER and AFTER_MATCHED handlers will still execute.
+     * This allows for early redirects based on authentication, validation, etc., while still
+     * maintaining proper request lifecycle cleanup.
+     */
     fun redirect(location: String) = redirect(location, HttpStatus.FOUND)
 
     /** Sets the response status. */
