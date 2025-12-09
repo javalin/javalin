@@ -11,8 +11,8 @@ import java.util.concurrent.atomic.AtomicInteger
  * the request lifecycle (before, beforeMatched, after, afterMatched handlers).
  *
  * Key behaviors:
- * 1. Redirect from BEFORE handler skips remaining BEFORE, BEFORE_MATCHED, and HTTP handlers
- * 2. AFTER and AFTER_MATCHED handlers still execute after redirect from BEFORE
+ * 1. Redirect from BEFORE or BEFORE_MATCHED handler skips remaining BEFORE, BEFORE_MATCHED, and HTTP handlers
+ * 2. AFTER and AFTER_MATCHED handlers still execute after redirect from BEFORE or BEFORE_MATCHED
  * 3. Redirect from HTTP handler behaves normally (no skipping)
  * 4. This allows for early redirects (auth, validation) while maintaining cleanup handlers
  */
@@ -145,30 +145,77 @@ class TestRedirectLifecycle {
     }
 
     @Test
-    fun `redirect in beforeMatched handler does NOT skip http handler`() = TestUtil.test { app, http ->
+    fun `redirect in beforeMatched handler skips http handler`() = TestUtil.test { app, http ->
         val executionOrder = mutableListOf<String>()
-
-        http.disableUnirestRedirects()
 
         app.unsafe.routes.beforeMatched("/test") { ctx ->
             executionOrder.add("beforeMatched")
-            // Redirect from beforeMatched does NOT have the special skip behavior
             ctx.redirect("/redirected")
         }
         app.unsafe.routes.get("/test") {
-            executionOrder.add("http-handler-should-still-run")
+            executionOrder.add("http-handler-should-not-run")
         }
         app.unsafe.routes.get("/redirected") { ctx ->
+            executionOrder.add("redirected-handler")
             ctx.result("Redirected response")
         }
 
         val response = http.get("/test")
-        // The HTTP handler still runs because task removal only occurs
-        // when endpoint().method == HandlerType.BEFORE, not BEFORE_MATCHED
-        assertThat(response.status).isEqualTo(HttpStatus.FOUND.code)
-        assertThat(executionOrder).containsExactly("beforeMatched", "http-handler-should-still-run")
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.body).isEqualTo("Redirected response")
+        // HTTP handler is skipped because redirect from BEFORE_MATCHED now has the same behavior as BEFORE
+        assertThat(executionOrder).containsExactly("beforeMatched", "redirected-handler")
+    }
 
-        http.enableUnirestRedirects()
+    @Test
+    fun `redirect in beforeMatched handler skips remaining beforeMatched handlers`() = TestUtil.test { app, http ->
+        val executionOrder = mutableListOf<String>()
+
+        app.unsafe.routes.beforeMatched("/test") { ctx ->
+            executionOrder.add("beforeMatched-1")
+            ctx.redirect("/redirected")
+        }
+        app.unsafe.routes.beforeMatched("/test") {
+            executionOrder.add("beforeMatched-2-should-not-run")
+        }
+        app.unsafe.routes.get("/test") {
+            executionOrder.add("http-handler-should-not-run")
+        }
+        app.unsafe.routes.get("/redirected") { ctx ->
+            executionOrder.add("redirected-handler")
+            ctx.result("Redirected response")
+        }
+
+        val response = http.get("/test")
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.body).isEqualTo("Redirected response")
+        assertThat(executionOrder).containsExactly("beforeMatched-1", "redirected-handler")
+    }
+
+    @Test
+    fun `redirect in beforeMatched handler still runs afterMatched handlers`() = TestUtil.test { app, http ->
+        val executionOrder = mutableListOf<String>()
+
+        app.unsafe.routes.beforeMatched("/test") { ctx ->
+            executionOrder.add("beforeMatched")
+            ctx.redirect("/redirected")
+        }
+        app.unsafe.routes.get("/test") {
+            executionOrder.add("http-handler-should-not-run")
+        }
+        app.unsafe.routes.afterMatched("/test") {
+            executionOrder.add("afterMatched")
+        }
+        app.unsafe.routes.get("/redirected") { ctx ->
+            executionOrder.add("redirected-handler")
+            ctx.result("Redirected response")
+        }
+
+        val response = http.get("/test")
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.body).isEqualTo("Redirected response")
+        // AFTER_MATCHED handler runs because it has skipIfExceptionOccurred=false
+        assertThat(executionOrder).contains("beforeMatched", "afterMatched", "redirected-handler")
     }
 
     @Test
