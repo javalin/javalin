@@ -88,7 +88,7 @@ class TestRedirectLifecycle {
         val response = http.get("/test")
         assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body).isEqualTo("Redirected response")
-        // After handler runs for the original request, then the redirected request is processed
+        // AFTER handler runs as part of the original request lifecycle before redirect processing
         assertThat(executionOrder).contains("before", "after", "redirected-handler")
     }
 
@@ -114,7 +114,8 @@ class TestRedirectLifecycle {
         val response = http.get("/test")
         assertThat(response.status).isEqualTo(HttpStatus.OK.code)
         assertThat(response.body).isEqualTo("Redirected response")
-        // AfterMatched handler runs because the route was matched, even though redirect occurred
+        // AFTER_MATCHED handler runs because it has skipIfExceptionOccurred=false,
+        // so it's preserved even when redirect() removes other tasks
         assertThat(executionOrder).contains("before", "afterMatched", "redirected-handler")
     }
 
@@ -162,8 +163,8 @@ class TestRedirectLifecycle {
         }
 
         val response = http.get("/test")
-        // The HTTP handler still runs because skipIfExceptionOccurred removal only happens
-        // when endpoint().method == HandlerType.BEFORE
+        // The HTTP handler still runs because task removal only occurs
+        // when endpoint().method == HandlerType.BEFORE, not BEFORE_MATCHED
         assertThat(response.status).isEqualTo(HttpStatus.FOUND.code)
         assertThat(executionOrder).containsExactly("beforeMatched", "http-handler-should-still-run")
 

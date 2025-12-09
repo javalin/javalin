@@ -154,14 +154,14 @@ open class JavalinServletContext(
     override fun redirect(location: String, status: HttpStatus) {
         header(Header.LOCATION, location).status(status).result("Redirected")
         // When redirect is called from a BEFORE handler, skip remaining request processing
-        // This removes:
-        // - Remaining BEFORE handlers (skipIfExceptionOccurred=true)
-        // - All BEFORE_MATCHED handlers (skipIfExceptionOccurred=true)
-        // - The HTTP handler itself (skipIfExceptionOccurred=true for BEFORE handlers, false for actual endpoint)
-        // But preserves:
-        // - AFTER_MATCHED handlers (skipIfExceptionOccurred=false)
-        // - AFTER handlers (skipIfExceptionOccurred=false)
-        // - ERROR handlers (skipIfExceptionOccurred=false)
+        // This removes all remaining tasks with skipIfExceptionOccurred=true, which includes:
+        // - Remaining BEFORE handlers (have skipIfExceptionOccurred=true)
+        // - All BEFORE_MATCHED handlers (have skipIfExceptionOccurred=true)
+        // - The HTTP handler itself (has skipIfExceptionOccurred=false, but gets removed anyway)
+        // But preserves tasks with skipIfExceptionOccurred=false:
+        // - AFTER_MATCHED handlers
+        // - AFTER handlers
+        // - ERROR handlers
         //
         // This ensures the redirect response is sent immediately without executing the matched endpoint,
         // while still allowing after-handlers to run (e.g., for logging, cleanup, etc.)
