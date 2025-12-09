@@ -145,6 +145,15 @@ class TestResponse {
     }
 
     @Test
+    fun `redirect in beforeMatched-handler works`() = TestUtil.test { app, http ->
+        app.unsafe.routes.beforeMatched("/beforeMatched") { it.redirect("/redirected") }
+        app.unsafe.routes.get("/beforeMatched") { it.result("Should not reach") }
+        app.unsafe.routes.get("/redirected") { it.result("Redirected") }
+        assertThat(http.getStatus("/beforeMatched")).isEqualTo(HttpStatus.OK)
+        assertThat(http.getBody("/beforeMatched")).isEqualTo("Redirected")
+    }
+
+    @Test
     fun `redirect in exception-mapper works`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/get") { throw Exception() }
         app.unsafe.routes.exception(Exception::class.java) { _, ctx -> ctx.redirect("/redirected") }

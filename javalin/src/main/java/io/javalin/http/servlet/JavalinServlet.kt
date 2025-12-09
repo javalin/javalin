@@ -58,7 +58,7 @@ class JavalinServlet(val cfg: JavalinState) : HttpServlet() {
     private fun JavalinServletContext.handleSync() {
         while (userFutureSupplier == null && tasks.isNotEmpty()) {
             val task = tasks.poll()
-            if (exceptionOccurred && task.skipIfExceptionOccurred) {
+            if (exceptionOccurred && task.skipOnExceptionAndRedirect) {
                 continue
             }
             handleTask(task.handler)
@@ -100,7 +100,7 @@ class JavalinServlet(val cfg: JavalinState) : HttpServlet() {
         } catch (throwable: Throwable) {
             exceptionOccurred = true
             userFutureSupplier = null
-            tasks.offerFirst(Task(skipIfExceptionOccurred = false) { router.handleHttpException(this, throwable) })
+            tasks.offerFirst(Task(skipOnExceptionAndRedirect = false) { router.handleHttpException(this, throwable) })
             null
         }
 

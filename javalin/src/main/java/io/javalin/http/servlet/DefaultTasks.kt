@@ -17,8 +17,7 @@ object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
-            // BEFORE handlers can be skipped if an exception occurs or if Context#redirect is called
-            submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+            submitTask(LAST, Task(skipOnExceptionAndRedirect = true) { entry.handle(ctx, requestUri) })
         }
     }
 
@@ -36,8 +35,7 @@ object DefaultTasks {
 
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
-                // BEFORE_MATCHED handlers can be skipped if an exception occurs or if Context#redirect is called from a BEFORE handler
-                submitTask(LAST, Task(skipIfExceptionOccurred = true) {
+                submitTask(LAST, Task(skipOnExceptionAndRedirect = true) {
                     entry.handle(ctx, requestUri)
                 })
             }
@@ -48,7 +46,6 @@ object DefaultTasks {
         servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull { entry ->
             submitTask(
                 LAST,
-                // HTTP handler (the matched endpoint) cannot be skipped by exceptions but can be skipped by Context#redirect from BEFORE
                 Task {
                     ctx.setRouteRoles(servlet.matchedRoles(ctx, requestUri)) // set roles for the matched handler
                     entry.handle(ctx, requestUri)
@@ -78,21 +75,18 @@ object DefaultTasks {
         val didMatch by javalinLazy { servlet.willMatch(ctx, requestUri) }
         servlet.router.findHttpHandlerEntries(HandlerType.AFTER_MATCHED, requestUri).forEach { entry ->
             if (didMatch) {
-                // AFTER_MATCHED handlers always run (even after exceptions or redirects) for cleanup/logging
-                submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
+                submitTask(LAST, Task(skipOnExceptionAndRedirect = false) { entry.handle(ctx, requestUri) })
             }
         }
     }
 
     val ERROR = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, _ ->
-        // ERROR handlers always run to handle errors, regardless of exceptions
-        submitTask(LAST, Task(skipIfExceptionOccurred = false) { servlet.router.handleHttpError(ctx.statusCode(), ctx) })
+        submitTask(LAST, Task(skipOnExceptionAndRedirect = false) { servlet.router.handleHttpError(ctx.statusCode(), ctx) })
     }
 
     val AFTER = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.router.findHttpHandlerEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-            // AFTER handlers always run for cleanup/logging, regardless of exceptions or redirects
-            submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
+            submitTask(LAST, Task(skipOnExceptionAndRedirect = false) { entry.handle(ctx, requestUri) })
         }
     }
 
