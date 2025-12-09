@@ -12,7 +12,7 @@ fun interface TaskInitializer<CTX : Context> {
 }
 
 data class Task(
-    val skipOnExceptionAndRedirect: Boolean = true, // skipped on exception or redirect from before/beforeMatched
+    val skipOnExceptionAndRedirect: Boolean = true, // skipped when exception occurs or redirect called from before/beforeMatched
     val handler: TaskHandler<Unit>
 )
 
