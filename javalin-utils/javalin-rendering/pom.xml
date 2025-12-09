@@ -16,6 +16,7 @@
         <module>javalin-rendering-freemarker</module>
         <module>javalin-rendering-thymeleaf</module>
         <module>javalin-rendering-mustache</module>
+        <module>javalin-rendering-handlebars</module>
         <module>javalin-rendering-pebble</module>
         <module>javalin-rendering-commonmark</module>
         <module>javalin-rendering-jte</module>
