@@ -242,6 +242,22 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>compile-java21</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <release>21</release>
+                            <multiReleaseOutput>true</multiReleaseOutput>
+                            <compileSourceRoots>
+                                <root>${project.basedir}/src/main/java21</root>
+                            </compileSourceRoots>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

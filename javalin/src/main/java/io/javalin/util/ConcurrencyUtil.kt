@@ -36,36 +36,23 @@ object ConcurrencyUtil {
 
 }
 
-internal object LoomUtil {
+internal open class LoomUtil {
+    companion object {
 
-    val loomAvailable = runCatching {
-        val factoryMethod = Executors::class.java.getMethod("newVirtualThreadPerTaskExecutor") // this will not throw if preview is not enabled
-        factoryMethod.invoke(Executors::class.java) as ExecutorService // this *will* throw if preview is not enabled
-    }.isSuccess
+        @JvmStatic
+        val loomAvailable: Boolean = false
 
-    fun executorService(name: String): ExecutorService {
-        require(loomAvailable) { "Your Java version (${System.getProperty("java.version")}) doesn't support Loom" }
-        val factoryMethod = Executors::class.java.getMethod("newThreadPerTaskExecutor", ThreadFactory::class.java)
-        return factoryMethod.invoke(Executors::class.java, NamedVirtualThreadFactory(name)) as ExecutorService
+        @JvmStatic
+        fun executorService(name: String): ExecutorService =
+            throw UnsupportedOperationException("Loom not available")
+
+        @JvmStatic
+        fun threadPool(name: String): ThreadPool =
+            throw UnsupportedOperationException("Loom not available")
+
+        @JvmStatic
+        fun isLoomThreadPool(threadPool: ThreadPool): Boolean = false
     }
-
-    private class LoomThreadPool(name: String) : ThreadPool {
-        private val executorService = executorService(name)
-        override fun join() {}
-        override fun getThreads() = 1
-        override fun getIdleThreads() = 1
-        override fun isLowOnThreads() = false
-        override fun execute(command: Runnable) {
-            executorService.submit(command)
-        }
-    }
-
-    fun threadPool(name: String): ThreadPool =
-        LoomThreadPool(name)
-
-    fun isLoomThreadPool(threadPool: ThreadPool): Boolean =
-        threadPool is LoomThreadPool
-
 }
 
 /**
@@ -122,37 +109,4 @@ open class NamedThreadFactory(protected val prefix: String) : ThreadFactory {
 
     override fun newThread(runnable: Runnable): Thread =
         Thread(group, runnable, "$prefix-${threadCount.getAndIncrement()}", 0)
-}
-
-open class NamedVirtualThreadFactory(prefix: String) : NamedThreadFactory(prefix) {
-    override fun newThread(runnable: Runnable): Thread = VirtualThreadBuilder.create()
-        .name("$prefix-Virtual-${threadCount.getAndIncrement()}")
-        .unstarted(runnable)
-}
-
-object VirtualThreadBuilder {
-    private val builderClass = Class.forName("java.lang.Thread\$Builder\$OfVirtual")
-    private val nameMethod = builderClass.getMethod("name", String::class.java)
-    private val unstartedMethod = builderClass.getMethod("unstarted", Runnable::class.java)
-    private val ofVirtualMethod = Thread::class.java.getMethod("ofVirtual")
-
-    interface Builder {
-        fun name(name: String): Builder
-        fun unstarted(runnable: Runnable): Thread
-    }
-
-    private class BuilderImpl : Builder {
-        private val ofVirtual = ofVirtualMethod.invoke(null)
-
-        override fun name(name: String): Builder {
-            nameMethod.invoke(ofVirtual, name)
-            return this
-        }
-
-        override fun unstarted(runnable: Runnable): Thread {
-            return unstartedMethod.invoke(ofVirtual, runnable) as Thread
-        }
-    }
-
-    fun create(): Builder = BuilderImpl()
 }
