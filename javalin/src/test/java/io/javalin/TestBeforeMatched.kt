@@ -7,8 +7,8 @@
 
 package io.javalin
 
-import io.javalin.TestAccessManager.MyRole.ROLE_ONE
-import io.javalin.TestAccessManager.MyRole.ROLE_TWO
+import io.javalin.TestBeforeMatched.MyRole.ROLE_ONE
+import io.javalin.TestBeforeMatched.MyRole.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
@@ -21,7 +21,7 @@ import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class TestAccessManager {
+class TestBeforeMatched {
 
     // the AccessManager interface has been removed, but we are keeping
     // the test to make sure the functionality is still supported.

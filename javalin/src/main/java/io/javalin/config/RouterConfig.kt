@@ -4,6 +4,7 @@ package io.javalin.config
 
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.router.exception.JavaLangErrorHandler
+import io.javalin.router.HandlerWrapper
 import io.javalin.util.JavalinLogger
 
 /**
@@ -13,6 +14,15 @@ import io.javalin.util.JavalinLogger
  * @see [JavalinState.router]
  */
 class RouterConfig() {
+
+    @JvmSynthetic
+    internal var handlerWrapper: HandlerWrapper? = null
+
+    @JvmSynthetic
+    internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->
+        res.status = INTERNAL_SERVER_ERROR.code
+        JavalinLogger.error("Fatal error occurred while servicing http-request", error)
+    }
 
     // @formatter:off
     /** The context path (ex '/blog' if you are hosting an app on a subpath, like 'mydomain.com/blog') */
@@ -25,10 +35,8 @@ class RouterConfig() {
     @JvmField var caseInsensitiveRoutes = false
     // @formatter:on
 
-    @JvmSynthetic
-    internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->
-        res.status = INTERNAL_SERVER_ERROR.code
-        JavalinLogger.error("Fatal error occurred while servicing http-request", error)
+    fun handlerWrapper(handlerWrapper: HandlerWrapper) = also {
+        this.handlerWrapper = handlerWrapper
     }
 
     fun javaLangErrorHandler(handler: JavaLangErrorHandler) = also {
