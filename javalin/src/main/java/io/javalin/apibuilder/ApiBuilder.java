@@ -10,7 +10,6 @@ import io.javalin.Javalin;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
 import io.javalin.router.JavalinDefaultRoutingApi;
-import io.javalin.router.RoutingApi;
 import io.javalin.security.RouteRole;
 import io.javalin.websocket.WsConfig;
 import org.jetbrains.annotations.NotNull;
@@ -23,12 +22,12 @@ import java.util.function.Consumer;
 /**
  * Static methods for route declarations in Javalin
  */
-public class ApiBuilder implements RoutingApi {
+public class ApiBuilder {
 
-    private static final ThreadLocal<JavalinDefaultRoutingApi<?>> staticJavalin = new ThreadLocal<>();
+    private static final ThreadLocal<JavalinDefaultRoutingApi> staticJavalin = new ThreadLocal<>();
     private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
-    public static void setStaticJavalin(@NotNull JavalinDefaultRoutingApi<?> javalin) {
+    public static void setStaticJavalin(@NotNull JavalinDefaultRoutingApi javalin) {
         staticJavalin.set(javalin);
     }
 
@@ -55,8 +54,8 @@ public class ApiBuilder implements RoutingApi {
         return String.join("", pathDeque.get()) + path;
     }
 
-    public static JavalinDefaultRoutingApi<?> staticInstance() {
-        JavalinDefaultRoutingApi<?> javalin = staticJavalin.get();
+    public static JavalinDefaultRoutingApi staticInstance() {
+        JavalinDefaultRoutingApi javalin = staticJavalin.get();
         if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }

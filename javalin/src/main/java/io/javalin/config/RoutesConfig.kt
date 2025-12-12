@@ -7,7 +7,6 @@ import io.javalin.apibuilder.EndpointGroup
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
 import io.javalin.router.Endpoint
-import io.javalin.router.JavalinDefaultRouting
 import io.javalin.router.JavalinDefaultRoutingApi
 import io.javalin.security.RouteRole
 import io.javalin.websocket.WsConfig
@@ -22,7 +21,7 @@ import java.util.function.Consumer
  * @param cfg the parent Javalin Configuration
  * @see [JavalinState.routes]
  */
-class RoutesConfig(internal val cfg: JavalinState) : JavalinDefaultRoutingApi<RoutesConfig> {
+class RoutesConfig(internal val cfg: JavalinState) : JavalinDefaultRoutingApi {
 
     override fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): RoutesConfig = apply {
         cfg.internalRouter.addHttpExceptionHandler(exceptionClass, exceptionHandler)
@@ -53,7 +52,7 @@ class RoutesConfig(internal val cfg: JavalinState) : JavalinDefaultRoutingApi<Ro
      */
     fun apiBuilder(endpoints: EndpointGroup): RoutesConfig = apply {
         try {
-            ApiBuilder.setStaticJavalin(JavalinDefaultRouting(cfg))
+            ApiBuilder.setStaticJavalin(this)
             endpoints.addEndpoints()
         } finally {
             ApiBuilder.clearStaticJavalin()
