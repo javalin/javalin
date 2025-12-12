@@ -1,5 +1,6 @@
 package io.javalin
 
+import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -45,4 +46,53 @@ class TestEndpointWrapper {
     }) { app, http ->
         assertThat(http.getBody("/")).isEqualTo("Stack size: 1")
     }
+
+    @Test
+    fun `endpointWrapper wraps all endpoints by default`() {
+        var wrapCalls = 0
+        TestUtil.test(Javalin.create { config ->
+            config.router.endpointWrapper = { endpoint -> Handler { wrapCalls++; endpoint.handler.handle(it) } }
+            config.routes.before { it.appendResult("$wrapCalls") }
+            config.routes.beforeMatched { it.appendResult("$wrapCalls") }
+            config.routes.get("/") { it.appendResult("$wrapCalls") }
+            config.routes.after { it.appendResult("$wrapCalls") }
+        }) { _, http ->
+            assertThat(http.getBody("/")).isEqualTo("1234")
+            assertThat(wrapCalls).isEqualTo(4)
+        }
+    }
+
+    @Test
+    fun `endpointWrapper can easily wrap just http endpoints`() {
+        var wrapCalls = 0
+        TestUtil.test(Javalin.create { config ->
+            config.router.endpointWrapper = { endpoint ->
+                when (endpoint.method.isHttpMethod) {
+                    true -> Handler { wrapCalls++; endpoint.handler.handle(it) }
+                    false -> endpoint.handler
+                }
+            }
+            config.routes.before { it.appendResult("$wrapCalls") } // no wrapper, sum=0
+            config.routes.beforeMatched { it.appendResult("$wrapCalls") } // no wrapper, sum=0
+            config.routes.get("/") { it.appendResult("$wrapCalls") } // wrapper, sum=1
+            config.routes.after { it.appendResult("$wrapCalls") } // no wrapper, sum=1
+        }) { _, http ->
+            assertThat(http.getBody("/")).isEqualTo("0011")
+            assertThat(wrapCalls).isEqualTo(1) // GET is the only http endpoint
+        }
+
+    }
+
+    @Test
+    fun `endpointWrapper propagates exceptions from wrapped handler`() {
+        TestUtil.test(Javalin.create { config ->
+            config.router.endpointWrapper = { endpoint -> Handler { endpoint.handler.handle(it) } }
+            config.routes.get("/") { throw IllegalStateException("Test exception") }
+        }) { _, http ->
+            assertThat(http.get("/").status).isEqualTo(500)
+        }
+    }
+
+    private fun Context.appendResult(s: String) = this.result((result() ?: "") + s)
+
 }
