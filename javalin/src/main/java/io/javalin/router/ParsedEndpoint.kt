@@ -6,13 +6,19 @@ import io.javalin.router.matcher.PathParser
 
 class ParsedEndpoint(
     @JvmField val endpoint: Endpoint,
-    routerConfig: RouterConfig,
+    private val routerConfig: RouterConfig,
 ) {
 
     private val pathParser = PathParser(endpoint.path, routerConfig)
 
     fun handle(ctx: JavalinServletContext, requestUri: String) {
-        endpoint.handle(ctx.update(endpoint.withMetadata(PathParams(extractPathParams(requestUri)))))
+        val pathParams = PathParams(extractPathParams(requestUri))
+        val endpoint = endpoint.withMetadata(pathParams)
+        val updatedCtx = ctx.update(endpoint)
+        when (val handlerWrapper = routerConfig.handlerWrapper) {
+            null -> endpoint.handler.handle(updatedCtx)
+            else -> handlerWrapper.invoke(endpoint).handle(updatedCtx)
+        }
     }
 
     fun matches(requestUri: String): Boolean =

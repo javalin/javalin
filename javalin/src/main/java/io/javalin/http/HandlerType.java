@@ -6,6 +6,8 @@
 
 package io.javalin.http;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +25,7 @@ public record HandlerType(String name, boolean isHttpMethod) {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return name;
     }
 

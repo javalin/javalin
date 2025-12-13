@@ -4,6 +4,8 @@ package io.javalin.config
 
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.router.exception.JavaLangErrorHandler
+import io.javalin.router.Endpoint
+import io.javalin.http.Handler
 import io.javalin.util.JavalinLogger
 
 /**
@@ -23,6 +25,8 @@ class RouterConfig() {
     @JvmField var treatMultipleSlashesAsSingleSlash = false
     /** If true, treat '/PATH' and '/path' as the same path (default: false). */
     @JvmField var caseInsensitiveRoutes = false
+    /** A function that wraps all endpoint handlers. Can be used for security, logging, etc. */
+    @JvmField var handlerWrapper: ((Endpoint) -> Handler)? = null
     // @formatter:on
 
     @JvmSynthetic
