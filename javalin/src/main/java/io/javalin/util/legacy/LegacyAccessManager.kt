@@ -13,7 +13,7 @@ fun interface LegacyAccessManager {
 
 fun Javalin.legacyAccessManager(legacyAccessManager: LegacyAccessManager): Javalin {
     if (this.jettyServer().started()) throw IllegalStateException("AccessManager must be set before server start")
-    this.unsafe.router.endpointWrapper = { endpoint: Endpoint ->
+    this.unsafe.router.handlerWrapper = { endpoint: Endpoint ->
         val roles = endpoint.metadata(Roles::class.java)?.roles ?: emptySet()
         when (roles.isEmpty()) {
             true -> endpoint.handler // old access manager didn't run if no roles were present

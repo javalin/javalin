@@ -10,7 +10,7 @@ class TestEndpointWrapper {
 
     @Test
     fun `endpointWrapper can wrap handlers`() = TestUtil.test(Javalin.create { config ->
-        config.router.endpointWrapper = { endpoint ->
+        config.router.handlerWrapper = { endpoint ->
             Handler { ctx ->
                 ctx.result("Wrapped: ")
                 endpoint.handler.handle(ctx)
@@ -23,7 +23,7 @@ class TestEndpointWrapper {
 
     @Test
     fun `endpointWrapper can conditionally skip handlers on query param`() = TestUtil.test(Javalin.create { config ->
-        config.router.endpointWrapper = { endpoint ->
+        config.router.handlerWrapper = { endpoint ->
             Handler { ctx ->
                 when (ctx.queryParam("skip") == "true") {
                     true -> ctx.result("Skipped")
@@ -39,7 +39,7 @@ class TestEndpointWrapper {
 
     @Test
     fun `endpointWrapper does not add extra endpoint to stack`() = TestUtil.test(Javalin.create { config ->
-        config.router.endpointWrapper = { endpoint ->
+        config.router.handlerWrapper = { endpoint ->
             Handler { endpoint.handler.handle(it) }
         }
         config.routes.get("/") { it.result("Stack size: " + it.endpoints().list().size) }
@@ -51,7 +51,7 @@ class TestEndpointWrapper {
     fun `endpointWrapper wraps all endpoints by default`() {
         var wrapCalls = 0
         TestUtil.test(Javalin.create { config ->
-            config.router.endpointWrapper = { endpoint -> Handler { wrapCalls++; endpoint.handler.handle(it) } }
+            config.router.handlerWrapper = { endpoint -> Handler { wrapCalls++; endpoint.handler.handle(it) } }
             config.routes.before { it.appendResult("$wrapCalls") }
             config.routes.beforeMatched { it.appendResult("$wrapCalls") }
             config.routes.get("/") { it.appendResult("$wrapCalls") }
@@ -66,7 +66,7 @@ class TestEndpointWrapper {
     fun `endpointWrapper can easily wrap just http endpoints`() {
         var wrapCalls = 0
         TestUtil.test(Javalin.create { config ->
-            config.router.endpointWrapper = { endpoint ->
+            config.router.handlerWrapper = { endpoint ->
                 when (endpoint.method.isHttpMethod) {
                     true -> Handler { wrapCalls++; endpoint.handler.handle(it) }
                     false -> endpoint.handler
@@ -86,7 +86,7 @@ class TestEndpointWrapper {
     @Test
     fun `endpointWrapper propagates exceptions from wrapped handler`() {
         TestUtil.test(Javalin.create { config ->
-            config.router.endpointWrapper = { endpoint -> Handler { endpoint.handler.handle(it) } }
+            config.router.handlerWrapper = { endpoint -> Handler { endpoint.handler.handle(it) } }
             config.routes.get("/") { throw IllegalStateException("Test exception") }
         }) { _, http ->
             assertThat(http.get("/").status).isEqualTo(500)

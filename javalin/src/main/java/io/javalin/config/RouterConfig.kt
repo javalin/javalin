@@ -26,7 +26,7 @@ class RouterConfig() {
     /** If true, treat '/PATH' and '/path' as the same path (default: false). */
     @JvmField var caseInsensitiveRoutes = false
     /** A function that wraps all endpoint handlers. Can be used for security, logging, etc. */
-    @JvmField var endpointWrapper: ((Endpoint) -> Handler)? = null
+    @JvmField var handlerWrapper: ((Endpoint) -> Handler)? = null
     // @formatter:on
 
     @JvmSynthetic

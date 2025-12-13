@@ -12,11 +12,12 @@ class ParsedEndpoint(
     private val pathParser = PathParser(endpoint.path, routerConfig)
 
     fun handle(ctx: JavalinServletContext, requestUri: String) {
-        val endpoint = endpoint.withMetadata(PathParams(extractPathParams(requestUri)))
+        val pathParams = PathParams(extractPathParams(requestUri))
+        val endpoint = endpoint.withMetadata(pathParams)
         val updatedCtx = ctx.update(endpoint)
-        when (routerConfig.endpointWrapper) {
+        when (val handlerWrapper = routerConfig.handlerWrapper) {
             null -> endpoint.handler.handle(updatedCtx)
-            else -> routerConfig.endpointWrapper?.invoke(endpoint)?.handle(updatedCtx)
+            else -> handlerWrapper.invoke(endpoint).handle(updatedCtx)
         }
     }
 
