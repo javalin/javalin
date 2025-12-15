@@ -3,7 +3,7 @@
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
-        <version>7.0.0-SNAPSHOT</version>
+        <version>7.0.0-alpha.4</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
