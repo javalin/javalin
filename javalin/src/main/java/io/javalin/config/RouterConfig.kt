@@ -35,11 +35,11 @@ class RouterConfig() {
     @JvmField var caseInsensitiveRoutes = false
     // @formatter:on
 
-    fun handlerWrapper(handlerWrapper: HandlerWrapper) = also {
+    fun handlerWrapper(handlerWrapper: HandlerWrapper) {
         this.handlerWrapper = handlerWrapper
     }
 
-    fun javaLangErrorHandler(handler: JavaLangErrorHandler) = also {
+    fun javaLangErrorHandler(handler: JavaLangErrorHandler) {
         this.javaLangErrorHandler = handler
     }
 
