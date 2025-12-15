@@ -17,9 +17,9 @@ import io.javalin.websocket.WsConfig;
 import org.eclipse.jetty.websocket.api.Callback;
 import org.jetbrains.annotations.NotNull;
 
-import static io.javalin.TestAccessManager.MyRole.ROLE_ONE;
-import static io.javalin.TestAccessManager.MyRole.ROLE_THREE;
-import static io.javalin.TestAccessManager.MyRole.ROLE_TWO;
+import static io.javalin.TestBeforeMatched.MyRole.ROLE_ONE;
+import static io.javalin.TestBeforeMatched.MyRole.ROLE_THREE;
+import static io.javalin.TestBeforeMatched.MyRole.ROLE_TWO;
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.testing.JavalinTestUtil.after;
