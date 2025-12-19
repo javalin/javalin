@@ -17,7 +17,7 @@ class JettyPrecompressingResourceHandler {
 
     fun handle(resourcePath: String, ctx: Context, compressionStrategy: CompressionStrategy, handler: ConfigurableHandler): Boolean {
         val resource = handler.getResource(resourcePath) ?: return false
-        val contentType = handler.resolveContentType(resource)
+        val contentType = handler.resolveContentType(resource, resourcePath)
         val compressor = compressionStrategy.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")
             .takeUnless { contentType == null || excludedMimeType(contentType, compressionStrategy) }
 

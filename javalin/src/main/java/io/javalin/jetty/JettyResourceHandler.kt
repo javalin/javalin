@@ -88,7 +88,7 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
 
     fun handleResource(resourcePath: String, ctx: Context): Boolean {
         val resource = getResource(resourcePath) ?: return false
-        resolveContentType(resource)?.let { ctx.contentType(it) }
+        resolveContentType(resource, resourcePath)?.let { ctx.contentType(it) }
         if (isEtags && tryHandleAsEtags(resource, ctx)) return true
         resource.newInputStream().use { ctx.result(it.readAllBytes()) }
         return true
@@ -104,12 +104,12 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     private fun isValidResource(resource: Resource, path: String) =
         !resource.isAlias || config.aliasCheck?.checkAlias(path, resource) == true
 
-    internal fun resolveContentType(resource: Resource): String? {
-        // use resource name for content type resolution (e.g., "index.html" not "/").
-        // this ensures welcome files get the correct content type based on the file extension.
-        val resourcePath = resource.name
-        return config.mimeTypes.mapping().entries.firstOrNull { resourcePath.endsWith(".${it.key}", ignoreCase = true) }?.value
-            ?: mimeTypes.getMimeByExtension(resourcePath)
+    internal fun resolveContentType(resource: Resource, fallbackPath: String): String? {
+        // Use the actual resource filename (e.g., "index.html") rather than the request path (e.g., "/")
+        // to resolve content type. This ensures welcome files get correct MIME types based on their extension.
+        val resourceName = resource.fileName ?: resource.name ?: fallbackPath
+        val extension = resourceName.substringAfterLast('.', "").takeIf { it.isNotEmpty() && it != resourceName }
+        return extension?.let { config.mimeTypes.mapping()[it.lowercase()] } ?: mimeTypes.getMimeByExtension(resourceName)
     }
 
     internal fun tryHandleAsEtags(resource: Resource, ctx: Context): Boolean {
