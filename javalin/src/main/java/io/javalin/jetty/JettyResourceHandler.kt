@@ -88,7 +88,7 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
 
     fun handleResource(resourcePath: String, ctx: Context): Boolean {
         val resource = getResource(resourcePath) ?: return false
-        resolveContentType(resourcePath)?.let { ctx.contentType(it) }
+        resolveContentType(resource)?.let { ctx.contentType(it) }
         if (isEtags && tryHandleAsEtags(resource, ctx)) return true
         resource.newInputStream().use { ctx.result(it.readAllBytes()) }
         return true
@@ -104,9 +104,13 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     private fun isValidResource(resource: Resource, path: String) =
         !resource.isAlias || config.aliasCheck?.checkAlias(path, resource) == true
 
-    internal fun resolveContentType(resourcePath: String) =
-        config.mimeTypes.mapping().entries.firstOrNull { resourcePath.endsWith(".${it.key}", ignoreCase = true) }?.value
+    internal fun resolveContentType(resource: Resource): String? {
+        // use resource name for content type resolution (e.g., "index.html" not "/").
+        // this ensures welcome files get the correct content type based on the file extension.
+        val resourcePath = resource.name
+        return config.mimeTypes.mapping().entries.firstOrNull { resourcePath.endsWith(".${it.key}", ignoreCase = true) }?.value
             ?: mimeTypes.getMimeByExtension(resourcePath)
+    }
 
     internal fun tryHandleAsEtags(resource: Resource, ctx: Context): Boolean {
         val computedEtag = runCatching { computeWeakEtag(resource) }.getOrNull() ?: return false

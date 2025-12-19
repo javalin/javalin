@@ -233,6 +233,27 @@ class TestStaticFiles {
     }
 
     @Test
+    fun `welcome files have correct content type`() = TestUtil.test(
+        Javalin.create {
+            it.staticFiles.add("/public", Location.CLASSPATH)
+            it.staticFiles.add {
+                it.directory = "/public/subdir"
+                it.hostedPath = "/"
+            }
+        }
+    ) { _, http ->
+        fun assertContentTypeAndContent(path: String, expectedContent: String) {
+            val response = http.get(path)
+            assertThat(response.httpCode()).isEqualTo(OK)
+            assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+            assertThat(response.body).isEqualTo(expectedContent)
+        }
+        assertContentTypeAndContent("/subdir/", "<h1>Welcome file</h1>")
+        assertContentTypeAndContent("/subdir", "<h1>Welcome file</h1>")
+        assertContentTypeAndContent("/", "<h1>Welcome file</h1>")
+    }
+
+    @Test
     fun `expires is set to max-age=0 by default`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/script.js"))
             .extracting({ it.status }, { it.headers.getFirst(Header.CACHE_CONTROL) })
@@ -281,10 +302,16 @@ class TestStaticFiles {
     @Test
     fun `WebJars available if enabled`() = TestUtil.test(Javalin.create { it.staticFiles.enableWebjars() }) { _, http ->
         assertThat(http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").status).isEqualTo(200)
-        assertThat(http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(
-            Header.CONTENT_TYPE)).contains(ContentType.CSS)
-        assertThat(http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(
-            Header.CACHE_CONTROL)).isEqualTo("max-age=31622400")
+        assertThat(
+            http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(
+                Header.CONTENT_TYPE
+            )
+        ).contains(ContentType.CSS)
+        assertThat(
+            http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(
+                Header.CACHE_CONTROL
+            )
+        ).isEqualTo("max-age=31622400")
     }
 
     @Test
