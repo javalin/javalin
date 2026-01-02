@@ -72,19 +72,19 @@ public class TestPublicApi_Java {
             ctx.result("" + myValue);
 
             Instant fromDate = ctx.queryParamAsClass("from", Instant.class).get();
-            Instant toDate = ctx.queryParamAsClass("to", Instant.class)
+            Instant toDate = ctx.queryParamAsClass("to", Instant.class).required()
                 .check(it -> it.isAfter(fromDate), "'to' has to be after 'from'")
                 .get();
 
-            MyObject myObject = ctx.bodyValidator(MyObject.class)
+            MyObject myObject = ctx.bodyValidator(MyObject.class).required()
                 .check(obj -> obj.myObjectProperty == 2, "THINGS_MUST_BE_EQUAL")
                 .get();
 
-            ctx.queryParamAsClass("param", Integer.class)
+            ctx.queryParamAsClass("param", Integer.class).required()
                 .check(it -> it > 5, new ValidationError<>("OVER_LIMIT", Map.of("limit", 5)))
                 .get();
 
-            Validator<Integer> ageValidator = ctx.queryParamAsClass("age", Integer.class)
+            var ageValidator = ctx.queryParamAsClass("age", Integer.class).required()
                 .check(n -> n < 4, "TOO_YOUNG");
 
             Map<String, List<ValidationError<Integer>>> errors = ageValidator.errors();

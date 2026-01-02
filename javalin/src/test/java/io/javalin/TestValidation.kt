@@ -11,7 +11,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.javalin.config.ValidationConfig
 import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.EXPECTATION_FAILED
-import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyValidator
 import io.javalin.http.formParamAsClass
@@ -24,7 +23,6 @@ import io.javalin.testing.TestUtil
 import io.javalin.testing.fasterJacksonMapper
 import io.javalin.testing.httpCode
 import io.javalin.validation.MissingConverterException
-import io.javalin.validation.NullableValidator
 import io.javalin.validation.Params
 import io.javalin.validation.Validation
 import io.javalin.validation.ValidationError
@@ -67,8 +65,8 @@ class TestValidation {
     }
 
     @Test
-    fun `notNullOrEmpty works for NullableValidator`() = TestUtil.test { app, http ->
-        app.unsafe.routes.get("/") { it.queryParamAsClass<String>("my-qp").allowNullable().get() }
+    fun `getOrNull allows null`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/") { it.queryParamAsClass<String>("my-qp").getOrNull() }
         assertThat(http.get("/").body).isEqualTo("")
         assertThat(http.get("/").httpCode()).isEqualTo(OK)
     }
@@ -87,7 +85,7 @@ class TestValidation {
     @Test
     fun `check works`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/") { ctx ->
-            ctx.queryParamAsClass<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
+            ctx.queryParamAsClass<String>("my-qp").required().check({ it.length > 5 }, "Length must be more than five").get()
         }
         assertThat(http.get("/?my-qp=1").body).isEqualTo("""{"my-qp":[{"message":"Length must be more than five","args":{},"value":"1"}]}""")
     }
@@ -139,7 +137,7 @@ class TestValidation {
     }) { app, http ->
         app.unsafe.routes.get("/instant") { ctx ->
             val fromDate = ctx.queryParamAsClass<Instant>("from").get()
-            val toDate = ctx.queryParamAsClass<Instant>("to")
+            val toDate = ctx.queryParamAsClass<Instant>("to").required()
                 .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
                 .get()
             ctx.json(toDate.isAfter(fromDate))
@@ -168,9 +166,8 @@ class TestValidation {
         app.unsafe.routes.get("/instant") { ctx ->
             val fromDate = ctx.queryParamAsClass<Instant>("from").get()
             val toDate = ctx.queryParamAsClass<Instant>("to")
-                .allowNullable()
                 .check({ it == null || it.isAfter(fromDate) }, "'to' has to null or after 'from'")
-                .get()
+                .getOrNull()
             ctx.json(toDate == null || toDate.isAfter(fromDate))
         }
         assertThat(http.get("/instant?from=1262347200000").body).isEqualTo("true")
@@ -198,7 +195,7 @@ class TestValidation {
     @Test
     fun `bodyValidator works`() = TestUtil.test { app, http ->
         app.unsafe.routes.post("/json") { ctx ->
-            val obj = ctx.bodyValidator<SerializableObject>()
+            val obj = ctx.bodyValidator<SerializableObject>().required()
                 .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
                 .get()
             ctx.result(obj.value1)
@@ -221,8 +218,8 @@ class TestValidation {
     @Test
     fun `can use bodyValidator check with ValidationError`() = TestUtil.test { app, http ->
         app.unsafe.routes.post("/json") { ctx ->
-            val obj = ctx.bodyValidator<SerializableObject>()
-                .check({ it.value1 == "Bananas" }, ValidationError("value1 must be 'Bananas'"))
+            ctx.bodyValidator<SerializableObject>().required()
+                .check({ it.value1 == "Bananas" }, ValidationError<SerializableObject>("value1 must be 'Bananas'"))
                 .get()
         }
         val invalidJson = fasterJacksonMapper.toJsonString(SerializableObject())
@@ -262,15 +259,9 @@ class TestValidation {
     }
 
     @Test
-    fun `allowNullable throws if called after check`() = TestUtil.test { app, http ->
-        app.unsafe.routes.get("/") { it.queryParamAsClass<Int>("my-qp").check({ false }, "Irrelevant").allowNullable() }
-        assertThat(http.get("/").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
-    }
-
-    @Test
     fun `optional query param value works`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/") { ctx ->
-            val myInt: Int? = ctx.queryParamAsClass<Int>("my-qp").allowNullable().get()
+            val myInt: Int? = ctx.queryParamAsClass<Int>("my-qp").getOrNull()
             assertThat(myInt).isEqualTo(null)
         }
         assertThat(http.get("/").httpCode()).isEqualTo(OK)
@@ -280,9 +271,8 @@ class TestValidation {
     fun `optional query param value with check works`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/") { ctx ->
             val id: Int? = ctx.queryParamAsClass<Int>("id")
-                .allowNullable()
-                .check({ if (it != null) it > 10 else true }, "id was not greater than 10")
-                .get()
+                .check({ it == null || it > 10 }, "id was not greater than 10")
+                .getOrNull()
 
             if (id != null) {
                 ctx.result(id.toString())
@@ -312,23 +302,22 @@ class TestValidation {
     fun `all errors can be collected from multiple validators`() = TestUtil.test { app, http ->
 
         app.unsafe.routes.get("/") { ctx ->
-            val numberValidator = ctx.queryParamAsClass<Int>("number")
+            val numberValidator = ctx.queryParamAsClass<Int>("number").required()
                 .check({ it > 12 }, "must be greater than 12.")
                 .check({ it.rem(2) == 0 }, "must be even.")
 
-            val stringValidator = ctx.queryParamAsClass<String>("first_name")
+            val stringValidator = ctx.queryParamAsClass<String>("first_name").required()
                 .check({ !it.contains("-") }, "cannot contain hyphens.")
                 .check({ it.length < 10 }, "cannot be longer than 10 characters.")
 
             val nullableValidator = ctx.queryParamAsClass<String>("username")
-                .allowNullable()
                 .check({ it.isNullOrEmpty() || it != "admin" }, "cannot be admin user.")
 
             ctx.json(listOf(numberValidator, stringValidator, nullableValidator).collectErrors())
         }
 
         app.unsafe.routes.post("/") { ctx ->
-            val bodyValidator = ctx.bodyValidator<Map<String, String>>()
+            val bodyValidator = ctx.bodyValidator<Map<String, String>>().required()
                 .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
 
             ctx.json(listOf(bodyValidator).collectErrors())
@@ -350,7 +339,7 @@ class TestValidation {
     @Test
     fun `body validator with check and retrieve errors`() = TestUtil.test { app, http ->
         app.unsafe.routes.post("/") { ctx ->
-            val errors = ctx.bodyValidator<Map<String, String>>()
+            val errors = ctx.bodyValidator<Map<String, String>>().required()
                 .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
                 .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
                 .errors()
@@ -380,8 +369,8 @@ class TestValidation {
     @Test
     fun `error args work`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/args") { ctx ->
-            ctx.queryParamAsClass<Int>("my-qp")
-                .check({ it <= 5 }, ValidationError("OVER_LIMIT", args = mapOf("limit" to 5)))
+            ctx.queryParamAsClass<Int>("my-qp").required()
+                .check({ it <= 5 }, ValidationError<Int>("OVER_LIMIT", args = mapOf("limit" to 5)))
                 .get()
         }
         assertThat(http.get("/args?my-qp=10").body).isEqualTo("""{"my-qp":[{"message":"OVER_LIMIT","args":{"limit":5},"value":10}]}""")
@@ -390,8 +379,8 @@ class TestValidation {
     @Test
     fun `localization is easy`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/") { ctx ->
-            ctx.queryParamAsClass<Int>("number")
-                .check({ it in 6..9 }, ValidationError("NUMBER_NOT_IN_RANGE", args = mapOf("min" to 6, "max" to 9)))
+            ctx.queryParamAsClass<Int>("number").required()
+                .check({ it in 6..9 }, ValidationError<Int>("NUMBER_NOT_IN_RANGE", args = mapOf("min" to 6, "max" to 9)))
                 .get()
         }
         app.unsafe.routes.exception(ValidationException::class.java) { e, ctx ->
@@ -413,8 +402,8 @@ class TestValidation {
     data class KeyValuePair(val key: String, val value: String)
 
     @Test
-    fun `typed value non-nullable validator works for positive case`() {
-        val validator = Validation().validator("kvp", KeyValuePair("key", "value"))
+    fun `typed value validator works for positive case`() {
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).required()
         validator.check({ it.key == "key" }, "unexpected key")
         validator.check({ it.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -422,8 +411,8 @@ class TestValidation {
     }
 
     @Test
-    fun `typed value non-nullable validator works for negative case #1`() {
-        val validator = Validation().validator("kvp", KeyValuePair("key", "value"))
+    fun `typed value validator works for negative case #1`() {
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).required()
         validator.check({ it.key != "key" }, "unexpected key")
         validator.check({ it.value == "value" }, "unexpected value")
         val errors = validator.errors()
@@ -432,8 +421,8 @@ class TestValidation {
     }
 
     @Test
-    fun `typed value non-nullable validator works for negative case #2`() {
-        val validator = Validation().validator("kvp", KeyValuePair("key", "value"))
+    fun `typed value validator works for negative case #2`() {
+        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).required()
         validator.check({ it.key != "key" }, "unexpected key")
         validator.check({ it.value != "value" }, "unexpected value")
         val errors = validator.errors()
@@ -442,46 +431,10 @@ class TestValidation {
     }
 
     @Test
-    fun `typed value nullable validator works for positive case`() {
-        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
-        validator.check({ it!!.key == "key" }, "unexpected key")
-        validator.check({ it!!.value == "value" }, "unexpected value")
-        val errors = validator.errors()
-        assertThat(errors).isEmpty()
-    }
-
-    @Test
-    fun `typed value nullable validator works for negative case #1`() {
-        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
-        validator.check({ it!!.key != "key" }, "unexpected key")
-        validator.check({ it!!.value == "value" }, "unexpected value")
-        val errors = validator.errors()
-        assertThat(errors).hasSize(1)
-        assertThat(errors["kvp"]).hasSize(1)
-    }
-
-    @Test
-    fun `typed value nullable validator works for negative case #2`() {
-        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
-        validator.check({ it!!.key != "key" }, "unexpected key")
-        validator.check({ it!!.value != "value" }, "unexpected value")
-        val errors = validator.errors()
-        assertThat(errors).hasSize(1)
-        assertThat(errors["kvp"]).hasSize(2)
-    }
-
-    @Test
-    fun `typed value nullable validator works for null value`() {
-        val validator = NullableValidator(Params("kvp", KeyValuePair::class.java))
-        validator.check({ it!!.key == "key" }, "unexpected key")
-        validator.check({ it!!.value == "value" }, "unexpected value")
-    }
-
-    @Test
-    fun `typed value nullable validator constructed from a non-nullable one works for null value`() {
-        val validator = Validation().validator("kvp", KeyValuePair("key", "value")).allowNullable()
-        validator.check({ it!!.key == "key" }, "unexpected key")
-        validator.check({ it!!.value == "value" }, "unexpected value")
+    fun `typed value validator works for null value`() {
+        val validator = Validation().validator<KeyValuePair>("kvp", null)
+        validator.check({ it?.key == "key" }, "unexpected key")
+        validator.check({ it?.value == "value" }, "unexpected value")
     }
 
     @Test
@@ -489,10 +442,10 @@ class TestValidation {
         val validation = Validation(ValidationConfig())
         app.unsafe.routes.get("/collect-errors") { ctx ->
             val errors = Validation.collectErrors(
-                validation.validator("first_name", String::class.java, ctx.queryParam("first_name"))
+                validation.validator("first_name", String::class.java, ctx.queryParam("first_name")).required()
                     .check({ it.length > 2 }, "too short")
                     .check({ it.length < 10 }, "too long"),
-                validation.validator("last_name", String::class.java, ctx.queryParam("last_name"))
+                validation.validator("last_name", String::class.java, ctx.queryParam("last_name")).required()
                     .check({ it.length > 2 }, "too short")
                     .check({ it.length < 10 }, "too long")
             )

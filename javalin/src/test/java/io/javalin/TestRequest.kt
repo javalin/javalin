@@ -227,10 +227,10 @@ class TestRequest {
 
     @Test
     fun `queryParams returns list of converted and validated supplied params`() = TestUtil.test { app, http ->
-        app.unsafe.routes.get("/1") { it.result(it.queryParamsAsClass<Double>("qp1").check({ it.all { it > .0 } }, "all values must be greater then 0").get().toString()) }
+        app.unsafe.routes.get("/1") { it.result(it.queryParamsAsClass<Double>("qp1").required().check({ it.all { it > .0 } }, "all values must be greater then 0").get().toString()) }
         assertThat(http.getBody("/1?qp1=1.3&qp1=2.1&qp1=3.2")).isEqualTo("[1.3, 2.1, 3.2]")
 
-        app.unsafe.routes.get("/2") { it.result(it.queryParamsAsClass<Double>("qp1").check({ it.all { it > 0 } }, "all values must be greater then 0").get().toString()) }
+        app.unsafe.routes.get("/2") { it.result(it.queryParamsAsClass<Double>("qp1").required().check({ it.all { it > 0 } }, "all values must be greater then 0").get().toString()) }
         assertThat(http.getStatus("/2?qp1=1.3&qp1=-2.1&qp1=3.2")).isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
@@ -272,10 +272,10 @@ class TestRequest {
 
     @Test
     fun `formParams returns list of converted and validated supplied params`() = TestUtil.test { app, http ->
-        app.unsafe.routes.post("/1") { it.result(it.formParamsAsClass<Double>("fp1").check({ it.all { it > .0 } }, "all values must be greater then 0").get().toString()) }
+        app.unsafe.routes.post("/1") { it.result(it.formParamsAsClass<Double>("fp1").required().check({ it.all { it > .0 } }, "all values must be greater then 0").get().toString()) }
         assertThat(http.post("/1").body("fp1=1.3&fp1=2.1&fp1=3.2").asString().body).isEqualTo("[1.3, 2.1, 3.2]")
 
-        app.unsafe.routes.post("/2") { it.result(it.formParamsAsClass<Double>("fp1").check({ it.all { it > 0 } }, "all values must be greater then 0").get().toString()) }
+        app.unsafe.routes.post("/2") { it.result(it.formParamsAsClass<Double>("fp1").required().check({ it.all { it > 0 } }, "all values must be greater then 0").get().toString()) }
         assertThat(http.post("/2").body("fp1=1.3&fp1=-2.1&fp1=3.2").asString().status).isEqualTo(HttpStatus.BAD_REQUEST.code)
     }
 

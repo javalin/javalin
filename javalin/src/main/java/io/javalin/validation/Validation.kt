@@ -25,7 +25,7 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
 
     private fun <T> supportsClass(clazz: Class<T>) = validationConfig.converters[clazz] != null
 
-    fun <T> validator(fieldName: String, clazz: Class<T>, value: String?): Validator<T> {
+    fun <T> validator(fieldName: String, clazz: Class<T>, value: String?): Validator<T?> {
         if (!supportsClass(clazz)) {
             JavalinLogger.info("Can't convert to ${clazz.name}. Register a converter using config.validation.registerConverter().")
             throw MissingConverterException(clazz.name)
@@ -33,7 +33,7 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
         return Validator(Params(fieldName, clazz, value) { convertValue(clazz, value) })
     }
 
-    fun <T> validator(fieldName: String, typedValue: T?): Validator<T> =
+    fun <T> validator(fieldName: String, typedValue: T?): Validator<T?> =
          Validator(Params(fieldName, null, null, typedValue) { null })
 
     companion object {
@@ -41,10 +41,10 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
         val ValidationKey = Key<Validation>("javalin-validation")
 
         @JvmStatic
-        fun collectErrors(vararg validators: BaseValidator<*>) = collectErrors(validators.toList())
+        fun collectErrors(vararg validators: Validator<*>) = collectErrors(validators.toList())
 
         @JvmStatic
-        fun collectErrors(validators: Iterable<BaseValidator<*>>): Map<String, List<ValidationError<out Any?>>> =
+        fun collectErrors(validators: Iterable<Validator<*>>): Map<String, List<ValidationError<out Any?>>> =
             validators.flatMap { it.errors().entries }.associate { it.key to it.value }
 
         @JvmStatic
@@ -57,5 +57,5 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
 
 }
 
-fun Iterable<BaseValidator<*>>.collectErrors(): Map<String, List<ValidationError<out Any?>>> =
+fun Iterable<Validator<*>>.collectErrors(): Map<String, List<ValidationError<out Any?>>> =
     Validation.collectErrors(this)

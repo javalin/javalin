@@ -6,19 +6,15 @@
 
 package io.javalin.validation
 
-import org.jetbrains.annotations.NotNull
-
 const val REQUEST_BODY = "REQUEST_BODY"
 
-open class BodyValidator<T> internal constructor(value: String, clazz: Class<T>, valueSupplier: () -> T?) : BaseValidator<T>(Params("", clazz, value, valueSupplier = valueSupplier)) {
-    fun check(check: Check<T>, error: String) = check(fieldName = REQUEST_BODY, check, error)
-    fun check(check: Check<T>, error: ValidationError<T>) = check(fieldName = REQUEST_BODY, check, error)
-    fun check(fieldName: String, check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as BodyValidator<T>
-    fun check(fieldName: String, check: Check<T>, error: ValidationError<T>) = addRule(fieldName, { check(it!!) }, error) as BodyValidator<T>
-
-    @NotNull // there is a null-check in BaseValidator
-    override fun get(): T = super.get()!!
-
-    @NotNull
-    override fun getOrThrow(exceptionFunction: (Map<String, List<ValidationError<Any>>>) -> Exception): T = super.getOrThrow(exceptionFunction)!!
+@Suppress("UNCHECKED_CAST")
+class BodyValidator<T> internal constructor(value: String, clazz: Class<*>, valueSupplier: () -> Any?) :
+    Validator<T>(Params(REQUEST_BODY, clazz, value, valueSupplier = valueSupplier), REQUEST_BODY) {
+    override val conversionErrorMessage = "DESERIALIZATION_FAILED"
+    override fun check(check: Check<T>, error: String) = apply { addCheck(REQUEST_BODY, check as Check<Any?>, ValidationError(error)) }
+    override fun check(check: Check<T>, error: ValidationError<*>) = apply { addCheck(REQUEST_BODY, check as Check<Any?>, error) }
+    fun check(fieldName: String, check: Check<T>, error: String) = apply { addCheck(fieldName, check as Check<Any?>, ValidationError(error)) }
+    fun check(fieldName: String, check: Check<T>, error: ValidationError<*>) = apply { addCheck(fieldName, check as Check<Any?>, error) }
+    override fun required(): BodyValidator<T & Any> = this as BodyValidator<T & Any>
 }
