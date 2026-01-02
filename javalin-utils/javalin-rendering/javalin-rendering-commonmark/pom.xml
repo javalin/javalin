@@ -3,7 +3,7 @@
     <parent>
         <artifactId>javalin-utils</artifactId>
         <groupId>io.javalin</groupId>
-        <version>7.0.0-SNAPSHOT</version>
+        <version>7.0.0-beta.1</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
