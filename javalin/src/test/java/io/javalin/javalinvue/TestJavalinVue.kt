@@ -297,10 +297,17 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `LoadableData class is included`() = VueTestUtil.test(null, null) { app, http ->
+    fun `LoadableData class is included when enabled`() = VueTestUtil.test({ it.enableLoadableData = true }, null) { app, http ->
         app.unsafe.routes.get("/shorthand", VueComponent("test-component"))
         val response = http.getBody("/shorthand")
         assertThat(response).contains("LoadableData")
+    }
+
+    @Test
+    fun `LoadableData class is not included by default`() = VueTestUtil.test(null, null) { app, http ->
+        app.unsafe.routes.get("/shorthand", VueComponent("test-component"))
+        val response = http.getBody("/shorthand")
+        assertThat(response).doesNotContain("LoadableData")
     }
 
 }

@@ -33,7 +33,7 @@ abstract class VueHandler(private val componentId: String) : Handler {
                 .inlineFiles(c.isDev!!, allFiles.filterNot { it.isVueFile() }) // we then inline css/js files
                 .replace("@componentRegistration", "@serverState@loadableData@componentRegistration") // add anchors for later
                 .replace("@serverState", VueStateRenderer.getState(ctx, state(ctx))) // add escaped params and state
-                .replace("@loadableData", loadableDataScript) // add loadable data class
+                .replace("@loadableData", if (c.enableLoadableData) loadableDataScript else "") // add loadable data class (disabled by default)
                 .replace("@componentRegistration", dependencies) // add all dependencies
                 .replace("@routeComponent", routeComponent) // finally, add the route component itself
                 .replace("@cdnWebjar/", if (c.isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")

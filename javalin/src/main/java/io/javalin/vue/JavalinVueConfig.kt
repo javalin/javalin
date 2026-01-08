@@ -40,5 +40,7 @@ class JavalinVueConfig {
     @JvmField var cacheControl = "no-cache, no-store, must-revalidate"
 
     @JvmField var enableCspAndNonces = false
+
+    @JvmField var enableLoadableData = false // deprecated, use modern alternatives like Vue Query
     //@formatter:on
 }

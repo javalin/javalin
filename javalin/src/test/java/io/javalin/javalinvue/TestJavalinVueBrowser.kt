@@ -33,6 +33,7 @@ class TestJavalinVueBrowser {
     @Test
     fun `loadabledata and state works when csp is enabled`() = VueTestUtil.test({
         it.enableCspAndNonces = true
+        it.enableLoadableData = true
     }, null) { app, http ->
         app.unsafe.routes.get("/vue/{my-param}", VueComponent("test-component"))
         driver.get(http.origin + "/vue/odd&co")
@@ -120,6 +121,7 @@ class TestJavalinVueBrowser {
     private fun loadableDataTestApp() = Javalin.create {
         it.registerPlugin(JavalinVuePlugin { vue ->
             vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+            vue.enableLoadableData = true
         })
         it.routes.apiBuilder {
             val users = mutableListOf("John")
