@@ -60,7 +60,7 @@ class JettyResourceHandler(val cfg: JavalinState) : JavalinResourceHandler {
     private fun findHandler(ctx: Context): Pair<ConfigurableHandler, String>? {
         val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
         return handlers.asSequence()
-            .filter { !it.config.skipFileFunction(ctx.req()) }
+            .filter { !(it.config.skipFileFunction?.invoke(ctx.req()) ?: false) }
             .mapNotNull { handler ->
                 val hostedPath = handler.config.hostedPath
                 if (hostedPath != "/" && !target.startsWith(hostedPath)) return@mapNotNull null
@@ -77,7 +77,7 @@ class JettyResourceHandler(val cfg: JavalinState) : JavalinResourceHandler {
 open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server) : ResourceHandler() {
 
     init {
-        JavalinLogger.info("Static file handler added: ${config.refinedToString()}. File system location: '${getResourceBase(config)}'")
+        JavalinLogger.info("Static file handler added: $config. File system location: '${getResourceBase(config)}'")
         baseResource = getResourceBase(config)
         isDirAllowed = false
         isEtags = true

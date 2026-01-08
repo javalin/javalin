@@ -37,14 +37,10 @@ data class StaticFileConfig(
     @JvmField var precompressMaxSize: Int = -1, // -1 means disabled, otherwise set the max size for pre-compression
     @JvmField var aliasCheck: AliasCheck? = null,
     @JvmField var headers: Map<String, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
-    @JvmField var skipFileFunction: (HttpServletRequest) -> Boolean = { false },
+    @JvmField var skipFileFunction: ((HttpServletRequest) -> Boolean)? = null,
     @JvmField val mimeTypes: MimeTypesConfig = MimeTypesConfig(),
     @JvmField var roles: Set<RouteRole> = emptySet()
-) {
-    internal fun refinedToString(): String {
-        return this.toString().replace(", skipFileFunction=(jakarta.servlet.http.HttpServletRequest) -> kotlin.Boolean", "")
-    }
-}
+)
 
 /** Configures static files Mime Types based on file extensions.*/
 class MimeTypesConfig {
