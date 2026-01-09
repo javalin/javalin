@@ -139,7 +139,7 @@ abstract class WsContext(@JvmSynthetic internal val upgradeCtx: JavalinWsServlet
     @JvmOverloads
     fun closeSession(closeStatus: WsCloseStatus, reason: String? = null): Unit = closeSession(closeStatus.code, reason ?: closeStatus.message())
 
-    override fun equals(other: Any?): Boolean = session == (other as WsContext).session
+    override fun equals(other: Any?): Boolean = (other as? WsContext)?.session == session
     override fun hashCode(): Int = session.hashCode()
 }
 

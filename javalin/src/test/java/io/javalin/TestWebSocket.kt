@@ -849,4 +849,17 @@ class TestWebSocket {
             Thread.sleep(25)
         }
     }
+
+    @Test
+    fun `WsContext equals does not throw on non-WsContext comparison`() = TestUtil.test { app, _ ->
+        app.unsafe.routes.ws("/ws") { ws ->
+            ws.onConnect { ctx ->
+                app.logger().log.add("equalsString=${ctx.equals("a String")}")
+                app.logger().log.add("equalsNull=${ctx.equals(null)}")
+                app.logger().log.add("equalsSelf=${ctx == ctx}")
+            }
+        }
+        TestClient(app, "/ws").connectAndDisconnect()
+        assertThat(app.logger().log).containsExactly("equalsString=false", "equalsNull=false", "equalsSelf=true")
+    }
 }

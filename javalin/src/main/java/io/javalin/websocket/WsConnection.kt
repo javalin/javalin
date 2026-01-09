@@ -19,13 +19,19 @@ import java.nio.ByteBuffer
  * The AutoDemanding interface signals that WebSocket frames are demanded automatically after each event callback.
  */
 class WsConnection(
-    private val matcher: WsPathMatcher,
+    matcher: WsPathMatcher,
     private val exceptionMapper: WsExceptionMapper,
     private val wsLogger: WsConfig?,
     private val upgradeCtx: JavalinWsServletContext
 ) : Session.Listener.AutoDemanding {
 
     private lateinit var session: Session
+
+    // Cache matched handlers since the request URI doesn't change for a connection
+    private val requestUri = upgradeCtx.extractedData.requestUri
+    private val beforeHandlers = matcher.findBeforeHandlerEntries(requestUri)
+    private val endpointHandler = matcher.findEndpointHandlerEntry(requestUri)!! // never null, 404 is handled in JavalinJettyServlet
+    private val afterHandlers = matcher.findAfterHandlerEntries(requestUri)
 
     override fun onWebSocketOpen(session: Session) {
         this.session = session
@@ -50,12 +56,13 @@ class WsConnection(
         callback.succeed()
     }
 
-    override fun onWebSocketClose(statusCode: Int, reason: String?) {
+    override fun onWebSocketClose(statusCode: Int, reason: String?, callback: Callback) {
         val ctx = WsCloseContext(upgradeCtx.attach(session), statusCode, reason)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
         wsLogger?.wsCloseHandler?.handleClose(ctx)
         ctx.disableAutomaticPings()
+        callback.succeed()
     }
 
     override fun onWebSocketError(cause: Throwable) {
@@ -65,23 +72,17 @@ class WsConnection(
         wsLogger?.wsErrorHandler?.handleError(ctx)
     }
 
-    private fun tryBeforeAndEndpointHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
-        val requestUri = upgradeCtx.extractedData.requestUri
-        try {
-            matcher.findBeforeHandlerEntries(requestUri).forEach { handle.invoke(it) }
-            matcher.findEndpointHandlerEntry(requestUri)!!.let { handle.invoke(it) } // never null, 404 is handled in front
-        } catch (e: Exception) {
-            exceptionMapper.handle(e, ctx)
-        }
+    private fun tryBeforeAndEndpointHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) = try {
+        beforeHandlers.forEach { handle.invoke(it) }
+        handle.invoke(endpointHandler)
+    } catch (e: Exception) {
+        exceptionMapper.handle(e, ctx)
     }
 
-    private fun tryAfterHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) {
-        val requestUri = upgradeCtx.extractedData.requestUri
-        try {
-            matcher.findAfterHandlerEntries(requestUri).forEach { handle.invoke(it) }
-        } catch (e: Exception) {
-            exceptionMapper.handle(e, ctx)
-        }
+    private fun tryAfterHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) = try {
+        afterHandlers.forEach { handle.invoke(it) }
+    } catch (e: Exception) {
+        exceptionMapper.handle(e, ctx)
     }
 
 }
