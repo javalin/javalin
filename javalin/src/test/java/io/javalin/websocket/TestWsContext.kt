@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 class TestWsContext {
 
     @Test
-    fun `headers and host are available in session`() = TestUtil.test { app, _ ->
+    fun `headers and host are available in context`() = TestUtil.test { app, _ ->
         val log = ConcurrentLinkedQueue<String>()
         app.unsafe.routes.ws("/websocket") { ws ->
             ws.onConnect { ctx -> log.add("Header: " + ctx.header("Test")!!) }
@@ -51,12 +51,12 @@ class TestWsContext {
     fun `extracting path information works in all handlers`() = TestUtil.test { app, _ ->
         val log = ConcurrentLinkedQueue<String>()
         app.unsafe.routes.ws("/context-life") { ws ->
-            ws.onConnect { log.add(it.queryParam("qp")!! + 1) }
-            ws.onMessage { log.add(it.queryParam("qp")!! + 2) }
-            ws.onClose { log.add(it.queryParam("qp")!! + 3) }
+            ws.onConnect { log.add("${it.queryParam("qp")}-connect") }
+            ws.onMessage { log.add("${it.queryParam("qp")}-message") }
+            ws.onClose { log.add("${it.queryParam("qp")}-close") }
         }
         WsTestClient(app, "/context-life?qp=great").connectSendAndDisconnect("not-important")
-        assertThat(log).containsExactly("great1", "great2", "great3")
+        assertThat(log).containsExactly("great-connect", "great-message", "great-close")
     }
 
     @Test
@@ -95,7 +95,7 @@ class TestWsContext {
             }
         }
         WsTestClient(app, "/path/0").connectAndDisconnect()
-        assertThat(log).contains("call succeeded")
+        assertThat(log).containsExactly("call succeeded")
     }
 
     @Test

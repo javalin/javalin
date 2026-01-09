@@ -26,8 +26,8 @@ class TestWsLogging {
         val log = ConcurrentLinkedQueue<String>()
         TestUtil.test(Javalin.create {
             it.requestLogger.ws { ws ->
-                ws.onConnect { ctx -> log.add(ctx.pathParam("param") + " connected") }
-                ws.onClose { ctx -> log.add(ctx.pathParam("param") + " disconnected") }
+                ws.onConnect { ctx -> log.add("${ctx.pathParam("param")} connected") }
+                ws.onClose { ctx -> log.add("${ctx.pathParam("param")} disconnected") }
             }
         }) { app, _ ->
             app.unsafe.routes.ws("/path/{param}") {}

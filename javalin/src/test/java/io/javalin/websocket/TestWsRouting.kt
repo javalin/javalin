@@ -21,9 +21,15 @@ class TestWsRouting {
     @Test
     fun `routing and pathParams work without context path`() = TestUtil.test { app, _ ->
         val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.ws("/params/{1}") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("1")) } }
-        app.unsafe.routes.ws("/params/{1}/test/{2}/{3}") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
-        app.unsafe.routes.ws("/*") { ws -> ws.onConnect { _ -> log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
+        app.unsafe.routes.ws("/params/{1}") { ws ->
+            ws.onConnect { ctx -> log.add(ctx.pathParam("1")) }
+        }
+        app.unsafe.routes.ws("/params/{1}/test/{2}/{3}") { ws ->
+            ws.onConnect { ctx -> log.add("${ctx.pathParam("1")} ${ctx.pathParam("2")} ${ctx.pathParam("3")}") }
+        }
+        app.unsafe.routes.ws("/*") { ws ->
+            ws.onConnect { log.add("catchall") }
+        }
         WsTestClient(app, "/params/one").connectAndDisconnect()
         WsTestClient(app, "/params/%E2%99%94").connectAndDisconnect()
         WsTestClient(app, "/params/another/test/long/path").connectAndDisconnect()
@@ -34,9 +40,15 @@ class TestWsRouting {
     @Test
     fun `routing and pathParams work with context path`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.ws("/params/{1}") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("1")) } }
-        app.unsafe.routes.ws("/params/{1}/test/{2}/{3}") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
-        app.unsafe.routes.ws("/*") { ws -> ws.onConnect { _ -> log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
+        app.unsafe.routes.ws("/params/{1}") { ws ->
+            ws.onConnect { ctx -> log.add(ctx.pathParam("1")) }
+        }
+        app.unsafe.routes.ws("/params/{1}/test/{2}/{3}") { ws ->
+            ws.onConnect { ctx -> log.add("${ctx.pathParam("1")} ${ctx.pathParam("2")} ${ctx.pathParam("3")}") }
+        }
+        app.unsafe.routes.ws("/*") { ws ->
+            ws.onConnect { log.add("catchall") }
+        }
         WsTestClient(app, "/websocket/params/one").connectAndDisconnect()
         WsTestClient(app, "/websocket/params/%E2%99%94").connectAndDisconnect()
         WsTestClient(app, "/websocket/params/another/test/long/path").connectAndDisconnect()
@@ -54,12 +66,15 @@ class TestWsRouting {
         val contextPathApp = Javalin.create { it.router.contextPath = "/websocket" }.apply {
             this.unsafe.routes.ws("/p/{id}") { it.onConnect { log2.add(it.pathParam("id")) } }
         }.start(0)
-        WsTestClient(noContextPathApp, "/p/ncpa").connectAndDisconnect()
-        WsTestClient(contextPathApp, "/websocket/p/cpa").connectAndDisconnect()
-        assertThat(log1).containsExactly("ncpa")
-        assertThat(log2).containsExactly("cpa")
-        noContextPathApp.stop()
-        contextPathApp.stop()
+        try {
+            WsTestClient(noContextPathApp, "/p/ncpa").connectAndDisconnect()
+            WsTestClient(contextPathApp, "/websocket/p/cpa").connectAndDisconnect()
+            assertThat(log1).containsExactly("ncpa")
+            assertThat(log2).containsExactly("cpa")
+        } finally {
+            noContextPathApp.stop()
+            contextPathApp.stop()
+        }
     }
 
     @Test
@@ -75,14 +90,17 @@ class TestWsRouting {
     }
 
     @Test
-    fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
+    fun `path matching is case sensitive`() = TestUtil.test { app, _ ->
         val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.ws("/pAtH/{param}") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
-        app.unsafe.routes.ws("/other-path/{param}") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
+        app.unsafe.routes.ws("/pAtH/{param}") { ws ->
+            ws.onConnect { ctx -> log.add(ctx.pathParam("param")) }
+        }
+        // Request with different case should NOT match
         WsTestClient(app, "/PaTh/my-param").connectAndDisconnect()
-        assertThat(log).doesNotContain("my-param")
-        WsTestClient(app, "/other-path/My-PaRaM").connectAndDisconnect()
-        assertThat(log).contains("My-PaRaM")
+        assertThat(log).isEmpty()
+        // Request with exact case should match, and path param preserves case
+        WsTestClient(app, "/pAtH/My-PaRaM").connectAndDisconnect()
+        assertThat(log).containsExactly("My-PaRaM")
     }
 }
 

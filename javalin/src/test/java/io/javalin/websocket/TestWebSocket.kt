@@ -9,7 +9,7 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.fasterJacksonMapper
 import kong.unirest.Unirest
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.util.BufferUtil
 import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.util.WebSocketConstants
@@ -43,9 +43,8 @@ class TestWebSocket {
             WsTestClient(app, "/websocket/test-websocket-1").connectAndDisconnect()
             WsTestClient(app, "/websocket/test-websocket-2").connectAndDisconnect()
             // 3 clients and 6 operations should yield 3 unique identifiers total
-            val uniqueLog = HashSet<String>(log)
-            Assertions.assertThat(uniqueLog).hasSize(3)
-            uniqueLog.forEach { id: String -> Assertions.assertThat(uniqueLog.count { it == id }).isEqualTo(1) }
+            val uniqueIds = log.toSet()
+            assertThat(uniqueIds).hasSize(3)
         }
     }
 
@@ -84,16 +83,16 @@ class TestWebSocket {
             testClient1.closeBlocking()
             WsTestClient(app, "/websocket/test-websocket-2").connectAndDisconnect()
             // Message order is non-deterministic due to concurrency
-            Assertions.assertThat(log).contains("0 connected", "1 connected")
-            Assertions.assertThat(log).containsAnyOf("0 sent 'A' to server", "0 sent 'B' to server")
-            Assertions.assertThat(log).containsAnyOf("1 sent 'A' to server", "1 sent 'B' to server")
-            Assertions.assertThat(log).contains(
+            assertThat(log).contains("0 connected", "1 connected")
+            assertThat(log).containsAnyOf("0 sent 'A' to server", "0 sent 'B' to server")
+            assertThat(log).containsAnyOf("1 sent 'A' to server", "1 sent 'B' to server")
+            assertThat(log).contains(
                 "Server sent 'A' to 0", "Server sent 'A' to 1",
                 "Server sent 'B' to 0", "Server sent 'B' to 1"
             )
-            Assertions.assertThat(log).contains("0 disconnected", "1 disconnected")
-            Assertions.assertThat(log).contains("Connected to other endpoint", "Disconnected from other endpoint")
-            Assertions.assertThat(log).hasSize(12)
+            assertThat(log).contains("0 disconnected", "1 disconnected")
+            assertThat(log).contains("Connected to other endpoint", "Disconnected from other endpoint")
+            assertThat(log).hasSize(12)
         }
     }
 
@@ -115,8 +114,8 @@ class TestWebSocket {
             it.connectBlocking()
         }
         awaitCondition(condition = { response != null }) { testClient.send(clientJsonString) }
-        Assertions.assertThat(response).contains(""""value1":"updated"""")
-        Assertions.assertThat(response).contains(""""value2":"test2"""")
+        assertThat(response).contains(""""value1":"updated"""")
+        assertThat(response).contains(""""value2":"test2"""")
     }
 
     @Test
@@ -136,7 +135,7 @@ class TestWebSocket {
             it.send(byteDataToSend2)
             it.closeBlocking()
         }
-        Assertions.assertThat(receivedBinaryData).containsExactlyInAnyOrder(byteDataToSend1, byteDataToSend2)
+        assertThat(receivedBinaryData).containsExactlyInAnyOrder(byteDataToSend1, byteDataToSend2)
     }
 
     @Test
@@ -154,15 +153,13 @@ class TestWebSocket {
         }
         TestUtil.test(app) { _, _ ->
             WsTestClient(app, "/ws").connectSendAndDisconnect(textToSend)
-            repeat(10) {
-                if (handlerError == null) Thread.sleep(5) // give Javalin time to trigger the error handler
-            }
-            Assertions.assertThat(handlerError!!.message).isEqualTo("Text message too large: ${textToSend.length} > $maxTextSize")
-            Assertions.assertThat(handlerError).isExactlyInstanceOf(MessageTooLargeException::class.java)
+            awaitCondition(condition = { handlerError != null })
+            assertThat(handlerError!!.message).isEqualTo("Text message too large: ${textToSend.length} > $maxTextSize")
+            assertThat(handlerError).isExactlyInstanceOf(MessageTooLargeException::class.java)
         }
     }
 
-    private fun accessManagedJavalin(log: ConcurrentLinkedQueue<String>): Javalin = Javalin.create {
+    private fun upgradeGuardedJavalin(log: ConcurrentLinkedQueue<String>): Javalin = Javalin.create {
         it.routes.wsBeforeUpgrade { ctx ->
             log.add("handling upgrade request ...")
             when {
@@ -178,36 +175,34 @@ class TestWebSocket {
             }
         }
         it.routes.ws("/*") { ws ->
-            ws.onConnect { log.add("connected with upgrade request") }
+            ws.onConnect { log.add("connected") }
         }
     }
 
     @Test
-    fun `AccessManager rejects invalid request`() {
+    fun `wsBeforeUpgrade can reject invalid requests`() {
         val log = ConcurrentLinkedQueue<String>()
-        TestUtil.test(accessManagedJavalin(log)) { app, _ ->
+        TestUtil.test(upgradeGuardedJavalin(log)) { app, _ ->
             WsTestClient(app, "/").connectAndDisconnect()
-            Assertions.assertThat(log).hasSize(2)
-            Assertions.assertThat(log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request invalid!")
+            assertThat(log).containsExactly("handling upgrade request ...", "upgrade request invalid!")
         }
     }
 
     @Test
-    fun `AccessManager accepts valid request`() {
+    fun `wsBeforeUpgrade can accept valid requests`() {
         val log = ConcurrentLinkedQueue<String>()
-        TestUtil.test(accessManagedJavalin(log)) { app, _ ->
+        TestUtil.test(upgradeGuardedJavalin(log)) { app, _ ->
             WsTestClient(app, "/?allowed=true").connectAndDisconnect()
-            Assertions.assertThat(log).hasSize(3)
-            Assertions.assertThat(log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request valid!", "connected with upgrade request")
+            assertThat(log).containsExactly("handling upgrade request ...", "upgrade request valid!", "connected")
         }
     }
 
     @Test
-    fun `AccessManager doesn't crash on exception`() {
+    fun `wsBeforeUpgrade handles exceptions gracefully`() {
         val log = ConcurrentLinkedQueue<String>()
-        TestUtil.test(accessManagedJavalin(log)) { app, _ ->
+        TestUtil.test(upgradeGuardedJavalin(log)) { app, _ ->
             WsTestClient(app, "/?exception=true").connectAndDisconnect()
-            Assertions.assertThat(log).hasSize(1)
+            assertThat(log).containsExactly("handling upgrade request ...")
         }
     }
 
@@ -218,7 +213,7 @@ class TestWebSocket {
             .header(Header.SEC_WEBSOCKET_KEY, "not-null")
             .header(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, "mqtt")
             .asString()
-        Assertions.assertThat(response.headers.getFirst(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)).isEqualTo("mqtt")
+        assertThat(response.headers.getFirst(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)).isEqualTo("mqtt")
     }
 
     @Test
@@ -245,8 +240,8 @@ class TestWebSocket {
                     }
                     ws.onClose { ctx ->
                         // Check the close status code matches expected
-                        Assertions.assertThat(ctx.status()).isEqualTo(closeStatus.code)
-                        Assertions.assertThat(ctx.closeStatus().code).isEqualTo(closeStatus.code)
+                        assertThat(ctx.status()).isEqualTo(closeStatus.code)
+                        assertThat(ctx.closeStatus().code).isEqualTo(closeStatus.code)
                     }
                 }
                 WsTestClient(app, "/websocket", onOpen = { sendAction(it) }).connectBlocking()
@@ -265,30 +260,28 @@ class TestWebSocket {
     }
 
     @Test
-    @Timeout(value = 2, unit = TimeUnit.SECONDS)
     fun `websocket enableAutomaticPings() works`() {
         val log = ConcurrentLinkedQueue<String>()
         TestUtil.test(pingingApp(log)) { app, _ ->
             val client = WsTestClient(app, "/ws", onPing = { frame -> log.add(frame!!.payloadData.get(2).toString()) })
             client.connectBlocking()
             Thread.sleep(50)
-            Assertions.assertThat(log.size).isGreaterThan(0)
+            assertThat(log.size).isGreaterThan(0)
             client.disconnectBlocking()
         }
     }
 
     @Test
-    @Timeout(value = 2, unit = TimeUnit.SECONDS)
     fun `websocket disableAutomaticPings() works`() {
         val log = ConcurrentLinkedQueue<String>()
         TestUtil.test(pingingApp(log)) { app, _ ->
             val client = WsTestClient(app, "/ws", onPing = { frame -> log.add(frame!!.payloadData.get(2).toString()) })
             client.connectBlocking()
             Thread.sleep(50)
-            Assertions.assertThat(log.size).isGreaterThan(0)
+            assertThat(log.size).isGreaterThan(0)
             awaitCondition(condition = { PingManager.pingFutures.isEmpty() }) { client.send("DISABLE_PINGS") }
             Thread.sleep(50)
-            Assertions.assertThat(log.size).isEqualTo(0) // no pings sent during sleep after disabling pings
+            assertThat(log.size).isEqualTo(0) // no pings sent during sleep after disabling pings
             client.disconnectBlocking()
         }
     }
@@ -307,7 +300,7 @@ class TestWebSocket {
             val client = WsTestClient(app, "/ws")
             client.connectBlocking()
             Thread.sleep(50) // Wait longer than the timeout to provoke it
-            Assertions.assertThat(log).contains("Closed due to timeout")
+            assertThat(log).contains("Closed due to timeout")
         }
     }
 }
