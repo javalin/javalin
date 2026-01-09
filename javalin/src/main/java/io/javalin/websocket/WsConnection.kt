@@ -9,52 +9,48 @@ package io.javalin.websocket
 import io.javalin.http.servlet.JavalinWsServletContext
 import org.eclipse.jetty.websocket.api.Callback
 import org.eclipse.jetty.websocket.api.Session
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketOpen
-import org.eclipse.jetty.websocket.api.annotations.WebSocket
 import java.nio.ByteBuffer
 
 /**
  * Is instantiated for every WebSocket connection. It keeps the session and sessionId and handles incoming events by
  * delegating to the registered before, endpoint, after and logger handlers.
+ *
+ * Implements [Session.Listener.AutoDemanding] to use Jetty's programmatic WebSocket API instead of annotations (Javalin <7)
+ * The AutoDemanding interface signals that WebSocket frames are demanded automatically after each event callback.
  */
-@WebSocket
 class WsConnection(
     private val matcher: WsPathMatcher,
     private val exceptionMapper: WsExceptionMapper,
     private val wsLogger: WsConfig?,
     private val upgradeCtx: JavalinWsServletContext
-) {
+) : Session.Listener.AutoDemanding {
 
-    @OnWebSocketOpen
-    fun onConnect(session: Session) {
+    private lateinit var session: Session
+
+    override fun onWebSocketOpen(session: Session) {
+        this.session = session
         val ctx = WsConnectContext(upgradeCtx.attach(session))
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
         wsLogger?.wsConnectHandler?.handleConnect(ctx)
     }
 
-    @OnWebSocketMessage
-    fun onMessage(session: Session, message: String) {
+    override fun onWebSocketText(message: String) {
         val ctx = WsMessageContext(upgradeCtx.attach(session), message)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsMessageHandler?.handleMessage(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsMessageHandler?.handleMessage(ctx) }
         wsLogger?.wsMessageHandler?.handleMessage(ctx)
     }
 
-    @OnWebSocketMessage
-    fun onMessage(session: Session, data: ByteBuffer, callback: Callback) {
-        val ctx = WsBinaryMessageContext(upgradeCtx.attach(session), data)
+    override fun onWebSocketBinary(payload: ByteBuffer, callback: Callback) {
+        val ctx = WsBinaryMessageContext(upgradeCtx.attach(session), payload)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)
         callback.succeed()
     }
 
-    @OnWebSocketClose
-    fun onClose(session: Session, statusCode: Int, reason: String?) {
+    override fun onWebSocketClose(statusCode: Int, reason: String?) {
         val ctx = WsCloseContext(upgradeCtx.attach(session), statusCode, reason)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
@@ -62,9 +58,8 @@ class WsConnection(
         ctx.disableAutomaticPings()
     }
 
-    @OnWebSocketError
-    fun onError(session: Session, throwable: Throwable?) {
-        val ctx = WsErrorContext(upgradeCtx.attach(session), throwable)
+    override fun onWebSocketError(cause: Throwable) {
+        val ctx = WsErrorContext(upgradeCtx.attach(session), cause)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsErrorHandler?.handleError(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsErrorHandler?.handleError(ctx) }
         wsLogger?.wsErrorHandler?.handleError(ctx)
