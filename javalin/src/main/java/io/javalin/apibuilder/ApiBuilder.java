@@ -27,10 +27,23 @@ public class ApiBuilder {
     private static final ThreadLocal<JavalinDefaultRoutingApi> staticJavalin = new ThreadLocal<>();
     private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
+    /**
+     * Sets the static Javalin instance (ThreadLocal) used by the ApiBuilder methods.
+     * This is used internally by {@code config.routes.apiBuilder(EndpointGroup)} to enable
+     * the static route methods like {@link #get(String, Handler)}, and is exposed publicly
+     * to allow creation of custom static route methods.
+     *
+     * @param javalin the Javalin routing API to use for route registration
+     */
     public static void setStaticJavalin(@NotNull JavalinDefaultRoutingApi javalin) {
         staticJavalin.set(javalin);
     }
 
+    /**
+     * Clears the static Javalin instance (ThreadLocal) from the current thread.
+     *
+     * @see #setStaticJavalin(JavalinDefaultRoutingApi)
+     */
     public static void clearStaticJavalin() {
         staticJavalin.remove();
     }
