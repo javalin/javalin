@@ -17,6 +17,8 @@ import kotlin.streams.asStream
 
 internal class TestJavalinJackson {
 
+    private fun appWithJackson() = Javalin.create { it.jsonMapper(JavalinJackson()) }
+
     @Test
     fun `JavalinJackson can convert a small Stream to JSON`() {
         TestJsonMapper.convertSmallStreamToJson(JavalinJackson())
@@ -38,7 +40,7 @@ internal class TestJavalinJackson {
     }
 
     @Test
-    fun `default JavalinJackson includes nulls`() = TestUtil.test { app, http ->
+    fun `default JavalinJackson includes nulls`() = TestUtil.test(appWithJackson()) { app, http ->
         data class TestClass(val one: String? = null, val two: String? = null)
         app.unsafe.routes.get("/") { it.json(TestClass()) }
         assertThat(http.getBody("/")).isEqualTo("""{"one":null,"two":null}""")
@@ -69,7 +71,7 @@ internal class TestJavalinJackson {
         }
 
     @Test
-    fun `toJsonStream treats Strings as already being json`() = TestUtil.test { app, http ->
+    fun `toJsonStream treats Strings as already being json`() = TestUtil.test(appWithJackson()) { app, http ->
         app.unsafe.routes.get("/") { it.jsonStream("{a:b}") }
         assertThat(http.getBody("/")).isEqualTo("{a:b}")
     }

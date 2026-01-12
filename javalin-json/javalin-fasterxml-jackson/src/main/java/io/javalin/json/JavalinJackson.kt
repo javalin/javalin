@@ -8,11 +8,6 @@ package io.javalin.json
 
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.javalin.http.InternalServerErrorResponse
-import io.javalin.util.CoreDependency
-import io.javalin.util.DependencyUtil
-import io.javalin.util.JavalinLogger
-import io.javalin.util.Util
 import io.javalin.util.javalinLazy
 import java.io.InputStream
 import java.io.OutputStream
@@ -20,31 +15,24 @@ import java.lang.reflect.Type
 import java.util.function.Consumer
 import java.util.stream.Stream
 
+/**
+ * JsonMapper implementation using Jackson 2.x (com.fasterxml.jackson).
+ * 
+ * This mapper automatically registers optional Jackson modules if they are on the classpath:
+ * - jackson-module-kotlin
+ * - jackson-datatype-jsr310
+ * - jackson-datatype-eclipse-collections
+ */
 class JavalinJackson(
-    private var objectMapper: ObjectMapper? = null,
+    objectMapper: ObjectMapper? = null,
     private val useVirtualThreads: Boolean = false,
 ) : JsonMapper {
 
     private val pipedStreamExecutor: PipedStreamExecutor by javalinLazy { PipedStreamExecutor(useVirtualThreads) }
 
-    private val mapperDelegate: Lazy<Any> = javalinLazy {
-        if (!Util.classExists(CoreDependency.JACKSON.testClass)) {
-            val message =
-                """|It looks like you don't have an object mapper configured.
-                   |The easiest way to fix this is to simply add the '${CoreDependency.JACKSON.artifactId}' dependency:
-                   |
-                   |${DependencyUtil.mavenAndGradleSnippets(CoreDependency.JACKSON)}
-                   |
-                   |If you're using Kotlin, you will need to add '${CoreDependency.JACKSON_KT.artifactId}'.
-                   |
-                   |To use a different object mapper, visit https://javalin.io/documentation#configuring-the-json-mapper""".trimMargin()
-            JavalinLogger.warn(DependencyUtil.wrapInSeparators(message))
-            throw InternalServerErrorResponse(message)
-        }
-        (objectMapper ?: defaultMapper()) as Any
-    }
+    private val _mapper: ObjectMapper = objectMapper ?: defaultMapper()
 
-    val mapper: ObjectMapper get() = mapperDelegate.value as ObjectMapper
+    val mapper: ObjectMapper get() = _mapper
 
     override fun toJsonString(obj: Any, type: Type): String = when (obj) {
         is String -> obj // the default mapper treats strings as if they are already JSON
@@ -77,18 +65,26 @@ class JavalinJackson(
     }
 
     companion object {
+        private val OPTIONAL_MODULES = listOf(
+            "com.fasterxml.jackson.module.kotlin.KotlinModule",
+            "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule",
+            "com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule",
+            "org.ktorm.jackson.KtormModule"
+        )
+
         @JvmStatic
-        fun defaultMapper(): ObjectMapper = ObjectMapper()
-            .registerOptionalModule(CoreDependency.JACKSON_KT.testClass)
-            .registerOptionalModule(CoreDependency.JACKSON_JSR_310.testClass)
-            .registerOptionalModule(CoreDependency.JACKSON_ECLIPSE_COLLECTIONS.testClass)
-            .registerOptionalModule(CoreDependency.JACKSON_KTORM.testClass) // very optional module for ktorm (a kotlin orm)
+        fun defaultMapper(): ObjectMapper = ObjectMapper().apply {
+            OPTIONAL_MODULES.forEach { registerOptionalModule(it) }
+        }
+
+        private fun ObjectMapper.registerOptionalModule(className: String) {
+            try {
+                val moduleClass = Class.forName(className)
+                this.registerModule(moduleClass.getConstructor().newInstance() as Module)
+            } catch (e: ClassNotFoundException) {
+                // Module not on classpath, skip
+            }
+        }
     }
 }
 
-private fun ObjectMapper.registerOptionalModule(classString: String): ObjectMapper {
-    if (Util.classExists(classString)) {
-        this.registerModule(Class.forName(classString).getConstructor().newInstance() as Module)
-    }
-    return this
-}

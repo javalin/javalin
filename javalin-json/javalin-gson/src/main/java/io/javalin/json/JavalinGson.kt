@@ -1,11 +1,12 @@
+/*
+ * Javalin - https://javalin.io
+ * Copyright 2017 David Åse
+ * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
+ */
+
 package io.javalin.json
 
 import com.google.gson.Gson
-import io.javalin.http.InternalServerErrorResponse
-import io.javalin.util.CoreDependency
-import io.javalin.util.DependencyUtil
-import io.javalin.util.JavalinLogger
-import io.javalin.util.Util
 import io.javalin.util.javalinLazy
 import java.io.BufferedWriter
 import java.io.InputStream
@@ -15,25 +16,15 @@ import java.io.OutputStreamWriter
 import java.lang.reflect.Type
 import java.util.stream.Stream
 
+/**
+ * JsonMapper implementation using Google Gson.
+ */
 open class JavalinGson(
     private val gson: Gson = Gson(),
     private val useVirtualThreads: Boolean = false,
 ) : JsonMapper {
 
     private val pipedStreamExecutor: PipedStreamExecutor by javalinLazy { PipedStreamExecutor(useVirtualThreads) }
-
-    init {
-        if (!Util.classExists(CoreDependency.GSON.testClass)) {
-            val message =
-                """|It looks like you don't have Gson dependency on classpath.
-                   |The easiest way to fix this is to simply add the '${CoreDependency.GSON.artifactId}' dependency:
-                   |
-                   |${DependencyUtil.mavenAndGradleSnippets(CoreDependency.GSON)}
-                   |""".trimMargin()
-            JavalinLogger.warn(DependencyUtil.wrapInSeparators(message))
-            throw InternalServerErrorResponse(message)
-        }
-    }
 
     override fun toJsonString(obj: Any, type: Type): String = when (obj) {
         is String -> obj
@@ -68,3 +59,4 @@ open class JavalinGson(
         gson.fromJson(InputStreamReader(json), targetType)
 
 }
+

@@ -57,24 +57,24 @@
             <artifactId>zstd-jni</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- END Optional dependencies -->
+
+        <!-- BEGIN Test dependencies -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <optional>true</optional>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
-            <optional>true</optional>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <optional>true</optional>
+            <scope>test</scope>
         </dependency>
-        <!-- END Optional dependencies -->
-
-        <!-- BEGIN Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>

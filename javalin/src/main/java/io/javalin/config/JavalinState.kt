@@ -19,7 +19,6 @@ import io.javalin.http.servlet.TaskInitializer
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
 import io.javalin.jetty.JettyUtil.createJettyServletWithWebsocketsIfAvailable
-import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginManager
@@ -71,7 +70,28 @@ class JavalinState {
     @JvmField val eventManager = EventManager()
     @JvmField val wsRouter = WsRouter(router)
     @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, router, jetty)
-    @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy { JavalinJackson(null, concurrency.useVirtualThreads) }
+    @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy {
+        throw IllegalStateException(
+            """
+            |No JsonMapper configured. Add one of these dependencies and register it:
+            |
+            |For Jackson 3.x (recommended):
+            |  Maven:  <dependency><groupId>io.javalin</groupId><artifactId>javalin-jackson</artifactId><version>${"$"}{javalin.version}</version></dependency>
+            |  Gradle: implementation("io.javalin:javalin-jackson:${"$"}{javalinVersion}")
+            |  Then:   Javalin.create { it.jsonMapper(JavalinJackson()) }
+            |
+            |For Jackson 2.x (FasterXML):
+            |  Maven:  <dependency><groupId>io.javalin</groupId><artifactId>javalin-fasterxml-jackson</artifactId><version>${"$"}{javalin.version}</version></dependency>
+            |  Gradle: implementation("io.javalin:javalin-fasterxml-jackson:${"$"}{javalinVersion}")
+            |  Then:   Javalin.create { it.jsonMapper(JavalinJackson()) }
+            |
+            |For Gson:
+            |  Maven:  <dependency><groupId>io.javalin</groupId><artifactId>javalin-gson</artifactId><version>${"$"}{javalin.version}</version></dependency>
+            |  Gradle: implementation("io.javalin:javalin-gson:${"$"}{javalinVersion}")
+            |  Then:   Javalin.create { it.jsonMapper(JavalinGson()) }
+            """.trimMargin()
+        )
+    }
     @JvmField var appDataManager = AppDataManager()
     @JvmField var pluginManager = PluginManager(this)
     @JvmField var httpRequestLogger: RequestLogger? = null

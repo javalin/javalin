@@ -3,6 +3,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>javalin</module>
+        <module>javalin-json</module>
         <module>javalin-bundle</module>
         <module>javalin-testtools</module>
         <module>javalin-utils</module>
@@ -106,6 +107,7 @@
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
         <jackson.version>2.20.1</jackson.version>
         <jackson.databind.version>2.20.1</jackson.databind.version>
+        <jackson3.version>3.0.1</jackson3.version>
         <brotli4j.version>1.20.0</brotli4j.version>
         <zstd.jni.version>1.5.7-6</zstd.jni.version>
         <logback.version>1.5.23</logback.version>

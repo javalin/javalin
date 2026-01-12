@@ -9,13 +9,13 @@ class TestDependencyUtil {
 
     @Test
     fun `DependencyUtil#missingDependencyMessage works`() {
-        val message = DependencyUtil.missingDependencyMessage(CoreDependency.JACKSON)
-        assertThat(message).contains("You're missing the 'Jackson' dependency in your project. Add the dependency:")
+        val message = DependencyUtil.missingDependencyMessage(CoreDependency.BROTLI4J)
+        assertThat(message).contains("You're missing the 'Brotli4j' dependency in your project. Add the dependency:")
     }
 
     @Test
     fun `DependencyUtil#mavenAndGradleSnippets works`() {
-        val dependency = CoreDependency.JACKSON
+        val dependency = CoreDependency.BROTLI4J
         val message = DependencyUtil.mavenAndGradleSnippets(dependency)
         assertThat(message).contains("pom.xml:")
         assertThat(message).contains("build.gradle or build.gradle.kts:")
