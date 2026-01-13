@@ -44,7 +44,7 @@ class StaticFilesConfig(private val cfg: JavalinState) {
      */
     fun add(userConfig: Consumer<StaticFileConfig>) {
         if (cfg.resourceHandler == null) {
-            cfg.resourceHandler = JettyResourceHandler(cfg)
+            cfg.resourceHandler = JettyResourceHandler()
         }
         val finalConfig = StaticFileConfig()
         userConfig.accept(finalConfig)

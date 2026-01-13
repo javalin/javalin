@@ -387,16 +387,6 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `logs handlers added on startup`() {
-        TestUtil.test(multiLocationStaticResourceApp) { _, _ -> }
-        assertThat(
-            multiLocationStaticResourceApp.unsafe.appDataManager.get(TestLogsKey)
-                .split("Static file handler added")
-                .size - 1
-        ).isEqualTo(4)
-    }
-
-    @Test
     fun `static files can be added after app creation`() = TestUtil.test(
         Javalin.create().also { it.unsafe.staticFiles.add("/public", Location.CLASSPATH) }
     ) { _, http ->

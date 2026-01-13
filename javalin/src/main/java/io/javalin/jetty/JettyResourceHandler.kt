@@ -6,7 +6,7 @@
 
 package io.javalin.jetty
 
-import io.javalin.config.JavalinState
+import io.javalin.compression.CompressionStrategy
 import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
@@ -25,18 +25,19 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
-class JettyResourceHandler(val cfg: JavalinState) : JavalinResourceHandler {
+class JettyResourceHandler : JavalinResourceHandler {
 
-    fun init() { // we delay the creation of ConfigurableHandler objects to get our logs in order during startup
-        handlers.addAll(lateInitConfigs.map { ConfigurableHandler(it, cfg.jettyInternal.server!!) })
-    }
-
-    private val lateInitConfigs = mutableListOf<StaticFileConfig>()
+    private val dummyServer = Server()
     private val handlers = mutableListOf<ConfigurableHandler>()
     internal val precompressingHandler = JettyPrecompressingResourceHandler()
+    private lateinit var compressionStrategy: CompressionStrategy
+
+    override fun init(compressionStrategy: CompressionStrategy) {
+        this.compressionStrategy = compressionStrategy
+    }
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
-        if (cfg.jettyInternal.server?.isStarted == true) handlers.add(ConfigurableHandler(config, cfg.jettyInternal.server!!)) else lateInitConfigs.add(config)
+        handlers.add(ConfigurableHandler(config, dummyServer))
 
     override fun canHandle(ctx: Context) = findHandler(ctx) != null
 
@@ -45,7 +46,7 @@ class JettyResourceHandler(val cfg: JavalinState) : JavalinResourceHandler {
         try {
             handler.config.headers.forEach { ctx.header(it.key, it.value) }
             return if (handler.config.precompressMaxSize > 0) {
-                precompressingHandler.handle(resourcePath, ctx, cfg.http.compressionStrategy, handler)
+                precompressingHandler.handle(resourcePath, ctx, compressionStrategy, handler)
             } else {
                 handler.handleResource(resourcePath, ctx)
             }

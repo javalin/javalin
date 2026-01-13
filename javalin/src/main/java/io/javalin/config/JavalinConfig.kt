@@ -8,6 +8,7 @@ package io.javalin.config
 import io.javalin.Javalin
 import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.TaskInitializer
+import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
 import io.javalin.rendering.FileRenderer
@@ -47,6 +48,7 @@ class JavalinConfig internal constructor(internal val state: JavalinState) {
     fun requestLifeCycle(vararg requestLifecycle: TaskInitializer<JavalinServletContext>) = state.requestLifeCycle(*requestLifecycle)
     fun jsonMapper(jsonMapper: JsonMapper) = state.jsonMapper(jsonMapper)
     fun fileRenderer(fileRenderer: FileRenderer) = state.fileRenderer(fileRenderer)
+    fun resourceHandler(resourceHandler: ResourceHandler) = state.resourceHandler(resourceHandler)
     fun <CFG> registerPlugin(plugin: Plugin<CFG>) = state.registerPlugin(plugin)
     fun <T : Any?> appData(key: Key<T>, value: T) = state.appData(key, value)
 }

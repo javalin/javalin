@@ -92,6 +92,7 @@ class JavalinState {
     fun requestLifeCycle(vararg lifecycle: TaskInitializer<JavalinServletContext>) {
         servletRequestLifecycle = lifecycle.toMutableList()
     }
+    fun resourceHandler(resourceHandler: ResourceHandler) { this.resourceHandler = resourceHandler }
     fun jsonMapper(jsonMapper: JsonMapper) { this.jsonMapper = javalinLazy { jsonMapper } }
     fun fileRenderer(fileRenderer: FileRenderer) = appData(FileRendererKey, fileRenderer)
     fun <CFG> registerPlugin(plugin: Plugin<CFG>): Plugin<CFG> = plugin.also { pluginManager.register(plugin) }
