@@ -20,6 +20,14 @@ import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
+/**
+ * Handles HTTP requests with sync/async support.
+ *
+ * Threading: Sync requests run on the servlet thread. Async requests release the servlet thread
+ * after ctx.future{} and resume on the future's completion thread. Timeouts fire on Jetty's thread.
+ * Tasks execute sequentially on one thread at a time; [JavalinServletContext.responseWritten]
+ * guards against the rare timeout-vs-completion race where both threads try to finalize the response.
+ */
 class JavalinServlet(val cfg: JavalinState) : HttpServlet() {
 
     val requestLifecycle = cfg.servletRequestLifecycle.toList()
@@ -79,6 +87,7 @@ class JavalinServlet(val cfg: JavalinState) : HttpServlet() {
         userFuture
             .thenApply { handleSync() }
             .exceptionally {
+                exceptionOccurred = true
                 router.handleHttpException(this, it)
                 handleSync() // resume normal request flow (after-handlers, request-logging)
             }
