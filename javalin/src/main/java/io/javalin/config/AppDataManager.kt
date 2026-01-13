@@ -17,10 +17,6 @@ class AppDataManager {
     }
 
     fun <T> registerIfAbsent(key: Key<T>, value: T) {
-        registerResolverIfAbsent(key, value)
-    }
-
-    fun <T> registerResolverIfAbsent(key: Key<T>, value: T) {
         data.putIfAbsent(key, value)
     }
 
