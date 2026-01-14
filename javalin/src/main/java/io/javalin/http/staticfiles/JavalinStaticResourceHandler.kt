@@ -76,14 +76,27 @@ class JavalinStaticResourceHandler : ResourceHandler {
         handler: StaticFileHandler
     ): Boolean {
         val resource = handler.getResource(resourcePath) ?: return false
+
+        // If file is too large for precompression, fall back to regular handling
+        if (resource.length() > handler.config.precompressMaxSize) {
+            return handler.handleResource(resourcePath, ctx)
+        }
+
         val contentType = handler.resolveContentType(resource, resourcePath)
         val compressor = compressionStrategy.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")
             .takeIf { contentType != null && shouldCompress(contentType, compressionStrategy) }
 
-        val resultBytes = getCachedBytes(resource, resourcePath, compressor, handler.config.precompressMaxSize) ?: return false
+        val cacheKey = "${handler.config.directory}:$resourcePath${compressor?.extension() ?: ""}"
+        val resultBytes = precompressCache.computeIfAbsent(cacheKey) {
+            ByteArrayOutputStream().also { output ->
+                resource.newInputStream().use { input ->
+                    (compressor?.compress(output) ?: output).use { input.copyTo(it) }
+                }
+            }.toByteArray()
+        }
 
         ctx.header(Header.CONTENT_LENGTH, resultBytes.size.toString())
-        ctx.header(Header.CONTENT_TYPE, contentType ?: "")
+        contentType?.let { ctx.header(Header.CONTENT_TYPE, it) }
 
         if (compressor != null) {
             ctx.disableCompression()
@@ -97,22 +110,5 @@ class JavalinStaticResourceHandler : ResourceHandler {
 
     private fun shouldCompress(mimeType: String, strategy: CompressionStrategy) =
         mimeType in strategy.allowedMimeTypes || strategy.excludedMimeTypes.none { mimeType.contains(it, ignoreCase = true) }
-
-    private fun getCachedBytes(resource: StaticResource, target: String, compressor: Compressor?, maxSize: Int): ByteArray? {
-        if (resource.length() > maxSize) {
-            JavalinLogger.warn(
-                "Static file '$target' is larger than configured max size for pre-compression ($maxSize bytes).\n" +
-                    "You can configure the max size: `staticFiles.precompressMaxSize = newMaxSize`."
-            )
-            return null
-        }
-        return precompressCache.computeIfAbsent(target + (compressor?.extension() ?: "")) {
-            ByteArrayOutputStream().also { output ->
-                resource.newInputStream().use { input ->
-                    (compressor?.compress(output) ?: output).use { input.copyTo(it) }
-                }
-            }.toByteArray()
-        }
-    }
 }
 
