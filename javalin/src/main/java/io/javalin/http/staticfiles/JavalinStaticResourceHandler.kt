@@ -4,10 +4,10 @@ import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Compressor
 import io.javalin.http.Context
 import io.javalin.http.Header
+import io.javalin.router.exception.isClientAbortException
 import io.javalin.security.RouteRole
 import io.javalin.util.JavalinLogger
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 class JavalinStaticResourceHandler : ResourceHandler {
@@ -57,10 +57,11 @@ class JavalinStaticResourceHandler : ResourceHandler {
             } else {
                 handler.handleResource(resourcePath, ctx)
             }
-        } catch (e: IOException) {
-            return false // Client disconnected
         } catch (e: Exception) {
-            if (e.message?.contains("alias") == true) return false
+            // Check for client disconnect (Jetty EofException) or alias violations
+            if (isClientAbortException(e) || e.message?.contains("alias") == true) {
+                return false
+            }
             throw e
         }
     }

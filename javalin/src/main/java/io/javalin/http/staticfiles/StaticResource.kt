@@ -41,7 +41,13 @@ class FileSystemResource(private val path: Path, private val basePath: Path = pa
         }
         return FileSystemResource(resolved, basePath)
     }
-    override fun isAlias(): Boolean = path.isSymbolicLink()
+    override fun isAlias(): Boolean {
+        if (!exists()) return false
+        // Check if any component in the path is a symlink by comparing normalized vs real path
+        val normalizedPath = path.toAbsolutePath().normalize()
+        val realPath = path.toRealPath()
+        return normalizedPath != realPath
+    }
     override fun realPath(): Path? = if (exists()) path.toRealPath() else null
     override fun toString(): String = path.toString()
 }
@@ -49,14 +55,21 @@ class FileSystemResource(private val path: Path, private val basePath: Path = pa
 class ClasspathResource private constructor(
     private val url: URL?,
     private val resourcePath: String,
+    private val basePath: String,
     private val classLoader: ClassLoader
 ) : StaticResource {
 
     companion object {
         fun create(classLoader: ClassLoader, resourcePath: String): ClasspathResource {
-            val normalizedPath = resourcePath.removePrefix("/")
+            val normalizedPath = normalizePath(resourcePath.removePrefix("/"))
             val url = classLoader.getResource(normalizedPath)
-            return ClasspathResource(url, normalizedPath, classLoader)
+            return ClasspathResource(url, normalizedPath, normalizedPath, classLoader)
+        }
+
+        /** Normalize path by resolving . and .. segments using Path.normalize() */
+        private fun normalizePath(path: String): String {
+            if (path.isEmpty()) return path
+            return Path.of(path).normalize().toString().replace('\\', '/')
         }
     }
 
@@ -94,18 +107,30 @@ class ClasspathResource private constructor(
     override fun newInputStream(): InputStream = url?.openStream() ?: throw IllegalStateException("Resource not found: $resourcePath")
 
     override fun resolve(subPath: String): StaticResource? {
-        val newPath = if (resourcePath.isEmpty()) {
+        val combinedPath = if (resourcePath.isEmpty()) {
             subPath.removePrefix("/")
         } else {
             "$resourcePath/${subPath.removePrefix("/")}".replace("//", "/")
         }
-        return create(classLoader, newPath)
+        val normalizedPath = normalizePath(combinedPath)
+        // Security: ensure normalized path is still under base path
+        if (!normalizedPath.startsWith(basePath) && basePath.isNotEmpty()) {
+            return null
+        }
+        val url = classLoader.getResource(normalizedPath)
+        return ClasspathResource(url, normalizedPath, basePath, classLoader)
     }
 
     override fun isAlias(): Boolean {
         if (url == null) return false
         return when (url.protocol) {
-            "file" -> Path.of(url.toURI()).isSymbolicLink()
+            "file" -> {
+                // Check if any component in the path is a symlink by comparing normalized vs real path
+                val path = Path.of(url.toURI())
+                val normalizedPath = path.toAbsolutePath().normalize()
+                val realPath = path.toRealPath()
+                normalizedPath != realPath
+            }
             else -> false
         }
     }
