@@ -54,16 +54,25 @@ class StaticFileHandler(val config: StaticFileConfig) {
     }
 
     private fun computeWeakEtag(resource: StaticResource): String? {
-        val (lastModified, length) = resource.lastModified() to resource.length()
+        val lastModified = resource.lastModified()
+        val length = resource.length()
         return if (lastModified <= 0 && length <= 0) null else "W/\"${lastModified.toString(16)}${length.toString(16)}\""
     }
 
-    private fun getResourceBase(): StaticResource = when (config.location) {
-        Location.CLASSPATH -> ClasspathResource.create(Thread.currentThread().contextClassLoader, config.directory)
-            .also { if (!it.exists()) throw JavalinException("Static resource directory with path: '${config.directory}' does not exist. Depending on your setup, empty folders might not get copied to classpath.") }
-        Location.EXTERNAL -> Path.of(config.directory).absolute().normalize()
-            .also { if (!it.exists()) throw JavalinException("Static resource directory with path: '$it' does not exist.") }
-            .let { FileSystemResource(it) }
+    private fun getResourceBase(): StaticResource {
+        val classpathHint = "Depending on your setup, empty folders might not get copied to classpath."
+        return when (config.location) {
+            Location.CLASSPATH -> {
+                val resource = ClasspathResource.create(Thread.currentThread().contextClassLoader, config.directory)
+                if (!resource.exists()) throw JavalinException("Static resource directory '${config.directory}' not found. $classpathHint")
+                resource
+            }
+            Location.EXTERNAL -> {
+                val path = Path.of(config.directory).absolute().normalize()
+                if (!path.exists()) throw JavalinException("Static resource directory '$path' not found.")
+                FileSystemResource(path)
+            }
+        }
     }
 }
 

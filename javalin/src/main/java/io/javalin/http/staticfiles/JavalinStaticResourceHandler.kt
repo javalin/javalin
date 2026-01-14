@@ -52,10 +52,7 @@ class JavalinStaticResourceHandler : ResourceHandler {
                 handler.handleResource(resourcePath, ctx)
             }
         } catch (e: Exception) {
-            // Check for client disconnect (Jetty EofException) or alias violations
-            if (isClientAbortException(e) || e.message?.contains("alias") == true) {
-                return false
-            }
+            if (isClientAbortException(e)) return false // Client disconnected
             throw e
         }
     }
