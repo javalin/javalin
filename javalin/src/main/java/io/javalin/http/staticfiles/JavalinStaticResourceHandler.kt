@@ -63,12 +63,9 @@ class JavalinStaticResourceHandler : ResourceHandler {
     private fun findHandler(ctx: Context): Pair<StaticFileHandler, String>? {
         val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
         return handlers.asSequence()
-            .filter { !(it.config.skipFileFunction?.invoke(ctx.req()) ?: false) }
-            .mapNotNull { handler ->
-                val hostedPath = handler.config.hostedPath
-                if (hostedPath != "/" && !target.startsWith(hostedPath)) return@mapNotNull null
-                handler to (if (hostedPath == "/") target else target.removePrefix(hostedPath).removePrefix("/"))
-            }
+            .filterNot { it.config.skipFileFunction?.invoke(ctx.req()) == true }
+            .filter { it.config.hostedPath == "/" || target.startsWith(it.config.hostedPath) }
+            .map { it to if (it.config.hostedPath == "/") target else target.removePrefix(it.config.hostedPath) }
             .find { (handler, resourcePath) -> handler.getResource(resourcePath) != null }
     }
 
@@ -84,7 +81,7 @@ class JavalinStaticResourceHandler : ResourceHandler {
         val resource = handler.getResource(resourcePath) ?: return false
         val contentType = handler.resolveContentType(resource, resourcePath)
         val compressor = compressionStrategy.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")
-            .takeUnless { contentType == null || excludedMimeType(contentType, compressionStrategy) }
+            .takeIf { contentType != null && shouldCompress(contentType, compressionStrategy) }
 
         val resultBytes = getCachedBytes(resource, resourcePath, compressor, handler.config.precompressMaxSize) ?: return false
 
@@ -101,11 +98,8 @@ class JavalinStaticResourceHandler : ResourceHandler {
         return true
     }
 
-    private fun excludedMimeType(mimeType: String, strategy: CompressionStrategy) = when {
-        mimeType.isEmpty() -> false
-        strategy.allowedMimeTypes.contains(mimeType) -> false
-        else -> strategy.excludedMimeTypes.any { mimeType.contains(it, ignoreCase = true) }
-    }
+    private fun shouldCompress(mimeType: String, strategy: CompressionStrategy) =
+        mimeType in strategy.allowedMimeTypes || strategy.excludedMimeTypes.none { mimeType.contains(it, ignoreCase = true) }
 
     private fun getCachedBytes(resource: StaticResource, target: String, compressor: Compressor?, maxSize: Int): ByteArray? {
         if (resource.length() > maxSize) {

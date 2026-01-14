@@ -62,12 +62,9 @@ class JettyResourceHandler : JavalinResourceHandler {
     private fun findHandler(ctx: Context): Pair<ConfigurableHandler, String>? {
         val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
         return handlers.asSequence()
-            .filter { !(it.config.skipFileFunction?.invoke(ctx.req()) ?: false) }
-            .mapNotNull { handler ->
-                val hostedPath = handler.config.hostedPath
-                if (hostedPath != "/" && !target.startsWith(hostedPath)) return@mapNotNull null
-                handler to (if (hostedPath == "/") target else target.removePrefix(hostedPath).removePrefix("/"))
-            }
+            .filterNot { it.config.skipFileFunction?.invoke(ctx.req()) == true }
+            .filter { it.config.hostedPath == "/" || target.startsWith(it.config.hostedPath) }
+            .map { it to if (it.config.hostedPath == "/") target else target.removePrefix(it.config.hostedPath) }
             .find { (handler, resourcePath) -> handler.getResource(resourcePath) != null }
     }
 

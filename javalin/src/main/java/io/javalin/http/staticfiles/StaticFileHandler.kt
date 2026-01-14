@@ -27,15 +27,10 @@ class StaticFileHandler(val config: StaticFileConfig) {
     private fun StaticResource.takeIfValid(path: String): StaticResource? {
         val resolved = this.resolve(path) ?: return null
         if (!resolved.exists() || resolved.isDirectory()) return null
-        // Block symlinks unless aliasCheck is configured
-        // Treat trailing slash on non-directory as invalid (e.g., /file/ -> rejected)
-        val isTrailingSlashAlias = path.endsWith("/") && !resolved.isDirectory()
-        if (resolved.isAlias() || isTrailingSlashAlias) {
-            val aliasCheck = config.aliasCheck ?: return null // No alias check = reject all aliases
+        // Block symlinks and trailing slashes on files (e.g., /file/) unless aliasCheck allows
+        if (resolved.isAlias() || path.endsWith("/")) {
             val realPath = resolved.realPath() ?: return null
-            // For Javalin handler, we pass the real path directly to the alias check
-            // The alias check can verify if the symlink target is allowed
-            if (!aliasCheck.check(path, realPath)) return null
+            if (config.aliasCheck?.check(path, realPath) != true) return null
         }
         return resolved
     }
@@ -59,29 +54,16 @@ class StaticFileHandler(val config: StaticFileConfig) {
     }
 
     private fun computeWeakEtag(resource: StaticResource): String? {
-        val lastModified = resource.lastModified()
-        val length = resource.length()
-        if (lastModified <= 0 && length <= 0) return null
-        return "W/\"${java.lang.Long.toHexString(lastModified)}${java.lang.Long.toHexString(length)}\""
+        val (lastModified, length) = resource.lastModified() to resource.length()
+        return if (lastModified <= 0 && length <= 0) null else "W/\"${lastModified.toString(16)}${length.toString(16)}\""
     }
 
-    private fun getResourceBase(): StaticResource {
-        val noSuchDirMsg: (String) -> String = { "Static resource directory with path: '$it' does not exist." }
-        val classpathHint = "Depending on your setup, empty folders might not get copied to classpath."
-
-        if (config.location == Location.CLASSPATH) {
-            val resource = ClasspathResource.create(Thread.currentThread().contextClassLoader, config.directory)
-            if (!resource.exists()) {
-                throw JavalinException("${noSuchDirMsg(config.directory)} $classpathHint")
-            }
-            return resource
-        }
-
-        val absolutePath = Path.of(config.directory).absolute().normalize()
-        if (!absolutePath.exists()) {
-            throw JavalinException(noSuchDirMsg(absolutePath.toString()))
-        }
-        return FileSystemResource(absolutePath)
+    private fun getResourceBase(): StaticResource = when (config.location) {
+        Location.CLASSPATH -> ClasspathResource.create(Thread.currentThread().contextClassLoader, config.directory)
+            .also { if (!it.exists()) throw JavalinException("Static resource directory with path: '${config.directory}' does not exist. Depending on your setup, empty folders might not get copied to classpath.") }
+        Location.EXTERNAL -> Path.of(config.directory).absolute().normalize()
+            .also { if (!it.exists()) throw JavalinException("Static resource directory with path: '$it' does not exist.") }
+            .let { FileSystemResource(it) }
     }
 }
 
