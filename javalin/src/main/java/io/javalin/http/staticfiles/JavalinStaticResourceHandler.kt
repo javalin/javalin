@@ -24,26 +24,20 @@ class JavalinStaticResourceHandler : ResourceHandler {
     /** Initialize handlers and log them - called during server startup */
     override fun init(compressionStrategy: CompressionStrategy) {
         this.compressionStrategy = compressionStrategy
-        pendingConfigs.forEach { config ->
-            val handler = StaticFileHandler(config)
-            JavalinLogger.info("Static file handler added: $config. File system location: '${handler.baseResource}'")
-            handlers.add(handler)
-        }
+        pendingConfigs.forEach { addHandler(it) }
         pendingConfigs.clear()
         initialized = true
     }
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean {
-        if (initialized) {
-            // Server already started, add handler immediately
-            val handler = StaticFileHandler(config)
-            JavalinLogger.info("Static file handler added: $config. File system location: '${handler.baseResource}'")
-            handlers.add(handler)
-        } else {
-            // Delay until init() is called during startup
-            pendingConfigs.add(config)
-        }
+        if (initialized) addHandler(config) else pendingConfigs.add(config)
         return true
+    }
+
+    private fun addHandler(config: StaticFileConfig) {
+        val handler = StaticFileHandler(config)
+        JavalinLogger.info("Static file handler added: $config. File system location: '${handler.baseResource}'")
+        handlers.add(handler)
     }
 
     override fun canHandle(ctx: Context): Boolean = findHandler(ctx) != null
