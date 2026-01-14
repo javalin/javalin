@@ -28,7 +28,7 @@ import jakarta.servlet.ServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.ee10.servlet.FilterHolder
 import org.eclipse.jetty.ee10.servlet.ServletResponseHttpWrapper
-import org.eclipse.jetty.server.AliasCheck
+import io.javalin.http.staticfiles.AliasCheck
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File

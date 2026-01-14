@@ -1,10 +1,9 @@
 package io.javalin.http.staticfiles
 
+import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.util.JavalinException
-import org.eclipse.jetty.http.MimeTypes
-import org.eclipse.jetty.util.resource.ResourceFactory
 import java.nio.file.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.exists
@@ -12,8 +11,6 @@ import kotlin.io.path.exists
 class StaticFileHandler(val config: StaticFileConfig) {
 
     val baseResource: StaticResource = getResourceBase()
-    private val jettyResourceFactory = ResourceFactory.root()
-    private val mimeTypes = MimeTypes.DEFAULTS
 
     fun handleResource(resourcePath: String, ctx: Context): Boolean {
         val resource = getResource(resourcePath) ?: return false
@@ -30,15 +27,15 @@ class StaticFileHandler(val config: StaticFileConfig) {
     private fun StaticResource.takeIfValid(path: String): StaticResource? {
         val resolved = this.resolve(path) ?: return null
         if (!resolved.exists() || resolved.isDirectory()) return null
-        // Treat trailing slash as an alias (e.g., /file/ -> /file)
-        // This matches Jetty's behavior where non-canonical paths are aliases
+        // Block symlinks unless aliasCheck is configured
+        // Treat trailing slash on non-directory as invalid (e.g., /file/ -> rejected)
         val isTrailingSlashAlias = path.endsWith("/") && !resolved.isDirectory()
         if (resolved.isAlias() || isTrailingSlashAlias) {
+            val aliasCheck = config.aliasCheck ?: return null // No alias check = reject all aliases
             val realPath = resolved.realPath() ?: return null
-            val jettyResource = jettyResourceFactory.newResource(realPath)
-            if (config.aliasCheck?.checkAlias(path, jettyResource) != true) {
-                return null
-            }
+            // For Javalin handler, we pass the real path directly to the alias check
+            // The alias check can verify if the symlink target is allowed
+            if (!aliasCheck.check(path, realPath)) return null
         }
         return resolved
     }
@@ -47,7 +44,7 @@ class StaticFileHandler(val config: StaticFileConfig) {
         val resourceName = resource.fileName() ?: fallbackPath
         val extension = resourceName.substringAfterLast('.', "").takeIf { it.isNotEmpty() && it != resourceName }
         return extension?.let { ext ->
-            config.mimeTypes.mapping()[ext.lowercase()] ?: mimeTypes.getMimeByExtension(resourceName)
+            config.mimeTypes.mapping()[ext.lowercase()] ?: ContentType.mimeTypeByExtension(ext)
         }
     }
 

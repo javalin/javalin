@@ -26,7 +26,7 @@ interface StaticResource {
     fun realPath(): Path?
 }
 
-class FileSystemResource(private val path: Path) : StaticResource {
+class FileSystemResource(private val path: Path, private val basePath: Path = path) : StaticResource {
     override fun exists(): Boolean = path.exists()
     override fun isDirectory(): Boolean = path.isDirectory()
     override fun length(): Long = if (exists() && !isDirectory()) Files.size(path) else 0
@@ -36,13 +36,14 @@ class FileSystemResource(private val path: Path) : StaticResource {
     override fun resolve(subPath: String): StaticResource? {
         val resolved = path.resolve(subPath.removePrefix("/")).normalize()
         // Security: ensure resolved path is still under base path
-        if (!resolved.startsWith(path.toAbsolutePath().normalize().parent ?: path)) {
+        if (!resolved.startsWith(basePath)) {
             return null
         }
-        return FileSystemResource(resolved)
+        return FileSystemResource(resolved, basePath)
     }
     override fun isAlias(): Boolean = path.isSymbolicLink()
     override fun realPath(): Path? = if (exists()) path.toRealPath() else null
+    override fun toString(): String = path.toString()
 }
 
 class ClasspathResource private constructor(
@@ -116,5 +117,7 @@ class ClasspathResource private constructor(
             else -> null
         }
     }
+
+    override fun toString(): String = url?.toString() ?: "ClasspathResource($resourcePath, not found)"
 }
 

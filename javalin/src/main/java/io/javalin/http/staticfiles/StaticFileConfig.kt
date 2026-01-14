@@ -5,7 +5,7 @@ import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.security.RouteRole
 import jakarta.servlet.http.HttpServletRequest
-import org.eclipse.jetty.server.AliasCheck
+import java.nio.file.Path
 
 /** The static files location. */
 enum class Location {
@@ -16,6 +16,20 @@ enum class Location {
      * Static resources are external (on the file system)
      */
     EXTERNAL;
+}
+
+/**
+ * Functional interface for checking if an alias (symlink) should be allowed.
+ * Used to configure symlink handling for static files.
+ */
+fun interface AliasCheck {
+    /**
+     * Check if the alias should be allowed.
+     * @param path the request path
+     * @param realPath the real path that the symlink resolves to
+     * @return true if the alias should be allowed, false otherwise
+     */
+    fun check(path: String, realPath: Path): Boolean
 }
 
 /**
