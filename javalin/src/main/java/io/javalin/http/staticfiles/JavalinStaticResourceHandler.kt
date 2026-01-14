@@ -95,13 +95,11 @@ class JavalinStaticResourceHandler : ResourceHandler {
             }.toByteArray()
         }
 
+        // Disable automatic compression since we're serving cached bytes with explicit Content-Length
+        ctx.disableCompression()
         ctx.header(Header.CONTENT_LENGTH, resultBytes.size.toString())
         contentType?.let { ctx.header(Header.CONTENT_TYPE, it) }
-
-        if (compressor != null) {
-            ctx.disableCompression()
-            ctx.header(Header.CONTENT_ENCODING, compressor.encoding())
-        }
+        compressor?.let { ctx.header(Header.CONTENT_ENCODING, it.encoding()) }
 
         if (handler.tryHandleEtag(resource, ctx)) return true
         ctx.result(resultBytes)
