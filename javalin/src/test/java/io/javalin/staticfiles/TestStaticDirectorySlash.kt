@@ -13,13 +13,14 @@ import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
-
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class TestStaticDirectorySlash {
 
-    private val normalJavalin: Javalin by lazy { Javalin.create { it.staticFiles.add("public", Location.CLASSPATH) } }
+    private val normalStaticFilesConfig = { cfg: io.javalin.config.JavalinConfig ->
+        cfg.staticFiles.add("public", Location.CLASSPATH)
+    }
 
     private val precompressingJavalin: Javalin by lazy {
         Javalin.create { cfg ->
@@ -32,7 +33,7 @@ class TestStaticDirectorySlash {
     }
 
     @Test
-    fun `normal javalin ignores static directory slashes`() = TestUtil.test(normalJavalin) { _, http ->
+    fun `normal javalin ignores static directory slashes`() = testStaticFiles(normalStaticFilesConfig) { _, http ->
         assertThat(http.get("/subpage"))
             .extracting({ it.status }, { it.body })
             .containsExactly(OK.code, "TEST") // ok, is directory
@@ -53,7 +54,7 @@ class TestStaticDirectorySlash {
 
 
     @Test
-    fun `normal Javalin serves files but serves directory if it is a directory`() = TestUtil.test(normalJavalin) { _, http ->
+    fun `normal Javalin serves files but serves directory if it is a directory`() = testStaticFiles(normalStaticFilesConfig) { _, http ->
         assertThat(http.get("/file"))
             .extracting({ it.status }, { it.body })
             .containsExactly(OK.code, "TESTFILE") // ok, is file = no slash
