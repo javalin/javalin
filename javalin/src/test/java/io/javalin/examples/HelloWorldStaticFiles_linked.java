@@ -23,7 +23,7 @@ public class HelloWorldStaticFiles_linked {
             javalin.staticFiles.add(staticFiles -> {
                 staticFiles.directory = "src/test/external/";
                 staticFiles.location = Location.EXTERNAL;
-                staticFiles.aliasCheck = (path, resource) -> true;
+                staticFiles.aliasCheck = (path, realPath) -> true;
             });
         }).start(7070);
     }

@@ -72,6 +72,7 @@ enum class ContentType(
     APPLICATION_OCTET_STREAM("application/octet-stream", false, "bin"),
     APPLICATION_BZ("application/x-bzip", false, "bz"),
     APPLICATION_BZ2("application/x-bzip2", false, "bz2"),
+    APPLICATION_BR("application/brotli", false, "br"),
     APPLICATION_CDN("application/cdn", true, "cdn"),
     APPLICATION_DOC("application/msword", false, "doc"),
     APPLICATION_DOCX("application/vnd.openxmlformats-officedocument.wordprocessingml.document", false, "docx"),

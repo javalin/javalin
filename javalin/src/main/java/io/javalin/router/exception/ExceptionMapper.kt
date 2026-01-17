@@ -73,7 +73,7 @@ class ExceptionMapper(private val routerConfig: RouterConfig, private val jettyC
 private fun unwrap(t: Throwable) = (t as? CompletionException)?.cause ?: t
 
 // Jetty throws if client aborts during response writing. testing name avoids hard dependency on jetty.
-private fun isClientAbortException(t: Throwable) = unwrap(t)::class.java.name == "org.eclipse.jetty.io.EofException"
+internal fun isClientAbortException(t: Throwable) = unwrap(t)::class.java.name == "org.eclipse.jetty.io.EofException"
 
 // Jetty may time out connections to avoid having broken connections that remain open forever
 // This is rare, but intended (see issues #163 and #1277)
