@@ -8,7 +8,9 @@
 package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.after
+import io.javalin.apibuilder.ApiBuilder.afterMatched
 import io.javalin.apibuilder.ApiBuilder.before
+import io.javalin.apibuilder.ApiBuilder.beforeMatched
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.delete
 import io.javalin.apibuilder.ApiBuilder.get
@@ -111,15 +113,17 @@ class TestApiBuilder {
             it.routes.apiBuilder {
                 path("level-1") {
                     before { it.result("1") }
+                    beforeMatched(updateAnswer("2"))
                     path("level-2") {
                         path("level-3") { get("/hello", updateAnswer("Hello")) }
-                        after(updateAnswer("2"))
+                        afterMatched(updateAnswer("3"))
+                        after(updateAnswer("4"))
                     }
                 }
             }
         }
     ) { app, http ->
-        assertThat(http.getBody("/level-1/level-2/level-3/hello")).isEqualTo("1Hello2")
+        assertThat(http.getBody("/level-1/level-2/level-3/hello")).isEqualTo("12Hello34")
     }
 
     @Test
@@ -142,15 +146,17 @@ class TestApiBuilder {
         Javalin.create {
             it.routes.apiBuilder {
                 path("api") {
-                    before { it.result("before") }
-                    get(updateAnswer("get"))
+                    before { it.result("before-") }
+                    beforeMatched(updateAnswer("bmatch-"))
+                    get(updateAnswer("get-"))
+                    afterMatched(updateAnswer("amatch-"))
                     after(updateAnswer("after"))
                 }
             }
         }
     ) { app, http ->
-        assertThat(http.getBody("/api")).isEqualTo("beforegetafter")
-        assertThat(http.getBody("/api/")).isEqualTo("beforegetafter")
+        assertThat(http.getBody("/api")).isEqualTo("before-bmatch-get-amatch-after")
+        assertThat(http.getBody("/api/")).isEqualTo("before-bmatch-get-amatch-after")
     }
 
     @Test
@@ -158,15 +164,17 @@ class TestApiBuilder {
         Javalin.create {
             it.routes.apiBuilder {
                 path("api") {
-                    before("*") { it.result("before") }
-                    get(updateAnswer("get"))
+                    before("*") { it.result("before-") }
+                    beforeMatched("*", updateAnswer("bmatch-"))
+                    get(updateAnswer("get-"))
+                    afterMatched("*", updateAnswer("amatch-"))
                     after("*", updateAnswer("after"))
                 }
             }
         }
     ) { app, http ->
-        assertThat(http.getBody("/api")).isEqualTo("beforegetafter")
-        assertThat(http.getBody("/api/")).isEqualTo("beforegetafter")
+        assertThat(http.getBody("/api")).isEqualTo("before-bmatch-get-amatch-after")
+        assertThat(http.getBody("/api/")).isEqualTo("before-bmatch-get-amatch-after")
     }
 
     @Test
@@ -174,15 +182,17 @@ class TestApiBuilder {
         Javalin.create {
             it.routes.apiBuilder {
                 path("api") {
-                    before("/*") { it.result("before") }
-                    get { it.result((it.result() ?: "") + "get") }
+                    before("/*") { it.result("before-") }
+                    beforeMatched("/*", updateAnswer("bmatch-"))
+                    get { it.result((it.result() ?: "") + "get-") }
+                    afterMatched("/*", updateAnswer("amatch-"))
                     after("/*", updateAnswer("after"))
                 }
             }
         }
     ) { app, http ->
-        assertThat(http.getBody("/api")).isEqualTo("get")
-        assertThat(http.getBody("/api/")).isEqualTo("beforegetafter")
+        assertThat(http.getBody("/api")).isEqualTo("get-")
+        assertThat(http.getBody("/api/")).isEqualTo("before-bmatch-get-amatch-after")
     }
 
     private fun simpleAnswer(body: String) = Handler { it.result(body) }

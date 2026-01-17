@@ -344,6 +344,26 @@ public class ApiBuilder {
     }
 
     /**
+     * Adds a BEFORE_MATCHED request handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a config.routes.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
+     */
+    public static void beforeMatched(@NotNull String path, @NotNull Handler handler) {
+        staticInstance().beforeMatched(prefixPath(path), handler);
+    }
+
+    /**
+     * Adds a BEFORE_MATCHED request handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a config.routes.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void beforeMatched(@NotNull Handler handler) {
+        staticInstance().beforeMatched(prefixPath("*"), handler);
+    }
+
+    /**
      * Adds an AFTER request handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a config.routes.apiBuilder(EndpointGroup)}.
      *
@@ -361,6 +381,26 @@ public class ApiBuilder {
      */
     public static void after(@NotNull Handler handler) {
         staticInstance().after(prefixPath("*"), handler);
+    }
+
+    /**
+     * Adds a AFTER_MATCHED request handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a config.routes.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
+     */
+    public static void afterMatched(@NotNull String path, @NotNull Handler handler) {
+        staticInstance().afterMatched(prefixPath(path), handler);
+    }
+
+    /**
+     * Adds a AFTER_MATCHED request handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a config.routes.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void afterMatched(@NotNull Handler handler) {
+        staticInstance().afterMatched(prefixPath("*"), handler);
     }
 
     // ********************************************************************************************
