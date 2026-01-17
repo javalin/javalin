@@ -56,7 +56,7 @@ class StaticFileHandler(val config: StaticFileConfig) {
     private fun computeWeakEtag(resource: StaticResource): String? {
         val lastModified = resource.lastModified()
         val length = resource.length()
-        return if (lastModified <= 0 && length <= 0) null else "W/\"${lastModified.toString(16)}${length.toString(16)}\""
+        return if (lastModified <= 0 && length <= 0) null else "W/\"${lastModified.toString(16)}-${length.toString(16)}\""
     }
 
     private fun getResourceBase(): StaticResource {

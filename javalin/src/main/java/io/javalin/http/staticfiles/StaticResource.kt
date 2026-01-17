@@ -76,7 +76,7 @@ class ClasspathResource private constructor(
 
     override fun resolve(subPath: String): StaticResource? {
         val normalizedPath = normalizePath("$resourcePath/${subPath.removePrefix("/")}")
-        if (basePath.isNotEmpty() && !normalizedPath.startsWith(basePath)) return null // Security: stay under base path
+        if (basePath.isNotEmpty() && normalizedPath != basePath && !normalizedPath.startsWith("$basePath/")) return null
         return ClasspathResource(classLoader.getResource(normalizedPath), normalizedPath, basePath, classLoader)
     }
 

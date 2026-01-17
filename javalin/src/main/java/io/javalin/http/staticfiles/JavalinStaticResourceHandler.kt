@@ -52,7 +52,7 @@ class JavalinStaticResourceHandler : ResourceHandler {
                 handler.handleResource(resourcePath, ctx)
             }
         } catch (e: Exception) {
-            if (isClientAbortException(e)) return false // Client disconnected
+            if (isClientAbortException(e)) return false
             throw e
         }
     }

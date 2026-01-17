@@ -9,6 +9,8 @@ package io.javalin.staticfiles
 import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
+import io.javalin.http.staticfiles.ClasspathResource
+import io.javalin.http.staticfiles.FileSystemResource
 import io.javalin.http.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -21,9 +23,10 @@ import java.net.http.HttpResponse.BodyHandlers
 
 /**
  * Tests for directory traversal attacks on static files.
- * Jetty blocks most simple traversal attempts (../, %2e%2e/) at the HTTP level,
- * so these tests focus on double-encoded paths that bypass Jetty's checks.
- * We also test the simple attempts to ensure they remain blocked if Jetty changes.
+ * Jetty normalizes paths at the HTTP level, blocking most traversal attempts before they reach handlers.
+ * The HTTP-level tests verify defense-in-depth and ensure traversal remains blocked regardless of server.
+ * The unit tests verify that ClasspathResource.resolve() correctly blocks traversal at the code level,
+ * which is critical for Jetty-free usage and other servers.
  */
 class TestStaticFilesPathTraversal {
 
@@ -117,6 +120,18 @@ class TestStaticFilesPathTraversal {
             assertBlocked(http.origin, "/../secret.txt")
             assertThat(http.get("/%252e%252e/secret.txt").status).isEqualTo(NOT_FOUND.code)
         }
+    }
+
+    @Test
+    fun `ClasspathResource blocks prefix collision in resolve`() {
+        val resource = ClasspathResource.create(Thread.currentThread().contextClassLoader, "public")
+        assertThat(resource.resolve("../public2/secret.txt")).isNull()
+    }
+
+    @Test
+    fun `FileSystemResource blocks prefix collision in resolve`() {
+        val resource = FileSystemResource(tempDir.toPath().resolve("public"))
+        assertThat(resource.resolve("../public2/secret.txt")).isNull()
     }
 }
 
