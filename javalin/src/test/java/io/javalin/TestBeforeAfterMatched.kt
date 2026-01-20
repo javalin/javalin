@@ -14,7 +14,7 @@ import io.javalin.testing.TestUtil
 
 import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.AliasCheck
+import io.javalin.http.staticfiles.AliasCheck
 import org.junit.jupiter.api.Test
 
 class TestBeforeAfterMatched {
