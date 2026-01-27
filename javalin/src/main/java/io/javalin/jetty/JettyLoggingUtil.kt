@@ -12,8 +12,8 @@ internal object JettyLoggingUtil {
 
     private const val JETTY_LOGGER = "org.eclipse.jetty"
 
-    // slf4j-simple log levels: TRACE=0, DEBUG=10, INFO=20, WARN=30, ERROR=40
-    private val simpleLoggerLevels = mapOf("TRACE" to 0, "DEBUG" to 10, "INFO" to 20, "WARN" to 30, "ERROR" to 40)
+    // slf4j-simple log levels: TRACE=0, DEBUG=10, INFO=20, WARN=30, ERROR=40, OFF=50
+    private val simpleLoggerLevels = mapOf("TRACE" to 0, "DEBUG" to 10, "INFO" to 20, "WARN" to 30, "ERROR" to 40, "OFF" to 50)
     private val simpleLoggerLevelNames = simpleLoggerLevels.entries.associate { (k, v) -> v to k }
 
     private val jettyLoggerNames = listOf(
@@ -24,6 +24,19 @@ internal object JettyLoggingUtil {
         "org.eclipse.jetty.session.DefaultSessionIdManager",
         "org.eclipse.jetty.ee10.servlet.ServletContextHandler"
     )
+
+    // Detect which SLF4J binding is in use (cached for consistency)
+    private enum class Slf4jBinding { LOGBACK, LOG4J2, SLF4J_SIMPLE, UNKNOWN }
+    private val detectedBinding: Slf4jBinding by lazy {
+        val factory = LoggerFactory.getILoggerFactory()
+        val factoryClassName = factory.javaClass.name
+        when {
+            factoryClassName.contains("logback", ignoreCase = true) -> Slf4jBinding.LOGBACK
+            factoryClassName.contains("log4j", ignoreCase = true) -> Slf4jBinding.LOG4J2
+            factoryClassName.contains("simple", ignoreCase = true) -> Slf4jBinding.SLF4J_SIMPLE
+            else -> Slf4jBinding.UNKNOWN
+        }
+    }
 
     /**
      * Executes the given block with Jetty's log level temporarily changed if level is non-null.
@@ -42,15 +55,22 @@ internal object JettyLoggingUtil {
         }
     }
 
-    private fun getJettyLogLevel(): String? =
-        runCatching { tryLogbackGetLevel() }.getOrNull()
-            ?: runCatching { tryLog4j2GetLevel() }.getOrNull()
-            ?: runCatching { trySlf4jSimpleGetLevel() }.getOrNull()
+    private fun getJettyLogLevel(): String? = runCatching {
+        when (detectedBinding) {
+            Slf4jBinding.LOGBACK -> tryLogbackGetLevel()
+            Slf4jBinding.LOG4J2 -> tryLog4j2GetLevel()
+            Slf4jBinding.SLF4J_SIMPLE -> trySlf4jSimpleGetLevel()
+            Slf4jBinding.UNKNOWN -> null
+        }
+    }.getOrNull()
 
     private fun setJettyLogLevel(levelName: String) {
-        runCatching { tryLogbackSetLevel(levelName) }.getOrElse {
-            runCatching { tryLog4j2SetLevel(levelName) }.getOrElse {
-                runCatching { trySlf4jSimpleSetLevel(levelName) }
+        runCatching {
+            when (detectedBinding) {
+                Slf4jBinding.LOGBACK -> tryLogbackSetLevel(levelName)
+                Slf4jBinding.LOG4J2 -> tryLog4j2SetLevel(levelName)
+                Slf4jBinding.SLF4J_SIMPLE -> trySlf4jSimpleSetLevel(levelName)
+                Slf4jBinding.UNKNOWN -> {} // no-op
             }
         }
     }
@@ -60,9 +80,13 @@ internal object JettyLoggingUtil {
             setJettyLogLevel(originalLevel)
         } else {
             // Original level was null (inherited from parent) - clear the explicit level
-            runCatching { tryLogbackClearLevel() }.getOrElse {
-                runCatching { tryLog4j2ClearLevel() }
-                // slf4j-simple doesn't support clearing levels, so we leave it as-is
+            runCatching {
+                when (detectedBinding) {
+                    Slf4jBinding.LOGBACK -> tryLogbackClearLevel()
+                    Slf4jBinding.LOG4J2 -> tryLog4j2ClearLevel()
+                    Slf4jBinding.SLF4J_SIMPLE -> {} // slf4j-simple doesn't support clearing levels
+                    Slf4jBinding.UNKNOWN -> {}
+                }
             }
         }
     }
