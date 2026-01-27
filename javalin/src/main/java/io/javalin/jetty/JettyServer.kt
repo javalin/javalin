@@ -92,7 +92,7 @@ class JettyServer(private val cfg: JavalinState) {
         eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STARTING)
         try {
             JavalinLogger.startup("Starting Javalin ...")
-            server().start() // this will log a lot of stuff
+            JettyUtil.withJettyLogLevel(cfg.startup.hideJettyLifecycleLogsBelowLevel) { server().start() }
         } catch (e: Exception) {
             JavalinLogger.error("Failed to start Javalin")
             eventManager.fireEvent(JavalinLifecycleEvent.SERVER_START_FAILED)
@@ -133,7 +133,7 @@ class JettyServer(private val cfg: JavalinState) {
         JavalinLogger.info("Stopping Javalin ...")
         eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STOPPING)
         try {
-            server().stop()
+            JettyUtil.withJettyLogLevel(cfg.startup.hideJettyLifecycleLogsBelowLevel) { server().stop() }
         } catch (e: Exception) {
             eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STOP_FAILED)
             JavalinLogger.error("Javalin failed to stop gracefully", e)
