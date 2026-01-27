@@ -17,7 +17,7 @@ class StartupConfig {
     /**
      * Hides Jetty logs below the specified level during server startup and shutdown (lifecycle events).
      * For example, setting to [Level.WARN] will hide INFO and DEBUG logs, showing only WARN and ERROR.
-     * After lifecycle completes, the log level is restored to [Level.INFO].
+     * After lifecycle completes, the log level is restored to its previous value.
      * Set to null (default) to leave Jetty's log level unchanged.
      * Works with Logback, Log4j2, and slf4j-simple via reflection. Best-effort - silently ignored if unsupported.
      */

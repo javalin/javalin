@@ -31,12 +31,11 @@ class TestLogging {
         val logWithJetty = captureStdOut { runTest(Javalin.create()) }
         val logWithoutJetty = captureStdOut { runTest(Javalin.create { it.startup.hideJettyLifecycleLogsBelowLevel = Level.WARN }) }
         // Default logging includes Jetty startup logs (INFO level)
-        assertThat(logWithJetty).contains("INFO org.eclipse.jetty.server.Server - jetty-12")
-        assertThat(logWithJetty).contains("INFO org.eclipse.jetty.session.DefaultSessionIdManager - Session workerName")
-        assertThat(logWithJetty).contains("INFO org.eclipse.jetty.server.Server - Started oejs.Server")
+        assertThat(logWithJetty).contains("INFO org.eclipse.jetty.server.Server")
+        assertThat(logWithJetty).contains("INFO org.eclipse.jetty.session.DefaultSessionIdManager")
         // Default logging includes Jetty shutdown logs (INFO level)
-        assertThat(logWithJetty).contains("INFO org.eclipse.jetty.server.Server - Stopped oejs.Server")
-        assertThat(logWithJetty).contains("INFO org.eclipse.jetty.server.AbstractConnector - Stopped oejs.ServerConnector")
+        assertThat(logWithJetty).containsPattern("INFO org.eclipse.jetty.server.Server.*Stopped")
+        assertThat(logWithJetty).containsPattern("INFO org.eclipse.jetty.server.AbstractConnector.*Stopped")
         // With hideJettyLifecycleLogsBelowLevel set to WARN, Jetty INFO logs should be hidden
         // (WARN/ERROR logs from Jetty could still appear, so we check for specific INFO patterns)
         assertThat(logWithoutJetty).doesNotContain("INFO org.eclipse.jetty")

@@ -38,7 +38,7 @@ internal object JettyLoggingUtil {
         try {
             return block()
         } finally {
-            originalLevel?.let { setJettyLogLevel(it) }
+            restoreJettyLogLevel(originalLevel)
         }
     }
 
@@ -51,6 +51,18 @@ internal object JettyLoggingUtil {
         runCatching { tryLogbackSetLevel(levelName) }.getOrElse {
             runCatching { tryLog4j2SetLevel(levelName) }.getOrElse {
                 runCatching { trySlf4jSimpleSetLevel(levelName) }
+            }
+        }
+    }
+
+    private fun restoreJettyLogLevel(originalLevel: String?) {
+        if (originalLevel != null) {
+            setJettyLogLevel(originalLevel)
+        } else {
+            // Original level was null (inherited from parent) - clear the explicit level
+            runCatching { tryLogbackClearLevel() }.getOrElse {
+                runCatching { tryLog4j2ClearLevel() }
+                // slf4j-simple doesn't support clearing levels, so we leave it as-is
             }
         }
     }
@@ -74,6 +86,16 @@ internal object JettyLoggingUtil {
         logger.javaClass.getMethod("setLevel", levelClass).invoke(logger, level)
     }
 
+    private fun tryLogbackClearLevel() {
+        val loggerContextClass = Class.forName("ch.qos.logback.classic.LoggerContext")
+        val factory = LoggerFactory.getILoggerFactory()
+        if (!loggerContextClass.isInstance(factory)) error("Not Logback")
+        val logger = factory.javaClass.getMethod("getLogger", String::class.java).invoke(factory, JETTY_LOGGER)
+        val levelClass = Class.forName("ch.qos.logback.classic.Level")
+        // Setting level to null in Logback means "inherit from parent"
+        logger.javaClass.getMethod("setLevel", levelClass).invoke(logger, null)
+    }
+
     // Log4j2
     private fun tryLog4j2GetLevel(): String? {
         val logManager = Class.forName("org.apache.logging.log4j.LogManager")
@@ -86,6 +108,13 @@ internal object JettyLoggingUtil {
         val levelClass = Class.forName("org.apache.logging.log4j.Level")
         val level = levelClass.getField(levelName).get(null)
         configurator.getMethod("setLevel", String::class.java, levelClass).invoke(null, JETTY_LOGGER, level)
+    }
+
+    private fun tryLog4j2ClearLevel() {
+        val configurator = Class.forName("org.apache.logging.log4j.core.config.Configurator")
+        val levelClass = Class.forName("org.apache.logging.log4j.Level")
+        // Setting level to null in Log4j2 means "inherit from parent"
+        configurator.getMethod("setLevel", String::class.java, levelClass).invoke(null, JETTY_LOGGER, null)
     }
 
     // slf4j-simple
