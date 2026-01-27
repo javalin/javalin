@@ -92,12 +92,12 @@ class JettyServer(private val cfg: JavalinState) {
         eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STARTING)
         try {
             JavalinLogger.startup("Starting Javalin ...")
-            JettyUtil.withJettyLogLevel(cfg.startup.hideJettyLifecycleLogsBelowLevel) { server().start() }
+            JettyLoggingUtil.withJettyLogLevel(cfg.startup.hideJettyLifecycleLogsBelowLevel) { server().start() }
         } catch (e: Exception) {
             JavalinLogger.error("Failed to start Javalin")
             eventManager.fireEvent(JavalinLifecycleEvent.SERVER_START_FAILED)
             if (server().getAttribute("is-default-server") == true) {
-                server().stop() // stop if server is default server; otherwise, the caller is responsible to stop
+                JettyLoggingUtil.withJettyLogLevel(cfg.startup.hideJettyLifecycleLogsBelowLevel) { server().stop() }
             }
             if (e.message != null && e.message!!.contains("Failed to bind to")) {
                 throw JavalinBindException("Port already in use. Make sure no other process is using port " + port(e) + " and try again.", e)
@@ -133,7 +133,7 @@ class JettyServer(private val cfg: JavalinState) {
         JavalinLogger.info("Stopping Javalin ...")
         eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STOPPING)
         try {
-            JettyUtil.withJettyLogLevel(cfg.startup.hideJettyLifecycleLogsBelowLevel) { server().stop() }
+            JettyLoggingUtil.withJettyLogLevel(cfg.startup.hideJettyLifecycleLogsBelowLevel) { server().stop() }
         } catch (e: Exception) {
             eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STOP_FAILED)
             JavalinLogger.error("Javalin failed to stop gracefully", e)
