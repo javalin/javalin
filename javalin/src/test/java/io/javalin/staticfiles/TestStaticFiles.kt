@@ -76,8 +76,12 @@ class TestStaticFiles {
     private fun createSymLink(resourcePath: String, linkName: String): File? {
         val resource = Paths.get(resourcePath).toAbsolutePath()
         val link = workingDirectory.toPath().resolve(linkName).toAbsolutePath()
-        Files.createSymbolicLink(link, resource)
-        return link.toFile()
+        return try {
+            Files.createSymbolicLink(link, resource).toFile()
+        } catch (e: java.nio.file.FileSystemException) {
+            org.junit.jupiter.api.Assumptions.assumeTrue(false, "Symlinks not supported: ${e.message}")
+            null
+        }
     }
 
     @Test
