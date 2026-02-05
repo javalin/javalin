@@ -110,6 +110,7 @@ class TestRouting {
 
     @Test
     fun `all mapped verbs return 200`() {
+        HttpMethod.valueOf("QUERY") // This adds it to HttpMethod.all() as it is static.
         val app = Javalin.create { config ->
             for (httpMethod in HttpMethod.all()) {
                 val handlerType = HandlerType.findOrCreate(httpMethod.name())
@@ -125,6 +126,7 @@ class TestRouting {
 
     @Test
     fun `all unmapped verbs return 404`() = TestUtil.test { _, http ->
+        HttpMethod.valueOf("QUERY") // This adds it to HttpMethod.all() as it is static.
         for (httpMethod in HttpMethod.all()) {
             val response = http.call(httpMethod, "/unmapped")
             assertThat(response.httpCode()).isEqualTo(NOT_FOUND)

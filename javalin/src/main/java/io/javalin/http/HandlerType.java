@@ -34,6 +34,7 @@ public record HandlerType(String name, boolean isHttpMethod) {
     // Standard HTTP methods
     public static final HandlerType GET = new HandlerType("GET");
     public static final HandlerType POST = new HandlerType("POST");
+    public static final HandlerType QUERY = new HandlerType("QUERY");
     public static final HandlerType PUT = new HandlerType("PUT");
     public static final HandlerType PATCH = new HandlerType("PATCH");
     public static final HandlerType DELETE = new HandlerType("DELETE");
@@ -52,11 +53,11 @@ public record HandlerType(String name, boolean isHttpMethod) {
 
     // Standard methods list and lookup
     private static final List<HandlerType> DEFAULT_METHODS = List.of(
-        GET, POST, PUT, PATCH, DELETE, HEAD, TRACE, CONNECT, OPTIONS,
+        GET, POST, QUERY, PUT, PATCH, DELETE, HEAD, TRACE, CONNECT, OPTIONS,
         BEFORE, BEFORE_MATCHED, AFTER_MATCHED, WEBSOCKET_BEFORE_UPGRADE, WEBSOCKET_AFTER_UPGRADE, AFTER
     );
 
-    private static final List<HandlerType> COMMON_HTTP_METHODS = List.of(GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE);
+    private static final List<HandlerType> COMMON_HTTP_METHODS = List.of(GET, POST, QUERY, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE);
 
     private static final Map<String, HandlerType> METHOD_MAP = DEFAULT_METHODS.stream()
         .collect(toConcurrentMap(HandlerType::name, method -> method)); // start with default methods
@@ -82,7 +83,7 @@ public record HandlerType(String name, boolean isHttpMethod) {
     }
 
     /**
-     * Returns only the common HTTP methods (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE).
+     * Returns only the common HTTP methods (GET, POST, QUERY, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE).
      * Excludes Javalin-specific handlers and CONNECT method.
      */
     public static List<HandlerType> commonHttp() {
