@@ -14,6 +14,7 @@ import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.HandlerType.PATCH
 import io.javalin.http.HandlerType.POST
 import io.javalin.http.HandlerType.PUT
+import io.javalin.http.HandlerType.QUERY
 import io.javalin.http.HandlerType.WEBSOCKET_AFTER_UPGRADE
 import io.javalin.http.HandlerType.WEBSOCKET_BEFORE_UPGRADE
 import io.javalin.http.HttpStatus
@@ -109,6 +110,12 @@ interface JavalinDefaultRoutingApi {
     fun post(path: String, handler: Handler): JavalinDefaultRoutingApi = addHttpHandler(POST, path, handler)
 
     /**
+     * Adds a QUERY request handler for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun query(path: String, handler: Handler) : JavalinDefaultRoutingApi = addHttpHandler(QUERY, path, handler)
+
+    /**
      * Adds a PUT request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
@@ -149,6 +156,13 @@ interface JavalinDefaultRoutingApi {
      * See: [Handlers in docs](https://javalin.io/documentation#handlers)
      */
     fun post(path: String, handler: Handler, vararg roles: RouteRole): JavalinDefaultRoutingApi = addHttpHandler(POST, path, handler, *roles)
+
+    /**
+     * Adds a QUERY request handler with the given roles for the specified path to the instance.
+     * See: [Handlers in docs](https://javalin.io/documentation#handlers)
+     */
+    fun query(path: String, handler: Handler, vararg roles: RouteRole): JavalinDefaultRoutingApi = addHttpHandler(QUERY, path, handler, *roles)
+
 
     /**
      * Adds a PUT request handler with the given roles for the specified path to the instance.

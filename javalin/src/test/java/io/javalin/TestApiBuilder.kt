@@ -18,6 +18,7 @@ import io.javalin.apibuilder.ApiBuilder.head
 import io.javalin.apibuilder.ApiBuilder.patch
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.apibuilder.ApiBuilder.post
+import io.javalin.apibuilder.ApiBuilder.query
 import io.javalin.apibuilder.ApiBuilder.put
 import io.javalin.apibuilder.ApiBuilder.sse
 import io.javalin.apibuilder.CrudHandler
@@ -62,12 +63,14 @@ class TestApiBuilder {
                 path("api") {
                     get(okHandler)
                     post(okHandler)
+                    query(okHandler)
                     put(okHandler)
                     delete(okHandler)
                     patch(okHandler)
                     path("user") {
                         get(okHandler)
                         post(okHandler)
+                        query(okHandler)
                         put(okHandler)
                         delete(okHandler)
                         patch(okHandler)
@@ -76,10 +79,11 @@ class TestApiBuilder {
             }
         }
     ) { app, http ->
-        val httpMethods = arrayOf(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH)
+        val httpMethods = arrayOf("GET", "POST", "QUERY", "PUT", "DELETE", "PATCH")
         for (httpMethod in httpMethods) {
-            assertThat(http.call(httpMethod, "/api").httpCode()).isEqualTo(OK)
-            assertThat(http.call(httpMethod, "/api/user").httpCode()).isEqualTo(OK)
+            val methodEnum = HttpMethod.valueOf(httpMethod)
+            assertThat(http.call(methodEnum, "/api").httpCode()).isEqualTo(OK)
+            assertThat(http.call(methodEnum, "/api/user").httpCode()).isEqualTo(OK)
         }
     }
 
@@ -88,13 +92,18 @@ class TestApiBuilder {
         Javalin.create {
             it.routes.apiBuilder {
                 get("/hello", simpleAnswer("Hello from level 0"))
+                query("/query", simpleAnswer("hello from level 0 from a query"))
                 path("/level-1") {
                     get("/hello", simpleAnswer("Hello from level 1"))
                     get("/hello-2", simpleAnswer("Hello again from level 1"))
                     post("/create-1", simpleAnswer("Created something at level 1"))
+                    query("/query-2", simpleAnswer("hello from level 1 from a query"))
                     path("/level-2") {
                         get("/hello", simpleAnswer("Hello from level 2"))
-                        path("/level-3") { get("/hello", simpleAnswer("Hello from level 3")) }
+                        path("/level-3") {
+                            get("/hello", simpleAnswer("Hello from level 3"))
+                            query("/deep-query", simpleAnswer("Hello from level 3 madam Query"))
+                        }
                     }
                 }
             }
@@ -105,6 +114,9 @@ class TestApiBuilder {
         assertThat(http.getBody("/level-1/hello")).isEqualTo("Hello from level 1")
         assertThat(http.getBody("/level-1/level-2/hello")).isEqualTo("Hello from level 2")
         assertThat(http.getBody("/level-1/level-2/level-3/hello")).isEqualTo("Hello from level 3")
+        assertThat(http.query("/query").asString().body).isEqualTo("hello from level 0 from a query")
+        assertThat(http.query("/level-1/query-2").asString().body).isEqualTo("hello from level 1 from a query")
+        assertThat(http.query("/level-1/level-2/level-3/deep-query").asString().body).isEqualTo("Hello from level 3 madam Query")
     }
 
     @Test
@@ -404,6 +416,14 @@ class TestApiBuilder {
         path("/2") { post({ }, Role.A) }
         post("/3") { }
         post("/4", { }, Role.A)
+    }
+
+    @Test
+    fun `ApiBuilder maps QUERY properly`() = testInsertion(HandlerType.QUERY) {
+        path("/1") { query { } }
+        path("/2") { query({ }, Role.A) }
+        query("/3") { }
+        query("/4", { }, Role.A)
     }
 
     @Test

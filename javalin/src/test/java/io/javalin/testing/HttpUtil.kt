@@ -36,6 +36,7 @@ class HttpUtil(port: Int) {
     fun getBody(path: String) = Unirest.get(origin + path).asString().body
     fun getBody(path: String, headers: Map<String, String>) = Unirest.get(origin + path).headers(headers).asString().body
     fun post(path: String) = Unirest.post(origin + path)
+    fun query(path: String) = Unirest.request("QUERY", origin + path)
     fun call(method: HttpMethod, pathname: String) = Unirest.request(method.name(), origin + pathname).asString()
     fun htmlGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.HTML).asString()
     fun jsonGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.JSON).asString()

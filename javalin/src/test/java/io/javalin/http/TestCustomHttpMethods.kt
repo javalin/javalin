@@ -110,7 +110,7 @@ class TestCustomHttpMethods {
     fun `HandlerType commonHttp returns only HTTP methods`() {
         val commonHttpMethods = HandlerType.commonHttp()
         assertThat(commonHttpMethods).containsExactlyInAnyOrder(
-            HandlerType.GET, HandlerType.POST, HandlerType.PUT, HandlerType.DELETE,
+            HandlerType.GET, HandlerType.POST, HandlerType.QUERY, HandlerType.PUT, HandlerType.DELETE,
             HandlerType.PATCH, HandlerType.HEAD, HandlerType.OPTIONS, HandlerType.TRACE
         )
     }

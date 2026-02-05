@@ -150,6 +150,46 @@ public class ApiBuilder {
     }
 
     /**
+     * Adds a QUERY request handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@code config.routes.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void query(@NotNull String path, @NotNull Handler handler) {
+        staticInstance().query(prefixPath(path), handler);
+    }
+
+    /**
+     * Adds a QUERY request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a {@code config.routes.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void query(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().query(prefixPath(path), handler, roles);
+    }
+
+    /**
+     * Adds a QUERY request handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@code config.routes.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void query(@NotNull Handler handler) {
+        staticInstance().query(prefixPath(""), handler);
+    }
+
+    /**
+     * Adds a QUERY request handler with the given roles for the current path to the instance.
+     * The method can only be called inside a {@code config.routes.apiBuilder(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void query(@NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().query(prefixPath(""), handler, roles);
+    }
+
+    /**
      * Adds a POST request handler with the given roles for the current path to the instance.
      * The method can only be called inside a config.routes.apiBuilder(EndpointGroup)}.
      *
