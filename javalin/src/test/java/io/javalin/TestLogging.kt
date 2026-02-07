@@ -12,6 +12,7 @@ import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.captureStdOut
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.slf4j.event.Level
 import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
@@ -23,6 +24,24 @@ class TestLogging {
     fun `default logging works`() {
         val log = captureStdOut { runTest(Javalin.create()) }
         assertThat(log).contains("[main] INFO io.javalin.Javalin - Starting Javalin ...")
+    }
+
+    @Test
+    fun `hideJettyLifecycleLogsBelowLevel hides Jetty startup and shutdown logs`() {
+        val logWithJetty = captureStdOut { runTest(Javalin.create()) }
+        val logWithoutJetty = captureStdOut { runTest(Javalin.create { it.startup.hideJettyLifecycleLogsBelowLevel = Level.WARN }) }
+        // Default logging includes Jetty startup logs (INFO level)
+        assertThat(logWithJetty).contains("INFO org.eclipse.jetty.server.Server")
+        assertThat(logWithJetty).contains("INFO org.eclipse.jetty.session.DefaultSessionIdManager")
+        // Default logging includes Jetty shutdown logs (INFO level)
+        assertThat(logWithJetty).containsPattern("INFO org.eclipse.jetty.server.Server.*Stopped")
+        assertThat(logWithJetty).containsPattern("INFO org.eclipse.jetty.server.AbstractConnector.*Stopped")
+        // With hideJettyLifecycleLogsBelowLevel set to WARN, Jetty INFO logs should be hidden
+        // (WARN/ERROR logs from Jetty could still appear, so we check for specific INFO patterns)
+        assertThat(logWithoutJetty).doesNotContain("INFO org.eclipse.jetty")
+        // But Javalin's own logs should still be present
+        assertThat(logWithoutJetty).contains("Javalin started")
+        assertThat(logWithoutJetty).contains("Javalin has stopped")
     }
 
     @Test
