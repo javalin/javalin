@@ -69,6 +69,16 @@ public class Javalin {
         return app;
     }
 
+    /**
+     * Creates and starts a new instance with the user provided configuration.
+     *
+     * @param config configuration consumer accepting {@link JavalinConfig}
+     * @return running application instance
+     */
+    public static Javalin start(Consumer<JavalinConfig> config) {
+        return create(config).start();
+    }
+
     // Get JavalinServlet (can be attached to other servlet containers)
     public Servlet javalinServlet() {
         return state.servlet.getValue().getServlet();

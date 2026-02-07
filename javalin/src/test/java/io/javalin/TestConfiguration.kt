@@ -62,6 +62,16 @@ class TestConfiguration {
     }
 
     @Test
+    fun `start with config creates and starts server`() = TestUtil.runLogLess {
+        val app = Javalin.start {
+            it.jetty.port = 0
+        }
+        assertThat(app.jettyServer().started()).isTrue()
+        assertThat(app.port()).isGreaterThan(0)
+        app.stop()
+    }
+
+    @Test
     fun `compression strategy is set to gzip by default`() {
         val app = Javalin.create()
         assertThat(app.unsafe.http.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
