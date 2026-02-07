@@ -27,7 +27,7 @@ class TestConfiguration {
     @Test
     fun `all config options`() = TestUtil.runLogLess {
         val app = Javalin.create {
-            it.jetty.defaultPort = 0
+            it.jetty.port = 0
             it.spaRoot.addFile("/", "/public/html.html")
             it.spaRoot.addFile("/", "src/test/resources/public/html.html", Location.EXTERNAL)
             it.spaRoot.addHandler("/", {})
@@ -48,8 +48,8 @@ class TestConfiguration {
             it.startup.showJavalinBanner = false
             it.startup.showOldJavalinVersionWarning = false
             it.router.contextPath = "/"
-            it.jetty.defaultHost = "localhost"
-            it.jetty.defaultPort = 1234
+            it.jetty.host = "localhost"
+            it.jetty.port = 1234
             it.jetty.threadPool = QueuedThreadPool()
             it.jetty.modifyWebSocketServletFactory { factory -> }
             it.jetty.modifyServer { server -> }

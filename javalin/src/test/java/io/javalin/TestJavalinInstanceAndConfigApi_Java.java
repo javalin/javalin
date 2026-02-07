@@ -28,8 +28,8 @@ public class TestJavalinInstanceAndConfigApi_Java {
         Javalin javalin = Javalin.create(app -> {
             // Jetty
             app.jetty.multipartConfig = new MultipartConfig();
-            app.jetty.defaultHost = "localhost";
-            app.jetty.defaultPort = 8080;
+            app.jetty.host = "localhost";
+            app.jetty.port = 8080;
             app.jetty.threadPool = new QueuedThreadPool();
             app.jetty.addConnector((server, config) -> new ServerConnector(server));
             app.jetty.modifyHttpConfiguration(httpConfig -> {});

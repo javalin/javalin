@@ -18,8 +18,8 @@ import java.util.function.Consumer
  */
 class JettyConfig(private val cfg: JavalinState) {
     //@formatter:off
-    @JvmField var defaultHost: String? = null
-    @JvmField var defaultPort = 8080
+    @JvmField var host: String? = null
+    @JvmField var port = 8080
     @JvmField var multipartConfig = MultipartConfig()
     @JvmField var threadPool: ThreadPool? = null
     /** Default HTTP status code when the server had a timeout. */

@@ -16,8 +16,8 @@ class TestJavalinInstanceAndConfigApi {
         val app = Javalin.create { app ->
             // Jetty
             app.jetty.multipartConfig = MultipartConfig()
-            app.jetty.defaultHost = "localhost"
-            app.jetty.defaultPort = 8080
+            app.jetty.host = "localhost"
+            app.jetty.port = 8080
             app.jetty.threadPool = QueuedThreadPool()
             app.jetty.addConnector { server, httpConfig -> ServerConnector(server) }
             app.jetty.modifyHttpConfiguration { httpConfig -> }

@@ -58,7 +58,7 @@ class JettyServer(private val cfg: JavalinState) {
     private val eventManager by lazy { cfg.eventManager }
 
     @Throws(JavalinException::class)
-    fun start(host: String?, port: Int?) {
+    fun start() {
         Util.printHelpfulMessageIfLoggerIsMissing()
         if (started) {
             throw JavalinException("Server already started - Javalin instances cannot be reused.")
@@ -84,8 +84,8 @@ class JettyServer(private val cfg: JavalinState) {
             cfg.jettyInternal.connectors.map { it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
             if (connectors.isEmpty()) { // add default connector if no connectors are specified
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
-                    this.host = host ?: cfg.jetty.defaultHost
-                    this.port = port ?: cfg.jetty.defaultPort
+                    this.host = cfg.jetty.host
+                    this.port = cfg.jetty.port
                 })
             }
         }

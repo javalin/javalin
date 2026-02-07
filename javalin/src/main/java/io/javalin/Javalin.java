@@ -85,7 +85,9 @@ public class Javalin {
      * @see Javalin#start()
      */
     public Javalin start(String host, int port) {
-        jettyServer.getValue().start(host, port);
+        state.jetty.host = host;
+        state.jetty.port = port;
+        jettyServer.getValue().start();
         return this;
     }
 
@@ -99,7 +101,8 @@ public class Javalin {
      * @see Javalin#start()
      */
     public Javalin start(int port) {
-        jettyServer.getValue().start(null, port);
+        state.jetty.port = port;
+        jettyServer.getValue().start();
         return this;
     }
 
@@ -113,7 +116,7 @@ public class Javalin {
      * @see Javalin#create()
      */
     public Javalin start() {
-        jettyServer.getValue().start(null, null);
+        jettyServer.getValue().start();
         return this;
     }
 
