@@ -72,6 +72,14 @@ class TestConfiguration {
     }
 
     @Test
+    fun `config unsafe exposes JavalinState`() {
+        Javalin.create {
+            assertThat(it.unsafe).isNotNull()
+            assertThat(it.unsafe.http).isSameAs(it.http)
+        }
+    }
+
+    @Test
     fun `compression strategy is set to gzip by default`() {
         val app = Javalin.create()
         assertThat(app.unsafe.http.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)

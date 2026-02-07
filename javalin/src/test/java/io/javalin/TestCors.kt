@@ -317,7 +317,7 @@ class TestCors {
                 // Workaround: call onStart directly
                 // onStart would otherwise be called on startup if we go the regular route of registerPlugin
                 // we register the routes here early so there are chronologically before the other before handlers
-                corsPlugin.onStart(config.state)
+                corsPlugin.onStart(config.unsafe)
             }
             val routesApiBuilder = Consumer<JavalinConfig> { config ->
                 config.routes.apiBuilder {
