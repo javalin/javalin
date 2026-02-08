@@ -11,7 +11,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
-class RateLimitPlugin(userConfig: Consumer<Config>) : ContextPlugin<RateLimitPlugin.Config, RateLimitPlugin.Extension>(userConfig, Config()) {
+class RateLimitPlugin(userConfig: Consumer<Config>? = null) : ContextPlugin<RateLimitPlugin.Config, RateLimitPlugin.Extension>(userConfig, Config()) {
 
     private val limiters = ConcurrentHashMap<TimeUnit, RateLimiter>()
     private val executor: ScheduledExecutorService = ConcurrencyUtil.newSingleThreadScheduledExecutor(pluginConfig.executorName)
