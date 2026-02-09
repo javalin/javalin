@@ -24,6 +24,7 @@
                 <configuration>
                     <skipPublishing>true</skipPublishing>
                 </configuration>
+                <inherited>false</inherited>
             </plugin>
         </plugins>
     </build>
