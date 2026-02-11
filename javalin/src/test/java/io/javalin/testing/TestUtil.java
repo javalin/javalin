@@ -13,6 +13,7 @@ import io.javalin.http.HandlerType;
 import io.javalin.router.Endpoint;
 import io.javalin.util.JavalinLogger;
 import kong.unirest.HttpMethod;
+import org.slf4j.event.Level;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -38,6 +39,8 @@ public class TestUtil {
     }
 
     public static RunResult testWithResult(Javalin app, ThrowingBiConsumer<Javalin, HttpUtil> userCode) {
+        app.unsafe.startup.showJavalinBanner = false;
+        app.unsafe.startup.hideJettyLifecycleLogsBelowLevel = Level.WARN;
         RunResult result = runAndCaptureLogs(() -> {
             app.start(0);
             HttpUtil http = new HttpUtil(app.port());
