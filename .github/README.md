@@ -33,6 +33,10 @@
   <a href="https://discord.gg/sgak4e5NKv">
     <img alt="Discord Link" src="https://img.shields.io/discord/804862058528505896?label=discord%20chat&logo=discord&logoColor=white">
   </a>
+  <!--Build Status badge-->
+  <a href="https://github.com/javalin/javalin/actions/workflows/main.yml">
+    <img alt="Build Status" src="https://github.com/javalin/javalin/actions/workflows/main.yml/badge.svg"/>
+  </a>
   <!--Codecov badge-->
   <a href="https://codecov.io/gh/javalin/javalin" >
     <img src="https://codecov.io/gh/javalin/javalin/graph/badge.svg?token=3L3CvpyMPI"/>
@@ -60,8 +64,7 @@ Javalin is more of a library than a framework. Some key points:
 
 #### Community
 
-We have a very active [Discord](https://discord.gg/sgak4e5NKv) server where you can get help quickly. We also have a (much less
-active) [Slack](https://join.slack.com/t/javalin-io/shared_invite/zt-1hwdevskx-ftMobDhGxhW0I268B7Ub~w) if you prefer that.
+We have a very active [Discord](https://discord.gg/sgak4e5NKv) server where you can get help quickly.
 
 Contributions are very welcome, you can read more about contributing in our guide:
 [CONTRIBUTING](https://github.com/javalin/javalin/contribute)
@@ -79,14 +82,14 @@ Please consider [:heart: Sponsoring](https://github.com/sponsors/tipsy) or starr
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>6.7.0</version>
+    <version>7.0.0</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```kotlin
-implementation("io.javalin:javalin:6.7.0")
+implementation("io.javalin:javalin:7.0.0")
 ```
 
 ### Start programming (Java)
@@ -96,9 +99,9 @@ import io.javalin.Javalin;
 
 public class HelloWorld {
     public static void main(String[] args) {
-        var app = Javalin.create(/*config*/)
-            .get("/", ctx -> ctx.result("Hello World"))
-            .start(7070);
+        var app = Javalin.create(config -> {
+            config.routes.get("/", ctx -> ctx.result("Hello World"));
+        }).start(7070);
     }
 }
 ```
@@ -109,9 +112,9 @@ public class HelloWorld {
 import io.javalin.Javalin
 
 fun main() {
-    val app = Javalin.create(/*config*/)
-        .get("/") { it.result("Hello World") }
-        .start(7070)
+    val app = Javalin.create { config ->
+        config.routes.get("/") { it.result("Hello World") }
+    }.start(7070)
 }
 ```
 
@@ -130,11 +133,11 @@ import io.javalin.apibuilder.ApiBuilder.*
 
 fun main() {
     val app = Javalin.create { config ->
-        config.useVirtualThreads = true
+        config.concurrency.useVirtualThreads = true
         config.http.asyncTimeout = 10_000L
         config.staticFiles.add("/public")
         config.staticFiles.enableWebjars()
-        config.router.apiBuilder {
+        config.routes.apiBuilder {
             path("/users") {
                 get(UserController::getAll)
                 post(UserController::create)
@@ -153,10 +156,10 @@ fun main() {
 ### WebSockets
 
 ```kotlin
-app.ws("/websocket/{path}") { ws ->
+config.routes.ws("/websocket/{path}") { ws ->
     ws.onConnect { ctx -> println("Connected") }
     ws.onMessage { ctx ->
-        val user = ctx.message<User>() // convert from json string to object
+        val user = ctx.messageAsClass<User>() // convert from json string to object
         ctx.send(user) //  convert to json string and send back
     }
     ws.onClose { ctx -> println("Closed") }
@@ -167,27 +170,27 @@ app.ws("/websocket/{path}") { ws ->
 ### Filters and Mappers
 
 ```kotlin
-app.before("/some-path/*") { ctx -> ... } // runs before requests to /some-path/*
-app.before { ctx -> ... } // runs before all requests
-app.after { ctx -> ... } // runs after all requests
-app.exception(Exception.class) { e, ctx -> ... } // runs if uncaught Exception
-app.error(404) { ctx -> ... } // runs if status is 404 (after all other handlers)
+config.routes.before("/some-path/*") { ctx -> ... } // runs before requests to /some-path/*
+config.routes.before { ctx -> ... } // runs before all requests
+config.routes.after { ctx -> ... } // runs after all requests
+config.routes.exception(Exception::class.java) { e, ctx -> ... } // runs if uncaught Exception
+config.routes.error(404) { ctx -> ... } // runs if status is 404 (after all other handlers)
 
-app.wsBefore("/some-path/*") { ws -> ... } // runs before ws events on /some-path/*
-app.wsBefore { ws -> ... } // runs before all ws events
-app.wsAfter { ws -> ... } // runs after all ws events
-app.wsException(Exception.class) { e, ctx -> ... } // runs if uncaught Exception in ws handler
+config.routes.wsBefore("/some-path/*") { ws -> ... } // runs before ws events on /some-path/*
+config.routes.wsBefore { ws -> ... } // runs before all ws events
+config.routes.wsAfter { ws -> ... } // runs after all ws events
+config.routes.wsException(Exception::class.java) { e, ctx -> ... } // runs if uncaught Exception in ws handler
 ```
 
 ### JSON-mapping
 
 ```kotlin
 var todos = arrayOf(...)
-app.get("/todos") { ctx -> // map array of Todos to json-string
+config.routes.get("/todos") { ctx -> // map array of Todos to json-string
     ctx.json(todos)
 }
-app.put("/todos") { ctx -> // map request-body (json) to array of Todos
-    todos = ctx.body<Array<Todo>>()
+config.routes.put("/todos") { ctx -> // map request-body (json) to array of Todos
+    todos = ctx.bodyAsClass<Array<Todo>>()
     ctx.status(204)
 }
 ```
@@ -195,7 +198,7 @@ app.put("/todos") { ctx -> // map request-body (json) to array of Todos
 ### File uploads
 
 ```kotlin
-app.post("/upload") { ctx ->
+config.routes.post("/upload") { ctx ->
     ctx.uploadedFiles("files").forEach { uploadedFile ->
         FileUtil.streamToFile(uploadedFile.content(), "upload/${uploadedFile.filename()}")
     }
@@ -248,12 +251,12 @@ The [Javalin SSL](https://javalin.io/plugins/ssl-helpers) plugin allows you to e
 Enabling SSL on the 443 port is as easy as:
 
 ```kotlin
-val plugin = SSLPlugin { conf ->
+val plugin = SslPlugin { conf ->
     conf.pemFromPath("/path/to/cert.pem", "/path/to/key.pem")
 }
 
 Javalin.create { javalinConfig ->
-    javalinConfig.plugins.register(plugin)
+    javalinConfig.registerPlugin(plugin)
 }.start()
 ```
 
