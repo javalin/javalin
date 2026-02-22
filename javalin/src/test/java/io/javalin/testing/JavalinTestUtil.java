@@ -17,6 +17,8 @@ import io.javalin.security.RouteRole;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsHandlerType;
 
+import java.util.Arrays;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -50,7 +52,7 @@ public class JavalinTestUtil {
     public static Javalin put(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.PUT, path)
-                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .addMetadata(new Roles(Set.copyOf(Arrays.asList(roles))))
                 .handler(handler)
         );
         return app;
@@ -66,7 +68,7 @@ public class JavalinTestUtil {
     public static Javalin patch(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.PATCH, path)
-                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .addMetadata(new Roles(Set.copyOf(Arrays.asList(roles))))
                 .handler(handler)
         );
         return app;
@@ -82,7 +84,7 @@ public class JavalinTestUtil {
     public static Javalin delete(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.DELETE, path)
-                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .addMetadata(new Roles(Set.copyOf(Arrays.asList(roles))))
                 .handler(handler)
         );
         return app;
@@ -105,7 +107,7 @@ public class JavalinTestUtil {
     public static Javalin options(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.OPTIONS, path)
-                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .addMetadata(new Roles(Set.copyOf(Arrays.asList(roles))))
                 .handler(handler)
         );
         return app;
@@ -115,7 +117,7 @@ public class JavalinTestUtil {
     public static Javalin get(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.GET, path)
-                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .addMetadata(new Roles(Set.copyOf(Arrays.asList(roles))))
                 .handler(handler)
         );
         return app;
@@ -124,7 +126,7 @@ public class JavalinTestUtil {
     public static Javalin post(Javalin app, String path, Handler handler, RouteRole... roles) {
         app.unsafe.internalRouter.addHttpEndpoint(
             Endpoint.create(HandlerType.POST, path)
-                .addMetadata(new Roles(java.util.Set.copyOf(java.util.Arrays.asList(roles))))
+                .addMetadata(new Roles(Set.copyOf(Arrays.asList(roles))))
                 .handler(handler)
         );
         return app;
@@ -174,7 +176,7 @@ public class JavalinTestUtil {
     // Server-Sent Events
     public static Javalin sse(Javalin app, String path, Consumer<SseClient> client) {
         app.unsafe.internalRouter.addHttpEndpoint(
-            new Endpoint(HandlerType.GET, path, java.util.Collections.emptySet(), new SseHandler(0, client))
+            new Endpoint(HandlerType.GET, path, new SseHandler(0, client), java.util.Collections.emptySet())
         );
         return app;
     }

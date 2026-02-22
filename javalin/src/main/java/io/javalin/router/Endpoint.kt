@@ -21,21 +21,17 @@ data class PathParams(val params: Map<String, String>) : EndpointMetadata
  *
  * @param method The HTTP method of the endpoint
  * @param path The path of the endpoint
- * @param metadata The metadata of the endpoint
  * @param handler The handler of the endpoint
+ * @param metadata The metadata of the endpoint
  */
 open class Endpoint @JvmOverloads constructor(
     @JvmField val method: HandlerType,
     @JvmField val path: String,
-    metadata: Set<EndpointMetadata> = emptySet(),
-    val handler: Handler
+    @JvmField val handler: Handler,
+    metadata: Set<EndpointMetadata> = emptySet()
 ) {
 
     private val metadata = metadata.associateBy { it::class.java }
-
-    /** Execute the endpoint handler with the given context */
-    fun handle(ctx: Context): Context =
-        ctx.also { handler.handle(ctx) }
 
     /** Execute the endpoint handler with the given executor */
     fun handle(executor: EndpointExecutor): Context =
@@ -49,7 +45,7 @@ open class Endpoint @JvmOverloads constructor(
      * Creates a copy of this endpoint with additional metadata.
      */
     fun withMetadata(newMetadata: EndpointMetadata): Endpoint =
-        Endpoint(method, path, metadata.values.toSet() + newMetadata, handler)
+        Endpoint(method, path, handler, metadata.values.toSet() + newMetadata)
 
     companion object {
 
@@ -61,7 +57,7 @@ open class Endpoint @JvmOverloads constructor(
                 apply { this.metadata.add(metadata) }
 
             fun handler(handler: Handler): Endpoint =
-                Endpoint(method, path, metadata, handler)
+                Endpoint(method, path, handler, metadata)
 
         }
 

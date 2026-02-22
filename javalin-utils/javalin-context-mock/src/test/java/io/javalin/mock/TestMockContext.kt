@@ -65,7 +65,7 @@ internal class TestMockContext {
     @Test
     @Suppress("UastIncorrectHttpHeaderInspection")
     fun `should handle header related methods`() {
-        val context = Endpoint(GET, "/") { it.header("X-Key", "value") }.handle(contextMock.build {
+        val context = Endpoint(GET, "/", { it.header("X-Key", "value") }).handle(contextMock.build {
             req.addHeader("Test", "007")
             req.addHeader(AUTHORIZATION, "Basic ${Base64.getEncoder().encodeToString("user:pass".toByteArray())}")
         })
@@ -103,9 +103,9 @@ internal class TestMockContext {
     @Test
     fun `should handle output stream`() {
         val outputStream = ByteArrayOutputStream()
-        Endpoint(GET, "/") { ctx ->
+        Endpoint(GET, "/", { ctx ->
             ctx.res().writer.use { it.print("Panda") }
-        }.handle(contextMock.build(Body.ofString("Panda")) {
+        }).handle(contextMock.build(Body.ofString("Panda")) {
             res.outputStream = outputStream
         })
         assertThat(outputStream.toByteArray().decodeToString()).isEqualTo("Panda")
@@ -113,7 +113,7 @@ internal class TestMockContext {
 
     @Test
     fun `should handle multipart files`() {
-        val context = Endpoint(POST, "/") {}.handle(contextMock.build { req.addPart("file", "panda.txt", "Panda".toByteArray()) })
+        val context = Endpoint(POST, "/", {}).handle(contextMock.build { req.addPart("file", "panda.txt", "Panda".toByteArray()) })
         val file = context.uploadedFile("file")!!
         assertThat(file.filename()).isEqualTo("panda.txt")
         assertThat(file.extension()).isEqualTo(".txt")
@@ -170,10 +170,10 @@ internal class TestMockContext {
                 this.req.localPort = app.port()
                 this.req.addHeader(Header.USER_AGENT, userAgent)
             }
-            val mockedCtx = Endpoint(POST, endpointUrl) { it.result("Passed") }
+            val mockedCtx = Endpoint(POST, endpointUrl, { it.result("Passed") })
                 .handle(mock.build(requestedUrl, Body.ofObject(PandaDto("Kim"))))
 
-            app.unsafe.internalRouter.addHttpEndpoint(Endpoint(POST, endpointUrl) { ctx ->
+            app.unsafe.internalRouter.addHttpEndpoint(Endpoint(POST, endpointUrl, { ctx ->
                 // Jetty
 
                 assertThat(mockedCtx.req().remoteAddr).isEqualTo(ctx.req().remoteAddr)
@@ -224,7 +224,7 @@ internal class TestMockContext {
                 assertThat(mockedCtx.uploadedFileMap()).isEqualTo(ctx.uploadedFileMap())
 
                 ctx.result("Passed")
-            })
+            }))
 
             val response = Unirest.post("http://localhost:${app.port()}$requestedUrl")
                 .body(PandaDto("Kim"))
