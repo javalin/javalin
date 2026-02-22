@@ -22,17 +22,5 @@
         <module>javalin-rendering-jte</module>
     </modules>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.sonatype.central</groupId>
-                <artifactId>central-publishing-maven-plugin</artifactId>
-                <configuration>
-                    <skipPublishing>true</skipPublishing>
-                </configuration>
-                <inherited>false</inherited>
-            </plugin>
-        </plugins>
-    </build>
 </project>
 
