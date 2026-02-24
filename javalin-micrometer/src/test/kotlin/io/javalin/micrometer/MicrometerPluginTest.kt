@@ -150,8 +150,14 @@ class MicrometerPluginTest {
             assertThat(response2.code).isEqualTo(304) // NOT MODIFIED
         }
 
-        // ETag 304 optimization happens during response writing, after the after-handler runs,
-        // so all requests are recorded with status 200 from the metrics perspective
+        val notModifiedCount = meterRegistry.get("http.server.requests")
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "304")
+            .tag("outcome", "REDIRECTION")
+            .timer()
+            .count()
         val okCount = meterRegistry.get("http.server.requests")
             .tag("uri", "/hello")
             .tag("method", "GET")
@@ -160,7 +166,7 @@ class MicrometerPluginTest {
             .tag("outcome", "SUCCESS")
             .timer()
             .count()
-        assertThat(okCount).isEqualTo((requestCount * 2).toLong())
+        assertThat(notModifiedCount + okCount).isEqualTo((requestCount * 2).toLong())
     }
 
     @Test

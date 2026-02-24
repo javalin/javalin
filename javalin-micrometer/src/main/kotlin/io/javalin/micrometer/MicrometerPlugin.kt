@@ -63,12 +63,13 @@ class MicrometerPlugin @JvmOverloads constructor(
     }
 
     override fun onInitialize(state: JavalinState) {
-        // Capture request start time without touching the user-configured request logger
-        state.routes.before { ctx -> ctx.attribute(START_TIME_ATTRIBUTE, System.nanoTime()) }
-        state.routes.after { ctx ->
-            val startTimeNanos = ctx.attribute<Long>(START_TIME_ATTRIBUTE) ?: return@after
-            val executionTimeMs = (System.nanoTime() - startTimeNanos) / 1_000_000f
+        // Preserve any user-configured request logger so both can run
+        val existingLogger = state.httpRequestLogger
+
+        // Register HTTP request logger to collect metrics, chaining with any existing logger
+        state.requestLogger.http { ctx, executionTimeMs ->
             recordHttpMetrics(ctx, executionTimeMs, state)
+            existingLogger?.handle(ctx, executionTimeMs)
         }
 
         // Register exception handler if exception tagging is enabled
@@ -161,8 +162,8 @@ class MicrometerPlugin @JvmOverloads constructor(
             return "NOT_FOUND"
         }
 
-        // Check if there's a matched HTTP path from the context (exclude before/after handler paths)
-        val ctxMatchedPath = ctx.endpoints().lastHttpEndpoint()?.path ?: ""
+        // Check if there's a matched path from the context
+        val ctxMatchedPath = if (ctx.endpoints().list().isNotEmpty()) ctx.endpoint().path else ""
         if (ctxMatchedPath.isNotBlank()) {
             return if (ctxMatchedPath == "/") "root" else ctxMatchedPath
         }
@@ -189,7 +190,6 @@ class MicrometerPlugin @JvmOverloads constructor(
     companion object {
         private val logger = LoggerFactory.getLogger(MicrometerPlugin::class.java)
         private const val EXCEPTION_HEADER = "__micrometer_exception_name"
-        private const val START_TIME_ATTRIBUTE = "micrometer.startTimeNanos"
 
         /**
          * Exception handler that can be used to tag exceptions in metrics.
