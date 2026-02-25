@@ -355,6 +355,13 @@ class TestBeforeAfterMatched {
         }
 
     @Test
+    fun `matchedHttpEndpoint is available in beforeMatched`() = TestUtil.test { app, http ->
+        app.unsafe.routes.beforeMatched { it.result(it.endpoints().matchedHttpEndpoint()?.path ?: "null") }
+        app.unsafe.routes.get("/users/{id}") { }
+        assertThat(http.getBody("/users/123")).isEqualTo("/users/{id}")
+    }
+
+    @Test
     fun `pathParams are extracted from endpoint if beforeMatched has no path-params`() =
         TestUtil.test(Javalin.create { config ->
             config.routes.beforeMatched { ctx -> ctx.result("") } // BEFORE_MATCHED handlers without their own path params don't have access to the HTTP endpoint's path params

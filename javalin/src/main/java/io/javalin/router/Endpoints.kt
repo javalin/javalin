@@ -61,5 +61,21 @@ class Endpoints internal constructor() {
     @JvmSynthetic
     internal var lastEndpointWithPathParams: Pair<Endpoint?, Map<String, String>> = Pair(null, emptyMap())
 
+    /**
+     * Get the HTTP endpoint that matched (or will match) the current request.
+     * This is available in all lifecycle phases including BEFORE_MATCHED handlers,
+     * where [lastHttpEndpoint] would return null because the HTTP handler hasn't executed yet.
+     *
+     * @return The matched HTTP endpoint, or null if no HTTP endpoint matches this request
+     */
+    fun matchedHttpEndpoint(): Endpoint? = matchedHttpEndpointInternal ?: lastHttpEndpoint()
+
+    /**
+     * Stores the matched HTTP endpoint, set during BEFORE_MATCHED processing.
+     * This allows handlers in the BEFORE_MATCHED phase to access the matched endpoint's path pattern.
+     */
+    @JvmSynthetic
+    internal var matchedHttpEndpointInternal: Endpoint? = null
+
 }
 

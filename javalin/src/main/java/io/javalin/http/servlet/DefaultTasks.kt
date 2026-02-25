@@ -35,6 +35,7 @@ object DefaultTasks {
 
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
+                httpHandlerOrNull?.let { ctx.endpoints().matchedHttpEndpointInternal = it.endpoint }
                 submitTask(LAST, Task(skipOnExceptionAndRedirect = true) {
                     entry.handle(ctx, requestUri)
                 })
