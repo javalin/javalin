@@ -21,11 +21,12 @@ class RateLimitPlugin(userConfig: Consumer<Config>? = null) : ContextPlugin<Rate
     class Config {
         /**
          * Function to extract the rate limit key from the context.
-         * Default: ip + method + path
+         * Default: ip + method + matched endpoint path
          */
         var keyFunction: (Context) -> String = { ctx ->
             val ip = ctx.header("X-Forwarded-For")?.split(",")?.get(0) ?: ctx.ip()
-            ip + ctx.method() + ctx.endpoint().path
+            val path = ctx.endpoints().matchedHttpEndpoint()?.path ?: ctx.endpoint().path
+            ip + ctx.method() + path
         }
 
         var executorName: String = "JavalinRateLimitExecutor"
