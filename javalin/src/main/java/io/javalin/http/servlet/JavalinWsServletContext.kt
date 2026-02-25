@@ -33,6 +33,13 @@ data class UpgradeRequestData(val context: JavalinWsServletContext) {
     val queryParamMap = context.queryParamMap()
     val headerMap = context.headerMap()
     val cookieMap = context.cookieMap()
-    val attributeMap = context.attributeMap().toMutableMap()
+    var attributeMap = context.attributeMap().toMutableMap()
     val sessionAttributeMap = context.sessionAttributeMap()
+
+    /** Re-snapshots the attribute map from the request. This must be called after
+     *  wsBeforeUpgrade handlers have run, but before Jetty recycles the request. */
+    @JvmSynthetic
+    internal fun snapshotAttributes() {
+        attributeMap = context.attributeMap().toMutableMap()
+    }
 }

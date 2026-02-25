@@ -82,7 +82,10 @@ class JavalinJettyServlet(val cfg: JavalinState) : JettyWebSocketServlet() {
         cfg.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_BEFORE_UPGRADE, requestUri)
             .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
         // add the actual upgrade handler
-        upgradeContext.tasks.offer(Task { super.service(req, res) })
+        upgradeContext.tasks.offer(Task {
+            upgradeContext.extractedData.snapshotAttributes() // re-snapshot after wsBeforeUpgrade handlers have run
+            super.service(req, res)
+        })
         // add after handlers
         cfg.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
             .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }

@@ -105,6 +105,17 @@ class TestWsUpgrade {
     }
 
     @Test
+    fun `attributes set in wsBeforeUpgrade are available in onConnect`() = TestUtil.test { app, _ ->
+        val log = ConcurrentLinkedQueue<String>()
+        app.unsafe.routes.wsBeforeUpgrade { it.attribute("hello", "world") }
+        app.unsafe.routes.ws("/ws") { ws ->
+            ws.onConnect { log.add(it.attribute<String>("hello") ?: "missing") }
+        }
+        WsTestClient(app, "/ws").connectAndDisconnect()
+        assertThat(log).containsExactly("world")
+    }
+
+    @Test
     fun `pathParams are available in wsBeforeUpgrade`() = TestUtil.test { app, http ->
         val log = ConcurrentLinkedQueue<String>()
         app.unsafe.routes.wsBeforeUpgrade { log.add(it.pathParam("param")) }
