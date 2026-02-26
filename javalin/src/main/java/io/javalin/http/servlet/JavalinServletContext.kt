@@ -56,7 +56,7 @@ data class JavalinServletContextConfig(
                 appDataManager = cfg.appDataManager,
                 pluginManager = cfg.pluginManager,
                 compressionStrategy = cfg.http.compressionStrategy,
-                requestLoggerEnabled = cfg.httpRequestLogger != null,
+                requestLoggerEnabled = cfg.httpRequestLogger != null || cfg.eventManager.requestCompletedHandlers.isNotEmpty(),
                 defaultContentType = cfg.http.defaultContentType,
                 jsonMapper = cfg.jsonMapper.value,
                 strictContentTypes = cfg.http.strictContentTypes,

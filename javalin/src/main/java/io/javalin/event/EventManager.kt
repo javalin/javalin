@@ -6,6 +6,7 @@
 
 package io.javalin.event
 
+import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.security.RouteRole
@@ -21,6 +22,7 @@ class EventManager {
     val lifecycleHandlers = JavalinLifecycleEvent.entries.associateWith { HashSet<LifecycleEventListener>() }
     var handlerAddedHandlers = mutableSetOf<Consumer<HandlerMetaInfo>>()
     val wsHandlerAddedHandlers = mutableSetOf<Consumer<WsHandlerMetaInfo>>()
+    val requestCompletedHandlers = mutableListOf<RequestCompletedHandler>()
 
     /** Fires a Javalin Lifecycle Event to the listeners. */
     fun fireEvent(javalinLifecycleEvent: JavalinLifecycleEvent) = lifecycleHandlers[javalinLifecycleEvent]?.forEach { it.handleEvent() }
@@ -28,6 +30,8 @@ class EventManager {
     fun fireHandlerAddedEvent(metaInfo: HandlerMetaInfo) = handlerAddedHandlers.onEach { it.accept(metaInfo) }
     /** Fires an event telling listeners that a new WebSocket handler has been added. */
     fun fireWsHandlerAddedEvent(metaInfo: WsHandlerMetaInfo) = wsHandlerAddedHandlers.onEach { it.accept(metaInfo) }
+    /** Fires a request completed event to all registered listeners. */
+    fun fireRequestCompletedEvent(ctx: Context, executionTimeMs: Float) = requestCompletedHandlers.forEach { it.handle(ctx, executionTimeMs) }
 
     internal fun addLifecycleEvent(event: JavalinLifecycleEvent, lifecycleEventListener: LifecycleEventListener) {
         lifecycleHandlers[event]!!.add(lifecycleEventListener)
@@ -80,3 +84,19 @@ data class WsHandlerMetaInfo(
     val wsConfig: Consumer<WsConfig>,
     val roles: Set<RouteRole>
 )
+
+/**
+ * Handler for request completed events.
+ * Called after the response has been written and contains timing information.
+ *
+ * @see <a href="https://javalin.io/documentation#lifecycle-events">Lifecycle Events in documentation</a>
+ */
+fun interface RequestCompletedHandler {
+    /**
+     * Called when an HTTP request has completed.
+     * @param ctx the request context
+     * @param executionTimeMs the total execution time in milliseconds
+     */
+    @Throws(Exception::class)
+    fun handle(ctx: Context, executionTimeMs: Float)
+}

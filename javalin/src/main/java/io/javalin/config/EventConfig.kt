@@ -15,6 +15,7 @@ import io.javalin.event.JavalinLifecycleEvent.SERVER_STOPPED
 import io.javalin.event.JavalinLifecycleEvent.SERVER_STOPPING
 import io.javalin.event.JavalinLifecycleEvent.SERVER_STOP_FAILED
 import io.javalin.event.LifecycleEventListener
+import io.javalin.event.RequestCompletedHandler
 import io.javalin.event.WsHandlerMetaInfo
 import io.javalin.http.Handler
 import java.util.function.Consumer
@@ -48,6 +49,11 @@ class EventConfig(private val cfg: JavalinState) {
     /** Adds a callback to react when a websocket Handler is added. */
     fun wsHandlerAdded(callback: Consumer<WsHandlerMetaInfo>) {
         eventManager.wsHandlerAddedHandlers.add(callback);
+    }
+
+    /** Adds a callback to react when an HTTP request has completed. Multiple handlers can be registered. */
+    fun requestCompleted(handler: RequestCompletedHandler) {
+        eventManager.requestCompletedHandlers.add(handler)
     }
 
     private val eventManager: EventManager
