@@ -121,7 +121,6 @@ class JavalinServlet(val cfg: JavalinState) : HttpServlet() {
                 if (!etagWritten) resultStream.copyTo(outputStream(), cfg.http.responseBufferSize ?: 32_768) // default should never happen, we add a fallback just in case
             }
             val executionTime = executionTimeMs()
-            this@JavalinServlet.cfg.httpRequestLogger?.handle(this, executionTime)
             this@JavalinServlet.cfg.eventManager.fireRequestCompletedEvent(this, executionTime)
         } catch (throwable: Throwable) {
             router.handleHttpUnexpectedThrowable(res(), throwable) // handle any unexpected error, e.g. write failure

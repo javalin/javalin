@@ -14,7 +14,7 @@ class RequestLoggerConfig(private val cfg: JavalinState) {
 
     /** Adds a request logger for HTTP requests. */
     fun http(requestLogger: RequestLogger) {
-        cfg.httpRequestLogger = requestLogger
+        cfg.events.requestCompleted(requestLogger::handle)
     }
 
     /** Adds a request logger for websocket requests. */

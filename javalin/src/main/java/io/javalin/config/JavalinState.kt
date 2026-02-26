@@ -74,7 +74,6 @@ class JavalinState {
     @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy { JavalinJackson(null, concurrency.useVirtualThreads) }
     @JvmField var appDataManager = AppDataManager()
     @JvmField var pluginManager = PluginManager(this)
-    @JvmField var httpRequestLogger: RequestLogger? = null
     @JvmField var wsRequestLogger: WsConfig? = null
     @JvmField var resourceHandler: ResourceHandler? = null
     @JvmField var singlePageHandler = SinglePageHandler()
