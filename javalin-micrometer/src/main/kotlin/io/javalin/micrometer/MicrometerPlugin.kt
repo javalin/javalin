@@ -63,13 +63,10 @@ class MicrometerPlugin @JvmOverloads constructor(
     }
 
     override fun onInitialize(state: JavalinState) {
-        // Preserve any user-configured request logger so both can run
-        val existingLogger = state.httpRequestLogger
-
-        // Register HTTP request logger to collect metrics, chaining with any existing logger
+        // Register HTTP request logger to collect metrics
+        // Multiple loggers are now supported, so we simply add ours to the list
         state.requestLogger.http { ctx, executionTimeMs ->
             recordHttpMetrics(ctx, executionTimeMs, state)
-            existingLogger?.handle(ctx, executionTimeMs)
         }
 
         // Register exception handler if exception tagging is enabled

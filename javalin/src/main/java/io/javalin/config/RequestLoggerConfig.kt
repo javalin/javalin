@@ -12,9 +12,9 @@ import java.util.function.Consumer
  */
 class RequestLoggerConfig(private val cfg: JavalinState) {
 
-    /** Adds a request logger for HTTP requests. */
+    /** Adds a request logger for HTTP requests. Multiple loggers can be registered and will be invoked in order. */
     fun http(requestLogger: RequestLogger) {
-        cfg.httpRequestLogger = requestLogger
+        cfg.httpRequestLoggers.add(requestLogger)
     }
 
     /** Adds a request logger for websocket requests. */
