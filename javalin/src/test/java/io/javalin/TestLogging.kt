@@ -76,6 +76,24 @@ class TestLogging {
         assertThat(loggerCalled).isTrue()
     }
 
+    @Test
+    fun `multiple request loggers are all called`() {
+        val logger1Calls = mutableListOf<String>()
+        val logger2Calls = mutableListOf<String>()
+        val logger3Calls = mutableListOf<String>()
+        TestUtil.test(Javalin.create {
+            it.requestLogger.http { ctx, _ -> logger1Calls.add(ctx.path()) }
+            it.requestLogger.http { ctx, _ -> logger2Calls.add(ctx.path()) }
+            it.requestLogger.http { ctx, _ -> logger3Calls.add(ctx.path()) }
+        }) { app, http ->
+            app.unsafe.routes.get("/test") { it.result("Hello") }
+            http.get("/test")
+            assertThat(logger1Calls).containsExactly("/test")
+            assertThat(logger2Calls).containsExactly("/test")
+            assertThat(logger3Calls).containsExactly("/test")
+        }
+    }
+
     private fun runTest(app: Javalin) {
         app.unsafe.routes.get("/blocking") { it.result("Hello Blocking World!") }
         app.unsafe.routes.get("/async") { ctx ->

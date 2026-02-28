@@ -26,20 +26,6 @@ class MicrometerPluginTest {
     )
 
     @Test
-    fun `request logger is not overridden by micrometer plugin`() {
-        val loggedPaths = mutableListOf<String>()
-        val app = Javalin.create { config ->
-            config.requestLogger.http { ctx, _ -> loggedPaths.add(ctx.path()) }
-            config.registerPlugin(MicrometerPlugin { it.registry = meterRegistry })
-            config.routes.get("/hello") { it.result("Hello") }
-        }
-        JavalinTest.test(app) { _, http ->
-            http.get("/hello")
-            assertThat(loggedPaths).containsExactly("/hello")
-        }
-    }
-
-    @Test
     fun `plugin can be registered`() {
         val app = Javalin.create { config ->
             config.registerPlugin(MicrometerPlugin {
