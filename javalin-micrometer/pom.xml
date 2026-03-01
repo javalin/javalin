@@ -12,7 +12,7 @@
     <description>Micrometer metrics integration for Javalin</description>
 
     <properties>
-        <micrometer.version>1.16.2</micrometer.version>
+        <micrometer.version>1.16.3</micrometer.version>
     </properties>
 
     <build>
