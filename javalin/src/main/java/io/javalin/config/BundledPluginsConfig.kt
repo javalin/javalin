@@ -4,6 +4,7 @@ import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.plugin.bundled.CorsPluginConfig
 import io.javalin.plugin.bundled.DevLoggingPlugin
+import io.javalin.plugin.bundled.DevReloadPlugin
 import io.javalin.plugin.bundled.GlobalHeadersConfig
 import io.javalin.plugin.bundled.GlobalHeadersPlugin
 import io.javalin.plugin.bundled.HttpAllowedMethodsPlugin
@@ -63,5 +64,19 @@ class BundledPluginsConfig(private val cfg: JavalinState) {
     fun enableRedirectToLowercasePaths() = cfg.registerPlugin(RedirectToLowercasePathPlugin())
     /** Enables the SSL Redirects plugin, which redirect any http request to https. Note it must be the first plugin enabled to properly handle all requests.*/
     fun enableSslRedirects() = cfg.registerPlugin(SslRedirectPlugin())
+    /**
+     * Enables the DevReload plugin for automatic route reloading during development.
+     * Watches for file changes in build output directories and re-executes the
+     * original `Javalin.create()` config consumer to rebuild routes while the server keeps running.
+     * @see [DevReloadPlugin]
+     */
+    fun enableDevReload() = cfg.registerPlugin(DevReloadPlugin())
+    /**
+     * Enables the DevReload plugin for automatic route reloading during development.
+     * Watches for file changes in build output directories and re-executes the
+     * config consumer to rebuild routes while the server keeps running.
+     * @see [DevReloadPlugin]
+     */
+    fun enableDevReload(userConfig: Consumer<DevReloadPlugin.Config>) = cfg.registerPlugin(DevReloadPlugin(userConfig))
 
 }

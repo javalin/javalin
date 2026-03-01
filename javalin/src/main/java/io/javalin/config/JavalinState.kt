@@ -80,6 +80,7 @@ class JavalinState {
     @JvmField var singlePageHandler = SinglePageHandler()
     @JvmField var servlet: Lazy<ServletEntry> = javalinLazy { createJettyServletWithWebsocketsIfAvailable(this) ?: ServletEntry(servlet = JavalinServlet(this)) }
     @JvmField var jettyInternal = JettyInternalConfig()
+    @JvmField var userConfig: Consumer<JavalinConfig>? = null // stored for dev-reload
     @JvmField var servletRequestLifecycle = mutableListOf(
         DefaultTasks.BEFORE,
         DefaultTasks.BEFORE_MATCHED,
@@ -101,6 +102,7 @@ class JavalinState {
     companion object {
         @JvmStatic
         fun applyUserConfig(cfg: JavalinState, userConfig: Consumer<JavalinConfig>) {
+            cfg.userConfig = userConfig // store for dev-reload
             val publicConfig = JavalinConfig(cfg)
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(publicConfig) // apply user config through public API wrapper
