@@ -4,7 +4,7 @@ import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.compression.CompressionStrategy
 import io.javalin.config.Key
 import io.javalin.config.MultipartConfig
-import io.javalin.json.JavalinJackson
+import io.javalin.json.JavalinJackson3
 import io.javalin.plugin.Plugin
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.thread.QueuedThreadPool
@@ -84,7 +84,7 @@ class TestJavalinInstanceAndConfigApi {
             app.startup.showJavalinBanner = false
             app.startup.startupWatcherEnabled = false
             app.concurrency.useVirtualThreads = true
-            app.jsonMapper(JavalinJackson())
+            app.jsonMapper(JavalinJackson3())
             app.appData(Key("Test"), "Test")
             app.fileRenderer { filePath, model, ctx -> "Test" }
             app.registerPlugin(object : Plugin<Any>() {})

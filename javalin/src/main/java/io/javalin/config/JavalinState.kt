@@ -19,7 +19,7 @@ import io.javalin.http.servlet.TaskInitializer
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
 import io.javalin.jetty.JettyUtil.createJettyServletWithWebsocketsIfAvailable
-import io.javalin.json.JavalinJackson
+import io.javalin.json.JavalinJackson3
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginManager
@@ -71,7 +71,7 @@ class JavalinState {
     @JvmField val eventManager = EventManager()
     @JvmField val wsRouter = WsRouter(router)
     @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, router, jetty)
-    @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy { JavalinJackson(null, concurrency.useVirtualThreads) }
+    @JvmField var jsonMapper: Lazy<JsonMapper> = javalinLazy { JavalinJackson3(null, concurrency.useVirtualThreads) }
     @JvmField var appDataManager = AppDataManager()
     @JvmField var pluginManager = PluginManager(this)
     @JvmField var httpRequestLoggers: MutableList<RequestLogger> = mutableListOf()

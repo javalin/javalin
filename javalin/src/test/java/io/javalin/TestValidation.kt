@@ -6,8 +6,6 @@
 
 package io.javalin
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.javalin.config.ValidationConfig
 import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.EXPECTATION_FAILED
@@ -16,14 +14,13 @@ import io.javalin.http.bodyValidator
 import io.javalin.http.formParamAsClass
 import io.javalin.http.pathParamAsClass
 import io.javalin.http.queryParamAsClass
-import io.javalin.json.JavalinJackson
+import io.javalin.json.JavalinJackson3
 import io.javalin.json.toJsonString
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
-import io.javalin.testing.fasterJacksonMapper
+import io.javalin.testing.jackson3Mapper
 import io.javalin.testing.httpCode
 import io.javalin.validation.MissingConverterException
-import io.javalin.validation.Params
 import io.javalin.validation.Validation
 import io.javalin.validation.ValidationError
 import io.javalin.validation.ValidationException
@@ -128,7 +125,7 @@ class TestValidation {
         assertThat(http.get("/duration?from=abc").status).isEqualTo(500)
     }
 
-    val timeModuleMapper by lazy { JavalinJackson(ObjectMapper().apply { registerModule(JavaTimeModule()) }) }
+    val timeModuleMapper by lazy { JavalinJackson3() }
 
     @Test
     fun `custom converter works`() = TestUtil.test(Javalin.create {
@@ -200,8 +197,8 @@ class TestValidation {
                 .get()
             ctx.result(obj.value1)
         }
-        val invalidJson = fasterJacksonMapper.toJsonString(SerializableObject())
-        val validJson = fasterJacksonMapper.toJsonString(SerializableObject().apply {
+        val invalidJson = jackson3Mapper.toJsonString(SerializableObject())
+        val validJson = jackson3Mapper.toJsonString(SerializableObject().apply {
             value1 = "Bananas"
         })
 
@@ -222,7 +219,7 @@ class TestValidation {
                 .check({ it.value1 == "Bananas" }, ValidationError<SerializableObject>("value1 must be 'Bananas'"))
                 .get()
         }
-        val invalidJson = fasterJacksonMapper.toJsonString(SerializableObject())
+        val invalidJson = jackson3Mapper.toJsonString(SerializableObject())
         """{"REQUEST_BODY":[{"message":"value1 must be 'Bananas'","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".let { expected ->
             assertThat(http.post("/json").body(invalidJson).asString().body).isEqualTo(expected)
         }
@@ -241,7 +238,7 @@ class TestValidation {
             {"message":"UnnamedFieldCheck1","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}},
             {"message":"UnnamedFieldCheck2","args":{},"value":{"value1":"First Value","value2":"SecondValue"}}],
             "named_field":[{"message":"NamedFieldCheck3","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".replace("\\s".toRegex(), "")
-        val response = http.post("/json").body(fasterJacksonMapper.toJsonString(SerializableObject())).asString().body
+        val response = http.post("/json").body(jackson3Mapper.toJsonString(SerializableObject())).asString().body
         assertThat(response).isEqualTo(expected)
     }
 

@@ -7,7 +7,7 @@ import io.javalin.http.UnauthorizedResponse
 import io.javalin.json.toJsonString
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
-import io.javalin.testing.fasterJacksonMapper
+import io.javalin.testing.jackson3Mapper
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.util.BufferUtil
@@ -98,7 +98,7 @@ class TestWebSocket {
 
     @Test
     fun `receive and send json messages`() = TestUtil.test(Javalin.create {
-        it.jsonMapper(fasterJacksonMapper)
+        it.jsonMapper(jackson3Mapper)
         it.routes.ws("/message") { ws ->
             ws.onMessage { ctx ->
                 val receivedMessage = ctx.messageAsClass<SerializableObject>()
@@ -107,7 +107,7 @@ class TestWebSocket {
             }
         }
     }) { app, _ ->
-        val clientJsonString = fasterJacksonMapper.toJsonString(SerializableObject().apply { value1 = "test1"; value2 = "test2" })
+        val clientJsonString = jackson3Mapper.toJsonString(SerializableObject().apply { value1 = "test1"; value2 = "test2" })
         var response: String? = null
         val testClient = WsTestClient(app, "/message").also {
             it.onMessage = { msg -> response = msg }

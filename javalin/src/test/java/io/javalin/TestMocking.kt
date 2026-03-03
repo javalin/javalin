@@ -5,7 +5,7 @@ import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
-import io.javalin.json.JavalinJackson
+import io.javalin.json.JavalinJackson3
 import io.mockk.every
 import io.mockk.mockk
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
@@ -64,7 +64,7 @@ internal class TestMocking {
 
             val context = mockk<Context>()
             every { context.body() } returns """{"message":"Hello"}"""
-            every { context.bodyAsClass<Test>(Test::class.java as Type) } answers { JavalinJackson.defaultMapper().readValue(context.body(), Test::class.java) }
+            every { context.bodyAsClass<Test>(Test::class.java as Type) } answers { JavalinJackson3.defaultMapper().readValue(context.body(), Test::class.java) }
 
             val body = context.bodyAsClass<Test>()
             assertThat(body.message).isEqualTo("Hello")

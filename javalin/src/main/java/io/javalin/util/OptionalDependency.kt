@@ -56,6 +56,11 @@ enum class CoreDependency(
     JACKSON_ECLIPSE_COLLECTIONS("JacksonEclipseCollections", "com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "com.fasterxml.jackson.datatype", "jackson-datatype-eclipse-collections", "2.20.1"),
     JACKSON_KTORM("Jackson Ktorm", "org.ktorm.jackson.KtormModule", "org.ktorm", "ktorm-jackson", "3.6.0"),
 
+    // JSON (Jackson 3) handling
+    JACKSON3("Jackson3", "tools.jackson.databind.json.JsonMapper", "tools.jackson.core", "jackson-databind", "3.1.0"),
+    JACKSON3_KT("Jackson3Kt", "tools.jackson.module.kotlin.KotlinModule", "tools.jackson.module", "jackson-module-kotlin", "3.1.0"),
+    JACKSON3_ECLIPSE_COLLECTIONS("Jackson3EclipseCollections", "tools.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "tools.jackson.datatype", "jackson-datatype-eclipse-collections", "3.1.0"),
+
     // JSON (Gson)
     GSON("Gson", "com.google.gson.Gson", "com.google.code.gson", "gson", "2.13.2"),
 
