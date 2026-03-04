@@ -57,6 +57,7 @@ class TestWsLogging {
             // Test failed upgrade (404)
             val response = Unirest.get("http://localhost:${app.port()}/non-existent-ws")
                 .header(Header.SEC_WEBSOCKET_KEY, "test-key")
+                .header(Header.SEC_WEBSOCKET_VERSION, "13")
                 .header(Header.UPGRADE, "websocket")
                 .header(Header.CONNECTION, "upgrade")
                 .asString()
@@ -84,6 +85,7 @@ class TestWsLogging {
             // Test failed upgrade due to authentication
             val response = Unirest.get("http://localhost:${app.port()}/auth-ws")
                 .header(Header.SEC_WEBSOCKET_KEY, "test-key")
+                .header(Header.SEC_WEBSOCKET_VERSION, "13")
                 .header(Header.UPGRADE, "websocket")
                 .header(Header.CONNECTION, "upgrade")
                 .asString()

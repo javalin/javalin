@@ -64,6 +64,7 @@ object Header {
     const val SERVER = "Server"
     const val SET_COOKIE = "Set-Cookie"
     const val SEC_WEBSOCKET_KEY = "Sec-WebSocket-Key"
+    const val SEC_WEBSOCKET_VERSION = "Sec-WebSocket-Version"
     const val STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security"
     const val TE = "TE"
     const val TRAILER = "Trailer"
