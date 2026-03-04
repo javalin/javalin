@@ -21,7 +21,6 @@ import static io.javalin.http.HandlerType.GET;
 @Fork(value = 1)
 @Warmup(iterations = 2)
 @Measurement(iterations = 2)
-@SuppressWarnings({ "OptionalGetWithoutIsPresent" })
 public class PathMatcherBenchmark {
 
     public static void main(String[] args) throws Exception {
@@ -46,13 +45,13 @@ public class PathMatcherBenchmark {
     }
 
     @Benchmark
-    public void matchFirstStream(Blackhole blackhole) {
-        blackhole.consume(pathMatcher.findEntries(GET, "/hello0").findFirst().get());
+    public void matchFirstSequence(Blackhole blackhole) {
+        blackhole.consume(pathMatcher.findEntries(GET, "/hello0").iterator().next());
     }
 
     @Benchmark
-    public void matchLastStream(Blackhole blackhole) {
-        blackhole.consume(pathMatcher.findEntries(GET, "/hello49").findFirst().get());
+    public void matchLastSequence(Blackhole blackhole) {
+        blackhole.consume(pathMatcher.findEntries(GET, "/hello49").iterator().next());
     }
 
     @Benchmark

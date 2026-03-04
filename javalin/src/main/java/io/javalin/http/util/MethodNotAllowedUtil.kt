@@ -14,7 +14,7 @@ import io.javalin.router.InternalRouter
 object MethodNotAllowedUtil {
 
     fun findAvailableHttpHandlerTypes(router: InternalRouter, requestUri: String) =
-        HandlerType.values().filter { it.isHttpMethod && router.findHttpHandlerEntries(it, requestUri).findFirst().isPresent }
+        HandlerType.values().filter { it.isHttpMethod && router.findHttpHandlerEntries(it, requestUri).any() }
 
     fun availableHandlerTypes(ctx: Context, availableHandlerTypes: List<HandlerType>): Map<String, String> = mapOf(
         (if (acceptsHtml(ctx)) "Available methods" else "availableMethods") to availableHandlerTypes.joinToString(", ")
