@@ -30,7 +30,7 @@ internal class TestJavalinJackson3 {
     data class SerializableDataClass(val value1: String = "Default1", val value2: String)
 
     @Test
-    fun `can use JavalinJackson3 with a custom object-mapper on a kotlin data class`() {
+    fun `can use JavalinJackson3 with a custom json-mapper on a kotlin data class`() {
         val mapped = JavalinJackson3().toJsonString(SerializableDataClass("First value", "Second value"))
         val mappedBack = JavalinJackson3().fromJsonString<SerializableDataClass>(mapped)
         assertThat("First value").isEqualTo(mappedBack.value1)
@@ -45,7 +45,7 @@ internal class TestJavalinJackson3 {
     }
 
     @Test
-    fun `can update ObjectMapper of JavalinJackson3`() = TestUtil.test(Javalin.create {
+    fun `can update JsonMapper of JavalinJackson3`() = TestUtil.test(Javalin.create {
         it.jsonMapper(JavalinJackson3().updateMapper { builder ->
             builder.changeDefaultPropertyInclusion { incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL) }
         })

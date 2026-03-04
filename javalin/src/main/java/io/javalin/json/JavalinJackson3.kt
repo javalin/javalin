@@ -20,14 +20,14 @@ import java.io.OutputStream
 import java.lang.reflect.Type
 import java.util.function.Consumer
 import java.util.stream.Stream
-import tools.jackson.databind.json.JsonMapper as Jackson3JsonMapper
+import tools.jackson.databind.json.JsonMapper as Jackson3Mapper
 
 class JavalinJackson3(
-    private var jsonMapper: Jackson3JsonMapper? = null,
+    private var jsonMapper: Jackson3Mapper? = null,
     private val useVirtualThreads: Boolean = false,
 ) : JsonMapper {
 
-    private var mapperInstance: Jackson3JsonMapper? = null
+    private var mapperInstance: Jackson3Mapper? = null
 
     private val pipedStreamExecutor: PipedStreamExecutor by javalinLazy { PipedStreamExecutor(useVirtualThreads) }
 
@@ -48,8 +48,8 @@ class JavalinJackson3(
         (jsonMapper ?: defaultMapper()) as Any
     }
 
-    val mapper: Jackson3JsonMapper
-        get() = mapperInstance ?: mapperDelegate.value as Jackson3JsonMapper
+    val mapper: Jackson3Mapper
+        get() = mapperInstance ?: mapperDelegate.value as Jackson3Mapper
 
     override fun toJsonString(obj: Any, type: Type): String = when (obj) {
         is String -> obj // the default mapper treats strings as if they are already JSON
@@ -76,7 +76,7 @@ class JavalinJackson3(
         mapper.readValue(json, mapper.typeFactory.constructType(targetType))
 
     /** Update the current mapper and return self for easy chaining */
-    fun updateMapper(updateFunction: Consumer<Jackson3JsonMapper.Builder>): JavalinJackson3 {
+    fun updateMapper(updateFunction: Consumer<Jackson3Mapper.Builder>): JavalinJackson3 {
         val jsonMapperBuilder = this.mapper.rebuild()
         updateFunction.accept(jsonMapperBuilder)
         mapperInstance = jsonMapperBuilder.build()
@@ -86,7 +86,7 @@ class JavalinJackson3(
 
     companion object {
         @JvmStatic
-        fun defaultMapper(): Jackson3JsonMapper = Jackson3JsonMapper.builder()
+        fun defaultMapper(): Jackson3Mapper = Jackson3Mapper.builder()
             .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
             .enable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
             .registerOptionalModule(CoreDependency.JACKSON3_KT.testClass)
@@ -95,7 +95,7 @@ class JavalinJackson3(
     }
 }
 
-private fun Jackson3JsonMapper.Builder.registerOptionalModule(classString: String): Jackson3JsonMapper.Builder {
+private fun Jackson3Mapper.Builder.registerOptionalModule(classString: String): Jackson3Mapper.Builder {
     if (Util.classExists(classString)) {
         this.addModule(Class.forName(classString).getConstructor().newInstance() as JacksonModule)
     }
