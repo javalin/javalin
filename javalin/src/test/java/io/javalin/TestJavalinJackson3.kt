@@ -12,7 +12,6 @@ import io.javalin.json.fromJsonString
 import io.javalin.json.toJsonString
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.streams.asStream
 
@@ -77,17 +76,13 @@ internal class TestJavalinJackson3 {
 
     @Test
     fun `can convert InputStream to JSON`() {
-        val json = """
-            {
-                "value1": "First value",
-                "value2": "Second value"
-            }"""
+        val json = """{"value1": "First value","value2": "Second value"}"""
         val expected = SerializableDataClass("First value", "Second value")
 
         json.byteInputStream().use { inputStream ->
             val actual: SerializableDataClass = JavalinJackson3().fromJsonStream(inputStream, SerializableDataClass::class.java)
 
-            assertEquals(expected, actual)
+            assertThat(actual).isEqualTo(expected)
         }
     }
 }

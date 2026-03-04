@@ -13,6 +13,8 @@ import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import io.javalin.util.javalinLazy
 import tools.jackson.databind.JacksonModule
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.cfg.DateTimeFeature
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.reflect.Type
@@ -76,9 +78,7 @@ class JavalinJackson3(
     /** Update the current mapper and return self for easy chaining */
     fun updateMapper(updateFunction: Consumer<Jackson3JsonMapper.Builder>): JavalinJackson3 {
         val jsonMapperBuilder = this.mapper.rebuild()
-
         updateFunction.accept(jsonMapperBuilder)
-
         mapperInstance = jsonMapperBuilder.build()
         return this
     }
@@ -87,6 +87,8 @@ class JavalinJackson3(
     companion object {
         @JvmStatic
         fun defaultMapper(): Jackson3JsonMapper = Jackson3JsonMapper.builder()
+            .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .enable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
             .registerOptionalModule(CoreDependency.JACKSON3_KT.testClass)
             .registerOptionalModule(CoreDependency.JACKSON3_ECLIPSE_COLLECTIONS.testClass)
             .build()

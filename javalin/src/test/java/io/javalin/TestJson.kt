@@ -21,8 +21,8 @@ import io.javalin.json.toJsonString
 import io.javalin.testing.NonSerializableObject
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
-import io.javalin.testing.jackson3Mapper
 import io.javalin.testing.httpCode
+import io.javalin.testing.jackson3Mapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.InputStream

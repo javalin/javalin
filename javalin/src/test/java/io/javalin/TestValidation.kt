@@ -18,8 +18,8 @@ import io.javalin.json.JavalinJackson3
 import io.javalin.json.toJsonString
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
-import io.javalin.testing.jackson3Mapper
 import io.javalin.testing.httpCode
+import io.javalin.testing.jackson3Mapper
 import io.javalin.validation.MissingConverterException
 import io.javalin.validation.Validation
 import io.javalin.validation.ValidationError
