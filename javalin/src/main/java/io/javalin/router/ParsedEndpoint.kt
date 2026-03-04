@@ -12,12 +12,11 @@ class ParsedEndpoint(
     private val pathParser = PathParser(endpoint.path, routerConfig)
 
     fun handle(ctx: JavalinServletContext, requestUri: String) {
-        val pathParams = PathParams(extractPathParams(requestUri))
-        val enrichedEndpoint = endpoint.withMetadata(pathParams)
-        val updatedCtx = ctx.update(enrichedEndpoint)
+        val pathParams = extractPathParams(requestUri)
+        val updatedCtx = ctx.update(endpoint, pathParams)
         when (val handlerWrapper = routerConfig.handlerWrapper) {
-            null -> enrichedEndpoint.handler.handle(updatedCtx)
-            else -> handlerWrapper.wrap(enrichedEndpoint).handle(updatedCtx)
+            null -> endpoint.handler.handle(updatedCtx)
+            else -> handlerWrapper.wrap(endpoint).handle(updatedCtx)
         }
     }
 
@@ -26,5 +25,9 @@ class ParsedEndpoint(
 
     fun extractPathParams(requestUri: String): Map<String, String> =
         pathParser.extractPathParams(requestUri)
+
+    /** Matches and extracts path params in a single regex pass. Returns null if no match. */
+    fun matchAndExtract(requestUri: String): Map<String, String>? =
+        pathParser.matchAndExtract(requestUri)
 
 }

@@ -8,7 +8,6 @@ package io.javalin.router.matcher
 
 import io.javalin.http.HandlerType
 import io.javalin.router.ParsedEndpoint
-import java.util.stream.Stream
 
 class PathMatcher {
 
@@ -30,10 +29,10 @@ class PathMatcher {
         handlerEntries[type]!!.add(entry)
     }
 
-    fun findEntries(handlerType: HandlerType, requestUri: String?): Stream<ParsedEndpoint> =
+    fun findEntries(handlerType: HandlerType, requestUri: String?): Sequence<ParsedEndpoint> =
         when (requestUri) {
-            null -> handlerEntries(handlerType).stream()
-            else -> handlerEntries(handlerType).stream().filter { he -> match(he, requestUri) }
+            null -> handlerEntries(handlerType).asSequence()
+            else -> handlerEntries(handlerType).asSequence().filter { he -> match(he, requestUri) }
         }
 
     fun allEntries() = handlerEntries.values.flatten()

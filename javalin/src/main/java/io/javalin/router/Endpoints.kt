@@ -17,7 +17,7 @@ import java.util.*
  */
 class Endpoints internal constructor() {
 
-    private val stack: LinkedList<Endpoint> = LinkedList()
+    private val stack: MutableList<Endpoint> = ArrayList(4)
 
     /** Get the last endpoint in the stack */
     fun current(): Endpoint = stack.last()
@@ -45,11 +45,10 @@ class Endpoints internal constructor() {
      * This method is internal and should not be visible to API users.
      */
     @JvmSynthetic
-    internal fun add(endpoint: Endpoint) {
+    internal fun add(endpoint: Endpoint, pathParams: Map<String, String> = emptyMap()) {
         stack.add(endpoint)
-        val params = endpoint.metadata(PathParams::class.java)?.params
-        if (params?.isNotEmpty() == true) {
-            lastEndpointWithPathParams = endpoint to params
+        if (pathParams.isNotEmpty()) {
+            lastEndpointWithPathParams = endpoint to pathParams
         }
     }
 

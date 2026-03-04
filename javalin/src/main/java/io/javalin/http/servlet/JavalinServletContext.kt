@@ -87,8 +87,8 @@ open class JavalinServletContext(
 
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
 
-    fun update(endpoint: Endpoint) = also {
-        endpoints.add(endpoint)
+    fun update(endpoint: Endpoint, pathParams: Map<String, String> = emptyMap()) = also {
+        endpoints.add(endpoint, pathParams)
     }
 
     override fun req(): HttpServletRequest = req
@@ -190,17 +190,33 @@ fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.
     value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim().removeSurrounding("\"") }
 }
 
-fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> =
-    if (string.isEmpty()) mapOf() else string.split("&")
-        .map { it.split("=", limit = 2).let { it.get(0) to it.getOrElse(1) { "" } } } // map missing values to empty strings
-        .groupBy({ it.first.urlDecode(charset) }, { it.second.urlDecode(charset) })
-        .mapNotNull { (k, v) -> k?.let { it to v.filterNotNull() } }.toMap()
+fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> {
+    if (string.isEmpty()) return emptyMap()
+    val result = LinkedHashMap<String, MutableList<String>>()
+    var start = 0
+    while (start <= string.length) {
+        val end = string.indexOf('&', start).let { if (it == -1) string.length else it }
+        val segment = string.substring(start, end)
+        val eqIdx = segment.indexOf('=')
+        val rawKey = if (eqIdx == -1) segment else segment.substring(0, eqIdx)
+        val rawValue = if (eqIdx == -1) "" else segment.substring(eqIdx + 1)
+        val key = rawKey.urlDecode(charset)
+        val value = rawValue.urlDecode(charset)
+        if (key != null && value != null) {
+            result.getOrPut(key) { ArrayList(1) }.add(value)
+        }
+        start = end + 1
+    }
+    return result
+}
 
 private fun String.urlDecode(charset: String): String? =
-    runCatching { URLDecoder.decode(this, charset) }.getOrNull()
+    try { URLDecoder.decode(this, charset) } catch (_: Exception) { null }
 
-fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
-    pathParams[key.replaceFirst("{", "").replaceFirst("}", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
+fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String): String {
+    val normalizedKey = if (key.startsWith("{")) key.substring(1, key.length - 1) else key
+    return pathParams[normalizedKey] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
+}
 
 fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
