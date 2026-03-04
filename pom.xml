@@ -9,6 +9,7 @@
         <module>javalin-ssl</module>
         <module>javalin-micrometer</module>
         <module>jacoco-coverage-report</module>
+        <module>javalin-build</module>
     </modules>
 
     <groupId>io.javalin</groupId>
