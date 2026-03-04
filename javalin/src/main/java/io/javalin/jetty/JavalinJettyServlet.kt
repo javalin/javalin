@@ -7,8 +7,8 @@
 package io.javalin.jetty
 
 import io.javalin.config.JavalinState
-import io.javalin.http.HandlerType
 import io.javalin.http.Header
+import io.javalin.http.HandlerType
 import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContextConfig
 import io.javalin.http.servlet.JavalinWsServletContext
@@ -46,7 +46,7 @@ class JavalinJettyServlet(val cfg: JavalinState) : JettyWebSocketServlet() {
     }
 
     override fun service(req: HttpServletRequest, res: HttpServletResponse) { // this handles both http and websocket
-        if (req.getHeader(Header.SEC_WEBSOCKET_KEY) == null) { // this isn't a websocket request
+        if (req.getHeader(Header.SEC_WEBSOCKET_VERSION) == null) { // this isn't a websocket request (works for both HTTP/1.1 and HTTP/2)
             return httpServlet.service(req, res) // treat as normal HTTP request
         }
         return serviceWebSocketRequest(req, res)

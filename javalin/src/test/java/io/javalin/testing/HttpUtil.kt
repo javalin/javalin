@@ -41,7 +41,7 @@ class HttpUtil(port: Int) {
     fun htmlGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.HTML).asString()
     fun jsonGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.JSON).asString()
     fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Connection", "keep-alive").header("Cache-Control", "no-cache").asStringAsync()
-    fun wsUpgradeRequest(path: String) =Unirest.get(origin + path).header(Header.SEC_WEBSOCKET_KEY, "not-null").asString()
+    fun wsUpgradeRequest(path: String) =Unirest.get(origin + path).header(Header.SEC_WEBSOCKET_KEY, "not-null").header(Header.SEC_WEBSOCKET_VERSION, "13").asString()
 
     companion object {
         var standardCookieHandlingSet = false
