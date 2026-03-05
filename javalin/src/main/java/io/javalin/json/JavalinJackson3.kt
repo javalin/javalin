@@ -12,6 +12,7 @@ import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import io.javalin.util.javalinLazy
+import tools.jackson.core.StreamWriteFeature
 import tools.jackson.databind.JacksonModule
 import tools.jackson.databind.SerializationFeature
 import tools.jackson.databind.cfg.DateTimeFeature
@@ -89,6 +90,7 @@ class JavalinJackson3(
         fun defaultMapper(): Jackson3Mapper = Jackson3Mapper.builder()
             .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
             .enable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .disable(StreamWriteFeature.AUTO_CLOSE_TARGET)
             .registerOptionalModule(CoreDependency.JACKSON3_KT.testClass)
             .registerOptionalModule(CoreDependency.JACKSON3_ECLIPSE_COLLECTIONS.testClass)
             .build()
