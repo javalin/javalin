@@ -7,6 +7,7 @@
 package io.javalin
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.javalin.http.bodyStreamAsClass
 import io.javalin.json.JavalinJackson3
 import io.javalin.json.fromJsonString
 import io.javalin.json.toJsonString
@@ -38,7 +39,7 @@ internal class TestJavalinJackson3 {
     }
 
     @Test
-    fun `default JavalinJackson3 includes nulls`() = TestUtil.test { app, http ->
+    fun `default JavalinJackson3 includes nulls`() = TestUtil.test(appWithJackson3()) { app, http ->
         data class TestClass(val one: String? = null, val two: String? = null)
         app.unsafe.routes.get("/") { it.json(TestClass()) }
         assertThat(http.getBody("/")).isEqualTo("""{"one":null,"two":null}""")
@@ -56,33 +57,38 @@ internal class TestJavalinJackson3 {
     }
 
     @Test
-    fun `can write a JSON stream with JavalinJackson3`() =
-        TestUtil.test { app, http ->
-            data class Hello(val greet: String, val value: Long)
+    fun `can write a JSON stream with JavalinJackson3`() = TestUtil.test(appWithJackson3()) { app, http ->
+        data class Hello(val greet: String, val value: Long)
 
-            var value = 0L
-            val take = 100
-            val seq = generateSequence { Hello("hi", value++) }
-            app.unsafe.routes.get("/json-stream") { it.writeJsonStream(seq.take(take).asStream()) }
-            val expectedResponse = List(take) { """{"greet":"hi","value":${it}}""" }.joinToString(",", "[", "]")
-            assertThat(http.jsonGet("/json-stream").body).isEqualTo(expectedResponse)
-        }
+        var value = 0L
+        val take = 100
+        val seq = generateSequence { Hello("hi", value++) }
+        app.unsafe.routes.get("/json-stream") { it.writeJsonStream(seq.take(take).asStream()) }
+        val expectedResponse = List(take) { """{"greet":"hi","value":${it}}""" }.joinToString(",", "[", "]")
+        assertThat(http.jsonGet("/json-stream").body).isEqualTo(expectedResponse)
+    }
 
     @Test
-    fun `toJsonStream treats Strings as already being json`() = TestUtil.test { app, http ->
+    fun `toJsonStream treats Strings as already being json`() = TestUtil.test(appWithJackson3()) { app, http ->
         app.unsafe.routes.get("/") { it.jsonStream("{a:b}") }
         assertThat(http.getBody("/")).isEqualTo("{a:b}")
     }
 
     @Test
-    fun `can convert InputStream to JSON`() {
-        val json = """{"value1": "First value","value2": "Second value"}"""
+    fun `can convert InputStream to JSON`() = TestUtil.test(appWithJackson3()) { app, http ->
         val expected = SerializableDataClass("First value", "Second value")
+        app.unsafe.routes.post("/") { it.json(it.bodyStreamAsClass<SerializableDataClass>()) }
+        assertThat(http.post("/").body(expected).asObject(SerializableDataClass::class.java).body).isEqualTo(expected)
+    }
 
-        json.byteInputStream().use { inputStream ->
-            val actual: SerializableDataClass = JavalinJackson3().fromJsonStream(inputStream, SerializableDataClass::class.java)
+    @Test
+    fun `can convert JSON to InputStream`() = TestUtil.test(appWithJackson3()) { app, http ->
+        data class Hello(val greet: String)
+        app.unsafe.routes.get("/") { it.jsonStream(Hello("hi")) }
+        assertThat(http.get("/").body).isEqualTo("""{"greet":"hi"}""")
+    }
 
-            assertThat(actual).isEqualTo(expected)
-        }
+    fun appWithJackson3() = Javalin.create {
+        it.jsonMapper(JavalinJackson3())
     }
 }

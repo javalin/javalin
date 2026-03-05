@@ -21,8 +21,8 @@ import io.javalin.json.toJsonString
 import io.javalin.testing.NonSerializableObject
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
+import io.javalin.testing.fasterJacksonMapper
 import io.javalin.testing.httpCode
-import io.javalin.testing.jackson3Mapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.InputStream
@@ -32,7 +32,7 @@ import java.time.Instant
 internal class TestJson {
     private val strictContentTypeJavalin = Javalin.create { cfg -> cfg.http.strictContentTypes = true }
 
-    private val serializableObjectString = jackson3Mapper.toJsonString(SerializableObject())
+    private val serializableObjectString = fasterJacksonMapper.toJsonString(SerializableObject())
 
     @Test
     fun `default mapper maps object to json`() = TestUtil.test { app, http ->
@@ -62,7 +62,7 @@ internal class TestJson {
         val big = mapOf("big" to "1".repeat(100_000))
         app.unsafe.routes.get("/") { it.jsonStream(big) }
         assertThat(http.getStatus("/")).isEqualTo(HttpStatus.OK)
-        assertThat(http.getBody("/")).isEqualTo(jackson3Mapper.toJsonString(big))
+        assertThat(http.getBody("/")).isEqualTo(fasterJacksonMapper.toJsonString(big))
     }
 
     @Test

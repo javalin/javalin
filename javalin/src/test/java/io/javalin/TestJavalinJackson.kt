@@ -38,12 +38,11 @@ internal class TestJavalinJackson {
     }
 
     @Test
-    fun `default JavalinJackson includes nulls`() =
-        TestUtil.test(Javalin.create { it.jsonMapper(JavalinJackson()) }) { app, http ->
-            data class TestClass(val one: String? = null, val two: String? = null)
-            app.unsafe.routes.get("/") { it.json(TestClass()) }
-            assertThat(http.getBody("/")).isEqualTo("""{"one":null,"two":null}""")
-        }
+    fun `default JavalinJackson includes nulls`() = TestUtil.test { app, http ->
+        data class TestClass(val one: String? = null, val two: String? = null)
+        app.unsafe.routes.get("/") { it.json(TestClass()) }
+        assertThat(http.getBody("/")).isEqualTo("""{"one":null,"two":null}""")
+    }
 
     @Test
     fun `can update ObjectMapper of JavalinJackson`() = TestUtil.test(Javalin.create {
@@ -70,10 +69,9 @@ internal class TestJavalinJackson {
         }
 
     @Test
-    fun `toJsonStream treats Strings as already being json`() =
-        TestUtil.test(Javalin.create { it.jsonMapper(JavalinJackson()) }) { app, http ->
-            app.unsafe.routes.get("/") { it.jsonStream("{a:b}") }
-            assertThat(http.getBody("/")).isEqualTo("{a:b}")
-        }
+    fun `toJsonStream treats Strings as already being json`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/") { it.jsonStream("{a:b}") }
+        assertThat(http.getBody("/")).isEqualTo("{a:b}")
+    }
 
 }

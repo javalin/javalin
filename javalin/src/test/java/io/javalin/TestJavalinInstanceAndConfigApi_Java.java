@@ -4,7 +4,7 @@ import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.compression.CompressionStrategy;
 import io.javalin.config.Key;
 import io.javalin.config.MultipartConfig;
-import io.javalin.json.JavalinJackson3;
+import io.javalin.json.JavalinJackson;
 import io.javalin.plugin.Plugin;
 import io.javalin.websocket.WsConfig;
 import org.eclipse.jetty.server.ServerConnector;
@@ -95,7 +95,7 @@ public class TestJavalinInstanceAndConfigApi_Java {
             app.startup.showJavalinBanner = false;
             app.startup.startupWatcherEnabled = false;
             app.concurrency.useVirtualThreads = true;
-            app.jsonMapper(new JavalinJackson3());
+            app.jsonMapper(new JavalinJackson());
             app.appData(new Key<>("Test"), "Test");
             app.fileRenderer((filePath, model, ctx) -> "Test");
             app.registerPlugin(new Plugin<>() {});

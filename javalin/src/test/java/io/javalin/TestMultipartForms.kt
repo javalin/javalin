@@ -13,7 +13,7 @@ import io.javalin.http.util.MultipartUtil
 import io.javalin.json.fromJsonString
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
-import io.javalin.testing.jackson3Mapper
+import io.javalin.testing.fasterJacksonMapper
 
 import io.javalin.util.FileUtil
 import jakarta.servlet.MultipartConfigElement
@@ -62,7 +62,7 @@ class TestMultipartForms {
             .field("upload", uploadFile)
             .asString()
 
-        val uploadInfo = jackson3Mapper.fromJsonString<UploadInfo>(response.body)
+        val uploadInfo = fasterJacksonMapper.fromJsonString<UploadInfo>(response.body)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo(ContentType.OCTET_STREAM)
@@ -79,7 +79,7 @@ class TestMultipartForms {
         val response = http.post("/test-upload")
             .field("upload", uploadFile, ContentType.IMAGE_PNG.mimeType)
             .asString()
-        val uploadInfo = jackson3Mapper.fromJsonString<UploadInfo>(response.body)
+        val uploadInfo = fasterJacksonMapper.fromJsonString<UploadInfo>(response.body)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo(ContentType.IMAGE_PNG.mimeType)
