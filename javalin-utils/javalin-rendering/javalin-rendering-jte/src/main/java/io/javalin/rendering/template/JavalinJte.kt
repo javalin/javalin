@@ -9,12 +9,14 @@ package io.javalin.rendering.template
 import gg.jte.ContentType
 import gg.jte.TemplateEngine
 import gg.jte.output.StringOutput
+import gg.jte.resolve.DirectoryCodeResolver
 import gg.jte.resolve.ResourceCodeResolver
 import io.javalin.http.Context
 import io.javalin.rendering.FileRenderer
+import java.io.File
 
 class JavalinJte @JvmOverloads constructor(
-    private var templateEngine: TemplateEngine = defaultTemplateEngine()
+    private var templateEngine: TemplateEngine = classPathTemplateEngine()
 ) : FileRenderer {
 
     override fun render(filePath: String, model: Map<String, Any?>, context: Context): String {
@@ -24,11 +26,17 @@ class JavalinJte @JvmOverloads constructor(
     }
 
     companion object {
-        fun defaultTemplateEngine(): TemplateEngine {
+        fun classPathTemplateEngine(): TemplateEngine {
             val codeResolver = ResourceCodeResolver("")
             return TemplateEngine.create(codeResolver, ContentType.Html)
         }
+
+        fun directoryTemplateEngine(path: String = "src/main/jte"): TemplateEngine {
+            val codeResolver = DirectoryCodeResolver(File(path).toPath())
+            return TemplateEngine.create(codeResolver, ContentType.Html)
+        }
     }
+
 
 }
 
