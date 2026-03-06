@@ -211,6 +211,7 @@ class TestWebSocket {
         app.unsafe.routes.ws("/ws") {}
         val response = Unirest.get("http://localhost:${app.port()}/ws")
             .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .header(Header.SEC_WEBSOCKET_VERSION, "13")
             .header(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, "mqtt")
             .asString()
         assertThat(response.headers.getFirst(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)).isEqualTo("mqtt")
