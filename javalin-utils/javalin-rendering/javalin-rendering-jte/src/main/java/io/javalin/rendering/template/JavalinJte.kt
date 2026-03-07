@@ -31,6 +31,7 @@ class JavalinJte @JvmOverloads constructor(
             return TemplateEngine.create(codeResolver, ContentType.Html)
         }
 
+        @JvmOverloads
         fun directoryTemplateEngine(path: String = "src/main/jte"): TemplateEngine {
             val codeResolver = DirectoryCodeResolver(File(path).toPath())
             return TemplateEngine.create(codeResolver, ContentType.Html)
