@@ -7,6 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.Javalin
+import io.javalin.http.Header
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -84,7 +85,7 @@ class TestWsRouting {
             .header("Upgrade", "websocket")
             .header("Host", "localhost:" + app.port())
             .header("Sec-WebSocket-Key", "SGVsbG8sIHdvcmxkIQ==")
-            .header("Sec-WebSocket-Version", "13")
+            .header(Header.SEC_WEBSOCKET_VERSION, "13")
             .asString()
         assertThat(response.body).containsSequence("WebSocket handler not found")
     }
