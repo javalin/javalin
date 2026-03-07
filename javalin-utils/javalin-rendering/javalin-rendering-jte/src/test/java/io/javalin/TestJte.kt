@@ -7,14 +7,10 @@
 
 package io.javalin
 
-import gg.jte.ContentType
-import gg.jte.TemplateEngine
-import gg.jte.resolve.DirectoryCodeResolver
 import io.javalin.rendering.template.JavalinJte
 import io.javalin.testtools.JavalinTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.nio.file.Path
 
 class TestJte {
 
