@@ -26,6 +26,9 @@ class JavalinJte @JvmOverloads constructor(
     }
 
     companion object {
+        @Deprecated("Use classPathTemplateEngine() instead", ReplaceWith("classPathTemplateEngine()"))
+        fun defaultTemplateEngine(): TemplateEngine = classPathTemplateEngine()
+
         fun classPathTemplateEngine(): TemplateEngine {
             val codeResolver = ResourceCodeResolver("")
             return TemplateEngine.create(codeResolver, ContentType.Html)
