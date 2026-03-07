@@ -7,11 +7,17 @@
 package io.javalin
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.javalin.http.HttpStatus
 import io.javalin.http.bodyStreamAsClass
 import io.javalin.json.JavalinJackson3
 import io.javalin.json.fromJsonString
 import io.javalin.json.toJsonString
 import io.javalin.testing.TestUtil
+import io.javalin.util.CoreDependency
+import io.javalin.util.Util
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import kotlin.streams.asStream
@@ -87,6 +93,20 @@ internal class TestJavalinJackson3 {
         app.unsafe.routes.get("/") { it.jsonStream(Hello("hi")) }
         assertThat(http.get("/").body).isEqualTo("""{"greet":"hi"}""")
     }
+
+    @Test
+    fun `returns internal server error when Jackson3 dependency is not on classpath`() =
+        TestUtil.test(appWithJackson3()) { app, http ->
+            try {
+                mockkObject(Util)
+                every { Util.classExists(CoreDependency.JACKSON3.testClass) } returns false
+                app.unsafe.routes.get("/") { it.json(mapOf("ok" to true)) }
+                assertThat(http.getStatus("/")).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+                assertThat(http.getBody("/")).contains(CoreDependency.JACKSON3.artifactId)
+            } finally {
+                unmockkObject(Util)
+            }
+        }
 
     fun appWithJackson3() = Javalin.create {
         it.jsonMapper(JavalinJackson3())
