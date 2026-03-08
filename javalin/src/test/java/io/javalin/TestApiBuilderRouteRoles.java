@@ -5,7 +5,6 @@
  */
 package io.javalin;
 
-import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.HandlerType;
 import io.javalin.router.ParsedEndpoint;
 import io.javalin.security.Roles;
@@ -16,6 +15,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.path;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestApiBuilderRouteRoles {
@@ -24,15 +25,13 @@ public class TestApiBuilderRouteRoles {
 
     @Test
     public void testPathInheritsRouteRoles() {
-        Javalin app = Javalin.create(cfg -> cfg.routes.apiBuilder(() -> {
-            ApiBuilder.path("/admin", () -> {
-                ApiBuilder.get("/all", ctx -> {});
-                ApiBuilder.get("/override", ctx -> {}, Role.B);
-                ApiBuilder.path("/nested", () -> {
-                    ApiBuilder.get("/one", ctx -> {});
-                }, Role.B);
-            }, Role.A);
-        }));
+        Javalin app = Javalin.create(cfg -> cfg.routes.apiBuilder(() -> path("/admin", () -> {
+            get("/all", ctx -> {});
+            get("/override", ctx -> {}, Role.B);
+            path("/nested", () -> {
+                get("/one", ctx -> {});
+            }, Role.B);
+        }, Role.A)));
 
         List<ParsedEndpoint> endpoints = app.unsafe.internalRouter.allHttpHandlers();
         assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/admin/all")).containsExactlyInAnyOrder(Role.A);
