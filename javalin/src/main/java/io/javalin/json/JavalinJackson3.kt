@@ -49,8 +49,7 @@ class JavalinJackson3(
         (jsonMapper ?: defaultMapper()) as Any
     }
 
-    val mapper: Jackson3Mapper
-        get() = mapperInstance ?: mapperDelegate.value as Jackson3Mapper
+    val mapper: Jackson3Mapper get() = mapperInstance ?: mapperDelegate.value as Jackson3Mapper
 
     override fun toJsonString(obj: Any, type: Type): String = when (obj) {
         is String -> obj // the default mapper treats strings as if they are already JSON
