@@ -104,6 +104,6 @@ class TestCookieStore {
             ctx.cookieStore().set("first", "hello")
             ctx.cookieStore().set("second", "world")
         }
-        assertThat(http.get("/test").headers.get("Set-Cookie")).hasSize(1)
+        assertThat(http.get("/test").headers.get(Header.SET_COOKIE)).hasSize(1)
     }
 }

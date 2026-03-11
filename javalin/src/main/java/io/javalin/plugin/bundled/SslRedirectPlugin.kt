@@ -1,7 +1,7 @@
 package io.javalin.plugin.bundled
 
 import io.javalin.config.JavalinState
-import io.javalin.http.Header.X_FORWARDED_PROTO
+import io.javalin.http.Header
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.servlet.isLocalhost
 import io.javalin.plugin.Plugin
@@ -24,7 +24,7 @@ class SslRedirectPlugin(userConfig: Consumer<Config>? = null) : Plugin<SslRedire
                 return@before
             }
 
-            val xForwardedProto = ctx.header(X_FORWARDED_PROTO)
+            val xForwardedProto = ctx.header(Header.X_FORWARDED_PROTO)
 
             if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
                 val urlWithHttps = ctx.fullUrl().replace("http", "https")

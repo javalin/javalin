@@ -1,6 +1,7 @@
 package io.javalin.micrometer
 
 import io.javalin.Javalin
+import io.javalin.http.Header
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
@@ -131,7 +132,7 @@ class MicrometerPluginTest {
             val response = http.get("/hello")
             val etag = response.headers().get("ETag")?.firstOrNull().orEmpty()
             val response2 = http.get("/hello") {
-                it.header("If-None-Match", etag)
+                it.header(Header.IF_NONE_MATCH, etag)
             }
             assertThat(response2.code).isEqualTo(304) // NOT MODIFIED
         }
@@ -220,7 +221,7 @@ class MicrometerPluginTest {
             ctx.status(OK)
         }
         repeat(requestCount) {
-            http.request("/hello") { b -> b.header("X-Http-Method-Override", "POSTS") }
+            http.request("/hello") { b -> b.header(Header.X_HTTP_METHOD_OVERRIDE, "POSTS") }
         }
 
         val notFoundCountGeneric = meterRegistry.get("http.server.requests")

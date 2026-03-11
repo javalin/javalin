@@ -212,13 +212,13 @@ class KotlinTest {
     @Test
     fun `request builder with multiple headers works`() = JavalinTest.test(Javalin.create { config ->
         config.routes.post("/multi-headers") { ctx ->
-            ctx.result("Auth: ${ctx.header("Authorization")}, Accept: ${ctx.header("Accept")}, Custom: ${ctx.header("X-Custom")}")
+            ctx.result("Auth: ${ctx.header(Header.AUTHORIZATION)}, Accept: ${ctx.header(Header.ACCEPT)}, Custom: ${ctx.header("X-Custom")}")
         }
     }) { server, client ->
         val response = client.request("/multi-headers") { builder ->
             builder.post(HttpRequest.BodyPublishers.ofString("test-body"))
-                   .header("Authorization", "Bearer token123")
-                   .header("Accept", "application/json")
+                   .header(Header.AUTHORIZATION, "Bearer token123")
+                   .header(Header.ACCEPT, "application/json")
                    .header("X-Custom", "test-value")
         }
 
@@ -231,9 +231,9 @@ class KotlinTest {
         config.routes.patch("/text") { ctx -> ctx.result("PATCH: ${ctx.body()}") }
         config.routes.delete("/text") { ctx -> ctx.result("DELETE: ${ctx.body()}") }
     }) { server, client ->
-        assertThat(client.request("/text") { it.put(HttpRequest.BodyPublishers.ofString("plain text")).header("Content-Type", "text/plain") }.body?.string()).isEqualTo("PUT: plain text")
-        assertThat(client.request("/text") { it.patch(HttpRequest.BodyPublishers.ofString("patch data")).header("Content-Type", "text/plain") }.body?.string()).isEqualTo("PATCH: patch data")
-        assertThat(client.request("/text") { it.delete(HttpRequest.BodyPublishers.ofString("delete data")).header("Content-Type", "text/plain") }.body?.string()).isEqualTo("DELETE: delete data")
+        assertThat(client.request("/text") { it.put(HttpRequest.BodyPublishers.ofString("plain text")).header(Header.CONTENT_TYPE, "text/plain") }.body?.string()).isEqualTo("PUT: plain text")
+        assertThat(client.request("/text") { it.patch(HttpRequest.BodyPublishers.ofString("patch data")).header(Header.CONTENT_TYPE, "text/plain") }.body?.string()).isEqualTo("PATCH: patch data")
+        assertThat(client.request("/text") { it.delete(HttpRequest.BodyPublishers.ofString("delete data")).header(Header.CONTENT_TYPE, "text/plain") }.body?.string()).isEqualTo("DELETE: delete data")
     }
 
 }

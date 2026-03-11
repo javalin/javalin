@@ -81,10 +81,10 @@ class TestWsRouting {
     @Test
     fun `websocket 404 works`() = TestUtil.test { app, _ ->
         val response = Unirest.get("http://localhost:" + app.port() + "/invalid-path")
-            .header("Connection", "Upgrade")
-            .header("Upgrade", "websocket")
-            .header("Host", "localhost:" + app.port())
-            .header("Sec-WebSocket-Key", "SGVsbG8sIHdvcmxkIQ==")
+            .header(Header.CONNECTION, "Upgrade")
+            .header(Header.UPGRADE, "websocket")
+            .header(Header.HOST, "localhost:" + app.port())
+            .header(Header.SEC_WEBSOCKET_KEY, "SGVsbG8sIHdvcmxkIQ==")
             .header(Header.SEC_WEBSOCKET_VERSION, "13")
             .asString()
         assertThat(response.body).containsSequence("WebSocket handler not found")
@@ -104,4 +104,3 @@ class TestWsRouting {
         assertThat(log).containsExactly("My-PaRaM")
     }
 }
-

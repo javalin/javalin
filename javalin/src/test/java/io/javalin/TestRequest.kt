@@ -44,7 +44,7 @@ class TestRequest {
     @Test
     fun `session-cookie is http-only`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/store-session") { it.sessionAttribute("test", "tast") }
-        assertThat(http.get("/store-session").headers.getFirst("Set-Cookie").contains("HttpOnly")).isTrue()
+        assertThat(http.get("/store-session").headers.getFirst(Header.SET_COOKIE).contains("HttpOnly")).isTrue()
     }
 
     @Test

@@ -1,6 +1,7 @@
 package io.javalin.testtools
 
 import io.javalin.Javalin
+import io.javalin.http.Header
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -21,12 +22,12 @@ class TestCookieIssueKotlin {
     fun `cookie handling works automatically`() {
         JavalinTest.test(Javalin.create { config ->
             config.routes.get("/set-cookie") { ctx -> ctx.cookie("test-cookie", "cookie-value") }
-            config.routes.get("/get-cookie") { ctx -> 
+            config.routes.get("/get-cookie") { ctx ->
                 ctx.result(ctx.cookie("test-cookie") ?: "no-cookie")
             }
         }) { server, client ->
             // Verify cookie is set in response
-            val setCookieHeaders = client.get("/set-cookie").headers().get("Set-Cookie")
+            val setCookieHeaders = client.get("/set-cookie").headers().get(Header.SET_COOKIE)
             assertThat(setCookieHeaders).isNotNull()
             assertThat(setCookieHeaders!![0]).contains("test-cookie=cookie-value")
 

@@ -38,9 +38,9 @@ class HttpUtil(port: Int) {
     fun post(path: String) = Unirest.post(origin + path)
     fun query(path: String) = Unirest.request("QUERY", origin + path)
     fun call(method: HttpMethod, pathname: String) = Unirest.request(method.name(), origin + pathname).asString()
-    fun htmlGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.HTML).asString()
-    fun jsonGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.JSON).asString()
-    fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Connection", "keep-alive").header("Cache-Control", "no-cache").asStringAsync()
+    fun htmlGet(path: String) = Unirest.get(origin + path).header(Header.ACCEPT, ContentType.HTML).asString()
+    fun jsonGet(path: String) = Unirest.get(origin + path).header(Header.ACCEPT, ContentType.JSON).asString()
+    fun sse(path: String) = Unirest.get(origin + path).header(Header.ACCEPT, "text/event-stream").header(Header.CONNECTION, "keep-alive").header(Header.CACHE_CONTROL, "no-cache").asStringAsync()
     fun wsUpgradeRequest(path: String) =Unirest.get(origin + path).header(Header.SEC_WEBSOCKET_KEY, "not-null").header(Header.SEC_WEBSOCKET_VERSION, "13").asString()
 
     companion object {

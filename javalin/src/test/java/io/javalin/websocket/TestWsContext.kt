@@ -80,7 +80,7 @@ class TestWsContext {
                 log.add("sessionAttributeMapSize:${it.sessionAttributeMap().size}")
             }
         }
-        val sessionCookie = http.get("/").headers["Set-Cookie"]!!.first().removePrefix("JSESSIONID=")
+        val sessionCookie = http.get("/").headers[io.javalin.http.Header.SET_COOKIE]!!.first().removePrefix("JSESSIONID=")
         WsTestClient(app, "/", mapOf("Cookie" to "JSESSIONID=${sessionCookie}")).connectAndDisconnect()
         assertThat(log).containsExactly("session-value", "sessionAttributeMapSize:1")
     }
@@ -125,4 +125,3 @@ class TestWsContext {
         assertThat(log).containsExactly("equalsString=false", "equalsNull=false", "equalsSelf=true")
     }
 }
-

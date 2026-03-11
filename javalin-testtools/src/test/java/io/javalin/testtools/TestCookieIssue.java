@@ -1,6 +1,7 @@
 package io.javalin.testtools;
 
 import io.javalin.Javalin;
+import io.javalin.http.Header;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -25,7 +26,7 @@ public class TestCookieIssue {
             config.routes.get("/get-cookie", ctx -> ctx.result(ctx.cookie("test-cookie") != null ? ctx.cookie("test-cookie") : "no-cookie"));
         }), (server, client) -> {
             // Verify cookie is set in response
-            var setCookieHeaders = client.get("/set-cookie").headers().get("Set-Cookie");
+            var setCookieHeaders = client.get("/set-cookie").headers().get(Header.SET_COOKIE);
             assertThat(setCookieHeaders).isNotNull();
             assertThat(setCookieHeaders.get(0)).contains("test-cookie=cookie-value");
 
