@@ -168,10 +168,11 @@ For WebSocket exception handling, use the dedicated WebSocket exception handler:
 
 ```java
 Javalin.create(config -> {
-    config.routes.wsException(Exception.class, MicrometerPlugin.wsExceptionHandler);
-    // Or for specific exceptions:
-    config.routes.wsException(IllegalArgumentException.class, (e, ctx) -> {
+    // Note: registering a wsException handler prevents Javalin's default behavior
+    // of closing the socket on uncaught exceptions. You should close the session yourself:
+    config.routes.wsException(Exception.class, (e, ctx) -> {
         MicrometerPlugin.wsExceptionHandler.handle(e, ctx);
+        ctx.closeSession(WsCloseStatus.SERVER_ERROR, e.getMessage());
     });
 });
 ```
