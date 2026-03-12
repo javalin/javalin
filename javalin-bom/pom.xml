@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.javalin</groupId>
+        <artifactId>javalin-parent</artifactId>
+        <version>7.0.2-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>javalin-bom</artifactId>
+    <packaging>pom</packaging>
+    <name>Javalin BOM (Bill of Materials)</name>
+    <description>Javalin BOM for managing Javalin artifact versions</description>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Core -->
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-bundle</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-testtools</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-micrometer</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- SSL -->
+            <dependency>
+                <groupId>io.javalin.community.ssl</groupId>
+                <artifactId>javalin-ssl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Utilities -->
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-context-mock</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Rendering -->
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-velocity</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-freemarker</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-thymeleaf</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-mustache</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-handlebars</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-pebble</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-commonmark</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-jte</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>
