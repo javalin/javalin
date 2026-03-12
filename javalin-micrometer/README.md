@@ -164,6 +164,18 @@ app.exception(IllegalArgumentException.class, (e, ctx) -> {
 });
 ```
 
+For WebSocket exception handling, use the dedicated WebSocket exception handler:
+
+```java
+Javalin.create(config -> {
+    config.routes.wsException(Exception.class, MicrometerPlugin.wsExceptionHandler);
+    // Or for specific exceptions:
+    config.routes.wsException(IllegalArgumentException.class, (e, ctx) -> {
+        MicrometerPlugin.wsExceptionHandler.handle(e, ctx);
+    });
+});
+```
+
 ## Requirements
 
 - Java 17+
