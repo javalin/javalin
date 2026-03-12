@@ -2,45 +2,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.javalin</groupId>
-    <artifactId>javalin-bom</artifactId>
-    <version>7.0.2-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <!--
+        The parent reference ensures this module's version stays in sync with the rest
+        of the reactor during version bumps (e.g. mvn versions:set). The flatten-maven-plugin
+        strips the parent from the published POM so consumers only get Javalin artifact
+        versions without inheriting the parent's dependencyManagement (Jetty, Jackson, etc.).
+    -->
+    <parent>
+        <groupId>io.javalin</groupId>
+        <artifactId>javalin-parent</artifactId>
+        <version>7.0.2-SNAPSHOT</version>
+    </parent>
 
+    <artifactId>javalin-bom</artifactId>
+    <packaging>pom</packaging>
     <name>Javalin BOM (Bill of Materials)</name>
     <description>Javalin BOM for managing Javalin artifact versions</description>
-    <url>https://javalin.io</url>
-
-    <licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <scm>
-        <connection>scm:git:git@github.com:javalin/javalin.git</connection>
-        <developerConnection>scm:git:git@github.com:javalin/javalin.git</developerConnection>
-        <url>https://github.com/javalin/javalin.git</url>
-        <tag>HEAD</tag>
-    </scm>
-    <developers>
-        <developer>
-            <name>David Åse</name>
-        </developer>
-    </developers>
-
-    <distributionManagement>
-        <repository>
-            <id>central</id>
-            <url>https://central.sonatype.com/api/v1/publisher</url>
-        </repository>
-        <snapshotRepository>
-            <name>Reposilite Maven Repository</name>
-            <id>reposilite-repository</id>
-            <url>https://maven.reposilite.com/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <dependencyManagement>
         <dependencies>
@@ -126,41 +103,41 @@
 
     <build>
         <plugins>
+            <!--
+                Produces a flattened POM for publishing that:
+                - Removes the parent reference (no leaking of parent's dependencyManagement)
+                - Resolves ${project.version} to concrete version numbers
+                - Keeps only this BOM's own dependencyManagement entries
+            -->
             <plugin>
-                <groupId>org.sonatype.central</groupId>
-                <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>0.10.0</version>
-                <extensions>true</extensions>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.6.0</version>
                 <configuration>
-                    <publishingServerId>central</publishingServerId>
-                    <autoPublish>true</autoPublish>
+                    <flattenMode>bom</flattenMode>
+                    <pomElements>
+                        <properties>remove</properties>
+                        <build>remove</build>
+                    </pomElements>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten-clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>sonatype-oss-release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.2.8</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>
