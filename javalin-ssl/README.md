@@ -5,7 +5,7 @@
 * Chat on Discord: <https://discord.gg/sgak4e5NKv>
 * License summary: <https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)>
 
-# SSL Plugin [![Coverage](https://codecov.io/gh/javalin/javalin-ssl/branch/dev/graphs/badge.svg)](https://app.codecov.io/gh/javalin/javalin-ssl) [![javadoc](https://javadoc.io/badge2/io.javalin.community.ssl/ssl-plugin/javadoc.svg)](https://javadoc.io/doc/io.javalin.community.ssl/ssl-plugin)
+# SSL Plugin [![Coverage](https://codecov.io/gh/javalin/javalin-ssl/branch/dev/graphs/badge.svg)](https://app.codecov.io/gh/javalin/javalin-ssl) [![javadoc](https://javadoc.io/badge2/io.javalin.community.ssl/javalin-ssl/javadoc.svg)](https://javadoc.io/doc/io.javalin.community.ssl/javalin-ssl)
 
 Straightforward SSL and HTTP/2 Configuration for Javalin!
 
@@ -20,7 +20,7 @@ As simple as adding the dependency:
 ```xml
 <dependency>
   <groupId>io.javalin.community.ssl</groupId>
-  <artifactId>ssl-plugin</artifactId>
+  <artifactId>javalin-ssl</artifactId>
   <version>${javalin.version}</version>
 </dependency>
 ```
@@ -28,7 +28,7 @@ As simple as adding the dependency:
 ### Gradle
 
 ```kotlin
-implementation("io.javalin.community.ssl:ssl-plugin:$javalinVersion")
+implementation("io.javalin.community.ssl:javalin-ssl:$javalinVersion")
 ```
 
 ## Configuration
