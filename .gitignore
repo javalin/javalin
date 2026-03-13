@@ -22,3 +22,6 @@ javalin/src/test/external/test*.txt
 
 # ignore JTE generated classes
 jte-classes/
+
+# ignore flatten-maven-plugin output
+.flattened-pom.xml

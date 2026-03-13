@@ -3,6 +3,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>javalin</module>
+        <module>javalin-bom</module>
         <module>javalin-bundle</module>
         <module>javalin-testtools</module>
         <module>javalin-utils</module>
