@@ -194,7 +194,7 @@ fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<Strin
     if (string.isEmpty()) return emptyMap()
     val result = LinkedHashMap<String, MutableList<String>>()
     var start = 0
-    while (start <= string.length) {
+    while (start < string.length) {
         val end = string.indexOf('&', start).let { if (it == -1) string.length else it }
         val segment = string.substring(start, end)
         val eqIdx = segment.indexOf('=')

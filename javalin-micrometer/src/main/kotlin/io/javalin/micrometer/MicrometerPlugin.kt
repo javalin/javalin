@@ -12,6 +12,7 @@ import io.javalin.http.ExceptionHandler
 import io.javalin.http.HandlerType
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.Plugin
+import io.javalin.websocket.WsExceptionHandler
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tag
@@ -21,6 +22,7 @@ import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics
 import io.micrometer.core.instrument.binder.jetty.JettyServerThreadPoolMetrics
 import org.slf4j.LoggerFactory
 import java.util.function.Consumer
+import kotlin.streams.asSequence
 
 /**
  * Micrometer plugin for Javalin that provides HTTP request metrics and Jetty server metrics.
@@ -143,6 +145,7 @@ class MicrometerPlugin @JvmOverloads constructor(
         val handlerType = HandlerType.findOrCreate(ctx.method().toString())
         if (handlerType != null) {
             val matchedPath = state.internalRouter.findHttpHandlerEntries(handlerType, pathInfo)
+                .asSequence()
                 .map { it.endpoint.path }
                 .map { if (it == "/" || it.isBlank()) "root" else it }
                 .firstOrNull()
@@ -195,6 +198,16 @@ class MicrometerPlugin @JvmOverloads constructor(
             val simpleName = e.javaClass.simpleName
             ctx.header(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
+        /**
+         * WebSocket exception handler that can be used to tag exceptions in metrics.
+         * Users should delegate to this handler in their own WebSocket exception handling code.
+         */
+        @JvmField
+        val wsExceptionHandler = WsExceptionHandler<Exception> { e, ctx ->
+            val simpleName = e.javaClass.simpleName
+            ctx.attribute(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
         }
     }
 }

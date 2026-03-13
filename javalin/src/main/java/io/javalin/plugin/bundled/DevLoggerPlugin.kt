@@ -11,6 +11,7 @@ import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import java.util.*
 import java.util.function.Consumer
+import java.util.stream.Stream
 
 /**
  * The development debugging logger catches most of the interesting stuff about requests and responses,
@@ -37,13 +38,13 @@ class DevLoggingPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevLogging
         try {
             val requestUri = ctx.path()
             with(ctx) {
-                val allMatching = (
-                        router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri) +
-                        router.findHttpHandlerEntries(ctx.method(), requestUri) +
+                val allMatching = Stream.of(
+                        router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri),
+                        router.findHttpHandlerEntries(ctx.method(), requestUri),
                         router.findHttpHandlerEntries(HandlerType.AFTER, requestUri)
                     )
+                    .flatMap { it }
                     .map { it.endpoint.method.name() + "=" + it.endpoint.path }
-                    .toList()
                 val resHeaders = res().headerNames.asSequence().map { it to res().getHeader(it) }.toMap()
                 JavalinLogger.info(
                     """|JAVALIN REQUEST DEBUG LOG:

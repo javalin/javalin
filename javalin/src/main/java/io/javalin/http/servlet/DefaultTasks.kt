@@ -11,6 +11,7 @@ import io.javalin.router.EndpointNotFound
 import io.javalin.router.ParsedEndpoint
 import io.javalin.security.Roles
 import io.javalin.security.RouteRole
+import io.javalin.util.Util.firstOrNull
 import io.javalin.util.javalinLazy
 
 private const val CACHED_HTTP_HANDLER_KEY = "javalin-cached-http-handler"
