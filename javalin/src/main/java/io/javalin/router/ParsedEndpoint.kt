@@ -27,4 +27,7 @@ class ParsedEndpoint(
     fun extractPathParams(requestUri: String): Map<String, String> =
         pathParser.extractPathParams(requestUri)
 
+    fun matchAndExtract(requestUri: String): Map<String, String>? =
+        pathParser.matchAndExtract(requestUri)
+
 }

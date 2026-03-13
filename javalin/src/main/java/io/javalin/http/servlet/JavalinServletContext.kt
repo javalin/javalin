@@ -22,6 +22,7 @@ import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.PluginManager
 import io.javalin.router.Endpoint
 import io.javalin.router.Endpoints
+import io.javalin.router.ParsedEndpoint
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.javalinLazy
@@ -80,6 +81,31 @@ open class JavalinServletContext(
 ) : Context {
 
     private val endpoints: Endpoints = Endpoints()
+
+    // Cached route match result — avoids repeated linear scans across lifecycle phases
+    private var _cachedHttpHandler: Any? = UNSET
+    @JvmSynthetic
+    internal fun cachedHttpHandler(lookup: () -> ParsedEndpoint?): ParsedEndpoint? {
+        if (_cachedHttpHandler === UNSET) {
+            _cachedHttpHandler = lookup()
+        }
+        @Suppress("UNCHECKED_CAST")
+        return _cachedHttpHandler as ParsedEndpoint?
+    }
+
+    // Cached willMatch result — avoids recomputing in AFTER_MATCHED
+    private var _cachedWillMatch: Any? = UNSET
+    @JvmSynthetic
+    internal fun cachedWillMatch(lookup: () -> Boolean): Boolean {
+        if (_cachedWillMatch === UNSET) {
+            _cachedWillMatch = lookup()
+        }
+        return _cachedWillMatch as Boolean
+    }
+
+    private companion object {
+        private val UNSET = Any()
+    }
 
     init {
         contentType(cfg.defaultContentType)

@@ -17,7 +17,7 @@ import java.util.*
  */
 class Endpoints internal constructor() {
 
-    private val stack: LinkedList<Endpoint> = LinkedList()
+    private val stack: MutableList<Endpoint> = ArrayList(4)
 
     /** Get the last endpoint in the stack */
     fun current(): Endpoint = stack.last()
