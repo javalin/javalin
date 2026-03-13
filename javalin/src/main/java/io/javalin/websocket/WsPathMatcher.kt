@@ -21,7 +21,6 @@ data class WsHandlerEntry(
     private val pathParser = PathParser(path, routerConfig)
     fun matches(path: String) = pathParser.matches(path)
     fun extractPathParams(path: String) = pathParser.extractPathParams(path)
-    fun matchAndExtract(path: String) = pathParser.matchAndExtract(path)
 }
 
 /**
