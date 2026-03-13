@@ -226,10 +226,10 @@ fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<Strin
         .mapNotNull { (k, v) -> k?.let { it to v.filterNotNull() } }.toMap()
 
 private fun String.urlDecode(charset: String): String? =
-    runCatching { URLDecoder.decode(this, charset) }.getOrNull()
+    try { URLDecoder.decode(this, charset) } catch (_: Exception) { null }
 
 fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
-    pathParams[key.replaceFirst("{", "").replaceFirst("}", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
+    pathParams[key.removePrefix("{").removeSuffix("}")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
 
 fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 

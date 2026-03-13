@@ -67,11 +67,16 @@ public record HandlerType(String name, boolean isHttpMethod) {
      * or creates a new HandlerType for custom methods.
      */
     public static HandlerType findOrCreate(String name) {
-        if (!name.matches("^[A-Z]+$")) { // only accept uppercase letters
+        if (name.isEmpty()) {
             throw new IllegalArgumentException("Invalid HTTP method name: " + name);
         }
-        String upperName = name.toUpperCase();
-        return METHOD_MAP.computeIfAbsent(upperName, key -> new HandlerType(key, true));
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (c < 'A' || c > 'Z') {
+                throw new IllegalArgumentException("Invalid HTTP method name: " + name);
+            }
+        }
+        return METHOD_MAP.computeIfAbsent(name, key -> new HandlerType(key, true));
     }
 
     /**
