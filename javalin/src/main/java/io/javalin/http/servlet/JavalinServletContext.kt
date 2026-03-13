@@ -82,29 +82,32 @@ open class JavalinServletContext(
 
     private val endpoints: Endpoints = Endpoints()
 
-    // Cached route match result — avoids repeated linear scans across lifecycle phases
-    private var _cachedHttpHandler: Any? = UNSET
+    // State: 0 = UNSET, 1 = TRUE, -1 = FALSE
+    private var cachedWillMatchState: Int = 0
+
     @JvmSynthetic
-    internal fun cachedHttpHandler(lookup: () -> ParsedEndpoint?): ParsedEndpoint? {
-        if (_cachedHttpHandler === UNSET) {
-            _cachedHttpHandler = lookup()
+    internal inline fun cachedWillMatch(lookup: () -> Boolean): Boolean {
+        if (cachedWillMatchState == 0) {
+            cachedWillMatchState = if (lookup()) 1 else -1
         }
-        @Suppress("UNCHECKED_CAST")
-        return _cachedHttpHandler as ParsedEndpoint?
+        return cachedWillMatchState == 1
     }
 
-    // Cached willMatch result — avoids recomputing in AFTER_MATCHED
-    private var _cachedWillMatch: Any? = UNSET
+    private var cachedHttpHandlerValue: Any? = UNSET
+
     @JvmSynthetic
-    internal fun cachedWillMatch(lookup: () -> Boolean): Boolean {
-        if (_cachedWillMatch === UNSET) {
-            _cachedWillMatch = lookup()
+    @Suppress("UNCHECKED_CAST")
+    internal inline fun cachedHttpHandler(lookup: () -> ParsedEndpoint?): ParsedEndpoint? {
+        if (cachedHttpHandlerValue === UNSET) {
+            cachedHttpHandlerValue = lookup()
         }
-        return _cachedWillMatch as Boolean
+        return cachedHttpHandlerValue as ParsedEndpoint?
     }
 
-    private companion object {
-        private val UNSET = Any()
+    @PublishedApi
+    internal companion object {
+        @PublishedApi
+        internal val UNSET = Any()
     }
 
     init {
