@@ -67,7 +67,7 @@ open class InternalRouter(
      * Finds all matching handlers for the specified handlerType and path.
      * @return a handler for the specified handlerType and path, or null if no handler is found
      */
-    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Sequence<ParsedEndpoint> =
+    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): List<ParsedEndpoint> =
         httpPathMatcher.findEntries(handlerType, requestUri)
 
     /**

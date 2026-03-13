@@ -16,7 +16,7 @@ class ParsedEndpoint(
         val updatedCtx = ctx.update(endpoint, pathParams)
         when (val handlerWrapper = routerConfig.handlerWrapper) {
             null -> endpoint.handler.handle(updatedCtx)
-            else -> handlerWrapper.wrap(endpoint).handle(updatedCtx)
+            else -> handlerWrapper.wrap(endpoint.withMetadata(PathParams(pathParams))).handle(updatedCtx)
         }
     }
 

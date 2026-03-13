@@ -214,7 +214,7 @@ private fun String.urlDecode(charset: String): String? =
     try { URLDecoder.decode(this, charset) } catch (_: Exception) { null }
 
 fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String): String {
-    val normalizedKey = if (key.startsWith("{")) key.substring(1, key.length - 1) else key
+    val normalizedKey = key.removePrefix("{").removeSuffix("}")
     return pathParams[normalizedKey] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
 }
 

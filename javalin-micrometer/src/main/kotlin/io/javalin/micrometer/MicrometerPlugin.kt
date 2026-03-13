@@ -21,7 +21,6 @@ import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics
 import io.micrometer.core.instrument.binder.jetty.JettyServerThreadPoolMetrics
 import org.slf4j.LoggerFactory
 import java.util.function.Consumer
-import kotlin.streams.asSequence
 
 /**
  * Micrometer plugin for Javalin that provides HTTP request metrics and Jetty server metrics.

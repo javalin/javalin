@@ -29,10 +29,10 @@ class PathMatcher {
         handlerEntries[type]!!.add(entry)
     }
 
-    fun findEntries(handlerType: HandlerType, requestUri: String?): Sequence<ParsedEndpoint> =
+    fun findEntries(handlerType: HandlerType, requestUri: String?): List<ParsedEndpoint> =
         when (requestUri) {
-            null -> handlerEntries(handlerType).asSequence()
-            else -> handlerEntries(handlerType).asSequence().filter { he -> match(he, requestUri) }
+            null -> handlerEntries(handlerType)
+            else -> handlerEntries(handlerType).filter { he -> match(he, requestUri) }
         }
 
     fun allEntries() = handlerEntries.values.flatten()
