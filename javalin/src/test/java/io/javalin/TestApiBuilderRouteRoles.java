@@ -1,0 +1,54 @@
+/*
+ * Javalin - https://javalin.io
+ * Copyright 2017 David Åse
+ * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
+ */
+package io.javalin;
+
+import io.javalin.http.HandlerType;
+import io.javalin.router.ParsedEndpoint;
+import io.javalin.security.Roles;
+import io.javalin.security.RouteRole;
+import org.junit.jupiter.api.Test;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.path;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class TestApiBuilderRouteRoles {
+
+    enum Role implements RouteRole { A, B }
+
+    @Test
+    public void testPathInheritsRouteRoles() {
+        Javalin app = Javalin.create(cfg -> cfg.routes.apiBuilder(() -> path("/admin", () -> {
+            get("/all", ctx -> {});
+            get("/override", ctx -> {}, Role.B);
+            path("/nested", () -> {
+                get("/one", ctx -> {});
+            }, Role.B);
+        }, Role.A)));
+
+        List<ParsedEndpoint> endpoints = app.unsafe.internalRouter.allHttpHandlers();
+        assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/admin/all")).containsExactlyInAnyOrder(Role.A);
+        assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/admin/override")).containsExactlyInAnyOrder(Role.A, Role.B);
+        assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/admin/nested/one")).containsExactlyInAnyOrder(Role.A, Role.B);
+    }
+
+    private static Set<RouteRole> findEndpointRoles(List<ParsedEndpoint> endpoints, HandlerType handlerType, String path) {
+        return endpoints.stream()
+            .filter(endpoint -> endpoint.endpoint.method == handlerType && endpoint.endpoint.path.equals(path))
+            .findFirst()
+            .map(TestApiBuilderRouteRoles::roles)
+            .orElse(Collections.emptySet());
+    }
+
+    private static Set<RouteRole> roles(ParsedEndpoint parsedEndpoint) {
+        Roles metadata = parsedEndpoint.endpoint.metadata(Roles.class);
+        return metadata == null ? Collections.emptySet() : metadata.getRoles();
+    }
+}
