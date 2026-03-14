@@ -97,6 +97,7 @@ public class Javalin {
     public Javalin start(String host, int port) {
         state.jetty.host = host;
         state.jetty.port = port;
+        applyDevModePortOverride();
         jettyServer.getValue().start();
         return this;
     }
@@ -112,6 +113,7 @@ public class Javalin {
      */
     public Javalin start(int port) {
         state.jetty.port = port;
+        applyDevModePortOverride();
         jettyServer.getValue().start();
         return this;
     }
@@ -126,8 +128,21 @@ public class Javalin {
      * @see Javalin#create()
      */
     public Javalin start() {
+        applyDevModePortOverride();
         jettyServer.getValue().start();
         return this;
+    }
+
+    /**
+     * If the dev mode plugin is active, captures the user's requested port
+     * and redirects binding to the internal proxy port.
+     */
+    private void applyDevModePortOverride() {
+        String devPort = System.getProperty("javalin.dev.internalPort");
+        if (devPort != null) {
+            System.setProperty("javalin.dev.requestedPort", String.valueOf(state.jetty.port));
+            state.jetty.port = Integer.parseInt(devPort);
+        }
     }
 
     /**
