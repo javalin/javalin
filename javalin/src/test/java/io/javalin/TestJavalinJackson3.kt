@@ -99,6 +99,7 @@ internal class TestJavalinJackson3 {
         TestUtil.test(appWithJackson3()) { app, http ->
             try {
                 mockkObject(Util)
+                every { Util.classExists(any()) } answers { callOriginal() }
                 every { Util.classExists(CoreDependency.JACKSON3.testClass) } returns false
                 app.unsafe.routes.get("/") { it.json(mapOf("ok" to true)) }
                 assertThat(http.getStatus("/")).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)

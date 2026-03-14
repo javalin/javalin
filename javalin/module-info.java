@@ -39,6 +39,8 @@ module io.javalin {
     requires static com.github.luben.zstdjni;
     requires static com.fasterxml.jackson.databind;
     requires static com.fasterxml.jackson.kotlin;
+    requires static tools.jackson.databind;
+    requires static tools.jackson.module.kotlin;
     requires static com.google.gson;
 
     //Required to use the Service Loader on this type
