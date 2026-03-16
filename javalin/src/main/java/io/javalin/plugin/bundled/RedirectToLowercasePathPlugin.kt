@@ -12,7 +12,6 @@ import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginPriority
 import io.javalin.router.matcher.PathParser
 import io.javalin.router.matcher.PathSegment
-import io.javalin.util.Util.firstOrNull
 import java.util.*
 
 /**
@@ -53,7 +52,7 @@ open class RedirectToLowercasePathPlugin : Plugin<Void>() {
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
             val router = state.internalRouter
 
-            if (router.findHttpHandlerEntries(ctx.method(), requestUri).findFirst().isPresent) {
+            if (router.findHttpHandlerEntries(ctx.method(), requestUri).isNotEmpty()) {
                 return@before // we found a route for this case, no need to redirect
             }
 

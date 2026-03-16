@@ -9,8 +9,6 @@ import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.router.Endpoint
 import io.javalin.router.EndpointNotFound
 import io.javalin.security.Roles
-import io.javalin.util.Util.firstOrNull
-import io.javalin.util.javalinLazy
 
 object DefaultTasks {
 
@@ -21,19 +19,17 @@ object DefaultTasks {
     }
 
     val BEFORE_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        val httpHandlerOrNull by javalinLazy {
-            ctx.cachedHttpHandler { servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() }
-        }
-        val isResourceHandler = httpHandlerOrNull == null && (ctx.method() == HEAD || ctx.method() == GET)
-        val matchedRouteRoles by javalinLazy { httpHandlerOrNull?.endpoint?.metadata(Roles::class.java)?.roles ?: emptySet() }
-        val resourceRouteRoles by javalinLazy { servlet.cfg.resourceHandler?.resourceRouteRoles(ctx) ?: emptySet() }
-        val willMatch by javalinLazy {
-            ctx.setRouteRoles(if (isResourceHandler) resourceRouteRoles else matchedRouteRoles)
-            ctx.cachedWillMatch { servlet.willMatch(ctx, requestUri) }
-        }
-
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
+            val httpHandlerOrNull = ctx.cachedHttpHandler { servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() }
+            val willMatch = ctx.cachedWillMatch { servlet.willMatch(ctx, requestUri) }
             if (willMatch) {
+                val isResourceHandler = httpHandlerOrNull == null && (ctx.method() == HEAD || ctx.method() == GET)
+                val roles = if (isResourceHandler) {
+                    servlet.cfg.resourceHandler?.resourceRouteRoles(ctx) ?: emptySet()
+                } else {
+                    httpHandlerOrNull?.endpoint?.metadata(Roles::class.java)?.roles ?: emptySet()
+                }
+                ctx.setRouteRoles(roles)
                 httpHandlerOrNull?.let { ctx.endpoints().matchedHttpEndpointInternal = it.endpoint }
                 submitTask(LAST, Task(skipOnExceptionAndRedirect = true) {
                     entry.handle(ctx, requestUri)
@@ -74,9 +70,8 @@ object DefaultTasks {
     }
 
     val AFTER_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        val didMatch by javalinLazy { ctx.cachedWillMatch { servlet.willMatch(ctx, requestUri) } }
         servlet.router.findHttpHandlerEntries(HandlerType.AFTER_MATCHED, requestUri).forEach { entry ->
-            if (didMatch) {
+            if (ctx.cachedWillMatch { servlet.willMatch(ctx, requestUri) }) {
                 submitTask(LAST, Task(skipOnExceptionAndRedirect = false) { entry.handle(ctx, requestUri) })
             }
         }
