@@ -45,11 +45,11 @@ class Endpoints internal constructor() {
      * This method is internal and should not be visible to API users.
      */
     @JvmSynthetic
-    internal fun add(endpoint: Endpoint) {
+    internal fun add(endpoint: Endpoint, pathParams: Map<String, String> = emptyMap()) {
         stack.add(endpoint)
-        val params = endpoint.metadata(PathParams::class.java)?.params
-        if (params?.isNotEmpty() == true) {
-            lastEndpointWithPathParams = endpoint to params
+        if (pathParams.isNotEmpty()) {
+            lastMatchedEndpoint = endpoint
+            lastPathParams = pathParams
         }
     }
 
@@ -59,7 +59,9 @@ class Endpoints internal constructor() {
      * (e.g., AFTER handlers can access path params from the matched HTTP endpoint).
      */
     @JvmSynthetic
-    internal var lastEndpointWithPathParams: Pair<Endpoint?, Map<String, String>> = Pair(null, emptyMap())
+    internal var lastMatchedEndpoint: Endpoint? = null
+    @JvmSynthetic
+    internal var lastPathParams: Map<String, String> = emptyMap()
 
     /**
      * Get the HTTP endpoint that matched (or will match) the current request.

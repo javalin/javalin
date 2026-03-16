@@ -14,6 +14,7 @@ interface EndpointMetadata
 /**
  * Metadata for storing path parameters extracted from the request URI.
  */
+@Deprecated("PathParams metadata is no longer used internally. Path params are accessed via Context.pathParam() / Context.pathParamMap().")
 data class PathParams(val params: Map<String, String>) : EndpointMetadata
 
 /**
