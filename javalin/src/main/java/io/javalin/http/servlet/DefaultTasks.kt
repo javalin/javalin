@@ -24,7 +24,7 @@ object DefaultTasks {
         val httpHandlerOrNull by javalinLazy {
             ctx.cachedHttpHandler { servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() }
         }
-        val isResourceHandler = httpHandlerOrNull == null && ctx.method() in setOf(HEAD, GET)
+        val isResourceHandler = httpHandlerOrNull == null && (ctx.method() == HEAD || ctx.method() == GET)
         val matchedRouteRoles by javalinLazy { httpHandlerOrNull?.endpoint?.metadata(Roles::class.java)?.roles ?: emptySet() }
         val resourceRouteRoles by javalinLazy { servlet.cfg.resourceHandler?.resourceRouteRoles(ctx) ?: emptySet() }
         val willMatch by javalinLazy {

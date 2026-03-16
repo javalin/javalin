@@ -342,7 +342,7 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     /** Gets the current response [Charset]. */
-    fun responseCharset(): Charset = runCatching { Charset.forName(res().characterEncoding) }.getOrElse { Charset.defaultCharset() }
+    fun responseCharset(): Charset = try { Charset.forName(res().characterEncoding) } catch (_: Exception) { Charset.defaultCharset() }
 
     /**
      * Gets the output stream you can write to.
