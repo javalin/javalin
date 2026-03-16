@@ -47,4 +47,7 @@ internal fun constructRegex(
 }
 
 // Match and group values, then drop first element (the input string)
-internal fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
+internal fun values(regex: Regex, url: String): List<String> {
+    val groupValues = regex.matchEntire(url)?.groupValues ?: return emptyList()
+    return groupValues.subList(1, groupValues.size)
+}
