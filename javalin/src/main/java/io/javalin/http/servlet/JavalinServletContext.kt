@@ -188,7 +188,7 @@ open class JavalinServletContext(
     }
 
     override fun result(resultStream: InputStream): Context = apply {
-        runCatching { this.resultStream?.close() } // avoid memory leaks for multiple result() calls
+        try { this.resultStream?.close() } catch (_: Exception) {} // avoid memory leaks for multiple result() calls
         this.resultStream = resultStream
     }
 
