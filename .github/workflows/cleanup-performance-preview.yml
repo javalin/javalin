@@ -1,0 +1,33 @@
+name: Cleanup Performance Preview
+
+on:
+  pull_request:
+    types:
+      - closed
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch-cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch preview cleanup workflow
+        if: ${{ secrets.PERFORMANCE_TESTS_TRIGGER_TOKEN != '' }}
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.PERFORMANCE_TESTS_TRIGGER_TOKEN }}
+          script: |
+            await github.request("POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches", {
+              owner: "javalin",
+              repo: "javalin-performance-tests-testing",
+              workflow_id: "cleanup-pr-preview.yml",
+              ref: "main",
+              inputs: {
+                prNumber: `${{ github.event.pull_request.number }}`
+              }
+            });
+
+      - name: Skip when cleanup token is not configured
+        if: ${{ secrets.PERFORMANCE_TESTS_TRIGGER_TOKEN == '' }}
+        run: echo "Skipping cleanup dispatch because PERFORMANCE_TESTS_TRIGGER_TOKEN is not configured."

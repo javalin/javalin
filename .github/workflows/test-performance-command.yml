@@ -119,6 +119,7 @@ jobs:
                 sourceRepository: `${{ needs.evaluate.outputs.source_repository }}`,
                 sourceSha: `${{ needs.evaluate.outputs.source_sha }}`,
                 sourceRef: `${{ needs.evaluate.outputs.source_ref }}`,
+                sourcePrNumber: `${{ needs.evaluate.outputs.pr_number }}`,
                 triggerRepository: `${{ github.repository }}`,
                 triggerPrNumber: `${{ needs.evaluate.outputs.pr_number }}`,
                 triggerPrUrl: `${{ needs.evaluate.outputs.pr_url }}`
@@ -127,24 +128,30 @@ jobs:
 
       - name: Comment success
         if: steps.dispatch.outcome == 'success'
+        continue-on-error: true
         uses: actions/github-script@v8
         with:
+          github-token: ${{ secrets.PERFORMANCE_TESTS_TRIGGER_TOKEN }}
           script: |
             const workflowUrl = "https://github.com/javalin/javalin-performance-tests-testing/actions/workflows/benchmark-pr.yml";
+            const previewUrl = "https://javalin.github.io/javalin-performance-tests-testing/pr-previews/pr-${{ needs.evaluate.outputs.pr_number }}/latest/";
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body:
                 "Triggered performance benchmark pipeline.\n\n" +
-                `- Snapshot: \`${{ needs.evaluate.outputs.source_repository }}@${{ needs.evaluate.outputs.source_sha }}\`\n` +
+                `- Snapshot: \`${{ needs.evaluate.outputs.source_repository }}:${{ needs.evaluate.outputs.source_ref }}\` (\`${{ needs.evaluate.outputs.source_sha }}\`)\n` +
+                `- Preview (latest): ${previewUrl}\n` +
                 `- Workflow: ${workflowUrl}`,
             });
 
       - name: Comment failure
         if: steps.dispatch.outcome != 'success'
+        continue-on-error: true
         uses: actions/github-script@v8
         with:
+          github-token: ${{ secrets.PERFORMANCE_TESTS_TRIGGER_TOKEN }}
           script: |
             await github.rest.issues.createComment({
               owner: context.repo.owner,
