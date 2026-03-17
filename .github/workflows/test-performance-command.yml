@@ -23,7 +23,6 @@ jobs:
       source_repository: ${{ steps.evaluate.outputs.source_repository }}
       source_sha: ${{ steps.evaluate.outputs.source_sha }}
       source_ref: ${{ steps.evaluate.outputs.source_ref }}
-      source_pr_number: ${{ steps.evaluate.outputs.source_pr_number }}
       source_tarball_url: ${{ steps.evaluate.outputs.source_tarball_url }}
     steps:
       - name: Evaluate command
@@ -43,12 +42,12 @@ jobs:
             }
 
             const association = context.payload.comment?.author_association || "NONE";
-            const allowedAssociations = new Set(["OWNER", "MEMBER", "COLLABORATOR", "CONTRIBUTOR"]);
+            const allowedAssociations = new Set(["OWNER", "MEMBER"]);
             const isAuthorized = allowedAssociations.has(association);
             core.setOutput("is_authorized", isAuthorized ? "true" : "false");
 
             if (!isAuthorized) {
-              core.setOutput("reason", "Only maintainers and contributors can use /test performance.");
+              core.setOutput("reason", "Only maintainers can use /test performance.");
               return;
             }
 
@@ -82,7 +81,6 @@ jobs:
             core.setOutput("source_repository", sourceRepository);
             core.setOutput("source_sha", sourceSha);
             core.setOutput("source_ref", sourceRef);
-            core.setOutput("source_pr_number", String(pr.number));
             core.setOutput("source_tarball_url", `https://api.github.com/repos/${sourceRepository}/tarball/${sourceSha}`);
 
   reject:
@@ -124,7 +122,6 @@ jobs:
                 sourceRepository: `${{ needs.evaluate.outputs.source_repository }}`,
                 sourceSha: `${{ needs.evaluate.outputs.source_sha }}`,
                 sourceRef: `${{ needs.evaluate.outputs.source_ref }}`,
-                sourcePrNumber: `${{ needs.evaluate.outputs.source_pr_number }}`,
                 triggerRepository: `${{ github.repository }}`,
                 triggerPrNumber: `${{ needs.evaluate.outputs.pr_number }}`,
                 triggerPrUrl: `${{ needs.evaluate.outputs.pr_url }}`
