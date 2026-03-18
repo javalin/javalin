@@ -14,7 +14,6 @@ import io.javalin.http.servlet.JavalinServletContextConfig
 import io.javalin.http.servlet.JavalinWsServletContext
 import io.javalin.http.servlet.Task
 import io.javalin.router.Endpoint
-import io.javalin.router.PathParams
 import io.javalin.security.Roles
 import io.javalin.util.javalinLazy
 import io.javalin.websocket.WsConnection
@@ -65,9 +64,9 @@ class JavalinJettyServlet(val cfg: JavalinState) : JettyWebSocketServlet() {
             return
         }
 
+        val wsPathParams = wsRouterHandlerEntry.extractPathParams(requestUri)
         val wsEndpoint = Endpoint.create(HandlerType.GET, wsRouterHandlerEntry.path)
             .addMetadata(Roles(wsRouterHandlerEntry.roles))
-            .addMetadata(PathParams(wsRouterHandlerEntry.extractPathParams(requestUri)))
             .handler { }
 
         val upgradeContext = JavalinWsServletContext(
@@ -75,7 +74,7 @@ class JavalinJettyServlet(val cfg: JavalinState) : JettyWebSocketServlet() {
             req = req,
             res = res,
             routeRoles = wsRouterHandlerEntry.roles,
-        ).apply { update(wsEndpoint) }
+        ).apply { update(wsEndpoint, wsPathParams) }
         req.setAttribute(upgradeContextKey, upgradeContext)
         res.setWsProtocolHeader(req)
         // add before handlers

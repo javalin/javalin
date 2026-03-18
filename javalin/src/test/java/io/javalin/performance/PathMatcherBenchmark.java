@@ -47,12 +47,12 @@ public class PathMatcherBenchmark {
 
     @Benchmark
     public void matchFirstStream(Blackhole blackhole) {
-        blackhole.consume(pathMatcher.findEntries(GET, "/hello0").findFirst().get());
+        blackhole.consume(pathMatcher.findEntries(GET, "/hello0").get(0));
     }
 
     @Benchmark
     public void matchLastStream(Blackhole blackhole) {
-        blackhole.consume(pathMatcher.findEntries(GET, "/hello49").findFirst().get());
+        blackhole.consume(pathMatcher.findEntries(GET, "/hello49").get(0));
     }
 
     @Benchmark

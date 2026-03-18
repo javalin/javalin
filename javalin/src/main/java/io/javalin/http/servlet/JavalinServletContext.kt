@@ -116,8 +116,8 @@ open class JavalinServletContext(
 
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
 
-    fun update(endpoint: Endpoint) = also {
-        endpoints.add(endpoint)
+    fun update(endpoint: Endpoint, pathParams: Map<String, String> = emptyMap()) = also {
+        endpoints.add(endpoint, pathParams)
     }
 
     override fun req(): HttpServletRequest = req
@@ -156,15 +156,11 @@ open class JavalinServletContext(
         return cfg.strictContentTypes
     }
 
-    override fun pathParamMap(): Map<String, String> {
-        val (_, pathParams) = endpoints.lastEndpointWithPathParams
-        return Collections.unmodifiableMap(pathParams)
-    }
+    override fun pathParamMap(): Map<String, String> =
+        Collections.unmodifiableMap(endpoints.lastPathParams)
 
-    override fun pathParam(key: String): String {
-        val (endpoint, pathParams) = endpoints.lastEndpointWithPathParams
-        return pathParamOrThrow(pathParams, key, endpoint?.path ?: "")
-    }
+    override fun pathParam(key: String): String =
+        pathParamOrThrow(endpoints.lastPathParams, key, endpoints.lastMatchedEndpoint?.path ?: "")
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
     private val queryParams by javalinLazy { super.queryParamMap() }
@@ -231,7 +227,19 @@ private fun String.urlDecode(charset: String): String? =
 fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
     pathParams[key.removePrefix("{").removeSuffix("}")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
 
-fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
+fun urlDecode(s: String): String {
+    // Fast path: skip decoding if no encoded characters are present
+    var hasEncoded = false
+    for (i in s.indices) {
+        val c = s[i]
+        if (c == '+' || c == '%') {
+            hasEncoded = true
+            break
+        }
+    }
+    if (!hasEncoded) return s
+    return URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
+}
 
 /**
  * @throws IllegalStateException if specified string is not valid Basic auth header

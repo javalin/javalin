@@ -9,7 +9,6 @@ import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.router.Endpoint
 import io.javalin.router.EndpointNotFound
 import io.javalin.security.Roles
-import io.javalin.util.Util.firstOrNull
 import io.javalin.util.javalinLazy
 
 object DefaultTasks {
@@ -22,7 +21,7 @@ object DefaultTasks {
 
     val BEFORE_MATCHED = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         val httpHandlerOrNull by javalinLazy {
-            ctx.cachedHttpHandler { servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() }
+            ctx.cachedHttpHandler { servlet.router.findFirstHttpHandlerEntry(ctx.method(), requestUri) }
         }
         val isResourceHandler = httpHandlerOrNull == null && (ctx.method() == HEAD || ctx.method() == GET)
         val matchedRouteRoles by javalinLazy { httpHandlerOrNull?.endpoint?.metadata(Roles::class.java)?.roles ?: emptySet() }
@@ -43,7 +42,7 @@ object DefaultTasks {
     }
 
     val HTTP = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
-        val entry = ctx.cachedHttpHandler { servlet.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() }
+        val entry = ctx.cachedHttpHandler { servlet.router.findFirstHttpHandlerEntry(ctx.method(), requestUri) }
         if (entry != null) {
             submitTask(
                 LAST,
@@ -94,7 +93,7 @@ object DefaultTasks {
 
     private fun JavalinServlet.willMatch(ctx: JavalinServletContext, requestUri: String) = when {
         ctx.method() == HEAD && this.router.hasHttpHandlerEntry(GET, requestUri) -> true
-        ctx.cachedHttpHandler { this.router.findHttpHandlerEntries(ctx.method(), requestUri).firstOrNull() } != null -> true
+        ctx.cachedHttpHandler { this.router.findFirstHttpHandlerEntry(ctx.method(), requestUri) } != null -> true
         this.cfg.resourceHandler?.canHandle(ctx) == true -> true
         this.cfg.singlePageHandler.canHandle(ctx) -> true
         else -> false

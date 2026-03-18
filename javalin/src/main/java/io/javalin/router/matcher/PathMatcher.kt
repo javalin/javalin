@@ -8,7 +8,7 @@ package io.javalin.router.matcher
 
 import io.javalin.http.HandlerType
 import io.javalin.router.ParsedEndpoint
-import java.util.stream.Stream
+import java.util.Collections
 
 class PathMatcher {
 
@@ -30,16 +30,39 @@ class PathMatcher {
         handlerEntries[type]!!.add(entry)
     }
 
-    fun findEntries(handlerType: HandlerType, requestUri: String?): Stream<ParsedEndpoint> =
-        when (requestUri) {
-            null -> handlerEntries(handlerType).stream()
-            else -> handlerEntries(handlerType).stream().filter { he -> match(he, requestUri) }
+    fun findEntries(handlerType: HandlerType, requestUri: String?): List<ParsedEndpoint> {
+        if (requestUri == null) return Collections.unmodifiableList(handlerEntries(handlerType))
+        val entries = handlerEntries(handlerType)
+        // Optimized filtering: avoid allocating a list for common cases (0 or 1 match)
+        var firstMatch: ParsedEndpoint? = null
+        var result: MutableList<ParsedEndpoint>? = null
+        for (entry in entries) {
+            if (match(entry, requestUri)) {
+                if (firstMatch == null) {
+                    firstMatch = entry
+                } else {
+                    if (result == null) {
+                        result = ArrayList(4)
+                        result.add(firstMatch)
+                    }
+                    result.add(entry)
+                }
+            }
         }
+        return result ?: (if (firstMatch != null) listOf(firstMatch) else emptyList())
+    }
+
+    fun findFirstEntry(handlerType: HandlerType, requestUri: String): ParsedEndpoint? {
+        for (entry in handlerEntries(handlerType)) {
+            if (match(entry, requestUri)) return entry
+        }
+        return null
+    }
+
+    fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
+        findFirstEntry(handlerType, requestUri) != null
 
     fun allEntries() = handlerEntries.values.flatten()
-
-    internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
-        handlerEntries(handlerType).any { entry -> match(entry, requestUri) }
 
     private fun match(entry: ParsedEndpoint, requestPath: String): Boolean = when (entry.endpoint.path) {
         "*" -> true
