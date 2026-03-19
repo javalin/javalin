@@ -20,6 +20,8 @@ import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.kotlinModule
 import kotlin.streams.asStream
 
 internal class TestJavalinJackson3 {
@@ -38,8 +40,9 @@ internal class TestJavalinJackson3 {
 
     @Test
     fun `can use JavalinJackson3 with a custom json-mapper on a kotlin data class`() {
-        val mapped = JavalinJackson3().toJsonString(SerializableDataClass("First value", "Second value"))
-        val mappedBack = JavalinJackson3().fromJsonString<SerializableDataClass>(mapped)
+        val mapper = JavalinJackson3(JsonMapper.builder().addModule(kotlinModule()).build())
+        val mapped = mapper.toJsonString(SerializableDataClass("First value", "Second value"))
+        val mappedBack = mapper.fromJsonString<SerializableDataClass>(mapped)
         assertThat("First value").isEqualTo(mappedBack.value1)
         assertThat("Second value").isEqualTo(mappedBack.value2)
     }
