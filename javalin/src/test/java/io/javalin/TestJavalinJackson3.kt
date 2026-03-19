@@ -21,7 +21,6 @@ import io.mockk.unmockkObject
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.json.JsonMapper
-import tools.jackson.module.kotlin.kotlinModule
 import kotlin.streams.asStream
 
 internal class TestJavalinJackson3 {
@@ -39,8 +38,8 @@ internal class TestJavalinJackson3 {
     data class SerializableDataClass(val value1: String = "Default1", val value2: String)
 
     @Test
-    fun `can use JavalinJackson3 with a custom json-mapper on a kotlin data class`() {
-        val mapper = JavalinJackson3(JsonMapper.builder().addModule(kotlinModule()).build())
+    fun `can use JavalinJackson3 with a default json-mapper on a kotlin data class`() {
+        val mapper = JavalinJackson3()
         val mapped = mapper.toJsonString(SerializableDataClass("First value", "Second value"))
         val mappedBack = mapper.fromJsonString<SerializableDataClass>(mapped)
         assertThat("First value").isEqualTo(mappedBack.value1)
@@ -52,6 +51,18 @@ internal class TestJavalinJackson3 {
         data class TestClass(val one: String? = null, val two: String? = null)
         app.unsafe.routes.get("/") { it.json(TestClass()) }
         assertThat(http.getBody("/")).isEqualTo("""{"one":null,"two":null}""")
+    }
+
+    @Test
+    fun `can use custom JsonMapper for JavalinJackson3`() = TestUtil.test(Javalin.create {
+        it.jsonMapper(JavalinJackson3(JsonMapper.builder()
+            .changeDefaultPropertyInclusion { incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL) }
+            .build()
+        ))
+    }) { app, http ->
+        data class TestClass(val one: String? = null, val two: String? = null)
+        app.unsafe.routes.get("/") { it.json(TestClass()) }
+        assertThat(http.getBody("/")).isEqualTo("{}")
     }
 
     @Test
