@@ -227,19 +227,9 @@ private fun String.urlDecode(charset: String): String? =
 fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
     pathParams[key.removePrefix("{").removeSuffix("}")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
 
-fun urlDecode(s: String): String {
-    // Fast path: skip decoding if no encoded characters are present
-    var hasEncoded = false
-    for (i in s.indices) {
-        val c = s[i]
-        if (c == '+' || c == '%') {
-            hasEncoded = true
-            break
-        }
-    }
-    if (!hasEncoded) return s
-    return URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
-}
+fun urlDecode(s: String) =
+    if (!s.any { it == '+' || it == '%' }) s // Fast path: single-pass check, zero allocations
+    else URLDecoder.decode(s.replace("+", "%2B"), "UTF-8") // Slow path: protect literal '+' without corrupting double-encoded '%'
 
 /**
  * @throws IllegalStateException if specified string is not valid Basic auth header

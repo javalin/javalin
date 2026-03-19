@@ -65,10 +65,11 @@ class PathParser(private val rawPath: String, routerConfig: RouterConfig) {
         if (pathParamNames.isEmpty()) return emptyMap()
         val index = if (matchRegex.size == 1) 0 else matchRegex.indexOfFirst { url matches it }
         val paramValues = values(pathParamRegex[index], url)
-        val map = HashMap<String, String>(pathParamNames.size * 2)
-        for (i in pathParamNames.indices) {
-            map[pathParamNames[i]] = urlDecode(paramValues[i])
+        return HashMap<String, String>(pathParamNames.size * 2).apply {
+            for (i in pathParamNames.indices) {
+                put(pathParamNames[i], urlDecode(paramValues[i]))
+            }
         }
-        return map
     }
+
 }

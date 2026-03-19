@@ -31,35 +31,26 @@ class PathMatcher {
     }
 
     fun findEntries(handlerType: HandlerType, requestUri: String?): List<ParsedEndpoint> {
-        if (requestUri == null) return Collections.unmodifiableList(handlerEntries(handlerType))
-        val entries = handlerEntries(handlerType)
-        // Optimized filtering: avoid allocating a list for common cases (0 or 1 match)
+        val candidates = handlerEntries(handlerType)
+        if (requestUri == null) return Collections.unmodifiableList(candidates)
         var firstMatch: ParsedEndpoint? = null
-        var result: MutableList<ParsedEndpoint>? = null
-        for (entry in entries) {
-            if (match(entry, requestUri)) {
-                if (firstMatch == null) {
-                    firstMatch = entry
-                } else {
-                    if (result == null) {
-                        result = ArrayList(4)
-                        result.add(firstMatch)
-                    }
-                    result.add(entry)
-                }
+        var allMatches: MutableList<ParsedEndpoint>? = null
+        for (candidate in candidates) {
+            if (!match(candidate, requestUri)) continue
+            if (firstMatch == null) {
+                firstMatch = candidate
+            } else {
+                if (allMatches == null) allMatches = ArrayList<ParsedEndpoint>(4).apply { add(firstMatch) }
+                allMatches.add(candidate)
             }
         }
-        return result ?: (if (firstMatch != null) listOf(firstMatch) else emptyList())
+        return allMatches ?: firstMatch?.let { listOf(it) } ?: emptyList()
     }
 
-    fun findFirstEntry(handlerType: HandlerType, requestUri: String): ParsedEndpoint? {
-        for (entry in handlerEntries(handlerType)) {
-            if (match(entry, requestUri)) return entry
-        }
-        return null
-    }
+    fun findFirstEntry(handlerType: HandlerType, requestUri: String) =
+        handlerEntries(handlerType).firstOrNull { match(it, requestUri) }
 
-    fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
+    fun hasEntries(handlerType: HandlerType, requestUri: String) =
         findFirstEntry(handlerType, requestUri) != null
 
     fun allEntries() = handlerEntries.values.flatten()
