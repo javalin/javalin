@@ -1,6 +1,7 @@
 package io.javalin.micrometer
 
 import io.javalin.Javalin
+import io.javalin.http.Header
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
@@ -10,8 +11,13 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import io.javalin.testtools.TestConfig
+import java.net.URI
 import java.net.http.HttpClient
+import java.net.http.WebSocket
 import java.time.Duration
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 
 class MicrometerPluginTest {
@@ -131,7 +137,7 @@ class MicrometerPluginTest {
             val response = http.get("/hello")
             val etag = response.headers().get("ETag")?.firstOrNull().orEmpty()
             val response2 = http.get("/hello") {
-                it.header("If-None-Match", etag)
+                it.header(Header.IF_NONE_MATCH, etag)
             }
             assertThat(response2.code).isEqualTo(304) // NOT MODIFIED
         }
@@ -220,7 +226,7 @@ class MicrometerPluginTest {
             ctx.status(OK)
         }
         repeat(requestCount) {
-            http.request("/hello") { b -> b.header("X-Http-Method-Override", "POSTS") }
+            http.request("/hello") { b -> b.header(Header.X_HTTP_METHOD_OVERRIDE, "POSTS") }
         }
 
         val notFoundCountGeneric = meterRegistry.get("http.server.requests")
@@ -265,6 +271,31 @@ class MicrometerPluginTest {
             .timer()
             .count()
         assertThat(timerCount).isEqualTo(requestCount.toLong())
+    }
+
+    @Test
+    fun `wsExceptionHandler sets exception attribute on WsContext`() = JavalinTest.test(setupApp()) { app, _ ->
+        val capturedExceptionName = AtomicReference<String?>()
+        val latch = CountDownLatch(1)
+
+        app.unsafe.routes.ws("/ws") { ws ->
+            ws.onMessage { throw IllegalArgumentException("boom") }
+        }
+        app.unsafe.routes.wsException(IllegalArgumentException::class.java) { e, ctx ->
+            MicrometerPlugin.wsExceptionHandler.handle(e, ctx)
+            capturedExceptionName.set(ctx.attribute("__micrometer_exception_name"))
+            latch.countDown()
+        }
+
+        val wsClient = HttpClient.newHttpClient()
+            .newWebSocketBuilder()
+            .buildAsync(URI.create("ws://localhost:${app.port()}/ws"), object : WebSocket.Listener {})
+            .join()
+        wsClient.sendText("trigger", true).join()
+        latch.await(2, TimeUnit.SECONDS)
+        wsClient.abort()
+
+        assertThat(capturedExceptionName.get()).isEqualTo("IllegalArgumentException")
     }
 
     private fun setupApp(

@@ -3,6 +3,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>javalin</module>
+        <module>javalin-bom</module>
         <module>javalin-bundle</module>
         <module>javalin-testtools</module>
         <module>javalin-utils</module>
@@ -13,7 +14,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>7.0.2-SNAPSHOT</version>
+    <version>7.1.1-SNAPSHOT</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>

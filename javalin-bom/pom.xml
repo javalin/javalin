@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        The parent reference ensures this module's version stays in sync with the rest
+        of the reactor during version bumps (e.g. mvn versions:set). The flatten-maven-plugin
+        strips the parent from the published POM so consumers only get Javalin artifact
+        versions without inheriting the parent's dependencyManagement (Jetty, Jackson, etc.).
+    -->
+    <parent>
+        <groupId>io.javalin</groupId>
+        <artifactId>javalin-parent</artifactId>
+        <version>7.1.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>javalin-bom</artifactId>
+    <packaging>pom</packaging>
+    <name>Javalin BOM (Bill of Materials)</name>
+    <description>Javalin BOM for managing Javalin artifact versions</description>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Core -->
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-bundle</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-testtools</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-micrometer</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- SSL -->
+            <dependency>
+                <groupId>io.javalin.community.ssl</groupId>
+                <artifactId>javalin-ssl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Utilities -->
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-context-mock</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Rendering -->
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-velocity</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-freemarker</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-thymeleaf</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-mustache</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-handlebars</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-pebble</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-commonmark</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin-rendering-jte</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <!--
+                Produces a flattened POM for publishing that:
+                - Removes the parent reference (no leaking of parent's dependencyManagement)
+                - Resolves ${project.version} to concrete version numbers
+                - Keeps only this BOM's own dependencyManagement entries
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <flattenMode>bom</flattenMode>
+                    <pomElements>
+                        <properties>remove</properties>
+                        <build>remove</build>
+                    </pomElements>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten-clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

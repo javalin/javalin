@@ -6,6 +6,7 @@ import io.javalin.http.Header
 import io.javalin.security.RouteRole
 import jakarta.servlet.http.HttpServletRequest
 import java.nio.file.Path
+import java.util.Collections
 
 /** The static files location. */
 enum class Location {
@@ -58,9 +59,9 @@ data class StaticFileConfig(
 
 /** Configures static files Mime Types based on file extensions.*/
 class MimeTypesConfig {
-    private val extensionToMimeType: MutableMap<String, String> = mutableMapOf()
+    private var extensionToMimeType: Map<String, String> = emptyMap()
 
-    fun mapping(): Map<String, String> = extensionToMimeType.toMap()
+    fun mapping(): Map<String, String> = extensionToMimeType
 
     /**
      * Adds a known content type to this configuration.
@@ -86,9 +87,7 @@ class MimeTypesConfig {
      * @param extensions the extensions to use the given mime type
      */
     fun add(mimeType: String, vararg extensions: String) {
-        extensions.forEach { ext ->
-            extensionToMimeType[ext] = mimeType
-        }
+        extensionToMimeType = Collections.unmodifiableMap(extensionToMimeType + extensions.associateWith { mimeType })
     }
 
     override fun toString(): String = extensionToMimeType.toString()

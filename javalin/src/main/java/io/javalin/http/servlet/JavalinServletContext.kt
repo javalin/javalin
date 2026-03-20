@@ -22,6 +22,7 @@ import io.javalin.plugin.ContextPlugin
 import io.javalin.plugin.PluginManager
 import io.javalin.router.Endpoint
 import io.javalin.router.Endpoints
+import io.javalin.router.ParsedEndpoint
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.security.RouteRole
 import io.javalin.util.javalinLazy
@@ -80,6 +81,34 @@ open class JavalinServletContext(
 ) : Context {
 
     private val endpoints: Endpoints = Endpoints()
+
+    // State: 0 = UNSET, 1 = TRUE, -1 = FALSE
+    private var cachedWillMatchState: Int = 0
+
+    @JvmSynthetic
+    internal inline fun cachedWillMatch(lookup: () -> Boolean): Boolean {
+        if (cachedWillMatchState == 0) {
+            cachedWillMatchState = if (lookup()) 1 else -1
+        }
+        return cachedWillMatchState == 1
+    }
+
+    private var cachedHttpHandlerValue: Any? = UNSET
+
+    @JvmSynthetic
+    @Suppress("UNCHECKED_CAST")
+    internal inline fun cachedHttpHandler(lookup: () -> ParsedEndpoint?): ParsedEndpoint? {
+        if (cachedHttpHandlerValue === UNSET) {
+            cachedHttpHandlerValue = lookup()
+        }
+        return cachedHttpHandlerValue as ParsedEndpoint?
+    }
+
+    @PublishedApi
+    internal companion object {
+        @PublishedApi
+        internal val UNSET = Any()
+    }
 
     init {
         contentType(cfg.defaultContentType)
@@ -159,7 +188,7 @@ open class JavalinServletContext(
     }
 
     override fun result(resultStream: InputStream): Context = apply {
-        runCatching { this.resultStream?.close() } // avoid memory leaks for multiple result() calls
+        try { this.resultStream?.close() } catch (_: Exception) {} // avoid memory leaks for multiple result() calls
         this.resultStream = resultStream
     }
 
@@ -197,10 +226,10 @@ fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<Strin
         .mapNotNull { (k, v) -> k?.let { it to v.filterNotNull() } }.toMap()
 
 private fun String.urlDecode(charset: String): String? =
-    runCatching { URLDecoder.decode(this, charset) }.getOrNull()
+    try { URLDecoder.decode(this, charset) } catch (_: Exception) { null }
 
 fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
-    pathParams[key.replaceFirst("{", "").replaceFirst("}", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
+    pathParams[key.removePrefix("{").removeSuffix("}")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
 
 fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 

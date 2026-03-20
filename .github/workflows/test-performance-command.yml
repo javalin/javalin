@@ -1,0 +1,169 @@
+name: Test performance command
+
+on:
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  evaluate:
+    if: github.event.issue.pull_request != null
+    runs-on: ubuntu-latest
+    outputs:
+      is_command: ${{ steps.evaluate.outputs.is_command }}
+      is_authorized: ${{ steps.evaluate.outputs.is_authorized }}
+      reason: ${{ steps.evaluate.outputs.reason }}
+      pr_number: ${{ steps.evaluate.outputs.pr_number }}
+      pr_url: ${{ steps.evaluate.outputs.pr_url }}
+      source_repository: ${{ steps.evaluate.outputs.source_repository }}
+      source_sha: ${{ steps.evaluate.outputs.source_sha }}
+      source_ref: ${{ steps.evaluate.outputs.source_ref }}
+      source_tarball_url: ${{ steps.evaluate.outputs.source_tarball_url }}
+    steps:
+      - name: Evaluate command
+        id: evaluate
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const commentBody = (context.payload.comment?.body || "").replace(/\s+/g, " ").trim();
+            const lowered = commentBody.toLowerCase();
+            const isCommand = lowered === "/test performance" || lowered.startsWith("/test performance ");
+            core.setOutput("is_command", isCommand ? "true" : "false");
+
+            if (!isCommand) {
+              core.setOutput("is_authorized", "false");
+              core.setOutput("reason", "Not a /test performance command.");
+              return;
+            }
+
+            const association = context.payload.comment?.author_association || "NONE";
+            const allowedAssociations = new Set(["OWNER", "MEMBER"]);
+            const isAuthorized = allowedAssociations.has(association);
+            core.setOutput("is_authorized", isAuthorized ? "true" : "false");
+
+            if (!isAuthorized) {
+              core.setOutput("reason", "Only maintainers can use /test performance.");
+              return;
+            }
+
+            const prNumber = context.issue.number;
+            const { owner, repo } = context.repo;
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber,
+            });
+
+            if (pr.state !== "open") {
+              core.setOutput("is_authorized", "false");
+              core.setOutput("reason", "PR is not open.");
+              return;
+            }
+
+            if (!pr.head?.repo?.full_name || !pr.head?.sha || !pr.head?.ref) {
+              core.setOutput("is_authorized", "false");
+              core.setOutput("reason", "Could not resolve PR head snapshot details.");
+              return;
+            }
+
+            const sourceRepository = pr.head.repo.full_name;
+            const sourceSha = pr.head.sha;
+            const sourceRef = pr.head.ref;
+
+            core.setOutput("reason", `Command accepted for ${sourceRepository}@${sourceSha}.`);
+            core.setOutput("pr_number", String(pr.number));
+            core.setOutput("pr_url", pr.html_url);
+            core.setOutput("source_repository", sourceRepository);
+            core.setOutput("source_sha", sourceSha);
+            core.setOutput("source_ref", sourceRef);
+            core.setOutput("source_tarball_url", `https://api.github.com/repos/${sourceRepository}/tarball/${sourceSha}`);
+
+  reject:
+    needs: evaluate
+    if: needs.evaluate.outputs.is_command == 'true' && needs.evaluate.outputs.is_authorized != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain rejection
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const reason = ${{ toJSON(needs.evaluate.outputs.reason) }};
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Ignored \`/test performance\`: ${reason}`,
+            });
+
+  dispatch:
+    needs: evaluate
+    if: needs.evaluate.outputs.is_command == 'true' && needs.evaluate.outputs.is_authorized == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch benchmark workflow
+        id: dispatch
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.PERF_ACTIONS_CONTENTS_RW }}
+          script: |
+            await github.request("POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches", {
+              owner: "javalin",
+              repo: "javalin-performance-tests-testing",
+              workflow_id: "benchmark-pr.yml",
+              ref: "main",
+              inputs: {
+                sourceRepository: `${{ needs.evaluate.outputs.source_repository }}`,
+                sourceSha: `${{ needs.evaluate.outputs.source_sha }}`,
+                sourceRef: `${{ needs.evaluate.outputs.source_ref }}`,
+                sourcePrNumber: `${{ needs.evaluate.outputs.pr_number }}`,
+                triggerRepository: `${{ github.repository }}`,
+                triggerPrNumber: `${{ needs.evaluate.outputs.pr_number }}`,
+                triggerPrUrl: `${{ needs.evaluate.outputs.pr_url }}`
+              }
+            });
+
+      - name: Comment success
+        if: steps.dispatch.outcome == 'success'
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.JAVALIN_PR_RW }}
+          script: |
+            const workflowUrl = "https://github.com/javalin/javalin-performance-tests-testing/actions/workflows/benchmark-pr.yml";
+            const previewUrl = "https://javalin.github.io/javalin-performance-tests-testing/pr-previews/pr-${{ needs.evaluate.outputs.pr_number }}/latest/";
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body:
+                "Triggered performance benchmark pipeline.\n\n" +
+                `- Snapshot: \`${{ needs.evaluate.outputs.source_repository }}:${{ needs.evaluate.outputs.source_ref }}\` (\`${{ needs.evaluate.outputs.source_sha }}\`)\n` +
+                `- Preview (latest): ${previewUrl}\n` +
+                `- Workflow: ${workflowUrl}`,
+            });
+
+      - name: Comment failure
+        if: steps.dispatch.outcome != 'success'
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.JAVALIN_PR_RW }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body:
+                "Failed to trigger performance benchmark pipeline.\n\n" +
+                "Check whether the `PERF_ACTIONS_CONTENTS_RW` secret is configured with access to `javalin/javalin-performance-tests-testing` workflows.",
+            });
+
+      - name: Fail job if dispatch failed
+        if: steps.dispatch.outcome != 'success'
+        run: exit 1

@@ -2,6 +2,7 @@ package io.javalin
 
 import io.javalin.http.ContentType
 import io.javalin.http.HttpStatus
+import io.javalin.http.Header
 import io.javalin.http.servlet.DefaultTasks.AFTER
 import io.javalin.http.servlet.DefaultTasks.AFTER_MATCHED
 import io.javalin.http.servlet.DefaultTasks.BEFORE
@@ -225,7 +226,7 @@ class TestBeforeAfterMatched {
         assertThat(res.status).describedAs("status").isEqualTo(HttpStatus.OK.code)
         assertThat(res.headers.getFirst("X-Matched-Before")).describedAs("before-header").isEqualTo("true")
         assertThat(res.headers.getFirst("X-Matched-After")).describedAs("after-header").isEqualTo("true")
-        assertThat(res.headers.getFirst("Content-Type")).describedAs("content-type").isEqualTo(ContentType.HTML)
+        assertThat(res.headers.getFirst(Header.CONTENT_TYPE)).describedAs("content-type").isEqualTo(ContentType.HTML)
         assertThat(res.body).describedAs("body").contains("<h1>HTML works</h1>")
     }
 
@@ -288,7 +289,7 @@ class TestBeforeAfterMatched {
         assertThat(afterRan).describedAs("after-ran").isEqualTo(true)
         assertThat(res.headers.getFirst("X-After")).describedAs("after-header").isEqualTo("true")
         assertThat(res.headers.getFirst("X-Matched-After")).describedAs("after-matched-header").isEqualTo("true")
-        assertThat(res.headers.getFirst("Content-Type")).describedAs("content-type").isEqualTo(ContentType.HTML)
+        assertThat(res.headers.getFirst(Header.CONTENT_TYPE)).describedAs("content-type").isEqualTo(ContentType.HTML)
         assertThat(res.body).describedAs("body").contains("<h1>HTML works</h1>")
     }
 
@@ -393,6 +394,29 @@ class TestBeforeAfterMatched {
         app.unsafe.routes.get("/test", {}, Role.A)
         app.unsafe.routes.afterMatched { it.result(it.routeRoles().toString()) }
         assertThat(http.getBody("/test")).isEqualTo("[A]")
+    }
+
+    @Test
+    fun `router heavily exercises caching across lifecycle phases`() = TestUtil.test(Javalin.create { cfg ->
+        // Setup before/after filters to force the router to evaluate the endpoint multiple times
+        // during the same request lifecycle, triggering the cache hits.
+        cfg.routes.before("/*") { ctx -> ctx.attribute("req_start", true) }
+        cfg.routes.get("/hello") { ctx -> ctx.result("Hello World") }
+        cfg.routes.after("/*") { ctx -> ctx.res().addHeader("X-Lifecycle-Complete", "true") }
+    }) { _, http ->
+        // 1. The Happy Path (Cache TRUE and valid ParsedEndpoint)
+        // - Initial route match sets the cache.
+        // - AFTER phase reads from the cache.
+        val response = http.get("/hello")
+        assertThat(response.body).isEqualTo("Hello World")
+        assertThat(response.headers.getFirst("X-Lifecycle-Complete")).isEqualTo("true")
+
+        // 2. The "UNSET -> null" Path (Cache FALSE and null)
+        // - Framework tries to find a handler, fails, and caches 'null' / 'false'.
+        // - AFTER phase fires for "/*", asks the router if a specific handler existed, and hits the 'null' cache.
+        val notFoundResponse = http.get("/does-not-exist")
+        assertThat(notFoundResponse.status).isEqualTo(404)
+        assertThat(notFoundResponse.headers.getFirst("X-Lifecycle-Complete")).isEqualTo("true")
     }
 
 }

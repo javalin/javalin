@@ -7,14 +7,10 @@
 
 package io.javalin
 
-import gg.jte.ContentType
-import gg.jte.TemplateEngine
-import gg.jte.resolve.DirectoryCodeResolver
 import io.javalin.rendering.template.JavalinJte
 import io.javalin.testtools.JavalinTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.nio.file.Path
 
 class TestJte {
 
@@ -36,9 +32,7 @@ class TestJte {
 
     @Test
     fun `jte external templates work`() = JavalinTest.test(Javalin.create { config ->
-        val codeResolver = DirectoryCodeResolver(Path.of("src/test/resources/templates/jte"))
-        val templateEngine = TemplateEngine.create(codeResolver, ContentType.Html)
-        config.fileRenderer(JavalinJte(templateEngine))
+        config.fileRenderer(JavalinJte(JavalinJte.directoryTemplateEngine("src/test/resources/templates/jte")))
         config.routes.get("/hello") { it.render("test.jte", mapOf("message" to "External Template!")) }
     }) { app, http ->
         assertThat(http.get("/hello").body?.string()).isEqualTo("<h1>External Template!</h1>")

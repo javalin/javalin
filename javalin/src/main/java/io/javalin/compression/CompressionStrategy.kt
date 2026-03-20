@@ -5,7 +5,6 @@ import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
-import java.util.Locale.getDefault
 
 /**
  * This class is a settings container for Javalin's content compression.
@@ -156,7 +155,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null, zstd: Zstd
 
     private fun getPreferredCompressorForSupportedCompressors(supportedCompressors: List<String>): Compressor? {
         for (preferredCompressor in preferredCompressors) {
-            if (supportedCompressors.contains(preferredCompressor.typeName)) {
+            if (supportedCompressors.any { it.equals(preferredCompressor.typeName, ignoreCase = true) }) {
                 val compressor = compressors.forType(preferredCompressor.typeName)
 
                 if (compressor != null) {
@@ -172,7 +171,6 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null, zstd: Zstd
         val supportedCompressors = encodingHeaderValue
             .split(",")
             .map { it.trim() }
-            .map { it.lowercase(getDefault()) }
 
         val compressor = getPreferredCompressorForSupportedCompressors(supportedCompressors)
 

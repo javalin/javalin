@@ -69,10 +69,10 @@ class TestSse {
     fun `all headers are correctly configured`() = TestUtil.test { app, http ->
         app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val headers = http.sse("/sse").get().headers // Headers extends HashMap<String, List<String>>
-        assertThat(headers.getFirst("Connection")).containsIgnoringCase("close")
-        assertThat(headers.getFirst("Content-Type")).containsIgnoringCase("text/event-stream")
-        assertThat(headers.getFirst("Content-Type")).containsIgnoringCase("charset=utf-8")
-        assertThat(headers.getFirst("Cache-Control")).containsIgnoringCase("no-cache")
+        assertThat(headers.getFirst(Header.CONNECTION)).containsIgnoringCase("close")
+        assertThat(headers.getFirst(Header.CONTENT_TYPE)).containsIgnoringCase("text/event-stream")
+        assertThat(headers.getFirst(Header.CONTENT_TYPE)).containsIgnoringCase("charset=utf-8")
+        assertThat(headers.getFirst(Header.CACHE_CONTROL)).containsIgnoringCase("no-cache")
     }
 
     @Test

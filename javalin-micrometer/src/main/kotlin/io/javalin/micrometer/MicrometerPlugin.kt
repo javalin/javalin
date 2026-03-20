@@ -12,6 +12,7 @@ import io.javalin.http.ExceptionHandler
 import io.javalin.http.HandlerType
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.Plugin
+import io.javalin.websocket.WsExceptionHandler
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tag
@@ -197,6 +198,16 @@ class MicrometerPlugin @JvmOverloads constructor(
             val simpleName = e.javaClass.simpleName
             ctx.header(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
+        /**
+         * WebSocket exception handler that can be used to tag exceptions in metrics.
+         * Users should delegate to this handler in their own WebSocket exception handling code.
+         */
+        @JvmField
+        val wsExceptionHandler = WsExceptionHandler<Exception> { e, ctx ->
+            val simpleName = e.javaClass.simpleName
+            ctx.attribute(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
         }
     }
 }

@@ -4,6 +4,7 @@ import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.config.JavalinState;
 import io.javalin.http.Context;
+import io.javalin.http.Header;
 import io.javalin.plugin.Plugin;
 
 import java.util.Map;
@@ -161,14 +162,14 @@ public class CopilotInstructionsPatternValidation {
                 String query = ctx.queryParam("q");
 
                 // Headers
-                String auth = ctx.header("Authorization");
+                String auth = ctx.header(Header.AUTHORIZATION);
 
                 // Cookies
                 String session = ctx.cookie("session");
 
                 // Response building
                 ctx.status(200);
-                ctx.header("X-Custom", "value");
+                ctx.header(Header.X_REQUEST_ID, "test-id");
                 ctx.json(Map.of("success", true));
             });
         });

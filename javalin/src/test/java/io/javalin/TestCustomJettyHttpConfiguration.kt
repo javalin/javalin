@@ -6,6 +6,7 @@
 
 package io.javalin
 
+import io.javalin.http.Header
 import io.javalin.testing.TestUtil
 
 import kong.unirest.Unirest
@@ -39,7 +40,7 @@ class TestCustomJettyHttpConfiguration {
             it.result(it.scheme())
         }
     }) { javalin, http ->
-        val response = http.get("/", mapOf("X-Forwarded-Proto" to "https")).body
+        val response = http.get("/", mapOf(Header.X_FORWARDED_PROTO to "https")).body
         assertThat(response).isEqualTo("https")
     }
 
@@ -49,7 +50,7 @@ class TestCustomJettyHttpConfiguration {
             it.result(it.scheme())
         }
     }) { javalin, http ->
-        val response = http.get("/", mapOf("X-Forwarded-Proto" to "https")).body
+        val response = http.get("/", mapOf(Header.X_FORWARDED_PROTO to "https")).body
         assertThat(response).isNotEqualTo("https")
     }
 

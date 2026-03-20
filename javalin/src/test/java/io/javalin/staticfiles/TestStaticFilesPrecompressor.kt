@@ -142,16 +142,16 @@ class TestStaticFilesPrecompressor {
     @Test
     fun `precompressed files are served with correct content-type`() = testStaticFiles(configPrecompressionStaticResourceConfig) { _, http ->
         assertThat(http.getFile("/secret.html", "br"))
-            .extracting({ it.code }, { it.header("Content-Type") })
+            .extracting({ it.code }, { it.header(Header.CONTENT_TYPE) })
             .containsExactly(HttpStatus.OK.code, "text/html")
         assertThat(http.getFile("/library-1.0.0.min.js", "br"))
-            .extracting({ it.code }, { it.header("Content-Type") })
+            .extracting({ it.code }, { it.header(Header.CONTENT_TYPE) })
             .containsExactly(HttpStatus.OK.code, "text/javascript")
         assertThat(http.getFile("/library-1.0.0.min.js", "gzip, br"))
-            .extracting({ it.code }, { it.header("Content-Type") })
+            .extracting({ it.code }, { it.header(Header.CONTENT_TYPE) })
             .containsExactly(HttpStatus.OK.code, "text/javascript")
         assertThat(http.getFile("/library-1.0.0.min.js", "deflate"))
-            .extracting({ it.code }, { it.header("Content-Type") })
+            .extracting({ it.code }, { it.header(Header.CONTENT_TYPE) })
             .containsExactly(HttpStatus.OK.code, "text/javascript")
     }
 
@@ -160,7 +160,7 @@ class TestStaticFilesPrecompressor {
         // Gzip
         val gzipResponse = http.getFile("/secret.html", "gzip")
         assertThat(gzipResponse)
-            .extracting({ it.code }, { it.header("Content-Encoding") })
+            .extracting({ it.code }, { it.header(Header.CONTENT_ENCODING) })
             .containsExactly(HttpStatus.OK.code, "gzip")
         val gzipInputStream = GZIPInputStream(gzipResponse.body?.byteStream())
         assertThat(gzipInputStream.readBytes().toString(Charsets.UTF_8)).contains("<h1>Secret file</h1>")
@@ -170,7 +170,7 @@ class TestStaticFilesPrecompressor {
         assumeTrue(Brotli4jLoader.isAvailable())
         val brotliResponse = http.getFile("/secret.html", "br")
         assertThat(brotliResponse)
-            .extracting({ it.code }, { it.header("Content-Encoding") })
+            .extracting({ it.code }, { it.header(Header.CONTENT_ENCODING) })
             .containsExactly(HttpStatus.OK.code, "br")
         val brotliInputStream = BrotliInputStream(brotliResponse.body?.byteStream())
         assertThat(brotliInputStream.readBytes().toString(Charsets.UTF_8)).contains("<h1>Secret file</h1>")
@@ -212,7 +212,7 @@ class TestStaticFilesPrecompressor {
         app.unsafe.routes.after { it.header("X-After", "true") }
         val res = http.get("/html.html")
         assertThat(res.status).describedAs("status").isEqualTo(HttpStatus.OK.code)
-        assertThat(res.headers.getFirst("Content-Type")).describedAs("content-type").isEqualTo(ContentType.HTML)
+        assertThat(res.headers.getFirst(Header.CONTENT_TYPE)).describedAs("content-type").isEqualTo(ContentType.HTML)
         assertThat(res.body).describedAs("body").contains("<h1>HTML works</h1>")
         assertThat(res.headers.getFirst("X-After")).describedAs("after-header").isEqualTo("true")
     }
