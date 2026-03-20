@@ -14,9 +14,7 @@ import io.javalin.security.RouteRole;
 import io.javalin.websocket.WsConfig;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -55,7 +53,7 @@ public class ApiBuilder {
      * path("/path") or path("path") depending on your preference
      */
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
-        path(path, endpointGroup, new RouteRole[0]);
+        path(path, Collections.emptyList(), endpointGroup);
     }
 
     /**
@@ -64,10 +62,10 @@ public class ApiBuilder {
      * All paths are normalized, so you can call both
      * path("/path") or path("path") depending on your preference
      */
-    public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup, @NotNull RouteRole... roles) {
+    public static void path(@NotNull String path, @NotNull Collection<RouteRole> roles, @NotNull EndpointGroup endpointGroup) {
         path = path.startsWith("/") ? path : "/" + path;
         pathDeque.get().addLast(path);
-        routeRoleDeque.get().addLast(roles);
+        routeRoleDeque.get().addLast(roles.toArray(RouteRole[]::new));
         try {
             endpointGroup.addEndpoints();
         } finally {

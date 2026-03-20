@@ -25,13 +25,13 @@ public class TestApiBuilderRouteRoles {
 
     @Test
     public void testPathInheritsRouteRoles() {
-        Javalin app = Javalin.create(cfg -> cfg.routes.apiBuilder(() -> path("/admin", () -> {
+        Javalin app = Javalin.create(cfg -> cfg.routes.apiBuilder(() -> path("/admin", Set.of(Role.A), () -> {
             get("/all", ctx -> {});
             get("/override", ctx -> {}, Role.B);
-            path("/nested", () -> {
+            path("/nested", Set.of(Role.B), () -> {
                 get("/one", ctx -> {});
-            }, Role.B);
-        }, Role.A)));
+            });
+        })));
 
         List<ParsedEndpoint> endpoints = app.unsafe.internalRouter.allHttpHandlers();
         assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/admin/all")).containsExactlyInAnyOrder(Role.A);
