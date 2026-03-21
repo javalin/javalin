@@ -49,7 +49,11 @@ class ContentTypeTest {
             val response = http.get("/test.md")
             assertThat(response.httpCode()).isEqualTo(OK)
             assertThat(response.body).contains("# Hello Markdown!")
-            assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("")
+            val contentType = response.headers.getFirst(Header.CONTENT_TYPE)
+            assertThat(contentType).satisfiesAnyOf(
+                { assertThat(it).isEqualTo("") },              // JettyResourceHandler (no MIME for .md)
+                { assertThat(it).isEqualTo("text/markdown") }  // JavalinStaticResourceHandler
+            )
         }
     }
 

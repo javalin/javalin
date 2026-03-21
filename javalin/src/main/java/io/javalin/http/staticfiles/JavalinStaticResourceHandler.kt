@@ -12,11 +12,9 @@ import java.util.concurrent.ConcurrentHashMap
 
 class JavalinStaticResourceHandler : ResourceHandler {
 
-    private val pendingConfigs = mutableListOf<StaticFileConfig>()
     private val handlers = mutableListOf<StaticFileHandler>()
     private val precompressCache = ConcurrentHashMap<String, ByteArray>()
-    private var initialized = false
-    private lateinit var compressionStrategy: CompressionStrategy
+    private var compressionStrategy: CompressionStrategy = CompressionStrategy.GZIP
 
     /** Returns the number of cached precompressed files (for testing) */
     fun getPrecompressCacheSize(): Int = precompressCache.size
@@ -24,13 +22,10 @@ class JavalinStaticResourceHandler : ResourceHandler {
     /** Initialize handlers and log them - called during server startup */
     override fun init(compressionStrategy: CompressionStrategy) {
         this.compressionStrategy = compressionStrategy
-        pendingConfigs.forEach { addHandler(it) }
-        pendingConfigs.clear()
-        initialized = true
     }
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean {
-        if (initialized) addHandler(config) else pendingConfigs.add(config)
+        addHandler(config)
         return true
     }
 
