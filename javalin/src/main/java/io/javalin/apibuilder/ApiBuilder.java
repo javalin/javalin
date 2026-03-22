@@ -7,11 +7,16 @@
 package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
+import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
+import io.javalin.router.Endpoint;
 import io.javalin.router.JavalinDefaultRoutingApi;
+import io.javalin.security.Roles;
 import io.javalin.security.RouteRole;
 import io.javalin.websocket.WsConfig;
+import io.javalin.websocket.WsExceptionHandler;
+import io.javalin.websocket.WsHandlerType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -86,7 +91,7 @@ public class ApiBuilder {
         if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }
-        return javalin;
+        return routeRoleDeque.get().isEmpty() ? javalin : new ScopedRoutingApi(javalin);
     }
 
     // ********************************************************************************************
@@ -100,7 +105,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().get(prefixPath(path), handler, routeRolesInScope());
+        staticInstance().get(prefixPath(path), handler);
     }
 
     /**
@@ -110,7 +115,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().get(prefixPath(path), handler, routeRolesInScope(roles));
+        staticInstance().get(prefixPath(path), handler, roles);
     }
 
     /**
@@ -120,7 +125,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull Handler handler) {
-        staticInstance().get(prefixPath(""), handler, routeRolesInScope());
+        staticInstance().get(prefixPath(""), handler);
     }
 
     /**
@@ -130,7 +135,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().get(prefixPath(""), handler, routeRolesInScope(roles));
+        staticInstance().get(prefixPath(""), handler, roles);
     }
 
     /**
@@ -140,7 +145,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().post(prefixPath(path), handler, routeRolesInScope());
+        staticInstance().post(prefixPath(path), handler);
     }
 
     /**
@@ -150,7 +155,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().post(prefixPath(path), handler, routeRolesInScope(roles));
+        staticInstance().post(prefixPath(path), handler, roles);
     }
 
     /**
@@ -160,7 +165,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull Handler handler) {
-        staticInstance().post(prefixPath(""), handler, routeRolesInScope());
+        staticInstance().post(prefixPath(""), handler);
     }
 
     /**
@@ -170,7 +175,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void query(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().query(prefixPath(path), handler, routeRolesInScope());
+        staticInstance().query(prefixPath(path), handler);
     }
 
     /**
@@ -180,7 +185,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void query(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().query(prefixPath(path), handler, routeRolesInScope(roles));
+        staticInstance().query(prefixPath(path), handler, roles);
     }
 
     /**
@@ -190,7 +195,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void query(@NotNull Handler handler) {
-        staticInstance().query(prefixPath(""), handler, routeRolesInScope());
+        staticInstance().query(prefixPath(""), handler);
     }
 
     /**
@@ -200,7 +205,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void query(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().query(prefixPath(""), handler, routeRolesInScope(roles));
+        staticInstance().query(prefixPath(""), handler, roles);
     }
 
     /**
@@ -210,7 +215,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().post(prefixPath(""), handler, routeRolesInScope(roles));
+        staticInstance().post(prefixPath(""), handler, roles);
     }
 
     /**
@@ -220,7 +225,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().put(prefixPath(path), handler, routeRolesInScope());
+        staticInstance().put(prefixPath(path), handler);
     }
 
     /**
@@ -230,7 +235,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().put(prefixPath(path), handler, routeRolesInScope(roles));
+        staticInstance().put(prefixPath(path), handler, roles);
     }
 
     /**
@@ -240,7 +245,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull Handler handler) {
-        staticInstance().put(prefixPath(""), handler, routeRolesInScope());
+        staticInstance().put(prefixPath(""), handler);
     }
 
     /**
@@ -250,7 +255,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().put(prefixPath(""), handler, routeRolesInScope(roles));
+        staticInstance().put(prefixPath(""), handler, roles);
     }
 
     /**
@@ -260,7 +265,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().patch(prefixPath(path), handler, routeRolesInScope());
+        staticInstance().patch(prefixPath(path), handler);
     }
 
     /**
@@ -270,7 +275,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().patch(prefixPath(path), handler, routeRolesInScope(roles));
+        staticInstance().patch(prefixPath(path), handler, roles);
     }
 
     /**
@@ -280,7 +285,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull Handler handler) {
-        staticInstance().patch(prefixPath(""), handler, routeRolesInScope());
+        staticInstance().patch(prefixPath(""), handler);
     }
 
     /**
@@ -290,7 +295,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().patch(prefixPath(""), handler, routeRolesInScope(roles));
+        staticInstance().patch(prefixPath(""), handler, roles);
     }
 
     /**
@@ -300,7 +305,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().delete(prefixPath(path), handler, routeRolesInScope());
+        staticInstance().delete(prefixPath(path), handler);
     }
 
     /**
@@ -310,7 +315,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().delete(prefixPath(path), handler, routeRolesInScope(roles));
+        staticInstance().delete(prefixPath(path), handler, roles);
     }
 
     /**
@@ -320,7 +325,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull Handler handler) {
-        staticInstance().delete(prefixPath(""), handler, routeRolesInScope());
+        staticInstance().delete(prefixPath(""), handler);
     }
 
     /**
@@ -330,7 +335,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().delete(prefixPath(""), handler, routeRolesInScope(roles));
+        staticInstance().delete(prefixPath(""), handler, roles);
     }
 
     /**
@@ -340,7 +345,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().head(prefixPath(path), handler, routeRolesInScope());
+        staticInstance().head(prefixPath(path), handler);
     }
 
     /**
@@ -350,7 +355,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().head(prefixPath(path), handler, routeRolesInScope(roles));
+        staticInstance().head(prefixPath(path), handler, roles);
     }
 
     /**
@@ -360,7 +365,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull Handler handler) {
-        staticInstance().head(prefixPath(""), handler, routeRolesInScope());
+        staticInstance().head(prefixPath(""), handler);
     }
 
     /**
@@ -370,7 +375,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull Handler handler, @NotNull RouteRole... roles) {
-        staticInstance().head(prefixPath(""), handler, routeRolesInScope(roles));
+        staticInstance().head(prefixPath(""), handler, roles);
     }
 
     // ********************************************************************************************
@@ -468,7 +473,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public static void ws(@NotNull String path, @NotNull Consumer<WsConfig> ws) {
-        staticInstance().ws(prefixPath(path), ws, routeRolesInScope());
+        staticInstance().ws(prefixPath(path), ws);
     }
 
     /**
@@ -478,7 +483,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public static void ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull RouteRole... roles) {
-        staticInstance().ws(prefixPath(path), ws, routeRolesInScope(roles));
+        staticInstance().ws(prefixPath(path), ws, roles);
     }
 
     /**
@@ -488,7 +493,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public static void ws(@NotNull Consumer<WsConfig> ws) {
-        staticInstance().ws(prefixPath(""), ws, routeRolesInScope());
+        staticInstance().ws(prefixPath(""), ws);
     }
 
     /**
@@ -498,7 +503,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public static void ws(@NotNull Consumer<WsConfig> ws, @NotNull RouteRole... roles) {
-        staticInstance().ws(prefixPath(""), ws, routeRolesInScope(roles));
+        staticInstance().ws(prefixPath(""), ws, roles);
     }
 
     /**
@@ -538,19 +543,19 @@ public class ApiBuilder {
     // ********************************************************************************************
 
     public static void sse(@NotNull String path, @NotNull Consumer<SseClient> client) {
-        staticInstance().sse(prefixPath(path), client, routeRolesInScope());
+        staticInstance().sse(prefixPath(path), client);
     }
 
     public static void sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull RouteRole... roles) {
-        staticInstance().sse(prefixPath(path), client, routeRolesInScope(roles));
+        staticInstance().sse(prefixPath(path), client, roles);
     }
 
     public static void sse(@NotNull Consumer<SseClient> client) {
-        staticInstance().sse(prefixPath(""), client, routeRolesInScope());
+        staticInstance().sse(prefixPath(""), client);
     }
 
     public static void sse(@NotNull Consumer<SseClient> client, @NotNull RouteRole... roles) {
-        staticInstance().sse(prefixPath(""), client, routeRolesInScope(roles));
+        staticInstance().sse(prefixPath(""), client, roles);
     }
 
     // ********************************************************************************************
@@ -607,23 +612,18 @@ public class ApiBuilder {
         if (resourceBase.startsWith("{") || resourceBase.startsWith("<") || resourceBase.endsWith("}") || resourceBase.endsWith(">")) {
             throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/{user-id}'");
         }
-        staticInstance().get(fullPath, ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), routeRolesInScope(roles));
-        staticInstance().get(fullPath.replace(resourceId, ""), crudHandler::getAll, routeRolesInScope(roles));
-        staticInstance().post(fullPath.replace(resourceId, ""), crudHandler::create, routeRolesInScope(roles));
-        staticInstance().patch(fullPath, ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), routeRolesInScope(roles));
-        staticInstance().delete(fullPath, ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), routeRolesInScope(roles));
+        staticInstance().get(fullPath, ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), roles);
+        staticInstance().get(fullPath.replace(resourceId, ""), crudHandler::getAll, roles);
+        staticInstance().post(fullPath.replace(resourceId, ""), crudHandler::create, roles);
+        staticInstance().patch(fullPath, ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), roles);
+        staticInstance().delete(fullPath, ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), roles);
     }
 
-    private static RouteRole[] routeRolesInScope(@NotNull RouteRole... roles) {
-        if (routeRoleDeque.get().isEmpty()) {
-            return roles;
-        }
-
-        int scopeRoleCount = roles.length;
+    private static RouteRole[] scopedRouteRoles() {
+        int scopeRoleCount = 0;
         for (RouteRole[] scopeRoles : routeRoleDeque.get()) {
             scopeRoleCount += scopeRoles.length;
         }
-
         RouteRole[] routeRoles = new RouteRole[scopeRoleCount];
         int routeRoleCount = 0;
         for (RouteRole[] scopeRoles : routeRoleDeque.get()) {
@@ -631,10 +631,59 @@ public class ApiBuilder {
                 routeRoles[routeRoleCount++] = role;
             }
         }
-        for (RouteRole role : roles) {
-            routeRoles[routeRoleCount++] = role;
-        }
         return routeRoles;
+    }
+
+    private static RouteRole[] mergeRouteRoles(@NotNull Collection<RouteRole> roles) {
+        LinkedHashSet<RouteRole> merged = new LinkedHashSet<>();
+        Collections.addAll(merged, scopedRouteRoles());
+        merged.addAll(roles);
+        return merged.toArray(RouteRole[]::new);
+    }
+
+    private static RouteRole[] mergeRouteRoles(@NotNull RouteRole... roles) {
+        return mergeRouteRoles(Arrays.asList(roles));
+    }
+
+    private static final class ScopedRoutingApi implements JavalinDefaultRoutingApi {
+
+        private final JavalinDefaultRoutingApi delegate;
+
+        private ScopedRoutingApi(@NotNull JavalinDefaultRoutingApi delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public <E extends Exception> JavalinDefaultRoutingApi exception(@NotNull Class<E> exceptionClass, @NotNull ExceptionHandler<? super E> exceptionHandler) {
+            delegate.exception(exceptionClass, exceptionHandler);
+            return this;
+        }
+
+        @Override
+        public JavalinDefaultRoutingApi error(int status, @NotNull String contentType, @NotNull Handler handler) {
+            delegate.error(status, contentType, handler);
+            return this;
+        }
+
+        @Override
+        public JavalinDefaultRoutingApi addEndpoint(@NotNull Endpoint endpoint) {
+            Roles existingRoles = endpoint.metadata(Roles.class);
+            Collection<RouteRole> roles = existingRoles == null ? Collections.emptySet() : existingRoles.getRoles();
+            delegate.addEndpoint(endpoint.withMetadata(new Roles(new LinkedHashSet<>(Arrays.asList(mergeRouteRoles(roles))))));
+            return this;
+        }
+
+        @Override
+        public <E extends Exception> JavalinDefaultRoutingApi wsException(@NotNull Class<E> exceptionClass, @NotNull WsExceptionHandler<? super E> exceptionHandler) {
+            delegate.wsException(exceptionClass, exceptionHandler);
+            return this;
+        }
+
+        @Override
+        public JavalinDefaultRoutingApi addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
+            delegate.addWsHandler(handlerType, path, wsConfig, mergeRouteRoles(roles));
+            return this;
+        }
     }
 }
 

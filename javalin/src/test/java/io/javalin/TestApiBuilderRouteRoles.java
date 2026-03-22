@@ -27,7 +27,7 @@ public class TestApiBuilderRouteRoles {
     public void testPathInheritsRouteRoles() {
         Javalin app = Javalin.create(cfg -> cfg.routes.apiBuilder(() -> path("/admin", Set.of(Role.A), () -> {
             get("/all", ctx -> {});
-            get("/override", ctx -> {}, Role.B);
+            get("/merged", ctx -> {}, Role.B);
             path("/nested", Set.of(Role.B), () -> {
                 get("/one", ctx -> {});
             });
@@ -35,8 +35,24 @@ public class TestApiBuilderRouteRoles {
 
         List<ParsedEndpoint> endpoints = app.unsafe.internalRouter.allHttpHandlers();
         assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/admin/all")).containsExactlyInAnyOrder(Role.A);
-        assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/admin/override")).containsExactlyInAnyOrder(Role.A, Role.B);
+        assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/admin/merged")).containsExactlyInAnyOrder(Role.A, Role.B);
         assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/admin/nested/one")).containsExactlyInAnyOrder(Role.A, Role.B);
+    }
+
+    @Test
+    public void testPathRoleScopeIsClearedAfterException() {
+        Javalin app = Javalin.create(cfg -> cfg.routes.apiBuilder(() -> {
+            try {
+                path("/admin", Set.of(Role.A), () -> {
+                    throw new RuntimeException("boom");
+                });
+            } catch (RuntimeException ignored) {
+            }
+            get("/public", ctx -> {});
+        }));
+
+        List<ParsedEndpoint> endpoints = app.unsafe.internalRouter.allHttpHandlers();
+        assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/public")).isEmpty();
     }
 
     private static Set<RouteRole> findEndpointRoles(List<ParsedEndpoint> endpoints, HandlerType handlerType, String path) {
