@@ -22,7 +22,6 @@ import io.javalin.websocket.WsHandlerType
 import io.javalin.websocket.WsRouter
 import jakarta.servlet.http.HttpServletResponse
 import java.util.function.Consumer
-import java.util.stream.Stream
 
 open class InternalRouter(
     private val wsRouter: WsRouter,
@@ -68,8 +67,15 @@ open class InternalRouter(
      * Finds all matching handlers for the specified handlerType and path.
      * @return a handler for the specified handlerType and path, or null if no handler is found
      */
-    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): Stream<ParsedEndpoint> =
+    open fun findHttpHandlerEntries(handlerType: HandlerType, requestUri: String? = null): List<ParsedEndpoint> =
         httpPathMatcher.findEntries(handlerType, requestUri)
+
+    /**
+     * Finds the first matching handler for the specified handlerType and path.
+     * Short-circuits after the first match, avoiding unnecessary regex checks.
+     */
+    open fun findFirstHttpHandlerEntry(handlerType: HandlerType, requestUri: String): ParsedEndpoint? =
+        httpPathMatcher.findFirstEntry(handlerType, requestUri)
 
     /**
      * Adds an error mapper for the specified content-type to the instance.

@@ -145,10 +145,9 @@ class MicrometerPlugin @JvmOverloads constructor(
         val handlerType = HandlerType.findOrCreate(ctx.method().toString())
         if (handlerType != null) {
             val matchedPath = state.internalRouter.findHttpHandlerEntries(handlerType, pathInfo)
-                .asSequence()
-                .map { it.endpoint.path }
-                .map { if (it == "/" || it.isBlank()) "root" else it }
                 .firstOrNull()
+                ?.endpoint?.path
+                ?.let { if (it == "/" || it.isBlank()) "root" else it }
 
             if (matchedPath != null) {
                 return matchedPath

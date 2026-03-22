@@ -106,6 +106,7 @@
         <annotations.version>26.1.0</annotations.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
         <jackson.version>2.21.1</jackson.version>
+        <jackson3.version>3.1.0</jackson3.version>
         <jackson.databind.version>2.21.1</jackson.databind.version>
         <brotli4j.version>1.20.0</brotli4j.version>
         <zstd.jni.version>1.5.7-7</zstd.jni.version>
@@ -225,6 +226,13 @@
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
                 <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson3.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
