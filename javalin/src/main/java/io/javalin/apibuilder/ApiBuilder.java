@@ -7,16 +7,19 @@
 package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
+import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
+import io.javalin.router.Endpoint;
 import io.javalin.router.JavalinDefaultRoutingApi;
+import io.javalin.security.Roles;
 import io.javalin.security.RouteRole;
 import io.javalin.websocket.WsConfig;
+import io.javalin.websocket.WsExceptionHandler;
+import io.javalin.websocket.WsHandlerType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -26,6 +29,7 @@ public class ApiBuilder {
 
     private static final ThreadLocal<JavalinDefaultRoutingApi> staticJavalin = new ThreadLocal<>();
     private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
+    private static final ThreadLocal<Deque<RouteRole[]>> routeRoleDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
     /**
      * Sets the static Javalin instance (ThreadLocal) used by the ApiBuilder methods.
@@ -54,10 +58,25 @@ public class ApiBuilder {
      * path("/path") or path("path") depending on your preference
      */
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
+        path(path, Collections.emptyList(), endpointGroup);
+    }
+
+    /**
+     * Prefixes all handlers defined in its scope with the specified path and applies
+     * the given roles to all endpoints in the group by default.
+     * All paths are normalized, so you can call both
+     * path("/path") or path("path") depending on your preference
+     */
+    public static void path(@NotNull String path, @NotNull Collection<RouteRole> roles, @NotNull EndpointGroup endpointGroup) {
         path = path.startsWith("/") ? path : "/" + path;
         pathDeque.get().addLast(path);
-        endpointGroup.addEndpoints();
-        pathDeque.get().removeLast();
+        routeRoleDeque.get().addLast(roles.toArray(RouteRole[]::new));
+        try {
+            endpointGroup.addEndpoints();
+        } finally {
+            pathDeque.get().removeLast();
+            routeRoleDeque.get().removeLast();
+        }
     }
 
     public static String prefixPath(@NotNull String path) {
@@ -72,7 +91,7 @@ public class ApiBuilder {
         if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }
-        return javalin;
+        return routeRoleDeque.get().isEmpty() ? javalin : new ScopedRoutingApi(javalin);
     }
 
     // ********************************************************************************************
@@ -599,4 +618,72 @@ public class ApiBuilder {
         staticInstance().patch(fullPath, ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), roles);
         staticInstance().delete(fullPath, ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), roles);
     }
+
+    private static RouteRole[] scopedRouteRoles() {
+        int scopeRoleCount = 0;
+        for (RouteRole[] scopeRoles : routeRoleDeque.get()) {
+            scopeRoleCount += scopeRoles.length;
+        }
+        RouteRole[] routeRoles = new RouteRole[scopeRoleCount];
+        int routeRoleCount = 0;
+        for (RouteRole[] scopeRoles : routeRoleDeque.get()) {
+            for (RouteRole role : scopeRoles) {
+                routeRoles[routeRoleCount++] = role;
+            }
+        }
+        return routeRoles;
+    }
+
+    private static RouteRole[] mergeRouteRoles(@NotNull Collection<RouteRole> roles) {
+        LinkedHashSet<RouteRole> merged = new LinkedHashSet<>();
+        Collections.addAll(merged, scopedRouteRoles());
+        merged.addAll(roles);
+        return merged.toArray(RouteRole[]::new);
+    }
+
+    private static RouteRole[] mergeRouteRoles(@NotNull RouteRole... roles) {
+        return mergeRouteRoles(Arrays.asList(roles));
+    }
+
+    private static final class ScopedRoutingApi implements JavalinDefaultRoutingApi {
+
+        private final JavalinDefaultRoutingApi delegate;
+
+        private ScopedRoutingApi(@NotNull JavalinDefaultRoutingApi delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public <E extends Exception> JavalinDefaultRoutingApi exception(@NotNull Class<E> exceptionClass, @NotNull ExceptionHandler<? super E> exceptionHandler) {
+            delegate.exception(exceptionClass, exceptionHandler);
+            return this;
+        }
+
+        @Override
+        public JavalinDefaultRoutingApi error(int status, @NotNull String contentType, @NotNull Handler handler) {
+            delegate.error(status, contentType, handler);
+            return this;
+        }
+
+        @Override
+        public JavalinDefaultRoutingApi addEndpoint(@NotNull Endpoint endpoint) {
+            Roles existingRoles = endpoint.metadata(Roles.class);
+            Collection<RouteRole> roles = existingRoles == null ? Collections.emptySet() : existingRoles.getRoles();
+            delegate.addEndpoint(endpoint.withMetadata(new Roles(new LinkedHashSet<>(Arrays.asList(mergeRouteRoles(roles))))));
+            return this;
+        }
+
+        @Override
+        public <E extends Exception> JavalinDefaultRoutingApi wsException(@NotNull Class<E> exceptionClass, @NotNull WsExceptionHandler<? super E> exceptionHandler) {
+            delegate.wsException(exceptionClass, exceptionHandler);
+            return this;
+        }
+
+        @Override
+        public JavalinDefaultRoutingApi addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
+            delegate.addWsHandler(handlerType, path, wsConfig, mergeRouteRoles(roles));
+            return this;
+        }
+    }
 }
+
