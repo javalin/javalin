@@ -64,12 +64,12 @@ class StaticFileHandler(val config: StaticFileConfig) {
         return when (config.location) {
             Location.CLASSPATH -> {
                 val resource = ClasspathResource.create(Thread.currentThread().contextClassLoader, config.directory)
-                if (!resource.exists()) throw JavalinException("Static resource directory '${config.directory}' not found. $classpathHint")
+                if (!resource.exists()) throw JavalinException("Static resource directory with path: '${config.directory}' does not exist. $classpathHint")
                 resource
             }
             Location.EXTERNAL -> {
                 val path = Path.of(config.directory).absolute().normalize()
-                if (!path.exists()) throw JavalinException("Static resource directory '$path' not found.")
+                if (!path.exists()) throw JavalinException("Static resource directory with path: '$path' does not exist.")
                 FileSystemResource(path)
             }
         }
