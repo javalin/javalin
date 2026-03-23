@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestApiBuilderRouteRoles {
 
-    enum Role implements RouteRole { A, B }
+    enum Role implements RouteRole { A, B, C }
 
     @Test
     public void testPathInheritsRouteRoles() {
@@ -53,6 +53,45 @@ public class TestApiBuilderRouteRoles {
 
         List<ParsedEndpoint> endpoints = app.unsafe.internalRouter.allHttpHandlers();
         assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/public")).isEmpty();
+    }
+
+    @Test
+    public void testEmptyNestedScopeDoesNotAddRoles() {
+        Javalin app = Javalin.create(cfg -> cfg.routes.apiBuilder(() -> path("/admin", Set.of(Role.A), () -> {
+            path("/sub", () -> {
+                get("/endpoint", ctx -> {});
+            });
+        })));
+
+        List<ParsedEndpoint> endpoints = app.unsafe.internalRouter.allHttpHandlers();
+        assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/admin/sub/endpoint")).containsExactlyInAnyOrder(Role.A);
+    }
+
+    @Test
+    public void testDeepNestingAccumulatesRoles() {
+        Javalin app = Javalin.create(cfg -> cfg.routes.apiBuilder(() -> path("/level1", Set.of(Role.A), () -> {
+            path("/level2", Set.of(Role.B), () -> {
+                path("/level3", Set.of(Role.C), () -> {
+                    get("/deep", ctx -> {});
+                });
+            });
+        })));
+
+        List<ParsedEndpoint> endpoints = app.unsafe.internalRouter.allHttpHandlers();
+        assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/level1/level2/level3/deep"))
+            .containsExactlyInAnyOrder(Role.A, Role.B, Role.C);
+    }
+
+    @Test
+    public void testPathWithoutRolesIsUnaffected() {
+        Javalin app = Javalin.create(cfg -> cfg.routes.apiBuilder(() -> {
+            path("/public", () -> {
+                get("/endpoint", ctx -> {});
+            });
+        }));
+
+        List<ParsedEndpoint> endpoints = app.unsafe.internalRouter.allHttpHandlers();
+        assertThat(findEndpointRoles(endpoints, HandlerType.GET, "/public/endpoint")).isEmpty();
     }
 
     private static Set<RouteRole> findEndpointRoles(List<ParsedEndpoint> endpoints, HandlerType handlerType, String path) {
