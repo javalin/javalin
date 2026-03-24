@@ -208,7 +208,12 @@ internal class DevReloadCompiler(private val logExtensive: (String) -> Unit) {
     internal fun findJavac(): String? {
         val javaHome = System.getProperty("java.home", "").ifBlank { return null }
         val javac = Path.of(javaHome, "bin", "javac")
-        return if (Files.isExecutable(javac)) javac.toString() else null
+        val javacExe = Path.of(javaHome, "bin", "javac.exe")
+        return when {
+            Files.isExecutable(javac) -> javac.toString()
+            Files.isExecutable(javacExe) -> javacExe.toString()
+            else -> null
+        }
     }
 
     /**

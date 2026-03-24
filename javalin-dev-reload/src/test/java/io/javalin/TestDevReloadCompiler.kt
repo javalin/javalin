@@ -104,9 +104,9 @@ class TestDevReloadCompiler {
     @Test
     fun `findJavac locates javac from java home`() {
         val javac = compiler.findJavac()
-        // javac should be available in any JDK
+        // javac should be available in any JDK (javac on Unix, javac.exe on Windows)
         assertThat(javac).isNotNull()
-        assertThat(javac).endsWith("javac")
+        assertThat(javac).containsIgnoringCase("javac")
     }
 
     @Test
