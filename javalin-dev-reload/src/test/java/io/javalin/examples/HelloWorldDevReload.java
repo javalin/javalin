@@ -14,16 +14,17 @@ import io.javalin.plugin.bundled.DevReloadPlugin;
 import java.util.Map;
 
 /**
- * Demonstrates the DevReloadPlugin for automatic route reloading during development.
- * The plugin checks for file changes on each incoming HTTP request. If changes are detected,
- * it re-executes your Javalin.create() config to rebuild the routing tables.
- * The server stays running on the same port — only the routing tables are swapped.
+ * Demonstrates the DevReloadPlugin for automatic reloading during development.
+ *
+ * The plugin runs a reverse proxy on your port and your app as a child process.
+ * When files change, it recompiles (via your build tool) and restarts the child process.
+ * The proxy keeps a stable port so the browser sees a seamless reload.
  *
  * To see it in action:
  * 1. Start this application
  * 2. Change a route handler below (e.g., change "Hello World!" to something else)
- * 3. Save the file — the plugin compiles and reloads automatically on next request
- * 4. Make an HTTP request — the plugin detects the change and reloads before responding
+ * 3. Save the file — the plugin detects the change, recompiles, and restarts
+ * 4. Refresh your browser — the new response appears
  *
  * Try these URLs:
  *   http://localhost:7070/              → Hello World!
@@ -79,7 +80,7 @@ public class HelloWorldDevReload {
 
             // --- Dev reload ---
             config.registerPlugin(new DevReloadPlugin());
-            // For projects needing annotation processors or non-javac compilers:
+            // For custom build commands:
             // config.registerPlugin(new DevReloadPlugin(reload -> {
             //     reload.compileCommand = "mvn compile -o -q --batch-mode";
             // }));
