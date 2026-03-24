@@ -6,64 +6,40 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Handles compilation of source files for [DevReloadPlugin].
- * Supports three strategies:
- * 1. Custom shell command ([compileViaCommand]) — delegates to the user's build tool
- * 2. In-process javax.tools compiler ([compileViaToolProvider]) — fast, no fork
- * 3. Forked javac process ([compileViaProcess]) — fallback when javax.tools is unavailable
+ * Supports: custom shell command, in-process javax.tools, or forked javac fallback.
  */
 internal class DevReloadCompiler(
     private val classOutputPaths: List<Path>,
     private val logExtensive: (String) -> Unit
 ) {
 
-    /**
-     * Compiles the given source files. Returns the elapsed time in ms on success, or -1 on failure.
-     */
+    /** Compiles the given source files. Returns elapsed ms on success, or -1 on failure. */
     fun compile(sourceFiles: List<Path>, compileCommand: String?): Long {
-        if (compileCommand != null) {
-            return compileViaCommand(compileCommand)
-        }
-
+        if (compileCommand != null) return compileViaCommand(compileCommand)
         val outputDir = classOutputPaths.firstOrNull()?.toAbsolutePath()?.normalize()?.toString()
-        if (outputDir == null) {
-            JavalinLogger.warn("DevReloadPlugin: No class output directory found for compilation")
-            return -1
-        }
-
+            ?: return (-1L).also { JavalinLogger.warn("DevReloadPlugin: No class output directory found for compilation") }
         logExtensive("DevReloadPlugin: Compiling ${sourceFiles.map { it.fileName }} to $outputDir")
-        val startTime = System.currentTimeMillis()
-
         val compiler = javax.tools.ToolProvider.getSystemJavaCompiler()
         if (compiler == null) {
-            JavalinLogger.warn("DevReloadPlugin: No in-process compiler available (running on JRE?), falling back to javac process")
+            JavalinLogger.warn("DevReloadPlugin: No in-process compiler (JRE?), falling back to javac process")
             return compileViaProcess(sourceFiles, outputDir)
         }
-
-        return compileViaToolProvider(compiler, sourceFiles, outputDir, startTime)
+        return compileViaToolProvider(compiler, sourceFiles, outputDir)
     }
 
-    /** Compiles using the in-process javax.tools Java compiler. Returns elapsed ms or -1. */
-    private fun compileViaToolProvider(
-        compiler: javax.tools.JavaCompiler,
-        sourceFiles: List<Path>,
-        outputDir: String,
-        startTime: Long
-    ): Long {
+    private fun compileViaToolProvider(compiler: javax.tools.JavaCompiler, sourceFiles: List<Path>, outputDir: String): Long {
         try {
             val classpath = System.getProperty("java.class.path", "")
-            val options = listOf("-classpath", classpath, "-d", outputDir)
             val fileManager = compiler.getStandardFileManager(null, null, null)
-            val compilationUnits = fileManager.getJavaFileObjects(*sourceFiles.map { it.toFile() }.toTypedArray())
+            val units = fileManager.getJavaFileObjects(*sourceFiles.map { it.toFile() }.toTypedArray())
             val diagnostics = javax.tools.DiagnosticCollector<javax.tools.JavaFileObject>()
-            val success = compiler.getTask(null, fileManager, diagnostics, options, null, compilationUnits).call()
+            val startTime = System.currentTimeMillis()
+            val success = compiler.getTask(null, fileManager, diagnostics, listOf("-classpath", classpath, "-d", outputDir), null, units).call()
             fileManager.close()
-
             val elapsed = System.currentTimeMillis() - startTime
             if (!success) {
                 JavalinLogger.warn("DevReloadPlugin: Compile failed (${elapsed}ms)")
-                diagnostics.diagnostics
-                    .filter { it.kind == javax.tools.Diagnostic.Kind.ERROR }
-                    .take(10)
+                diagnostics.diagnostics.filter { it.kind == javax.tools.Diagnostic.Kind.ERROR }.take(10)
                     .forEach { JavalinLogger.warn("  ${it.getMessage(null)}") }
                 return -1
             }
@@ -74,7 +50,6 @@ internal class DevReloadCompiler(
         }
     }
 
-    /** Fallback: fork a javac process. Returns elapsed ms or -1. */
     private fun compileViaProcess(sourceFiles: List<Path>, outputDir: String): Long {
         val classpath = System.getProperty("java.class.path", "")
         val javac = Path.of(System.getProperty("java.home"), "bin", "javac").toString()
@@ -83,60 +58,39 @@ internal class DevReloadCompiler(
         return runProcess(ProcessBuilder(command).redirectErrorStream(true), "javac")
     }
 
-    /** Runs the user-configured compile command. Returns elapsed ms or -1. */
     private fun compileViaCommand(command: String): Long {
         logExtensive("DevReloadPlugin: Running compile command: $command")
         val isWindows = System.getProperty("os.name", "").lowercase().contains("win")
         val shell = if (isWindows) listOf("cmd", "/c", command) else listOf("sh", "-c", command)
-        return runProcess(
-            ProcessBuilder(shell).directory(Path.of("").toAbsolutePath().toFile()).redirectErrorStream(true),
-            "compile command"
-        )
+        return runProcess(ProcessBuilder(shell).directory(Path.of("").toAbsolutePath().toFile()).redirectErrorStream(true), "compile command")
     }
 
-    /**
-     * Runs a process, draining its output in a separate thread to avoid deadlock
-     * when output exceeds the OS pipe buffer. Times out after [PROCESS_TIMEOUT_SECONDS].
-     */
+    /** Runs a process with output draining in a virtual thread to avoid pipe buffer deadlock. */
     private fun runProcess(builder: ProcessBuilder, label: String): Long {
         val startTime = System.currentTimeMillis()
         try {
             val process = builder.start()
-            // Drain output in a separate thread to prevent pipe buffer deadlock
-            val output = StringBuilder()
-            val outputDrainer = Thread.ofVirtual().start {
-                try {
-                    process.inputStream.bufferedReader().use { reader ->
-                        val buf = CharArray(8192)
-                        var n: Int
-                        while (reader.read(buf).also { n = it } >= 0) {
-                            synchronized(output) { output.append(buf, 0, n) }
-                        }
-                    }
-                } catch (_: Exception) {} // stream closed on timeout
+            var output = ""
+            val drainer = Thread.ofVirtual().start {
+                output = process.inputStream.bufferedReader().readText()
             }
             val finished = process.waitFor(PROCESS_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             if (!finished) {
                 process.destroyForcibly()
-                outputDrainer.join(1000)
+                drainer.join(1000)
                 JavalinLogger.warn("DevReloadPlugin: $label timed out after ${PROCESS_TIMEOUT_SECONDS}s")
                 return -1
             }
-            outputDrainer.join(5000)
+            drainer.join(5000)
             val elapsed = System.currentTimeMillis() - startTime
-            val exitCode = process.exitValue()
-            if (exitCode != 0) {
-                JavalinLogger.warn("DevReloadPlugin: $label failed (exit=$exitCode, ${elapsed}ms)")
-                val text = synchronized(output) { output.toString() }
-                if (text.isNotBlank()) {
-                    text.lines().take(10).forEach { JavalinLogger.warn("  $it") }
-                }
+            if (process.exitValue() != 0) {
+                JavalinLogger.warn("DevReloadPlugin: $label failed (exit=${process.exitValue()}, ${elapsed}ms)")
+                if (output.isNotBlank()) output.lines().take(10).forEach { JavalinLogger.warn("  $it") }
                 return -1
             }
             return elapsed
         } catch (e: Exception) {
-            val elapsed = System.currentTimeMillis() - startTime
-            JavalinLogger.warn("DevReloadPlugin: $label error (${elapsed}ms): ${e.message}")
+            JavalinLogger.warn("DevReloadPlugin: $label error (${System.currentTimeMillis() - startTime}ms): ${e.message}")
             return -1
         }
     }

@@ -16,19 +16,31 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Java integration tests for the DevReloadPlugin.
- * These tests use only the public API — no access to internals.
- * They verify the end-to-end flow: start server, modify source, make request, see new content.
+ * Java E2E tests for DevReloadPlugin — public API only.
+ * Verify: start server → modify source → make request → see new content.
  */
 @SuppressWarnings("deprecation")
 class TestDevReloadPluginJava {
 
     private static final Path CONTROLLER_FILE = Path.of("src/test/java/devreloadtest/DevReloadController.java");
 
+    /** Runs a test with the controller file modified, restoring it afterward. */
+    private void withModifiedController(String replacement, ThrowingRunnable test) throws Exception {
+        String original = Files.readString(CONTROLLER_FILE);
+        try {
+            test.run();
+        } finally {
+            Files.writeString(CONTROLLER_FILE, original);
+        }
+    }
+
+    @FunctionalInterface
+    interface ThrowingRunnable { void run() throws Exception; }
+
     @Test
     void source_change_is_picked_up_on_next_request() throws Exception {
         String originalContent = Files.readString(CONTROLLER_FILE);
-        try {
+        withModifiedController("from-java", () ->
             JavalinTest.test(
                 Javalin.create(config -> {
                     config.routes.get("/test", ctx -> devreloadtest.DevReloadController.handle(ctx));
@@ -36,16 +48,12 @@ class TestDevReloadPluginJava {
                 }),
                 (app, client) -> {
                     assertThat(client.get("/test").body().string()).isEqualTo("original");
-
                     Files.writeString(CONTROLLER_FILE, originalContent.replace("\"original\"", "\"from-java\""));
                     Thread.sleep(50);
-
                     assertThat(client.get("/test").body().string()).isEqualTo("from-java");
                 }
-            );
-        } finally {
-            Files.writeString(CONTROLLER_FILE, originalContent);
-        }
+            )
+        );
     }
 
     @Test
@@ -66,7 +74,7 @@ class TestDevReloadPluginJava {
     @Test
     void server_stays_running_through_reload() throws Exception {
         String originalContent = Files.readString(CONTROLLER_FILE);
-        try {
+        withModifiedController("reloaded", () ->
             JavalinTest.test(
                 Javalin.create(config -> {
                     config.routes.get("/test", ctx -> devreloadtest.DevReloadController.handle(ctx));
@@ -75,24 +83,20 @@ class TestDevReloadPluginJava {
                 }),
                 (app, client) -> {
                     int port = app.port();
-
                     Files.writeString(CONTROLLER_FILE, originalContent.replace("\"original\"", "\"reloaded\""));
                     Thread.sleep(50);
-
                     assertThat(client.get("/test").body().string()).isEqualTo("reloaded");
                     assertThat(app.port()).isEqualTo(port);
                     assertThat(app.jettyServer().server().isRunning()).isTrue();
                 }
-            );
-        } finally {
-            Files.writeString(CONTROLLER_FILE, originalContent);
-        }
+            )
+        );
     }
 
     @Test
     void multiple_reloads_work() throws Exception {
         String originalContent = Files.readString(CONTROLLER_FILE);
-        try {
+        withModifiedController("v3", () ->
             JavalinTest.test(
                 Javalin.create(config -> {
                     config.routes.get("/test", ctx -> devreloadtest.DevReloadController.handle(ctx));
@@ -100,18 +104,14 @@ class TestDevReloadPluginJava {
                 }),
                 (app, client) -> {
                     assertThat(client.get("/test").body().string()).isEqualTo("original");
-
                     Files.writeString(CONTROLLER_FILE, originalContent.replace("\"original\"", "\"v2\""));
                     Thread.sleep(50);
                     assertThat(client.get("/test").body().string()).isEqualTo("v2");
-
                     Files.writeString(CONTROLLER_FILE, originalContent.replace("\"original\"", "\"v3\""));
                     Thread.sleep(50);
                     assertThat(client.get("/test").body().string()).isEqualTo("v3");
                 }
-            );
-        } finally {
-            Files.writeString(CONTROLLER_FILE, originalContent);
-        }
+            )
+        );
     }
 }
