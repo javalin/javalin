@@ -11,6 +11,7 @@ import java.nio.file.Path
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 import org.eclipse.jetty.ee10.servlet.FilterHolder
 
@@ -18,8 +19,9 @@ import org.eclipse.jetty.ee10.servlet.FilterHolder
  * **Experimental** — Development-mode plugin that reloads your app when source files change.
  *
  * Uses a process-restart approach: the plugin runs your app as a child process behind a
- * reverse proxy. When files change, it recompiles (via your build tool) and restarts the
- * child process. The proxy maintains a stable port so the browser sees a seamless reload.
+ * reverse proxy. When files change, it recompiles (via direct javac/kotlinc or your build tool)
+ * and restarts the child process. The proxy maintains a stable port so the browser sees a
+ * seamless reload.
  *
  * ```java
  * Javalin.create(config -> {
@@ -140,9 +142,9 @@ class DevReloadPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevReloadPl
             val reloading = AtomicBoolean(false)
 
             // Launch the first child process
-            var childProcess = launchChild(javaBin, classpath, jvmArgs, mainClass, actualPort)
-            if (childProcess != null) {
-                proxy.targetPort = childProcess.port
+            val childRef = AtomicReference(launchChild(javaBin, classpath, jvmArgs, mainClass, actualPort))
+            if (childRef.get() != null) {
+                proxy.targetPort = childRef.get()!!.port
             } else {
                 JavalinLogger.warn("DevReloadPlugin: Failed to start child process.")
             }
@@ -188,19 +190,17 @@ class DevReloadPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevReloadPl
                             val result = compileChanged(compiler, sourceChanges, classpath, classDirs)
                             if (!result.success) {
                                 proxy.compileError = result.output
-                                killChild(childProcess)
-                                childProcess = null
+                                killChild(childRef.getAndSet(null))
                                 proxy.targetPort = -1
                                 return@Thread
                             }
                             logBasic("DevReloadPlugin: Compiled in ${result.elapsedMs}ms")
                         }
 
-                        val oldChild = childProcess
-                        killChild(oldChild)
+                        killChild(childRef.get())
                         watcher.resetBaseline()
                         val newChild = launchChild(javaBin, classpath, jvmArgs, mainClass, actualPort)
-                        childProcess = newChild
+                        childRef.set(newChild)
                         if (newChild != null) {
                             proxy.targetPort = newChild.port
                             proxy.reloadingFiles = emptyList()

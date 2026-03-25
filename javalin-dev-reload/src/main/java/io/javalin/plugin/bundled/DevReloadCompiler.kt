@@ -13,9 +13,8 @@ import java.util.concurrent.TimeUnit
  *
  * Two compilation strategies, tried in order:
  * 1. **Direct compiler** — invokes `javac`/`kotlinc` directly on only the changed files.
- *    For Kotlin, uses **in-process** compilation via the K2JVMCompiler API, keeping the
- *    compiler classloader warm across reloads (~500ms after the first cold compile).
- *    For Java, invokes `javac` as a subprocess (already fast at ~0.8s).
+ *    For Kotlin, uses **in-process** compilation via the K2JVMCompiler API with a pre-warmed
+ *    classloader (~250ms per compile). For Java, invokes `javac` as a subprocess (~0.8s).
  * 2. **Build tool fallback** — shells out to Maven, Gradle, or Bazel.
  *    Used when direct compilation fails or when `compileCommand` is set explicitly.
  *
@@ -26,7 +25,7 @@ internal class DevReloadCompiler(private val logExtensive: (String) -> Unit) {
     data class Result(val elapsedMs: Long, val success: Boolean, val output: String = "")
 
     /** Cached classloader for in-process Kotlin compilation. Kept warm across reloads. */
-    private var kotlinCompilerClassLoader: URLClassLoader? = null
+    @Volatile private var kotlinCompilerClassLoader: URLClassLoader? = null
 
     /**
      * Pre-loads the Kotlin compiler classloader in the background so the first compile is fast.
@@ -50,16 +49,16 @@ internal class DevReloadCompiler(private val logExtensive: (String) -> Unit) {
 
     /**
      * Compiles only the changed source files directly.
-     * - Kotlin: in-process via K2JVMCompiler (warm classloader = ~500ms)
+     * - Kotlin: in-process via K2JVMCompiler (pre-warmed classloader = ~250ms)
      * - Java: subprocess via javac (~0.8s)
-     * Returns null if the direct compiler is not available.
+     * Returns null if the required compiler is not available.
      */
     fun compileDirect(changedSources: List<Path>, classpath: String, outputDir: Path): Result? {
         val javaFiles = changedSources.filter { it.toString().endsWith(".java") }
         val kotlinFiles = changedSources.filter { it.toString().endsWith(".kt") }
         if (javaFiles.isEmpty() && kotlinFiles.isEmpty()) return null
 
-        val javacBin = findJavac() ?: return null
+        val javacBin = if (javaFiles.isNotEmpty()) findJavac() ?: return null else null
         if (kotlinFiles.isNotEmpty() && findKotlinCompilerJar(classpath) == null) return null
 
         val jvmTarget = System.getProperty("java.specification.version", "17")
@@ -78,7 +77,7 @@ internal class DevReloadCompiler(private val logExtensive: (String) -> Unit) {
 
         // Then Java (subprocess — javac is already fast)
         if (javaFiles.isNotEmpty()) {
-            val args = mutableListOf(javacBin)
+            val args = mutableListOf(javacBin!!)
             args.addAll(listOf("-cp", classpath, "-d", outputDir.toString(), "-source", jvmTarget, "-target", jvmTarget, "-nowarn"))
             args.addAll(javaFiles.map { it.toString() })
             logExtensive("DevReloadPlugin: Direct javac: ${javaFiles.map { it.fileName }}")
