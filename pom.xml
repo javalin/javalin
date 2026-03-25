@@ -9,6 +9,7 @@
         <module>javalin-utils</module>
         <module>javalin-ssl</module>
         <module>javalin-micrometer</module>
+        <module>javalin-dev-reload</module>
         <module>jacoco-coverage-report</module>
     </modules>
 
