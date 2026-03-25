@@ -190,8 +190,9 @@ class DevReloadPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevReloadPl
                             val result = compileChanged(compiler, sourceChanges, classpath, classDirs)
                             if (!result.success) {
                                 proxy.compileError = result.output
-                                killChild(childRef.getAndSet(null))
-                                proxy.targetPort = -1
+                                // Keep reloadingFiles set so the error page shows; keep old child alive.
+                                // The polling script will retry, and when the user fixes the error and saves,
+                                // the next reloadCheck will detect the change and trigger a fresh compile.
                                 return@Thread
                             }
                             logBasic("DevReloadPlugin: Compiled in ${result.elapsedMs}ms")
@@ -307,13 +308,10 @@ class DevReloadPlugin(userConfig: Consumer<Config>? = null) : Plugin<DevReloadPl
             if (directResult != null) {
                 if (directResult.success) {
                     logBasic("DevReloadPlugin: Direct compile succeeded (${directResult.elapsedMs}ms)")
-                    return directResult
                 }
-                // Direct compile failed — fall back to build tool
-                logBasic("DevReloadPlugin: Direct compile failed, falling back to build tool")
-            } else {
-                logBasic("DevReloadPlugin: Direct compiler not available, using build tool")
+                return directResult // return both success and failure — no build tool fallback for compile errors
             }
+            logBasic("DevReloadPlugin: Direct compiler not available, using build tool")
         }
         return compiler.compile(pluginConfig.compileCommand)
     }

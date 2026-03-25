@@ -34,10 +34,14 @@ internal class DevReloadProxy : Filter {
         // Lightweight status endpoint for JS polling — never proxied to child
         if (req.requestURI == "/__dev-reload/status") {
             val files = reloadingFiles
+            val error = compileError
             res.contentType = "application/json"
-            if (files.isEmpty() && targetPort > 0) {
+            if (files.isEmpty() && targetPort > 0 && error == null) {
                 res.status = 200
                 res.writer.write("""{"ready":true}""")
+            } else if (error != null) {
+                res.status = 503
+                res.writer.write("""{"ready":false,"error":${jsonEscape(error)}}""")
             } else {
                 res.status = 503
                 res.writer.write("""{"ready":false}""")
@@ -127,6 +131,22 @@ internal class DevReloadProxy : Filter {
             .replace(">", "&gt;")
             .replace("\"", "&quot;")
 
+        private fun jsonEscape(s: String): String {
+            val sb = StringBuilder("\"")
+            for (c in s) {
+                when (c) {
+                    '"' -> sb.append("\\\"")
+                    '\\' -> sb.append("\\\\")
+                    '\n' -> sb.append("\\n")
+                    '\r' -> sb.append("\\r")
+                    '\t' -> sb.append("\\t")
+                    else -> if (c.code < 0x20) sb.append("\\u%04x".format(c.code)) else sb.append(c)
+                }
+            }
+            sb.append("\"")
+            return sb.toString()
+        }
+
         private fun formatFileList(files: List<String>): String {
             if (files.isEmpty()) return ""
             if (files.size > 5) return "<p class=\"files-summary\">${files.size} files changed</p>"
@@ -195,7 +215,7 @@ $POLL_SCRIPT
         }
 
         private val POLL_SCRIPT = """<script>
-(function(){var i=setInterval(function(){fetch("/__dev-reload/status").then(function(r){if(r.ok){clearInterval(i);location.reload()}}).catch(function(){})},100)})()
+(function(){var i=setInterval(function(){fetch("/__dev-reload/status").then(function(r){return r.json()}).then(function(d){if(d.ready){clearInterval(i);location.reload()}else if(d.error){clearInterval(i);document.body.innerHTML='<div style="max-width:800px;margin:40px auto;padding:20px;font-family:system-ui,sans-serif;color:#ccc"><h2 style="color:#ff6b6b;font-size:18px;margin-bottom:12px">Compile Error</h2><pre style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:16px;font-size:12px;line-height:1.5;overflow-x:auto;color:#f88;font-family:ui-monospace,monospace;max-height:60vh;overflow-y:auto">'+d.error.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</pre><p style="font-size:12px;color:#666;margin-top:16px">Fix the error and save</p></div>';document.body.style.background='#111';var j=setInterval(function(){fetch("/__dev-reload/status").then(function(r){return r.json()}).then(function(d2){if(d2.ready||!d2.error){clearInterval(j);location.reload()}}).catch(function(){})},200)}}).catch(function(){})},100)})()
 </script>"""
 
         private val SPINNER_SVG = """<svg class="spinner" width="64px" height="64px" viewBox="0 0 182 182" xmlns="http://www.w3.org/2000/svg">

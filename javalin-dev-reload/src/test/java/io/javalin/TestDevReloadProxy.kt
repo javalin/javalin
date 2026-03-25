@@ -18,124 +18,126 @@ class TestDevReloadProxy {
 
     private fun findFreePort() = ServerSocket(0).use { it.localPort }
 
-    /** Start a minimal Jetty server with DevReloadProxy as its only filter. */
-    private fun startProxyServer(proxy: DevReloadProxy, port: Int): Server {
-        val server = Server(port)
+    private fun get(port: Int, path: String): HttpURLConnection =
+        URI("http://localhost:$port$path").toURL().openConnection() as HttpURLConnection
+
+    private fun HttpURLConnection.body(): String =
+        (if (responseCode < 400) inputStream else errorStream).bufferedReader().readText()
+
+    /** Runs a test with a proxy server, stopping everything on completion. */
+    private fun withProxy(
+        configure: DevReloadProxy.() -> Unit = {},
+        backends: List<Javalin> = emptyList(),
+        test: (proxy: DevReloadProxy, port: Int) -> Unit,
+    ) {
+        val proxy = DevReloadProxy().apply(configure)
+        val proxyPort = findFreePort()
+        val server = Server(proxyPort)
         val handler = ServletContextHandler()
         handler.addFilter(FilterHolder(proxy), "/*", EnumSet.of(DispatcherType.REQUEST))
         server.handler = handler
         server.start()
-        return server
+        try {
+            test(proxy, proxyPort)
+        } finally {
+            server.stop()
+            backends.forEach { it.stop() }
+        }
+    }
+
+    private fun startBackend(path: String, response: String): Javalin {
+        val port = findFreePort()
+        return Javalin.create { it.routes.get(path) { ctx -> ctx.result(response) } }.start(port)
     }
 
     @Test
-    fun `returns 503 when no target port set`() {
-        val proxy = DevReloadProxy()
-        val proxyPort = findFreePort()
-        val server = startProxyServer(proxy, proxyPort)
-        try {
-            val conn = URI("http://localhost:$proxyPort/hello").toURL().openConnection() as HttpURLConnection
-            assertThat(conn.responseCode).isEqualTo(503)
-            val body = conn.errorStream.bufferedReader().readText()
-            assertThat(body).contains("Recompiling")
-        } finally {
-            server.stop()
-        }
+    fun `returns 503 when no target port set`() = withProxy { _, port ->
+        val conn = get(port, "/hello")
+        assertThat(conn.responseCode).isEqualTo(503)
+        assertThat(conn.body()).contains("Recompiling")
     }
 
     @Test
     fun `forwards request to target when port is set`() {
-        val backendPort = findFreePort()
-        val backend = Javalin.create { it.routes.get("/hello") { ctx -> ctx.result("backend-response") } }.start(backendPort)
-        val proxy = DevReloadProxy()
-        proxy.targetPort = backendPort
-        val proxyPort = findFreePort()
-        val server = startProxyServer(proxy, proxyPort)
-        try {
-            val conn = URI("http://localhost:$proxyPort/hello").toURL().openConnection() as HttpURLConnection
+        val backend = startBackend("/hello", "backend-response")
+        withProxy(configure = { targetPort = backend.port() }, backends = listOf(backend)) { _, port ->
+            val conn = get(port, "/hello")
             assertThat(conn.responseCode).isEqualTo(200)
-            assertThat(conn.inputStream.bufferedReader().readText()).isEqualTo("backend-response")
-        } finally {
-            server.stop()
-            backend.stop()
+            assertThat(conn.body()).isEqualTo("backend-response")
         }
     }
 
     @Test
-    fun `returns 503 when target port becomes unavailable`() {
-        val proxy = DevReloadProxy()
-        proxy.targetPort = findFreePort() // port with nothing listening
-        val proxyPort = findFreePort()
-        val server = startProxyServer(proxy, proxyPort)
-        try {
-            val conn = URI("http://localhost:$proxyPort/hello").toURL().openConnection() as HttpURLConnection
-            assertThat(conn.responseCode).isEqualTo(503)
-        } finally {
-            server.stop()
-        }
+    fun `returns 503 when target port becomes unavailable`() = withProxy(configure = {
+        targetPort = findFreePort() // nothing listening
+    }) { _, port ->
+        assertThat(get(port, "/hello").responseCode).isEqualTo(503)
     }
 
     @Test
     fun `proxy can switch targets`() {
-        val backend1Port = findFreePort()
-        val backend1 = Javalin.create { it.routes.get("/hello") { ctx -> ctx.result("v1") } }.start(backend1Port)
-        val backend2Port = findFreePort()
-        val backend2 = Javalin.create { it.routes.get("/hello") { ctx -> ctx.result("v2") } }.start(backend2Port)
-
-        val proxy = DevReloadProxy()
-        proxy.targetPort = backend1Port
-        val proxyPort = findFreePort()
-        val server = startProxyServer(proxy, proxyPort)
-        try {
-            var conn = URI("http://localhost:$proxyPort/hello").toURL().openConnection() as HttpURLConnection
-            assertThat(conn.inputStream.bufferedReader().readText()).isEqualTo("v1")
-
-            proxy.targetPort = backend2Port
-            conn = URI("http://localhost:$proxyPort/hello").toURL().openConnection() as HttpURLConnection
-            assertThat(conn.inputStream.bufferedReader().readText()).isEqualTo("v2")
-        } finally {
-            server.stop()
-            backend1.stop()
-            backend2.stop()
+        val b1 = startBackend("/hello", "v1")
+        val b2 = startBackend("/hello", "v2")
+        withProxy(configure = { targetPort = b1.port() }, backends = listOf(b1, b2)) { proxy, port ->
+            assertThat(get(port, "/hello").body()).isEqualTo("v1")
+            proxy.targetPort = b2.port()
+            assertThat(get(port, "/hello").body()).isEqualTo("v2")
         }
     }
 
     @Test
     fun `forwards query parameters`() {
-        val backendPort = findFreePort()
-        val backend = Javalin.create { it.routes.get("/search") { ctx -> ctx.result("q=${ctx.queryParam("q")}") } }.start(backendPort)
-        val proxy = DevReloadProxy()
-        proxy.targetPort = backendPort
-        val proxyPort = findFreePort()
-        val server = startProxyServer(proxy, proxyPort)
-        try {
-            val conn = URI("http://localhost:$proxyPort/search?q=test").toURL().openConnection() as HttpURLConnection
-            assertThat(conn.inputStream.bufferedReader().readText()).isEqualTo("q=test")
-        } finally {
-            server.stop()
-            backend.stop()
+        val backend = Javalin.create { it.routes.get("/search") { ctx -> ctx.result("q=${ctx.queryParam("q")}") } }
+            .start(findFreePort())
+        withProxy(configure = { targetPort = backend.port() }, backends = listOf(backend)) { _, port ->
+            assertThat(get(port, "/search?q=test").body()).isEqualTo("q=test")
+        }
+    }
+
+    @Test
+    fun `status endpoint returns error JSON on compile failure`() = withProxy(configure = {
+        targetPort = findFreePort()
+        reloadingFiles = listOf("Foo.kt")
+        compileError = "Foo.kt:10: error: expecting ')'"
+    }) { _, port ->
+        val conn = get(port, "/__dev-reload/status")
+        assertThat(conn.responseCode).isEqualTo(503)
+        val body = conn.body()
+        assertThat(body).contains("\"ready\":false")
+        assertThat(body).contains("\"error\":")
+        assertThat(body).contains("expecting ')'")
+    }
+
+    @Test
+    fun `shows compile error page then recovers on fix`() {
+        val backend = startBackend("/", "ok")
+        withProxy(configure = { targetPort = backend.port() }, backends = listOf(backend)) { proxy, port ->
+            // Simulate compile error
+            proxy.reloadingFiles = listOf("Bar.kt")
+            proxy.compileError = "Bar.kt:1: error: unresolved reference"
+            assertThat(get(port, "/").responseCode).isEqualTo(503)
+            assertThat(get(port, "/").body()).contains("Compile Error")
+
+            // Simulate successful recompile
+            proxy.compileError = null
+            proxy.reloadingFiles = emptyList()
+            assertThat(get(port, "/").body()).isEqualTo("ok")
+            assertThat(get(port, "/__dev-reload/status").body()).contains("\"ready\":true")
         }
     }
 
     @Test
     fun `forwards POST body`() {
-        val backendPort = findFreePort()
-        val backend = Javalin.create { it.routes.post("/data") { ctx -> ctx.result("got: ${ctx.body()}") } }.start(backendPort)
-        val proxy = DevReloadProxy()
-        proxy.targetPort = backendPort
-        val proxyPort = findFreePort()
-        val server = startProxyServer(proxy, proxyPort)
-        try {
-            val conn = URI("http://localhost:$proxyPort/data").toURL().openConnection() as HttpURLConnection
+        val backend = Javalin.create { it.routes.post("/data") { ctx -> ctx.result("got: ${ctx.body()}") } }
+            .start(findFreePort())
+        withProxy(configure = { targetPort = backend.port() }, backends = listOf(backend)) { _, port ->
+            val conn = get(port, "/data")
             conn.requestMethod = "POST"
             conn.doOutput = true
             conn.outputStream.write("hello".toByteArray())
             conn.outputStream.close()
             assertThat(conn.responseCode).isEqualTo(200)
-            assertThat(conn.inputStream.bufferedReader().readText()).isEqualTo("got: hello")
-        } finally {
-            server.stop()
-            backend.stop()
+            assertThat(conn.body()).isEqualTo("got: hello")
         }
     }
 }
