@@ -12,6 +12,7 @@ import io.javalin.compression.CompressionType.GZIP
 import io.javalin.compression.Gzip
 import io.javalin.compression.GzipCompressor
 import io.javalin.compression.forType
+import io.javalin.config.JavalinConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
@@ -140,6 +141,35 @@ class TestConfiguration {
     @Test
     fun `showOldJavalinVersionWarning can be disabled`() {
         val app = Javalin.create { it.startup.showOldJavalinVersionWarning = false }
+        assertThat(app.unsafe.startup.showOldJavalinVersionWarning).isFalse()
+    }
+
+    @Test
+    fun `JavalinConfig can be created and configured outside of Javalin#create`() {
+        val config = JavalinConfig()
+        config.routes.get("/test") { it.result("hello") }
+        TestUtil.test(Javalin.create(config)) { _, http ->
+            assertThat(http.get("/test").body).isEqualTo("hello")
+        }
+    }
+
+    @Test
+    fun `Javalin#start accepts pre-configured JavalinConfig`() = TestUtil.runLogLess {
+        val config = JavalinConfig()
+        config.jetty.port = 0
+        val app = Javalin.start(config)
+        assertThat(app.jettyServer().started()).isTrue()
+        assertThat(app.port()).isGreaterThan(0)
+        app.stop()
+    }
+
+    @Test
+    fun `JavalinConfig created outside of create retains settings`() {
+        val config = JavalinConfig()
+        config.http.asyncTimeout = 12_345L
+        config.startup.showOldJavalinVersionWarning = false
+        val app = Javalin.create(config)
+        assertThat(app.unsafe.http.asyncTimeout).isEqualTo(12_345L)
         assertThat(app.unsafe.startup.showOldJavalinVersionWarning).isFalse()
     }
 }
