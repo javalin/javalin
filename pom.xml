@@ -70,17 +70,17 @@
 
         <!-- PLUGINS -->
         <compiler.plugin.version>3.15.0</compiler.plugin.version>
-        <dokka.plugin.version>2.0.0</dokka.plugin.version>
+        <dokka.plugin.version>2.2.0</dokka.plugin.version>
         <javadoc.plugin.version>3.6.0</javadoc.plugin.version>
         <gpg.plugin.version>3.2.8</gpg.plugin.version>
         <jar.plugin.version>3.5.0</jar.plugin.version>
         <surefire.plugin.version>3.5.5</surefire.plugin.version>
-        <shade.plugin.version>3.6.1</shade.plugin.version>
+        <shade.plugin.version>3.6.2</shade.plugin.version>
         <build-helper.plugin.version>3.6.1</build-helper.plugin.version>
         <enforcer.plugin.version>3.6.2</enforcer.plugin.version>
         <clean.plugin.version>3.5.0</clean.plugin.version>
         <install.plugin.version>3.1.4</install.plugin.version>
-        <resources.plugin.version>3.4.0</resources.plugin.version>
+        <resources.plugin.version>3.5.0</resources.plugin.version>
         <source.plugin.version>3.4.0</source.plugin.version>
         <moditect.plugin.version>1.3.0.Final</moditect.plugin.version>
         <jacoco.plugin.version>0.8.14</jacoco.plugin.version>
@@ -93,22 +93,22 @@
         <mustache.version>0.9.14</mustache.version>
         <handlebars.version>4.5.0</handlebars.version>
         <pebble.version>4.1.1</pebble.version>
-        <commonmark.version>0.27.1</commonmark.version>
+        <commonmark.version>0.28.0</commonmark.version>
         <jte.version>3.2.1</jte.version>
 
         <!-- ADDITIONAL PLUGIN VERSIONS -->
         <exec.plugin.version>3.6.3</exec.plugin.version>
         <deploy.plugin.version>3.1.4</deploy.plugin.version>
-        <git-commit-id.plugin.version>9.0.2</git-commit-id.plugin.version>
+        <git-commit-id.plugin.version>9.1.0</git-commit-id.plugin.version>
 
         <!-- DEPENDENCIES -->
-        <jetty.version>12.1.6</jetty.version>
+        <jetty.version>12.1.7</jetty.version>
         <annotations.version>26.1.0</annotations.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
-        <jackson.version>2.21.1</jackson.version>
-        <jackson3.version>3.1.0</jackson3.version>
-        <jackson.databind.version>2.21.1</jackson.databind.version>
-        <brotli4j.version>1.20.0</brotli4j.version>
+        <jackson.version>2.21.2</jackson.version>
+        <jackson3.version>3.1.1</jackson3.version>
+        <jackson.databind.version>2.21.2</jackson.databind.version>
+        <brotli4j.version>1.22.0</brotli4j.version>
         <zstd.jni.version>1.5.7-7</zstd.jni.version>
         <logback.version>1.5.32</logback.version>
         <slf4j.version>2.0.17</slf4j.version>
@@ -116,7 +116,7 @@
         <okhttp.version>5.3.2</okhttp.version> <!-- Also used for testing in SSL plugin -->
 
         <!-- SSL DEPENDENCIES -->
-        <ayza.version>10.0.3</ayza.version>
+        <ayza.version>10.0.4</ayza.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.27.7</assertj.version>
@@ -124,7 +124,7 @@
         <java.websocket.version>1.6.0</java.websocket.version>
         <junit.version>6.0.3</junit.version>
         <jmh.version>1.37</jmh.version>
-        <mockito.version>5.22.0</mockito.version>
+        <mockito.version>5.23.0</mockito.version>
         <mockk.version>1.14.9</mockk.version>
         <unirest.version>3.14.5</unirest.version>
         <selenium.chrome.driver.version>4.41.0</selenium.chrome.driver.version>
