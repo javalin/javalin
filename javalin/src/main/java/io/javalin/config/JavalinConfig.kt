@@ -33,6 +33,9 @@ class JavalinConfig internal constructor(
      * Creates a standalone [JavalinConfig] that can be configured outside of [Javalin.create].
      * The configured instance can be passed directly to [Javalin.create] or [Javalin.start].
      *
+     * Each [JavalinConfig] instance can only be passed to [Javalin.create] or [Javalin.start] **once**.
+     * Passing the same instance more than once will throw an [IllegalStateException].
+     *
      * Example:
      * ```java
      * JavalinConfig config = new JavalinConfig();

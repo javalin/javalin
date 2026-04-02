@@ -158,9 +158,12 @@ class TestConfiguration {
         val config = JavalinConfig()
         config.jetty.port = 0
         val app = Javalin.start(config)
-        assertThat(app.jettyServer().started()).isTrue()
-        assertThat(app.port()).isGreaterThan(0)
-        app.stop()
+        try {
+            assertThat(app.jettyServer().started()).isTrue()
+            assertThat(app.port()).isGreaterThan(0)
+        } finally {
+            app.stop()
+        }
     }
 
     @Test
@@ -171,5 +174,14 @@ class TestConfiguration {
         val app = Javalin.create(config)
         assertThat(app.unsafe.http.asyncTimeout).isEqualTo(12_345L)
         assertThat(app.unsafe.startup.showOldJavalinVersionWarning).isFalse()
+    }
+
+    @Test
+    fun `JavalinConfig cannot be reused to create multiple Javalin instances`() {
+        val config = JavalinConfig()
+        Javalin.create(config).stop()
+        Assertions.assertThatExceptionOfType(IllegalStateException::class.java)
+            .isThrownBy { Javalin.create(config) }
+            .withMessageContaining("already been used")
     }
 }

@@ -14,6 +14,7 @@ import jakarta.servlet.Servlet;
 import kotlin.Lazy;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import static io.javalin.util.Util.createLazy;
@@ -90,6 +91,7 @@ public class Javalin {
         // Finalizes initialization (starts plugins, registers default app data) using the pre-configured state.
         // The empty consumer ensures no additional configuration is applied, as the user has already configured
         // the JavalinConfig instance outside of this call.
+        Objects.requireNonNull(config, "config must not be null");
         JavalinState.applyUserConfig(config.unsafe, c -> {});
         Javalin app = new Javalin(config.unsafe);
         app.jettyServer.getValue(); // initialize server if no plugin already did
