@@ -171,6 +171,46 @@ class TestSse {
         assertThat(http.sse("/sse").get().body.trim()).isEqualTo(": Emitted and closed!")
     }
 
+    @Test
+    fun `sending plain data works`() = TestUtil.test { app, http ->
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendData(data) } }
+        val body = http.sse("/sse").get().body
+        assertThat(body).doesNotContain("event:")
+        assertThat(body).contains("data: $data")
+    }
+
+    @Test
+    fun `sending plain data with id works`() = TestUtil.test { app, http ->
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendData(data, id = "ID1") } }
+        val body = http.sse("/sse").get().body
+        assertThat(body).doesNotContain("event:")
+        assertThat(body).contains("id: ID1")
+        assertThat(body).contains("data: $data")
+    }
+
+    @Test
+    fun `sending plain data as json works`() = TestUtil.test { app, http ->
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendData(SerializableObject()) } }
+        val body = http.sse("/sse").get().body
+        assertThat(body).doesNotContain("event:")
+        assertThat(body).contains("""data: {"value1":"FirstValue","value2":"SecondValue"}""")
+    }
+
+    @Test
+    fun `sending plain data as input stream works`() = TestUtil.test { app, http ->
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendData("MY DATA".byteInputStream()) } }
+        val body = http.sse("/sse").get().body
+        assertThat(body).doesNotContain("event:")
+        assertThat(body).contains("data: MY DATA")
+    }
+
+    @Test
+    fun `sending multi line plain data works`() = TestUtil.test { app, http ->
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendData("a\nb") } }
+        val body = http.sse("/sse").get().body
+        assertThat(body).isEqualTo("data: a\ndata: b\n\n")
+    }
+
     private enum class MyRole : RouteRole { ROLE_ONE }
 
     @Test
