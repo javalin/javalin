@@ -130,6 +130,25 @@ class TestSse {
     }
 
     @Test
+    fun `event name with newline is stripped to prevent SSE injection`() = TestUtil.test { app, http ->
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent("evil\ndata: injected", "payload") } }
+        val body = http.sse("/sse").get().body
+        // Newline must be stripped so the attacker cannot close the event line
+        // and inject an extra `data:` frame.
+        assertThat(body).contains("event: evildata: injected\n")
+        assertThat(body).doesNotContain("evil\n")
+    }
+
+    @Test
+    fun `event id with CR-LF is stripped to prevent SSE injection`() = TestUtil.test { app, http ->
+        app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, data, id = "1\r\nevent: spoof") } }
+        val body = http.sse("/sse").get().body
+        assertThat(body).contains("id: 1event: spoof")
+        assertThat(body).doesNotContain("id: 1\r")
+        assertThat(body).doesNotContain("id: 1\n")
+    }
+
+    @Test
     fun `sending async data is properly processed`() = TestUtil.test { app, http ->
         app.unsafe.routes.sse("/sse") {
             it.sendEvent("Sync event")
