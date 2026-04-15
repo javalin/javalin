@@ -102,7 +102,7 @@
         <git-commit-id.plugin.version>9.1.0</git-commit-id.plugin.version>
 
         <!-- DEPENDENCIES -->
-        <jetty.version>12.1.7</jetty.version>
+        <jetty.version>12.1.8</jetty.version>
         <annotations.version>26.1.0</annotations.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
         <jackson.version>2.21.2</jackson.version>
