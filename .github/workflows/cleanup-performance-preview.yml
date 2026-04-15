@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Dispatch preview cleanup workflow
         if: ${{ secrets.PERF_ACTIONS_CONTENTS_RW != '' }}
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.PERF_ACTIONS_CONTENTS_RW }}
           script: |
