@@ -12,12 +12,14 @@ class Emitter(private var response: HttpServletResponse) {
     var closed = false
         private set
 
-    fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
+    fun emit(event: String?, data: InputStream, id: String?) = synchronized(this) {
         try {
             if (id != null) {
                 write("id: $id$NEW_LINE")
             }
-            write("event: $event$NEW_LINE")
+            if (event != null) {
+                write("event: $event$NEW_LINE")
+            }
 
             data.buffered().reader().useLines {
                 it.forEach { line -> write("data: $line$NEW_LINE") }
