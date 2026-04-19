@@ -24,9 +24,6 @@ class Emitter(private var response: HttpServletResponse) {
             if (sanitizedEvent != null) {
                 write("event: $sanitizedEvent$NEW_LINE")
             }
-            if (event != null) {
-                write("event: $event$NEW_LINE")
-            }
             data.buffered().reader().useLines {
                 it.forEach { line -> write("data: $line$NEW_LINE") }
             }
