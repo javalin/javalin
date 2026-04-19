@@ -89,12 +89,12 @@
         <!-- RENDERING ENGINE VERSIONS -->
         <velocity.version>2.4.1</velocity.version>
         <freemarker.version>2.3.34</freemarker.version>
-        <thymeleaf.version>3.1.3.RELEASE</thymeleaf.version>
+        <thymeleaf.version>3.1.4.RELEASE</thymeleaf.version>
         <mustache.version>0.9.14</mustache.version>
         <handlebars.version>4.5.0</handlebars.version>
         <pebble.version>4.1.1</pebble.version>
         <commonmark.version>0.28.0</commonmark.version>
-        <jte.version>3.2.1</jte.version>
+        <jte.version>3.2.3</jte.version>
 
         <!-- ADDITIONAL PLUGIN VERSIONS -->
         <exec.plugin.version>3.6.3</exec.plugin.version>
@@ -106,7 +106,7 @@
         <annotations.version>26.1.0</annotations.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
         <jackson.version>2.21.2</jackson.version>
-        <jackson3.version>3.1.1</jackson3.version>
+        <jackson3.version>3.1.2</jackson3.version>
         <jackson.databind.version>2.21.2</jackson.databind.version>
         <brotli4j.version>1.22.0</brotli4j.version>
         <zstd.jni.version>1.5.7-7</zstd.jni.version>
@@ -127,8 +127,8 @@
         <mockito.version>5.23.0</mockito.version>
         <mockk.version>1.14.9</mockk.version>
         <unirest.version>3.14.5</unirest.version>
-        <selenium.chrome.driver.version>4.41.0</selenium.chrome.driver.version>
-        <webdrivermanager.version>6.3.3</webdrivermanager.version>
+        <selenium.chrome.driver.version>4.43.0</selenium.chrome.driver.version>
+        <webdrivermanager.version>6.3.4</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
 
