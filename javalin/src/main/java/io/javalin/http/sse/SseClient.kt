@@ -58,7 +58,18 @@ class SseClient internal constructor(
      * the [close] function will be called instead.
      */
     @JvmOverloads
-    fun sendEvent(event: String, data: Any, id: String? = null) {
+    fun sendEvent(event: String, data: Any, id: String? = null) = emitData(event, data, id)
+
+    /**
+     * Attempt to send plain data without an event type.
+     * Browsers will fire the generic "message" event for these.
+     * If the [emitter] fails to emit (remote client has disconnected),
+     * the [close] function will be called instead.
+     */
+    @JvmOverloads
+    fun sendData(data: Any, id: String? = null) = emitData(null, data, id)
+
+    private fun emitData(event: String?, data: Any, id: String?) {
         if (terminated.get()) return logTerminated()
         when (data) {
             is InputStream -> emitter.emit(event, data, id)

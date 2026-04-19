@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Evaluate command
         id: evaluate
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const commentBody = (context.payload.comment?.body || "").replace(/\s+/g, " ").trim();
@@ -89,7 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Explain rejection
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const reason = ${{ toJSON(needs.evaluate.outputs.reason) }};
@@ -108,7 +108,7 @@ jobs:
       - name: Dispatch benchmark workflow
         id: dispatch
         continue-on-error: true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.PERF_ACTIONS_CONTENTS_RW }}
           script: |
@@ -131,7 +131,7 @@ jobs:
       - name: Comment success
         if: steps.dispatch.outcome == 'success'
         continue-on-error: true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.JAVALIN_PR_RW }}
           script: |
@@ -151,7 +151,7 @@ jobs:
       - name: Comment failure
         if: steps.dispatch.outcome != 'success'
         continue-on-error: true
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.JAVALIN_PR_RW }}
           script: |
