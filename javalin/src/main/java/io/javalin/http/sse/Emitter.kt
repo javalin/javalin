@@ -14,13 +14,16 @@ class Emitter(private var response: HttpServletResponse) {
 
     fun emit(event: String?, data: InputStream, id: String?) = synchronized(this) {
         try {
-            if (id != null) {
-                write("id: $id$NEW_LINE")
+            // Strip CR/LF from event and id so attacker-controlled values
+            // can't inject extra SSE frames — see #2579.
+            val sanitizedId = id?.let(::stripCrLf)
+            val sanitizedEvent = event?.let(::stripCrLf)
+            if (sanitizedId != null) {
+                write("id: $sanitizedId$NEW_LINE")
             }
-            if (event != null) {
-                write("event: $event$NEW_LINE")
+            if (sanitizedEvent != null) {
+                write("event: $sanitizedEvent$NEW_LINE")
             }
-
             data.buffered().reader().useLines {
                 it.forEach { line -> write("data: $line$NEW_LINE") }
             }
@@ -31,6 +34,9 @@ class Emitter(private var response: HttpServletResponse) {
             closed = true
         }
     }
+
+    private fun stripCrLf(value: String): String =
+        value.replace("\r", "").replace("\n", "")
 
     fun emit(comment: String) =
         try {
