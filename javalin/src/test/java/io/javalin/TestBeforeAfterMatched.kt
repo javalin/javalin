@@ -363,12 +363,12 @@ class TestBeforeAfterMatched {
     }
 
     @Test
-    fun `pathParams are extracted from endpoint if beforeMatched has no path-params`() =
+    fun `beforeMatched without its own path-params inherits the matched route's pathParams`() =
         TestUtil.test(Javalin.create { config ->
-            config.routes.beforeMatched { ctx -> ctx.result("") } // BEFORE_MATCHED handlers without their own path params don't have access to the HTTP endpoint's path params
+            config.routes.beforeMatched { ctx -> ctx.result(ctx.pathParamMap().toString() + "/") }
             config.routes.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + ctx.pathParamMap()) }
         }) { _, http ->
-            assertThat(http.getBody("/p")).isEqualTo("{endpoint=p}")
+            assertThat(http.getBody("/p")).isEqualTo("{endpoint=p}/{endpoint=p}")
         }
 
     @Test
@@ -378,6 +378,24 @@ class TestBeforeAfterMatched {
             config.routes.get("/{endpoint}") { ctx -> ctx.result(ctx.result() + "/" + ctx.pathParamMap()) }
         }) { _, http ->
             assertThat(http.getBody("/p")).isEqualTo("{before=p}/{endpoint=p}")
+        }
+
+    @Test
+    fun `issue 2591 - global beforeMatched sees pathParamMap from matched endpoint`() =
+        TestUtil.test(Javalin.create { config ->
+            config.routes.beforeMatched { ctx -> ctx.result(ctx.pathParamMap().toString()) }
+            config.routes.get("/api/user/{userId}") { }
+        }) { _, http ->
+            assertThat(http.getBody("/api/user/user-123")).isEqualTo("{userId=user-123}")
+        }
+
+    @Test
+    fun `issue 2591 - global beforeMatched can read individual pathParam from matched endpoint`() =
+        TestUtil.test(Javalin.create { config ->
+            config.routes.beforeMatched { ctx -> ctx.result(ctx.pathParam("userId")) }
+            config.routes.get("/api/user/{userId}") { }
+        }) { _, http ->
+            assertThat(http.getBody("/api/user/user-123")).isEqualTo("user-123")
         }
 
     private enum class Role : RouteRole { A }

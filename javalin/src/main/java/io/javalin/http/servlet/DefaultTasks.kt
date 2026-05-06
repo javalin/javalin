@@ -33,9 +33,14 @@ object DefaultTasks {
 
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE_MATCHED, requestUri).forEach { entry ->
             if (willMatch) {
-                httpHandlerOrNull?.let { ctx.endpoints().matchedHttpEndpointInternal = it.endpoint }
+                val httpHandler = httpHandlerOrNull
+                httpHandler?.let { ctx.endpoints().matchedHttpEndpointInternal = it.endpoint }
                 submitTask(LAST, Task(skipOnExceptionAndRedirect = true) {
-                    entry.handle(ctx, requestUri)
+                    if (httpHandler != null && !entry.endpoint.hasPathParams() && httpHandler.endpoint.hasPathParams()) {
+                        entry.handleWithPathParams(ctx, httpHandler.extractPathParams(requestUri))
+                    } else {
+                        entry.handle(ctx, requestUri)
+                    }
                 })
             }
         }
