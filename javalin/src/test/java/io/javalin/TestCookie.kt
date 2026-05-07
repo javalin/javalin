@@ -4,17 +4,9 @@ import io.javalin.http.Cookie
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.http.SameSite
-import io.javalin.http.setJavalinCookie
 import io.javalin.testing.TestUtil
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.runs
-import io.mockk.verify
-import jakarta.servlet.http.HttpServletResponse
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test
 
 class TestCookie {
@@ -146,19 +138,19 @@ class TestCookie {
     }
 
     @Test
-    fun `sameSite cookies don't rely on servlet addCookie`() {
-        val response = mockk<HttpServletResponse>()
-        every { response.addCookie(any()) } throws NoSuchMethodError("jakarta.servlet.http.Cookie.getAttributes")
-        every { response.getHeaders(Header.SET_COOKIE) } returns mutableListOf()
-        every { response.setHeader(any(), any()) } just runs
-        every { response.addHeader(any(), any()) } just runs
-
-        assertDoesNotThrow {
-            response.setJavalinCookie(Cookie("Test", "Tast", sameSite = SameSite.STRICT, secure = true, isHttpOnly = true))
+    fun `submitted SameSite strict code path`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/test") { ctx ->
+            val cookie = Cookie("session", "abc123")
+            cookie.sameSite = SameSite.STRICT
+            cookie.isHttpOnly = true
+            cookie.secure = true
+            ctx.cookie(cookie)
+            ctx.result("ok")
         }
-
-        verify(exactly = 1) { response.addHeader(Header.SET_COOKIE, "Test=Tast; Path=/; Secure; HttpOnly; SameSite=Strict") }
-        verify(exactly = 0) { response.addCookie(any()) }
+        val response = http.get("/test")
+        assertThat(http.getStatus("/test")).isEqualTo(HttpStatus.OK)
+        assertThat(http.getBody("/test")).isEqualTo("ok")
+        assertThat(response.headers.getFirst(Header.SET_COOKIE)).isEqualTo("session=abc123; Path=/; Secure; HttpOnly; SameSite=Strict")
     }
 
     private fun cookieIsEffectivelyRemoved(cookie: String, path: String): Boolean {
