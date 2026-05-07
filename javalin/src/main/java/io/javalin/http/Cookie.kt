@@ -66,6 +66,15 @@ data class Cookie @JvmOverloads constructor(
 )
 
 fun HttpServletResponse.setJavalinCookie(javalinCookie: Cookie) {
+    if (javalinCookie.sameSite != null) {
+        (this.getHeaders(Header.SET_COOKIE) ?: listOf()).toMutableList().let { cookies ->
+            cookies.add(javalinCookie.toHeaderString())
+            cookies.removeIf { it.startsWith("${javalinCookie.name}=") && !it.contains(javalinCookie.value) }
+            cookies.removeFirstOrNull()?.let { first -> this.setHeader(Header.SET_COOKIE, first) }
+            cookies.forEach { remaining -> this.addHeader(Header.SET_COOKIE, remaining) }
+        }
+        return
+    }
     val cookie = ServletCookie(javalinCookie.name, javalinCookie.value).apply {
         this.path = javalinCookie.path
         this.maxAge = javalinCookie.maxAge
@@ -85,6 +94,16 @@ fun HttpServletResponse.setJavalinCookie(javalinCookie: Cookie) {
     }
 
 }
+
+private fun Cookie.toHeaderString() = buildList {
+    add("$name=$value")
+    add("Path=$path")
+    domain?.let { add("Domain=$it") }
+    if (maxAge >= 0) add("Max-Age=$maxAge")
+    if (secure) add("Secure")
+    if (isHttpOnly) add("HttpOnly")
+    sameSite?.let { add(it.value) }
+}.joinToString("; ")
 
 fun HttpServletResponse.removeCookie(name: String, path: String?) =
     this.addCookie(jakarta.servlet.http.Cookie(name, "").apply {

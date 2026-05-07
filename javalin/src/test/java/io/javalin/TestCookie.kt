@@ -4,9 +4,17 @@ import io.javalin.http.Cookie
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.http.SameSite
+import io.javalin.http.setJavalinCookie
 import io.javalin.testing.TestUtil
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.verify
+import jakarta.servlet.http.HttpServletResponse
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test
 
 class TestCookie {
@@ -135,6 +143,22 @@ class TestCookie {
         app.unsafe.routes.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.NONE, isHttpOnly = true, domain = "localhost")) }
         val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)
         assertThat(cookie).isEqualTo("Test=Tast; Path=/; Domain=localhost; HttpOnly; SameSite=None")
+    }
+
+    @Test
+    fun `sameSite cookies don't rely on servlet addCookie`() {
+        val response = mockk<HttpServletResponse>()
+        every { response.addCookie(any()) } throws NoSuchMethodError("jakarta.servlet.http.Cookie.getAttributes")
+        every { response.getHeaders(Header.SET_COOKIE) } returns mutableListOf()
+        every { response.setHeader(any(), any()) } just runs
+        every { response.addHeader(any(), any()) } just runs
+
+        assertDoesNotThrow {
+            response.setJavalinCookie(Cookie("Test", "Tast", sameSite = SameSite.STRICT, secure = true, isHttpOnly = true))
+        }
+
+        verify(exactly = 1) { response.addHeader(Header.SET_COOKIE, "Test=Tast; Path=/; Secure; HttpOnly; SameSite=Strict") }
+        verify(exactly = 0) { response.addCookie(any()) }
     }
 
     private fun cookieIsEffectivelyRemoved(cookie: String, path: String): Boolean {
