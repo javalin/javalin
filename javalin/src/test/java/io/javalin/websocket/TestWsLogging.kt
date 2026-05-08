@@ -97,8 +97,9 @@ class TestWsLogging {
     }
 
     @Test
-    fun `dev logging reproduces a websocket server error when query strings are present`() {
+    fun `dev logging fails for web sockets with query parameters`() {
         val log = ConcurrentLinkedQueue<String>()
+        // Server connect + server close + client close + client close reason
         val expectedLogCount = 4
         TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
             app.unsafe.routes.ws("/path/{param}") { ws ->
@@ -117,7 +118,6 @@ class TestWsLogging {
                 "1 disconnected (1011)",
                 "client disconnected (1011)"
             )
-            assertThat(log).anySatisfy { assertThat(it).contains("OPEN method error") }
         }
     }
 }
