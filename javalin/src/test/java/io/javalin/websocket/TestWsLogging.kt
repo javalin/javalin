@@ -112,7 +112,7 @@ class TestWsLogging {
                     log.add(message)
                 }
             }
-            awaitCondition(condition = { client.isClosed && log.size >= expectedLogCount }) { client.connect() }
+            awaitCondition(condition = { client.isClosed && log.size == expectedLogCount }) { client.connect() }
             assertThat(log).contains(
                 "1 connected",
                 "1 disconnected (1011)",
