@@ -97,11 +97,26 @@ class TestWsLogging {
     }
 
     @Test
-    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
-        app.unsafe.routes.ws("/path/{param}") {}
-        WsTestClient(app, "/path/0").connectAndDisconnect()
-        WsTestClient(app, "/path/1?test=banana&hi=1&hi=2").connectAndDisconnect()
-        // DevLoggingPlugin logs to console, not to our log - just verify no exceptions
+    fun `dev logging closes websocket connections with a server error when query strings are present`() {
+        val log = ConcurrentLinkedQueue<String>()
+        TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
+            app.unsafe.routes.ws("/path/{param}") { ws ->
+                ws.onConnect { ctx -> log.add("${ctx.pathParam("param")} connected") }
+                ws.onClose { ctx -> log.add("${ctx.pathParam("param")} disconnected (${ctx.status()})") }
+            }
+            val client = object : WsTestClient(app, "/path/1?test=banana&hi=1&hi=2") {
+                override fun onClose(status: Int, message: String, byRemote: Boolean) {
+                    log.add("client disconnected ($status)")
+                    log.add(message)
+                }
+            }
+            awaitCondition(condition = { client.isClosed && log.size >= 4 }) { client.connect() }
+            assertThat(log).contains(
+                "1 connected",
+                "1 disconnected (1011)",
+                "client disconnected (1011)"
+            )
+            assertThat(log).anySatisfy { assertThat(it).contains("OPEN method error") }
+        }
     }
 }
-
