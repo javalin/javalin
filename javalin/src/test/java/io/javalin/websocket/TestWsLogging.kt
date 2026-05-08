@@ -97,8 +97,9 @@ class TestWsLogging {
     }
 
     @Test
-    fun `dev logging closes websocket connections with a server error when query strings are present`() {
+    fun `dev logging reproduces a websocket server error when query strings are present`() {
         val log = ConcurrentLinkedQueue<String>()
+        val expectedLogCount = 4
         TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
             app.unsafe.routes.ws("/path/{param}") { ws ->
                 ws.onConnect { ctx -> log.add("${ctx.pathParam("param")} connected") }
@@ -110,7 +111,7 @@ class TestWsLogging {
                     log.add(message)
                 }
             }
-            awaitCondition(condition = { client.isClosed && log.size >= 4 }) { client.connect() }
+            awaitCondition(condition = { client.isClosed && log.size >= expectedLogCount }) { client.connect() }
             assertThat(log).contains(
                 "1 connected",
                 "1 disconnected (1011)",
