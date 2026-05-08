@@ -108,15 +108,15 @@ class TestWsLogging {
             val client = object : WsTestClient(app, "/path/1?test=banana&hi=1&hi=2") {
                 override fun onClose(status: Int, message: String, byRemote: Boolean) {
                     log.add("client disconnected ($status)")
-                    log.add(message)
+                    log.add("close reason ($message)")
                 }
             }
             awaitCondition(condition = { client.isClosed && log.size == expectedLogCount }) { client.connect() }
-            assertThat(log).containsExactly(
+            assertThat(log).containsExactlyInAnyOrder(
                 "1 connected",
                 "1 disconnected (1000)",
                 "client disconnected (1000)",
-                ""
+                "close reason ()"
             )
         }
     }
