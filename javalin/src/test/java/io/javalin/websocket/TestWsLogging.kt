@@ -97,9 +97,8 @@ class TestWsLogging {
     }
 
     @Test
-    fun `dev logging fails for web sockets with query parameters`() {
+    fun `dev logging works for web sockets with query parameters`() {
         val log = ConcurrentLinkedQueue<String>()
-        // Server connect + server close + client close + client close reason
         val expectedLogCount = 4
         TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
             app.unsafe.routes.ws("/path/{param}") { ws ->
@@ -113,10 +112,11 @@ class TestWsLogging {
                 }
             }
             awaitCondition(condition = { client.isClosed && log.size == expectedLogCount }) { client.connect() }
-            assertThat(log).contains(
+            assertThat(log).containsExactly(
                 "1 connected",
-                "1 disconnected (1011)",
-                "client disconnected (1011)"
+                "1 disconnected (1000)",
+                "client disconnected (1000)",
+                ""
             )
         }
     }
