@@ -109,10 +109,20 @@ class TestWsLogging {
         val log = ConcurrentLinkedQueue<String>()
         TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
             app.unsafe.routes.ws("/path") { ws ->
+                ws.onConnect { ctx ->
+                    log.add("queryString=${ctx.queryString()}")
+                    log.add("queryParam=${ctx.queryParam("test")}")
+                    log.add("queryParams=${ctx.queryParams("hi")}")
+                }
                 ws.onClose { ctx -> log.add("server disconnected (${ctx.status()})") }
             }
-            awaitCondition(condition = { log.size == 1 }) { WsTestClient(app, "/path?test=banana&hi=1&hi=2").connectAndDisconnect() }
-            assertThat(log).containsExactly("server disconnected (1000)")
+            awaitCondition(condition = { log.size == 4 }) { WsTestClient(app, "/path?test=banana&hi=1&hi=2").connectAndDisconnect() }
+            assertThat(log).containsExactly(
+                "queryString=test=banana&hi=1&hi=2",
+                "queryParam=banana",
+                "queryParams=[1, 2]",
+                "server disconnected (1000)"
+            )
         }
     }
 }
