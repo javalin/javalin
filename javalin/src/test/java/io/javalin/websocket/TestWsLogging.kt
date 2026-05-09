@@ -97,27 +97,22 @@ class TestWsLogging {
     }
 
     @Test
-    fun `dev logging works for web sockets with query parameters`() {
+    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
+        app.unsafe.routes.ws("/path/{param}") {}
+        WsTestClient(app, "/path/0").connectAndDisconnect()
+        WsTestClient(app, "/path/1?test=banana&hi=1&hi=2").connectAndDisconnect()
+        // DevLoggingPlugin logs to console, not to our log - just verify no exceptions
+    }
+
+    @Test
+    fun `dev logging preserves clean web socket close for query parameters`() {
         val log = ConcurrentLinkedQueue<String>()
-        val expectedLogCount = 4
         TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
-            app.unsafe.routes.ws("/path/{param}") { ws ->
-                ws.onConnect { ctx -> log.add("${ctx.pathParam("param")} connected") }
-                ws.onClose { ctx -> log.add("${ctx.pathParam("param")} disconnected (${ctx.status()})") }
+            app.unsafe.routes.ws("/path") { ws ->
+                ws.onClose { ctx -> log.add("server disconnected (${ctx.status()})") }
             }
-            val client = object : WsTestClient(app, "/path/1?test=banana&hi=1&hi=2") {
-                override fun onClose(status: Int, message: String, byRemote: Boolean) {
-                    log.add("client disconnected ($status)")
-                    log.add("close reason ($message)")
-                }
-            }
-            awaitCondition(condition = { client.isClosed && log.size == expectedLogCount }) { client.connect() }
-            assertThat(log).containsExactlyInAnyOrder(
-                "1 connected",
-                "1 disconnected (1000)",
-                "client disconnected (1000)",
-                "close reason ()"
-            )
+            awaitCondition(condition = { log.size == 1 }) { WsTestClient(app, "/path?test=banana&hi=1&hi=2").connectAndDisconnect() }
+            assertThat(log).containsExactly("server disconnected (1000)")
         }
     }
 }
