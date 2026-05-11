@@ -60,7 +60,7 @@ abstract class WsContext(@JvmSynthetic internal val upgradeCtx: JavalinWsServlet
     fun disableAutomaticPings() = PingManager.disableAutomaticPings(this)
 
     /** Returns the full query [String], or null if no query is present */
-    fun queryString(): String? = upgradeCtx.queryString()
+    fun queryString(): String? = upgradeCtx.extractedData.queryString
 
     /** Returns a [Map] of all the query parameters */
     fun queryParamMap(): Map<String, List<String>> = upgradeCtx.extractedData.queryParamMap

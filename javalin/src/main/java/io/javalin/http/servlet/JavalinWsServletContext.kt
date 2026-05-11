@@ -30,6 +30,7 @@ data class UpgradeRequestData(val context: JavalinWsServletContext) {
     val sessionId: String = UUID.randomUUID().toString()
     val requestUri = context.req().requestURI.removePrefix(context.req().contextPath)
     val host = context.host()
+    val queryString = context.queryString()
     val queryParamMap = context.queryParamMap()
     val headerMap = context.headerMap()
     val cookieMap = context.cookieMap()
