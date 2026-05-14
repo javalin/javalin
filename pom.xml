@@ -14,7 +14,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>7.2.1-SNAPSHOT</version>
+    <version>7.2.1</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -31,7 +31,7 @@
         <connection>scm:git:git@github.com:javalin/javalin.git</connection>
         <developerConnection>scm:git:git@github.com:javalin/javalin.git</developerConnection>
         <url>https://github.com/javalin/javalin.git</url>
-        <tag>HEAD</tag>
+        <tag>javalin-parent-7.2.1</tag>
     </scm>
     <developers>
         <developer>
@@ -62,7 +62,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2026-05-14T08:55:58Z</project.build.outputTimestamp>
         <kotlin.version>2.2.20</kotlin.version>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
