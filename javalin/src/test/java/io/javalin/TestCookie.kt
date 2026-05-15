@@ -137,6 +137,23 @@ class TestCookie {
         assertThat(cookie).isEqualTo("Test=Tast; Path=/; Domain=localhost; HttpOnly; SameSite=None")
     }
 
+    @Test
+    fun `submitted SameSite strict code path`() = TestUtil.test(Javalin.create { config ->
+        config.routes.get("/test") { ctx ->
+            val cookie = Cookie("session", "abc123")
+            cookie.sameSite = SameSite.STRICT
+            cookie.isHttpOnly = true
+            cookie.secure = true
+            ctx.cookie(cookie)
+            ctx.result("ok")
+        }
+    }) { _, http ->
+        val response = http.get("/test")
+        assertThat(response.status).isEqualTo(200)
+        assertThat(response.body).isEqualTo("ok")
+        assertThat(response.headers.getFirst(Header.SET_COOKIE)).isEqualTo("session=abc123; Path=/; Secure; HttpOnly; SameSite=Strict")
+    }
+
     private fun cookieIsEffectivelyRemoved(cookie: String, path: String): Boolean {
         val parts = cookie.split(";")
         val pathMatches = parts[1].split("=")[1].trim() == path
