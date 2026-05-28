@@ -42,6 +42,7 @@ module io.javalin {
     requires static tools.jackson.databind;
     requires static tools.jackson.module.kotlin;
     requires static com.google.gson;
+    requires static io.avaje.jsonb;
 
     //Required to use the Service Loader on this type
     uses org.slf4j.spi.SLF4JServiceProvider;

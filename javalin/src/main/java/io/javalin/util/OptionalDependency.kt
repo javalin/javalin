@@ -64,6 +64,9 @@ enum class CoreDependency(
     // JSON (Gson)
     GSON("Gson", "com.google.gson.Gson", "com.google.code.gson", "gson", "2.13.2"),
 
+    // JSON (avaje-jsonb)
+    AVAJE_JSONB("avaje-jsonb", "io.avaje.jsonb.Jsonb", "io.avaje", "avaje-jsonb", "3.13"),
+
     // Logging
     SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "2.0.17"),
 

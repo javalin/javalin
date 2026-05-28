@@ -113,6 +113,7 @@
         <logback.version>1.5.32</logback.version>
         <slf4j.version>2.0.17</slf4j.version>
         <gson.version>2.14.0</gson.version>
+        <avaje-jsonb.version>3.13</avaje-jsonb.version>
         <okhttp.version>5.3.2</okhttp.version> <!-- Also used for testing in SSL plugin -->
 
         <!-- SSL DEPENDENCIES -->
@@ -238,6 +239,11 @@
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${gson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.avaje</groupId>
+                <artifactId>avaje-jsonb</artifactId>
+                <version>${avaje-jsonb.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
