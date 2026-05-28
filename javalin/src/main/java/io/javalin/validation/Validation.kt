@@ -12,6 +12,7 @@ import io.javalin.config.ValidationConfig
 import io.javalin.http.HttpStatus
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
+import java.lang.Enum.valueOf as enumValueOf
 
 class MissingConverterException(val className: String) : JavalinException("No converter registered for class: $className")
 
@@ -19,7 +20,7 @@ class Validation(private val validationConfig: ValidationConfig = ValidationConf
 
     private fun <T> convertValue(clazz: Class<T>, value: String?): T {
         val converter = validationConfig.converters[clazz]
-            ?: if (clazz.isEnum) { str -> java.lang.Enum.valueOf(clazz as Class<out Enum<*>>, str) } else null
+            ?: if (clazz.isEnum) { str -> enumValueOf(clazz as Class<out Enum<*>>, str) } else null
             ?: throw MissingConverterException(clazz.name)
         @Suppress("UNCHECKED_CAST")
         return (if (value != null) converter.invoke(value) else null) as T

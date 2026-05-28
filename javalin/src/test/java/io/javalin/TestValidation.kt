@@ -168,10 +168,10 @@ class TestValidation {
 
     @Test
     fun `user-defined enum converter overrides default`() = TestUtil.test(Javalin.create {
-        it.validation.register(MyEnum::class.java) { MyEnum.valueOf(it.uppercase()) }
+        it.validation.register(MyEnum::class.java) { if (it == "🐱") MyEnum.CAT else MyEnum.valueOf(it) }
     }) { app, http ->
         app.unsafe.routes.get("/enum") { ctx -> ctx.result(ctx.queryParamAsClass<MyEnum>("my-enum").get().name) }
-        assertThat(http.get("/enum?my-enum=cat").body).isEqualTo("CAT")
+        assertThat(http.get("/enum?my-enum=🐱").body).isEqualTo("CAT")
     }
 
     @Test
