@@ -18,12 +18,14 @@ class MissingConverterException(val className: String) : JavalinException("No co
 class Validation(private val validationConfig: ValidationConfig = ValidationConfig()) {
 
     private fun <T> convertValue(clazz: Class<T>, value: String?): T {
-        val converter = validationConfig.converters[clazz] ?: throw MissingConverterException(clazz.name)
+        val converter = validationConfig.converters[clazz]
+            ?: if (clazz.isEnum) { str -> java.lang.Enum.valueOf(clazz as Class<out Enum<*>>, str) } else null
+            ?: throw MissingConverterException(clazz.name)
         @Suppress("UNCHECKED_CAST")
         return (if (value != null) converter.invoke(value) else null) as T
     }
 
-    private fun <T> supportsClass(clazz: Class<T>) = validationConfig.converters[clazz] != null
+    private fun <T> supportsClass(clazz: Class<T>) = validationConfig.converters[clazz] != null || clazz.isEnum
 
     fun <T> validator(fieldName: String, clazz: Class<T>, value: String?): Validator<T?> {
         if (!supportsClass(clazz)) {

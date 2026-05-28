@@ -160,6 +160,21 @@ class TestValidation {
     }
 
     @Test
+    fun `default enum conversion works`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/enum") { ctx -> ctx.result(ctx.queryParamAsClass<MyEnum>("my-enum").get().name) }
+        assertThat(http.get("/enum?my-enum=CAT").body).isEqualTo("CAT")
+        assertThat(http.get("/enum?my-enum=HORSE").body).isEqualTo("""{"my-enum":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"HORSE"}]}""")
+    }
+
+    @Test
+    fun `user-defined enum converter overrides default`() = TestUtil.test(Javalin.create {
+        it.validation.register(MyEnum::class.java) { MyEnum.valueOf(it.uppercase()) }
+    }) { app, http ->
+        app.unsafe.routes.get("/enum") { ctx -> ctx.result(ctx.queryParamAsClass<MyEnum>("my-enum").get().name) }
+        assertThat(http.get("/enum?my-enum=cat").body).isEqualTo("CAT")
+    }
+
+    @Test
     fun `custom converter works for null when nullable`() = TestUtil.test(Javalin.create {
         it.validation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
     }) { app, http ->
