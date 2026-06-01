@@ -50,24 +50,24 @@ enum class CoreDependency(
 ) : OptionalDependency {
 
     // JSON (Jackson) handling
-    JACKSON("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core", "jackson-databind", "2.21.2"),
-    JACKSON_KT("JacksonKt", "com.fasterxml.jackson.module.kotlin.KotlinModule", "com.fasterxml.jackson.module", "jackson-module-kotlin", "2.21.2"),
-    JACKSON_JSR_310("JacksonJsr310", "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", "com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "2.21.2"),
-    JACKSON_ECLIPSE_COLLECTIONS("JacksonEclipseCollections", "com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "com.fasterxml.jackson.datatype", "jackson-datatype-eclipse-collections", "2.21.2"),
+    JACKSON("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core", "jackson-databind", "2.22.0"),
+    JACKSON_KT("JacksonKt", "com.fasterxml.jackson.module.kotlin.KotlinModule", "com.fasterxml.jackson.module", "jackson-module-kotlin", "2.21.4"),
+    JACKSON_JSR_310("JacksonJsr310", "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", "com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "2.21.4"),
+    JACKSON_ECLIPSE_COLLECTIONS("JacksonEclipseCollections", "com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "com.fasterxml.jackson.datatype", "jackson-datatype-eclipse-collections", "2.21.4"),
     JACKSON_KTORM("Jackson Ktorm", "org.ktorm.jackson.KtormModule", "org.ktorm", "ktorm-jackson", "3.6.0"),
 
     // JSON (Jackson 3) handling
-    JACKSON3("Jackson3", "tools.jackson.databind.json.JsonMapper", "tools.jackson.core", "jackson-databind", "3.1.3"),
-    JACKSON3_KT("Jackson3Kt", "tools.jackson.module.kotlin.KotlinModule", "tools.jackson.module", "jackson-module-kotlin", "3.1.3"),
-    JACKSON3_ECLIPSE_COLLECTIONS("Jackson3EclipseCollections", "tools.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "tools.jackson.datatype", "jackson-datatype-eclipse-collections", "3.1.3"),
+    JACKSON3("Jackson3", "tools.jackson.databind.json.JsonMapper", "tools.jackson.core", "jackson-databind", "3.1.4"),
+    JACKSON3_KT("Jackson3Kt", "tools.jackson.module.kotlin.KotlinModule", "tools.jackson.module", "jackson-module-kotlin", "3.1.4"),
+    JACKSON3_ECLIPSE_COLLECTIONS("Jackson3EclipseCollections", "tools.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "tools.jackson.datatype", "jackson-datatype-eclipse-collections", "3.1.4"),
 
     // JSON (Gson)
-    GSON("Gson", "com.google.gson.Gson", "com.google.code.gson", "gson", "2.13.2"),
+    GSON("Gson", "com.google.gson.Gson", "com.google.code.gson", "gson", "2.14.0"),
 
     // Logging
-    SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "2.0.17"),
+    SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "2.0.18"),
 
     // Compression
-    BROTLI4J("Brotli4j", "com.aayushatharva.brotli4j.Brotli4jLoader", "com.aayushatharva.brotli4j", "brotli4j", "1.22.0"),
-    ZSTD_JNI("Zstd-jni", "com.github.luben.zstd.Zstd", "com.github.luben", "zstd-jni", "1.5.7-7"),
+    BROTLI4J("Brotli4j", "com.aayushatharva.brotli4j.Brotli4jLoader", "com.aayushatharva.brotli4j", "brotli4j", "1.23.0"),
+    ZSTD_JNI("Zstd-jni", "com.github.luben.zstd.Zstd", "com.github.luben", "zstd-jni", "1.5.7-9"),
 }
