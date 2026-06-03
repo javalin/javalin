@@ -9,8 +9,7 @@ import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-@Json.Import(TestJsonMapper.Companion.Foo::class)
-@Json.Import(SerializableObject::class)
+// JSON imports are in TestJavalinJsonb_Java.java so that the annotation processor sees them
 
 internal class TestJavalinJsonb {
 
