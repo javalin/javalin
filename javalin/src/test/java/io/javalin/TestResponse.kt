@@ -125,6 +125,20 @@ class TestResponse {
     }
 
     @Test
+    fun `adding a header works`() = TestUtil.test { app, http ->
+        val headerValue1 = UUID.randomUUID().toString()
+        val headerValue2 = UUID.randomUUID().toString()
+        app.unsafe.routes.get("/") {
+            it.header(Header.EXPIRES, headerValue1)
+            it.addHeader(Header.EXPIRES, headerValue2)
+        }
+        val response = http.get("/")
+        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
+        assertThat(response.headers.get(Header.EXPIRES)).contains(headerValue1)
+        assertThat(response.headers.get(Header.EXPIRES)).contains(headerValue2)
+    }
+
+    @Test
     fun `removing a set header works`() = TestUtil.test { app, http ->
         val headerValue = UUID.randomUUID().toString()
         app.unsafe.routes.get("/") {
