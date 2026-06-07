@@ -125,6 +125,24 @@ class TestResponse {
     }
 
     @Test
+    fun `adding a header appends values`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/") {
+            it.addHeader("X-Test", "v1")
+            it.addHeader("X-Test", "v2")
+        }
+        assertThat(http.get("/").headers.get("X-Test")).containsExactly("v1", "v2")
+    }
+
+    @Test
+    fun `setting a header overwrites previous values`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/") {
+            it.addHeader("X-Test", "v1")
+            it.header("X-Test", "v2")
+        }
+        assertThat(http.get("/").headers.get("X-Test")).containsExactly("v2")
+    }
+
+    @Test
     fun `removing a set header works`() = TestUtil.test { app, http ->
         val headerValue = UUID.randomUUID().toString()
         app.unsafe.routes.get("/") {

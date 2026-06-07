@@ -443,6 +443,9 @@ interface Context {
     /** Sets response header by name and value. */
     fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
 
+    /** Adds a response header with the given name and value. Unlike [header] which overwrites, this adds an additional value. */
+    fun addHeader(name: String, value: String): Context = also { res().addHeader(name, value) }
+
     /** Remove header by name. */
     fun removeHeader(name: String): Context = also { res().setHeader(name, null) }
 
