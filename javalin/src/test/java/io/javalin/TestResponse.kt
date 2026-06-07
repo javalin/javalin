@@ -125,17 +125,21 @@ class TestResponse {
     }
 
     @Test
-    fun `adding a header works`() = TestUtil.test { app, http ->
-        val headerValue1 = UUID.randomUUID().toString()
-        val headerValue2 = UUID.randomUUID().toString()
+    fun `adding a header appends values`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/") {
-            it.header(Header.EXPIRES, headerValue1)
-            it.addHeader(Header.EXPIRES, headerValue2)
+            it.addHeader("X-Test", "v1")
+            it.addHeader("X-Test", "v2")
         }
-        val response = http.get("/")
-        assertThat(response.status).isEqualTo(HttpStatus.OK.code)
-        assertThat(response.headers.get(Header.EXPIRES)).contains(headerValue1)
-        assertThat(response.headers.get(Header.EXPIRES)).contains(headerValue2)
+        assertThat(http.get("/").headers.get("X-Test")).containsExactly("v1", "v2")
+    }
+
+    @Test
+    fun `setting a header overwrites previous values`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/") {
+            it.addHeader("X-Test", "v1")
+            it.header("X-Test", "v2")
+        }
+        assertThat(http.get("/").headers.get("X-Test")).containsExactly("v2")
     }
 
     @Test
