@@ -97,8 +97,16 @@ interface Context {
     /** Gets the request content type, or null. */
     fun contentType(): String? = req().contentType
 
-    /** Gets the request method. */
-    fun method(): HandlerType = HandlerType.findOrCreate(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
+    /**
+     * Gets the request method.
+     * Throws [NotImplementedResponse] (501, as per RFC 9110 section 9.1) if the
+     * method token cannot be represented as a [HandlerType] (e.g. "M-SEARCH").
+     */
+    fun method(): HandlerType = try {
+        HandlerType.findOrCreate(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
+    } catch (ignored: IllegalArgumentException) {
+        throw NotImplementedResponse("Unrecognized HTTP method")
+    }
 
     /** Gets the request path. */
     fun path(): String = req().requestURI

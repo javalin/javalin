@@ -61,6 +61,7 @@ class ExceptionMapper(private val routerConfig: RouterConfig, private val jettyC
         res.status = INTERNAL_SERVER_ERROR.code
         when {
             throwable is Error -> routerConfig.javaLangErrorHandler.handle(res, throwable)
+            throwable is HttpResponseException -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(throwable.status))
             isClientAbortException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(jettyConfig.clientAbortStatus))
             isJettyTimeoutException(throwable) -> logDebugAndSetError(throwable, res, HttpStatus.forStatus(jettyConfig.timeoutStatus))
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)

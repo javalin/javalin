@@ -114,4 +114,30 @@ class TestCustomHttpMethods {
             HandlerType.PATCH, HandlerType.HEAD, HandlerType.OPTIONS, HandlerType.TRACE
         )
     }
+
+    // The two tests below use the JDK HttpClient rather than Unirest, since
+    // HttpMethod.valueOf would permanently add the token to HttpMethod.all(),
+    // which TestRouting's mapped/unmapped verb tests iterate over.
+
+    @Test
+    fun `requests with unroutable method tokens get 501 instead of 500`() = TestUtil.test { _, http ->
+        // M-SEARCH is a valid HTTP token, but contains a character outside A-Z so it
+        // cannot be represented as a HandlerType - should be 501 (RFC 9110 section 9.1), not a 500
+        assertThat(rawStatus(http.origin, "M-SEARCH")).isEqualTo(501)
+    }
+
+    @Test
+    fun `well-formed unknown methods still return 404`() = TestUtil.test { _, http ->
+        assertThat(rawStatus(http.origin, "FOOBAR")).isEqualTo(404)
+    }
+
+    private fun rawStatus(origin: String, method: String): Int {
+        val request = java.net.http.HttpRequest.newBuilder()
+            .uri(java.net.URI.create("$origin/"))
+            .method(method, java.net.http.HttpRequest.BodyPublishers.noBody())
+            .build()
+        return java.net.http.HttpClient.newHttpClient()
+            .send(request, java.net.http.HttpResponse.BodyHandlers.discarding())
+            .statusCode()
+    }
 }
