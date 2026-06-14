@@ -97,8 +97,8 @@ interface Context {
     /** Gets the request content type, or null. */
     fun contentType(): String? = req().contentType
 
-    /** Gets the request method. */
-    fun method(): HandlerType = HandlerType.findOrCreate(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
+    /** Gets the request method. Unrecognized methods resolve to a non-matching [HandlerType] (404) rather than throwing. */
+    fun method(): HandlerType = HandlerType.findOrDefault(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
 
     /** Gets the request path. */
     fun path(): String = req().requestURI

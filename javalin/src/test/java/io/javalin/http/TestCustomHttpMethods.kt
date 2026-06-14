@@ -2,14 +2,28 @@ package io.javalin.http
 
 import io.javalin.http.HandlerType.GET
 import io.javalin.security.RouteRole
+import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 
 import kong.unirest.HttpMethod
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse.BodyHandlers
 
 class TestCustomHttpMethods {
+
+    // JDK client, not Unirest: HttpMethod.valueOf(...) leaks tokens into Unirest's global method list.
+    private fun rawRequestStatus(http: HttpUtil, method: String, path: String): Int =
+        HttpClient.newHttpClient().send(
+            HttpRequest.newBuilder(URI.create(http.origin + path))
+                .method(method, HttpRequest.BodyPublishers.noBody())
+                .build(),
+            BodyHandlers.ofString()
+        ).statusCode()
 
     val PROPFIND = HandlerType.findOrCreate("PROPFIND")
 
@@ -104,6 +118,24 @@ class TestCustomHttpMethods {
 
         val response = http.call(HttpMethod.valueOf("MKCOL"), "/webdav/collections")
         assertThat(response.body).isEqualTo("Collection created with roles: [ADMIN, USER]")
+    }
+
+    @Test
+    fun `unrecognized request methods return 404 instead of 500`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/") { ctx -> ctx.result("GET works") }
+        // hyphenated and lowercase tokens must miss the router quietly, not throw (issue #2607)
+        listOf("M-SEARCH", "VERSION-CONTROL", "get", "propfind", "FOOBAR").forEach { method ->
+            assertThat(rawRequestStatus(http, method, "/")).`as`("method '$method'").isEqualTo(404)
+        }
+    }
+
+    @Test
+    fun `findOrDefault is lenient and does not pollute METHOD_MAP`() {
+        assertThat(HandlerType.findOrDefault("GET")).isSameAs(GET)
+        val unknown = HandlerType.findOrDefault("m-search")
+        assertThat(unknown.name()).isEqualTo("m-search")
+        // not cached, unlike findOrCreate, so untrusted tokens can't grow METHOD_MAP
+        assertThat(HandlerType.findOrDefault("m-search")).isNotSameAs(unknown)
     }
 
     @Test
