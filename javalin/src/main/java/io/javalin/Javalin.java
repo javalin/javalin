@@ -14,6 +14,7 @@ import jakarta.servlet.Servlet;
 import kotlin.Lazy;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import static io.javalin.util.Util.createLazy;
@@ -70,12 +71,50 @@ public class Javalin {
     }
 
     /**
+     * Creates a new instance from a pre-configured {@link JavalinConfig}.
+     * This allows configuring Javalin outside of the {@link Javalin#create(Consumer)} consumer.
+     * The server does not run until {@link Javalin#start()} is called.
+     *
+     * <p>Example:
+     * <pre>{@code
+     * JavalinConfig config = new JavalinConfig();
+     * config.routes.get("/", ctx -> ctx.result("Hello"));
+     * Javalin app = Javalin.create(config);
+     * }</pre>
+     *
+     * @param config pre-configured {@link JavalinConfig} instance
+     * @return application instance
+     * @see Javalin#start()
+     * @see Javalin#start(int)
+     */
+    public static Javalin create(JavalinConfig config) {
+        // Finalizes initialization (starts plugins, registers default app data) using the pre-configured state.
+        // The empty consumer ensures no additional configuration is applied, as the user has already configured
+        // the JavalinConfig instance outside of this call.
+        Objects.requireNonNull(config, "config must not be null");
+        JavalinState.applyUserConfig(config.unsafe, c -> {});
+        Javalin app = new Javalin(config.unsafe);
+        app.jettyServer.getValue(); // initialize server if no plugin already did
+        return app;
+    }
+
+    /**
      * Creates and starts a new instance with the user provided configuration.
      *
      * @param config configuration consumer accepting {@link JavalinConfig}
      * @return running application instance
      */
     public static Javalin start(Consumer<JavalinConfig> config) {
+        return create(config).start();
+    }
+
+    /**
+     * Creates and starts a new instance from a pre-configured {@link JavalinConfig}.
+     *
+     * @param config pre-configured {@link JavalinConfig} instance
+     * @return running application instance
+     */
+    public static Javalin start(JavalinConfig config) {
         return create(config).start();
     }
 
