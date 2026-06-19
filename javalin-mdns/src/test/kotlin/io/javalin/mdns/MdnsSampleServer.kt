@@ -15,13 +15,16 @@ fun main() {
     val hostname = "javalin-demo"
     val port = System.getenv("PORT")?.toIntOrNull() ?: 80
 
-    Javalin.create { config ->
+    val app = Javalin.create { config ->
         config.registerPlugin(MdnsPlugin { it.hostname = hostname })
         config.routes.get("/") { it.result("mDNS demo server is running. Served by $hostname.local") }
     }.start(port)
 
+    val boundPort = app.port()
+    val portSuffix = if (boundPort == 80) "" else ":$boundPort"
+
     println("Try these URLs:")
-    println("  http://$hostname.local:$port/")
-    println("  http://localhost:$port/")
+    println("  http://$hostname.local$portSuffix/")
+    println("  http://localhost$portSuffix/")
     println("Note: .local resolution needs a local mDNS resolver (built-in on macOS; Avahi on Linux; Bonjour on Windows).")
 }
