@@ -10,7 +10,9 @@ import io.javalin.config.JavalinState
 import io.javalin.plugin.Plugin
 import org.eclipse.jetty.server.ServerConnector
 import org.slf4j.LoggerFactory
+import java.net.Inet4Address
 import java.net.InetAddress
+import java.net.NetworkInterface
 import java.util.function.Consumer
 import javax.jmdns.JmDNS
 import javax.jmdns.ServiceInfo
@@ -52,7 +54,7 @@ class MdnsPlugin @JvmOverloads constructor(
 
     private fun start(state: JavalinState) {
         try {
-            val address = pluginConfig.address ?: InetAddress.getLocalHost()
+            val address = pluginConfig.address ?: selectAddress()
             val jmdns = JmDNS.create(/*addr=*/ address, /*name=*/ pluginConfig.hostname).also { this.jmdns = it }
             logger.info("mDNS hostname published: {}.local -> {}", pluginConfig.hostname, address.hostAddress)
 
@@ -88,8 +90,22 @@ class MdnsPlugin @JvmOverloads constructor(
         }
     }
 
+    // Pick a real LAN interface; InetAddress.getLocalHost() can resolve to loopback, which breaks mDNS multicast.
+    private fun selectAddress(): InetAddress {
+        val siteLocal = NetworkInterface.getNetworkInterfaces().asSequence()
+            .filter { it.isUp && !it.isLoopback && !it.isVirtual && !it.isPointToPoint }
+            .flatMap { it.inetAddresses.asSequence() }
+            .firstOrNull { it is Inet4Address && it.isSiteLocalAddress }
+        if (siteLocal != null) return siteLocal
+        val fallback = InetAddress.getLocalHost()
+        if (fallback.isLoopbackAddress) {
+            logger.warn("No non-loopback site-local interface found; mDNS bound to {} and multicast may not work", fallback.hostAddress)
+        }
+        return fallback
+    }
+
     private fun boundPort(state: JavalinState): Int =
-        (state.jettyInternal.server?.connectors?.firstOrNull() as? ServerConnector)?.localPort
+        state.jettyInternal.server?.connectors?.filterIsInstance<ServerConnector>()?.firstOrNull()?.localPort
             ?: state.jetty.port
 
     companion object {
