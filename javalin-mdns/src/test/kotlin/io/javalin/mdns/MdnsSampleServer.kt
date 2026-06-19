@@ -13,7 +13,7 @@ import io.javalin.Javalin
  */
 fun main() {
     val hostname = "javalin-demo"
-    val port = System.getenv("PORT")?.toIntOrNull() ?: 7070
+    val port = System.getenv("PORT")?.toIntOrNull() ?: 80
 
     Javalin.create { config ->
         config.registerPlugin(MdnsPlugin { it.hostname = hostname })
