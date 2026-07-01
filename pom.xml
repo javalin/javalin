@@ -83,17 +83,17 @@
         <resources.plugin.version>3.5.0</resources.plugin.version>
         <source.plugin.version>3.4.0</source.plugin.version>
         <moditect.plugin.version>1.3.0.Final</moditect.plugin.version>
-        <jacoco.plugin.version>0.8.14</jacoco.plugin.version>
-        <central-publishing.plugin.version>0.10.0</central-publishing.plugin.version>
+        <jacoco.plugin.version>0.8.15</jacoco.plugin.version>
+        <central-publishing.plugin.version>0.11.0</central-publishing.plugin.version>
 
         <!-- RENDERING ENGINE VERSIONS -->
         <velocity.version>2.4.1</velocity.version>
         <freemarker.version>2.3.34</freemarker.version>
         <thymeleaf.version>3.1.5.RELEASE</thymeleaf.version>
         <mustache.version>0.9.14</mustache.version>
-        <handlebars.version>4.5.1</handlebars.version>
+        <handlebars.version>4.5.3</handlebars.version>
         <pebble.version>4.1.2</pebble.version>
-        <commonmark.version>0.28.0</commonmark.version>
+        <commonmark.version>0.29.0</commonmark.version>
         <jte.version>3.2.3</jte.version>
 
         <!-- ADDITIONAL PLUGIN VERSIONS -->
@@ -102,18 +102,18 @@
         <git-commit-id.plugin.version>10.0.0</git-commit-id.plugin.version>
 
         <!-- DEPENDENCIES -->
-        <jetty.version>12.1.8</jetty.version>
+        <jetty.version>12.1.10</jetty.version>
         <annotations.version>26.1.0</annotations.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
-        <jackson.version>2.21.4</jackson.version>
-        <jackson3.version>3.1.4</jackson3.version>
+        <jackson.version>2.22.0</jackson.version>
+        <jackson3.version>3.2.0</jackson3.version>
         <jackson.databind.version>2.22.0</jackson.databind.version>
         <brotli4j.version>1.23.0</brotli4j.version>
-        <zstd.jni.version>1.5.7-9</zstd.jni.version>
-        <logback.version>1.5.34</logback.version>
+        <zstd.jni.version>1.5.7-11</zstd.jni.version>
+        <logback.version>1.5.37</logback.version>
         <slf4j.version>2.0.18</slf4j.version>
         <gson.version>2.14.0</gson.version>
-        <okhttp.version>5.3.2</okhttp.version> <!-- Also used for testing in SSL plugin -->
+        <okhttp.version>5.4.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
 
         <!-- SSL DEPENDENCIES -->
         <ayza.version>10.0.5</ayza.version>
@@ -122,12 +122,12 @@
         <assertj.version>3.27.7</assertj.version>
         <moshi.version>1.15.2</moshi.version>
         <java.websocket.version>1.6.0</java.websocket.version>
-        <junit.version>6.1.0</junit.version>
+        <junit.version>6.1.1</junit.version>
         <jmh.version>1.37</jmh.version>
         <mockito.version>5.23.0</mockito.version>
         <mockk.version>1.14.11</mockk.version>
         <unirest.version>3.14.5</unirest.version>
-        <selenium.chrome.driver.version>4.44.0</selenium.chrome.driver.version>
+        <selenium.chrome.driver.version>4.45.0</selenium.chrome.driver.version>
         <webdrivermanager.version>6.3.4</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
