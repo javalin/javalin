@@ -31,6 +31,7 @@ import org.eclipse.jetty.ee10.servlet.ServletResponseHttpWrapper
 import io.javalin.http.staticfiles.AliasCheck
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -126,6 +127,14 @@ class TestStaticFiles {
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body).contains("HTML works")
+    }
+
+    @Test
+    fun `static files are streamed, not read into memory`() = testStaticFiles(defaultStaticResourceApp) { app, http ->
+        var streamed = false
+        app.unsafe.routes.after("/html.html") { streamed = it.resultInputStream() !is ByteArrayInputStream }
+        assertThat(http.get("/html.html").body).contains("HTML works")
+        assertThat(streamed).isTrue()
     }
 
     @Test
