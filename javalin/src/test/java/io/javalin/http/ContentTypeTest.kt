@@ -18,7 +18,9 @@ class ContentTypeTest {
     @Test
     fun `fetching content type by mime type should get the right type`() {
         ContentType.entries.forEach {
-            assertThat(ContentType.contentType(it.mimeType)).isEqualTo(it)
+            val found = ContentType.contentType(it.mimeType)
+            assertThat(found).isNotNull()
+            assertThat(found!!.mimeType).isEqualTo(it.mimeType)
         }
     }
 

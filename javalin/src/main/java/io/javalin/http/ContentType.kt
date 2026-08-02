@@ -82,6 +82,7 @@ enum class ContentType(
     APPLICATION_MPKG("application/vnd.apple.installer+xml", false, "mpkg"),
     APPLICATION_JAR("application/java-archive", false, "jar"),
     APPLICATION_PDF("application/pdf", true, "pdf"),
+    APPLICATION_XML("application/xml", true),
     APPLICATION_POM("application/xml", true, "pom"),
     APPLICATION_RAR("application/vnd.rar", false, "rar"),
     APPLICATION_SH("application/x-sh", true, "sh"),
@@ -107,6 +108,7 @@ enum class ContentType(
         const val CSS = "text/css"
         const val HTML = "text/html"
         const val XML = "text/xml"
+        const val APPLICATION_XML_MIME_TYPE = "application/xml"
         const val OCTET_STREAM = "application/octet-stream"
         const val JAVASCRIPT = "text/javascript"
         const val JSON = "application/json"
