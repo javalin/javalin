@@ -16,12 +16,18 @@ class JavalinHandlebars @JvmOverloads constructor(
 ) : FileRenderer {
 
     override fun render(filePath: String, model: Map<String, Any?>, context: Context): String {
-        val template = handlebars.compile(filePath)
+        val template = handlebars.compile(normalizeTemplatePath(filePath))
         return template.apply(model)
     }
 
     companion object {
-        fun defaultHandlebars(): Handlebars = Handlebars(ClassPathTemplateLoader("/", ""))
+        private const val TEMPLATE_PREFIX = "/templates/handlebars/"
+        private const val TEMPLATE_SUFFIX = ".hbs"
+
+        fun defaultHandlebars(): Handlebars = Handlebars(ClassPathTemplateLoader(TEMPLATE_PREFIX, TEMPLATE_SUFFIX))
+
+        private fun normalizeTemplatePath(filePath: String): String =
+            filePath.removePrefix(TEMPLATE_PREFIX).removeSuffix(TEMPLATE_SUFFIX)
     }
 
 }
