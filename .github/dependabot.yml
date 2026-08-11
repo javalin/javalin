@@ -11,8 +11,15 @@ updates:
     labels:
       - "dependencies"
     target-branch: "master"
+    # Split runtime and test/build dependencies into separate grouped PRs, so a
+    # broken production bump can't block test-dependency updates (and vice versa).
     groups:
-      dependencies:
+      production-dependencies:
+        dependency-type: "production"
+        patterns:
+        - "*"
+      development-dependencies:
+        dependency-type: "development"
         patterns:
         - "*"
 
