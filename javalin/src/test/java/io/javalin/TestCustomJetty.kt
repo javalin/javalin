@@ -224,6 +224,38 @@ class TestCustomJetty {
     }
 
     @Test
+    fun `virtual threads work regardless of config option order`() {
+        if (!LoomUtil.loomAvailable) return
+        val isVirtual = Thread::class.java.getMethod("isVirtual")
+        // useVirtualThreads is set AFTER other config options to ensure it's not eagerly evaluated
+        val defaultApp = Javalin.create {
+            it.routes.get("/") {
+                val thread = Thread.currentThread()
+                it.result("isVirtual:${isVirtual.invoke(thread)}|name:${thread.name}")
+            }
+            it.jetty.host = "localhost"
+            it.concurrency.useVirtualThreads = true // set last to verify lazy evaluation
+        }
+        TestUtil.test(defaultApp) { app, http ->
+            val responseBody = http.get("/").body
+            assertThat(responseBody).contains("isVirtual:true")
+            assertThat(responseBody).contains("JettyServerThreadPool-Virtual")
+        }
+        assertThat(LoomUtil.isLoomThreadPool(defaultApp.jettyServer().server().threadPool)).isTrue
+    }
+
+    @Test
+    fun `virtual threads are not used by default`() {
+        val defaultApp = Javalin.create {
+            it.routes.get("/") { it.result("hello") }
+        }
+        TestUtil.test(defaultApp) { app, http ->
+            assertThat(http.get("/").body).isEqualTo("hello")
+        }
+        assertThat(LoomUtil.isLoomThreadPool(defaultApp.jettyServer().server().threadPool)).isFalse
+    }
+
+    @Test
     fun `custom connector works`() {
         val port = (2000..9999).random()
         val app = Javalin.create { config ->
