@@ -25,3 +25,6 @@ jte-classes/
 
 # ignore flatten-maven-plugin output
 .flattened-pom.xml
+
+# ignore macOS junk
+.DS_Store

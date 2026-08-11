@@ -7,7 +7,6 @@ Always reference these instructions first and fallback to search or bash command
 ## Working Effectively
 
 ### Bootstrap and Build
-- **REQUIREMENT**: Always run `./mvnw package` before `./mvnw test` to avoid OSGI dependency errors
 - Build without tests: `./mvnw package -DskipTests --batch-mode` -- takes 60 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
 - Build with tests: `./mvnw package --batch-mode` -- takes 3+ minutes. NEVER CANCEL. Set timeout to 300+ seconds.
 - **CRITICAL**: Browser tests fail in CI environment due to missing WebDriver - this is expected and normal
@@ -21,11 +20,11 @@ Always reference these instructions first and fallback to search or bash command
 - Non-browser tests pass reliably and provide good validation coverage
 
 ### Project Structure
-- **Root**: Multi-module Maven project with 11 modules
+- **Root**: Multi-module Maven project
 - **Main module**: `javalin/` - Core framework implementation
 - **Key modules**:
   - `javalin-testtools/` - Testing utilities
-  - `javalin-rendering/` - Template engine plugins
+  - `javalin-utils/javalin-rendering/` - Template engine plugins
   - `javalin-ssl/` - SSL/TLS helpers
   - `javalin-bundle/` - All-in-one bundle
 
@@ -72,7 +71,7 @@ javalin/
 │   │   └── websocket/      # WebSocket support
 │   └── src/test/java/      # Core tests
 ├── javalin-testtools/      # Testing utilities
-├── javalin-rendering/      # Template engines
+├── javalin-utils/          # Shared utils (incl. javalin-rendering template engines)
 ├── javalin-ssl/           # SSL helpers
 └── .github/workflows/     # CI configuration
 ```
@@ -134,9 +133,7 @@ Follow the repository's strict commit message format:
 - **NEVER CANCEL** long-running builds - they will complete successfully
 
 ### Known Issues and Workarounds
-- **OSGI Error**: Always run `package` before `test` 
 - **Browser Test Failures**: Expected in CI - missing WebDriver dependencies
-- **Profile Warning**: CI uses `-P dev` but profile doesn't exist (safely ignored)
 - **Multiple SLF4J Bindings**: Warning is normal (both logback and slf4j-simple present)
 
 ## Quick Start Validation
@@ -172,7 +169,7 @@ Javalin uses the consumer pattern extensively for configuration. This allows for
 var app = Javalin.create(config -> {
     config.http.asyncTimeout = 10_000L;
     config.staticFiles.add("/public");
-    config.useVirtualThreads = true;
+    config.concurrency.useVirtualThreads = true;
 });
 
 // AVOID: Don't try to configure after creation
@@ -477,7 +474,7 @@ Javalin.create(config -> {
     }));
     
     // SSL Plugin
-    config.registerPlugin(new SSLPlugin(ssl -> {
+    config.registerPlugin(new SslPlugin(ssl -> {
         ssl.pemFromPath("/path/to/cert.pem", "/path/to/key.pem");
     }));
 });
@@ -658,7 +655,7 @@ Enable virtual threads for better async performance:
 
 ```java
 Javalin.create(config -> {
-    config.useVirtualThreads = true;
+    config.concurrency.useVirtualThreads = true;
 }).start(7070);
 ```
 

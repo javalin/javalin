@@ -2,6 +2,12 @@ name: Test all JDKs on all OSes
 
 on: [push, pull_request]
 
+# Cancel superseded runs; the shared group also dedupes the push + pull_request
+# events that both fire for a branch with an open PR (head_ref matches ref).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
 
@@ -56,7 +62,7 @@ jobs:
       - name: Make Maven Wrapper executable
         run: chmod +x ./mvnw
       - name: Build with Maven
-        run: ./mvnw -P dev -DRunningOnCi=true clean verify --file pom.xml --batch-mode
+        run: ./mvnw -DRunningOnCi=true clean verify --file pom.xml --batch-mode
         env:
           MAVEN_OPTS: -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - name: Upload coverage to Codecov
