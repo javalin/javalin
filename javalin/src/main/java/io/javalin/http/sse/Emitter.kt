@@ -3,16 +3,20 @@ package io.javalin.http.sse
 import jakarta.servlet.http.HttpServletResponse
 import java.io.IOException
 import java.io.InputStream
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 const val COMMENT_PREFIX = ":"
 const val NEW_LINE = "\n"
 
 class Emitter(private var response: HttpServletResponse) {
 
+    private val lock = ReentrantLock()
+
     var closed = false
         private set
 
-    fun emit(event: String?, data: InputStream, id: String?) = synchronized(this) {
+    fun emit(event: String?, data: InputStream, id: String?) = lock.withLock {
         try {
             // Strip CR/LF from event and id so attacker-controlled values
             // can't inject extra SSE frames — see #2579.
