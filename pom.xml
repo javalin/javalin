@@ -91,7 +91,7 @@
         <freemarker.version>2.3.34</freemarker.version>
         <thymeleaf.version>3.1.5.RELEASE</thymeleaf.version>
         <mustache.version>0.9.14</mustache.version>
-        <handlebars.version>4.5.3</handlebars.version>
+        <handlebars.version>4.5.1</handlebars.version>
         <pebble.version>4.1.2</pebble.version>
         <commonmark.version>0.29.0</commonmark.version>
         <jte.version>3.2.3</jte.version>
