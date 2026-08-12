@@ -21,7 +21,17 @@ class JavalinHandlebars @JvmOverloads constructor(
     }
 
     companion object {
-        fun defaultHandlebars(): Handlebars = Handlebars(ClassPathTemplateLoader("/", ""))
+        private const val TEMPLATE_PREFIX = "/templates/handlebars/"
+        private const val TEMPLATE_SUFFIX = ".hbs"
+
+        fun defaultHandlebars(): Handlebars = Handlebars(JavalinTemplateLoader())
+    }
+
+    private class JavalinTemplateLoader : ClassPathTemplateLoader(TEMPLATE_PREFIX, TEMPLATE_SUFFIX) {
+        override fun normalize(location: String): String {
+            val normalizedLocation = location.removePrefix(TEMPLATE_PREFIX).removeSuffix(TEMPLATE_SUFFIX)
+            return super.normalize(normalizedLocation)
+        }
     }
 
 }
