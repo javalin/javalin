@@ -18,7 +18,9 @@ class TestHandlebars {
     fun `handlebars templates work`() = JavalinTest.test(Javalin.create { config ->
         config.fileRenderer(JavalinHandlebars())
         config.routes.get("/hello") { it.render("/templates/handlebars/test.hbs", mapOf("message" to "Hello Handlebars!")) }
+        config.routes.get("/hello-short") { it.render("test", mapOf("message" to "Hello Handlebars!")) }
     }) { app, http ->
         assertThat(http.get("/hello").body?.string()?.trim()).isEqualTo("<h1>Hello Handlebars!</h1>")
+        assertThat(http.get("/hello-short").body?.string()?.trim()).isEqualTo("<h1>Hello Handlebars!</h1>")
     }
 }

@@ -16,7 +16,7 @@ class JavalinHandlebars @JvmOverloads constructor(
 ) : FileRenderer {
 
     override fun render(filePath: String, model: Map<String, Any?>, context: Context): String {
-        val template = handlebars.compile(normalizeTemplatePath(filePath))
+        val template = handlebars.compile(filePath)
         return template.apply(model)
     }
 
@@ -24,10 +24,14 @@ class JavalinHandlebars @JvmOverloads constructor(
         private const val TEMPLATE_PREFIX = "/templates/handlebars/"
         private const val TEMPLATE_SUFFIX = ".hbs"
 
-        fun defaultHandlebars(): Handlebars = Handlebars(ClassPathTemplateLoader(TEMPLATE_PREFIX, TEMPLATE_SUFFIX))
+        fun defaultHandlebars(): Handlebars = Handlebars(JavalinTemplateLoader())
+    }
 
-        private fun normalizeTemplatePath(filePath: String): String =
-            filePath.removePrefix(TEMPLATE_PREFIX).removeSuffix(TEMPLATE_SUFFIX)
+    private class JavalinTemplateLoader : ClassPathTemplateLoader(TEMPLATE_PREFIX, TEMPLATE_SUFFIX) {
+        override fun normalize(location: String): String {
+            val normalizedLocation = location.removePrefix(TEMPLATE_PREFIX).removeSuffix(TEMPLATE_SUFFIX)
+            return super.normalize(normalizedLocation)
+        }
     }
 
 }
