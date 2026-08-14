@@ -9,6 +9,7 @@ const val NEW_LINE = "\n"
 
 class Emitter(private var response: HttpServletResponse) {
 
+    @Volatile
     var closed = false
         private set
 
@@ -38,7 +39,7 @@ class Emitter(private var response: HttpServletResponse) {
     private fun stripCrLf(value: String): String =
         value.replace("\r", "").replace("\n", "")
 
-    fun emit(comment: String) =
+    fun emit(comment: String) = synchronized(this) {
         try {
             comment.split(NEW_LINE).forEach {
                 write("$COMMENT_PREFIX $it$NEW_LINE")
@@ -47,6 +48,7 @@ class Emitter(private var response: HttpServletResponse) {
         } catch (ignored: IOException) {
             closed = true
         }
+    }
 
     private fun write(value: String) =
         response.outputStream.print(value)

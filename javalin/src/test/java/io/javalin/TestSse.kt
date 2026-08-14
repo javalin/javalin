@@ -268,6 +268,40 @@ class TestSse {
     }
 
     @Test
+    fun `concurrent data and comment emits do not interleave within a frame`() = TestUtil.test { app, http ->
+        val iterations = 300
+        fun runConcurrently(vararg tasks: Runnable) {
+            tasks.map { task -> Thread { repeat(iterations) { task.run() } } }
+                .onEach { it.start() }
+                .onEach { it.join() }
+        }
+        app.unsafe.routes.sse("/sse") { client ->
+            runConcurrently(
+                { client.sendEvent("message", "D\nD\nD\nD\nD") },
+                { client.sendComment("c\nc\nc") }
+            )
+            client.close()
+        }
+
+        val body = http.sse("/sse").get().body
+        assertThat(body).contains("data: D") // sanity: data frames were actually emitted
+        assertThat(body).contains(": c") // sanity: comments were actually emitted
+        // A comment line (":") must never appear inside an event frame (between an
+        // event/data line and its terminating blank line); if the two emit() overloads
+        // interleave, a comment lands in the middle of a data frame.
+        var insideFrame = false
+        body.split("\n").forEach { line ->
+            when {
+                line.isEmpty() -> insideFrame = false
+                line.startsWith("data:") || line.startsWith("event:") || line.startsWith("id:") -> insideFrame = true
+                line.startsWith(":") -> assertThat(insideFrame)
+                    .describedAs("comment interleaved inside an event frame: <%s>", line)
+                    .isFalse()
+            }
+        }
+    }
+
+    @Test
     fun `sse does not work without text-event-stream in Accept header`() = TestUtil.test { app, http ->
         app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val body = http.getBody("/see", mapOf(Header.ACCEPT to "text/html, application/json"))
