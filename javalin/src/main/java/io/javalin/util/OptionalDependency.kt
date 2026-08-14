@@ -6,6 +6,8 @@
 
 package io.javalin.util
 
+import java.util.Properties
+
 object DependencyUtil {
 
     fun missingDependencyMessage(dependency: OptionalDependency) = wrapInSeparators(
@@ -46,28 +48,42 @@ enum class CoreDependency(
     override val testClass: String,
     override val groupId: String,
     override val artifactId: String,
-    override val version: String
+    private val versionProperty: String,
 ) : OptionalDependency {
 
     // JSON (Jackson) handling
-    JACKSON("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core", "jackson-databind", "2.22.1"),
-    JACKSON_KT("JacksonKt", "com.fasterxml.jackson.module.kotlin.KotlinModule", "com.fasterxml.jackson.module", "jackson-module-kotlin", "2.22.1"),
-    JACKSON_JSR_310("JacksonJsr310", "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", "com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "2.22.1"),
-    JACKSON_ECLIPSE_COLLECTIONS("JacksonEclipseCollections", "com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "com.fasterxml.jackson.datatype", "jackson-datatype-eclipse-collections", "2.22.1"),
-    JACKSON_KTORM("Jackson Ktorm", "org.ktorm.jackson.KtormModule", "org.ktorm", "ktorm-jackson", "3.6.0"),
+    JACKSON("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core", "jackson-databind", "jackson.databind.version"),
+    JACKSON_KT("JacksonKt", "com.fasterxml.jackson.module.kotlin.KotlinModule", "com.fasterxml.jackson.module", "jackson-module-kotlin", "jackson.version"),
+    JACKSON_JSR_310("JacksonJsr310", "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", "com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "jackson.version"),
+    JACKSON_ECLIPSE_COLLECTIONS("JacksonEclipseCollections", "com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "com.fasterxml.jackson.datatype", "jackson-datatype-eclipse-collections", "jackson.version"),
+    JACKSON_KTORM("Jackson Ktorm", "org.ktorm.jackson.KtormModule", "org.ktorm", "ktorm-jackson", "ktorm.version"),
 
     // JSON (Jackson 3) handling
-    JACKSON3("Jackson3", "tools.jackson.databind.json.JsonMapper", "tools.jackson.core", "jackson-databind", "3.2.1"),
-    JACKSON3_KT("Jackson3Kt", "tools.jackson.module.kotlin.KotlinModule", "tools.jackson.module", "jackson-module-kotlin", "3.2.1"),
-    JACKSON3_ECLIPSE_COLLECTIONS("Jackson3EclipseCollections", "tools.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "tools.jackson.datatype", "jackson-datatype-eclipse-collections", "3.2.1"),
+    JACKSON3("Jackson3", "tools.jackson.databind.json.JsonMapper", "tools.jackson.core", "jackson-databind", "jackson3.version"),
+    JACKSON3_KT("Jackson3Kt", "tools.jackson.module.kotlin.KotlinModule", "tools.jackson.module", "jackson-module-kotlin", "jackson3.version"),
+    JACKSON3_ECLIPSE_COLLECTIONS("Jackson3EclipseCollections", "tools.jackson.datatype.eclipsecollections.EclipseCollectionsModule", "tools.jackson.datatype", "jackson-datatype-eclipse-collections", "jackson3.version"),
 
     // JSON (Gson)
-    GSON("Gson", "com.google.gson.Gson", "com.google.code.gson", "gson", "2.14.0"),
+    GSON("Gson", "com.google.gson.Gson", "com.google.code.gson", "gson", "gson.version"),
 
     // Logging
-    SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "2.0.18"),
+    SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "slf4j.version"),
 
     // Compression
-    BROTLI4J("Brotli4j", "com.aayushatharva.brotli4j.Brotli4jLoader", "com.aayushatharva.brotli4j", "brotli4j", "1.23.0"),
-    ZSTD_JNI("Zstd-jni", "com.github.luben.zstd.Zstd", "com.github.luben", "zstd-jni", "1.5.7-13"),
+    BROTLI4J("Brotli4j", "com.aayushatharva.brotli4j.Brotli4jLoader", "com.aayushatharva.brotli4j", "brotli4j", "brotli4j.version"),
+    ZSTD_JNI("Zstd-jni", "com.github.luben.zstd.Zstd", "com.github.luben", "zstd-jni", "zstd.jni.version");
+
+    // baked from the pom into the jar's pom.properties; "..." only when running from source
+    override val version: String get() = BuildProperties[versionProperty] ?: "..."
+}
+
+private object BuildProperties {
+    private val properties: Properties by lazy {
+        Properties().apply {
+            OptionalDependency::class.java.classLoader
+                .getResourceAsStream("META-INF/maven/io.javalin/javalin/pom.properties")?.use { load(it) }
+        }
+    }
+
+    operator fun get(key: String): String? = properties.getProperty(key)
 }

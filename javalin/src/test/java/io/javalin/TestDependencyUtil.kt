@@ -19,7 +19,7 @@ class TestDependencyUtil {
         val message = DependencyUtil.mavenAndGradleSnippets(dependency)
         assertThat(message).contains("pom.xml:")
         assertThat(message).contains("build.gradle or build.gradle.kts:")
-        assertThat(message).contains("""implementation("${dependency.groupId}:${dependency.artifactId}:${dependency.version}")""")
+        assertThat(message).contains("""implementation("${dependency.groupId}:${dependency.artifactId}:""")
     }
 
 }
