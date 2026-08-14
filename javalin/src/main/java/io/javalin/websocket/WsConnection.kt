@@ -70,6 +70,7 @@ class WsConnection(
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsErrorHandler?.handleError(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsErrorHandler?.handleError(ctx) }
         wsLogger?.wsErrorHandler?.handleError(ctx)
+        ctx.disableAutomaticPings()
     }
 
     private fun tryBeforeAndEndpointHandlers(ctx: WsContext, handle: (WsHandlerEntry) -> Unit) = try {
