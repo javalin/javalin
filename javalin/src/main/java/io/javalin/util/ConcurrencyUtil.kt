@@ -121,7 +121,10 @@ open class NamedThreadFactory(protected val prefix: String) : ThreadFactory {
     protected val threadCount = AtomicInteger(0)
 
     override fun newThread(runnable: Runnable): Thread =
-        Thread(group, runnable, "$prefix-${threadCount.getAndIncrement()}", 0)
+        // Daemon so these internal pools (async, piped-streaming, ws-ping, rate-limit)
+        // don't keep the JVM alive after stop(). Matches the Loom path, whose virtual
+        // threads are always daemon. The Jetty server pool does not use this factory.
+        Thread(group, runnable, "$prefix-${threadCount.getAndIncrement()}", 0).apply { isDaemon = true }
 }
 
 open class NamedVirtualThreadFactory(prefix: String) : NamedThreadFactory(prefix) {

@@ -161,5 +161,17 @@ internal class TestConcurrencyUtil {
         assertThat(thread2.name).isEqualTo("worker-0")
     }
 
+    @Test
+    fun `NamedThreadFactory creates daemon threads so internal pools don't keep the JVM alive`() {
+        // Created from an explicitly non-daemon thread, so the assertion can't pass just
+        // by inheriting the (JVM-dependent) daemon status of the test thread.
+        var thread: Thread? = null
+        Thread { thread = NamedThreadFactory("worker").newThread {} }
+            .apply { isDaemon = false }
+            .apply { start() }
+            .apply { join() }
+        assertThat(thread!!.isDaemon).isTrue()
+    }
+
 }
 
