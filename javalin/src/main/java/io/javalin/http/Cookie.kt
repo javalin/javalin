@@ -93,6 +93,9 @@ fun HttpServletResponse.removeCookie(name: String, path: String?) =
     })
 
 fun String.addSameSite(cookie: Cookie): String {
-    if (cookie.sameSite == null || this.contains(SAME_SITE)) return this
+    // Only add SameSite to this cookie's own Set-Cookie line — setJavalinCookie re-emits
+    // every existing line, so without the name guard a later cookie's SameSite would leak
+    // onto earlier cookies that didn't specify one.
+    if (cookie.sameSite == null || !this.startsWith("${cookie.name}=") || this.contains(SAME_SITE)) return this
     return "$this; ${cookie.sameSite}"
 }

@@ -137,6 +137,17 @@ class TestCookie {
         assertThat(cookie).isEqualTo("Test=Tast; Path=/; Domain=localhost; HttpOnly; SameSite=None")
     }
 
+    @Test
+    fun `samesite is only applied to the cookie that sets it`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/create-cookies") {
+            it.cookie(Cookie("Plain", "1"))                              // no SameSite
+            it.cookie(Cookie("Strict", "2", sameSite = SameSite.STRICT)) // SameSite=Strict
+        }
+        val cookies = http.get("/create-cookies").headers[Header.SET_COOKIE]!!
+        assertThat(cookies.first { it.startsWith("Plain=") }).isEqualTo("Plain=1; Path=/")
+        assertThat(cookies.first { it.startsWith("Strict=") }).isEqualTo("Strict=2; Path=/; SameSite=Strict")
+    }
+
     private fun cookieIsEffectivelyRemoved(cookie: String, path: String): Boolean {
         val parts = cookie.split(";")
         val pathMatches = parts[1].split("=")[1].trim() == path
