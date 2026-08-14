@@ -14,19 +14,14 @@ object PingManager {
     internal val pingFutures: ConcurrentHashMap<WsContext, ScheduledFuture<*>> by javalinLazy { ConcurrentHashMap() }
 
     fun enableAutomaticPings(ctx: WsContext, interval: Long, unit: TimeUnit) {
-        synchronized(ctx) {
-            disableAutomaticPings(ctx);
-            pingFutures[ctx] = executor.scheduleAtFixedRate({
-                ctx.sendPing()
-            }, interval, interval, unit)
+        pingFutures.compute(ctx) { _, existing ->
+            existing?.cancel(false)
+            executor.scheduleAtFixedRate({ ctx.sendPing() }, interval, interval, unit)
         }
     }
 
     fun disableAutomaticPings(ctx: WsContext) {
-        synchronized(ctx) {
-            pingFutures[ctx]?.cancel(false)
-            pingFutures.remove(ctx);
-        }
+        pingFutures.remove(ctx)?.cancel(false)
     }
 
 }
