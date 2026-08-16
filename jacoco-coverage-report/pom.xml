@@ -64,6 +64,11 @@
             <artifactId>javalin-ssl</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin-dev-reload</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
     </dependencies>
 
