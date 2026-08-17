@@ -26,7 +26,7 @@ import tools.jackson.databind.json.JsonMapper as Jackson3Mapper
 class JavalinJackson3(
     private var jsonMapper: Jackson3Mapper? = null,
     private val useVirtualThreads: Boolean = false,
-) : JsonMapper {
+) : JsonMapper, JavalinExecutorOwner {
 
     private var mapperInstance: Jackson3Mapper? = null
 
@@ -74,6 +74,8 @@ class JavalinJackson3(
 
     override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T =
         mapper.readValue(json, mapper.typeFactory.constructType(targetType))
+
+    override fun shutdownExecutors() = pipedStreamExecutor.shutdown()
 
     /** Update the current mapper and return self for easy chaining */
     fun updateMapper(updateFunction: Consumer<Jackson3Mapper.Builder>): JavalinJackson3 {
