@@ -79,4 +79,14 @@ class ContentTypeTest {
         }
     }
 
+    @Test
+    fun `contentType lookup must return APPLICATION_POM for backward compatibility`() {
+        // CRITICAL: This test FAILS without the reordering fix
+        // If APPLICATION_XML came first, this would fail because contentType() returns the first match
+        val contentType = ContentType.contentType("application/xml")
+        assertThat(contentType)
+            .`as`("MIME type lookup must return APPLICATION_POM (first in enum) for backward compatibility")
+            .isEqualTo(ContentType.APPLICATION_POM)
+    }
+
 }
