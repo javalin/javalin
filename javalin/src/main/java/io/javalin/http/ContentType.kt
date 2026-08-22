@@ -79,6 +79,8 @@ enum class ContentType(
     APPLICATION_EPUB("application/epub+zip", false, "epub"),
     APPLICATION_GZ("application/gzip", false, "gz"),
     APPLICATION_JSON("application/json", true, "json"),
+    APPLICATION_PROBLEM_JSON("application/problem+json", true),
+    APPLICATION_PROBLEM_XML("application/problem+xml", true),
     APPLICATION_MPKG("application/vnd.apple.installer+xml", false, "mpkg"),
     APPLICATION_JAR("application/java-archive", false, "jar"),
     APPLICATION_PDF("application/pdf", true, "pdf"),
@@ -112,6 +114,8 @@ enum class ContentType(
         const val OCTET_STREAM = "application/octet-stream"
         const val JAVASCRIPT = "text/javascript"
         const val JSON = "application/json"
+        const val PROBLEM_JSON = "application/problem+json"
+        const val PROBLEM_XML = "application/problem+xml"
         const val FORM_DATA = "multipart/form-data"
 
         @JvmStatic
