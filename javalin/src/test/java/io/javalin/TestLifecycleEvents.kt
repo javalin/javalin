@@ -8,8 +8,13 @@
 package io.javalin
 
 import io.javalin.testing.TestUtil
+import io.javalin.util.JavalinException
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.TimeUnit
 
 class TestLifecycleEvents {
 
@@ -73,6 +78,60 @@ class TestLifecycleEvents {
             config.routes.ws("/test-path-ws") {}
         }) { _, _ ->
             assertThat(log).isEqualTo("/test-path-ws/test-path-ws")
+        }
+    }
+
+    @Test
+    fun `second start on the same instance is rejected`() = TestUtil.runLogLess {
+        val app = Javalin.create {
+            it.jetty.port = 0
+            it.startup.startupWatcherEnabled = false
+            it.startup.showJavalinBanner = false
+        }.start()
+        try {
+            assertThat(app.jettyServer().started()).isTrue()
+            assertThatThrownBy { app.start() }
+                .isInstanceOf(JavalinException::class.java)
+                .hasMessageContaining("already started")
+        } finally {
+            app.stop()
+        }
+    }
+
+    @Test
+    fun `concurrent start claims the instance once`() = TestUtil.runLogLess {
+        val app = Javalin.create {
+            it.jetty.port = 0
+            it.startup.startupWatcherEnabled = false
+            it.startup.showJavalinBanner = false
+        }
+        val threads = 8
+        val barrier = CyclicBarrier(threads)
+        val outcomes = ConcurrentLinkedQueue<Result<Unit>>()
+        val workers = (1..threads).map {
+            Thread {
+                try {
+                    barrier.await(5, TimeUnit.SECONDS)
+                    app.start()
+                    outcomes.add(Result.success(Unit))
+                } catch (t: Throwable) {
+                    outcomes.add(Result.failure(t))
+                }
+            }
+        }
+        workers.forEach { it.start() }
+        workers.forEach { it.join(10_000) }
+        try {
+            val successes = outcomes.count { it.isSuccess }
+            val alreadyStarted = outcomes.mapNotNull { it.exceptionOrNull() }
+                .filter { it is JavalinException && it.message?.contains("already started") == true }
+            assertThat(successes).isEqualTo(1)
+            assertThat(alreadyStarted).hasSize(threads - 1)
+            assertThat(app.jettyServer().started()).isTrue()
+        } finally {
+            if (app.jettyServer().started()) {
+                app.stop()
+            }
         }
     }
 
