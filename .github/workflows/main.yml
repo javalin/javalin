@@ -1,12 +1,9 @@
 name: Test all JDKs on all OSes
 
-on: [push, pull_request]
-
-# Cancel superseded runs; the shared group also dedupes the push + pull_request
-# events that both fire for a branch with an open PR (head_ref matches ref).
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
+on:
+  push:
+    branches: [master]
+  pull_request:
 
 jobs:
   build:
@@ -15,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java_version: [17, 21]
+        java_version: [17, 25]
         os: [windows-latest, macos-14, ubuntu-latest]
 
     steps:
@@ -47,11 +44,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v6
         with:
           distribution: 'zulu'
-          java-version: 21
+          java-version: 25
       - name: Cache local Maven repository
         uses: actions/cache@v6
         with:
