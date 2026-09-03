@@ -29,6 +29,7 @@ import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.ThreadPool
+import java.util.concurrent.atomic.AtomicBoolean
 
 class JettyServer(private val cfg: JavalinState) {
 
@@ -39,7 +40,7 @@ class JettyServer(private val cfg: JavalinState) {
         if (cfg.startup.startupWatcherEnabled) {
             Thread {
                 Thread.sleep(5000)
-                if (!started) {
+                if (!started.get()) {
                     JavalinLogger.startup("It looks like you created a Javalin instance, but you never started it.")
                     JavalinLogger.startup("Try: Javalin app = Javalin.create().start();")
                     JavalinLogger.startup("For more help, visit https://javalin.io/documentation#server-setup")
@@ -52,18 +53,17 @@ class JettyServer(private val cfg: JavalinState) {
     fun server() = cfg.jettyInternal.server ?: defaultServer(threadPool()).also { cfg.jettyInternal.server = it } // make sure config has access to the update server instance
     fun port() = (server().connectors[0] as ServerConnector).localPort
 
-    private var started = false
-    fun started() = started
+    private val started = AtomicBoolean(false)
+    fun started() = started.get()
 
     private val eventManager by lazy { cfg.eventManager }
 
     @Throws(JavalinException::class)
     fun start() {
         Util.printHelpfulMessageIfLoggerIsMissing()
-        if (started) {
+        if (!started.compareAndSet(false, true)) {
             throw JavalinException("Server already started - Javalin instances cannot be reused.")
         }
-        started = true
         val startupTimer = System.currentTimeMillis()
         server().apply {
             cfg.jettyInternal.serverConsumers.forEach { it.accept(this) } // apply user config

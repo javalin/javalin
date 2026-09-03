@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class TestLifecycleEvents {
@@ -74,6 +75,13 @@ class TestLifecycleEvents {
         }) { _, _ ->
             assertThat(log).isEqualTo("/test-path-ws/test-path-ws")
         }
+    }
+
+    @Test
+    fun `starting an instance twice throws`() = TestUtil.runLogLess {
+        val app = Javalin.create().start(0)
+        assertThatThrownBy { app.start() }.hasMessageContaining("cannot be reused")
+        app.stop()
     }
 
 }
