@@ -88,12 +88,12 @@
 
         <!-- RENDERING ENGINE VERSIONS -->
         <velocity.version>2.4.1</velocity.version>
-        <freemarker.version>2.3.34</freemarker.version>
+        <freemarker.version>2.3.35</freemarker.version>
         <thymeleaf.version>3.1.5.RELEASE</thymeleaf.version>
         <mustache.version>0.9.14</mustache.version>
-        <handlebars.version>4.5.3</handlebars.version>
+        <handlebars.version>4.5.4</handlebars.version>
         <pebble.version>4.1.2</pebble.version>
-        <commonmark.version>0.29.0</commonmark.version>
+        <commonmark.version>0.30.0</commonmark.version>
         <jte.version>3.2.3</jte.version>
 
         <!-- ADDITIONAL PLUGIN VERSIONS -->
@@ -105,19 +105,19 @@
         <jetty.version>12.1.12</jetty.version>
         <annotations.version>26.1.0</annotations.version>
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
-        <jackson.version>2.22.1</jackson.version>
-        <jackson3.version>3.2.1</jackson3.version>
-        <jackson.databind.version>2.22.1</jackson.databind.version>
+        <jackson.version>2.22.2</jackson.version>
+        <jackson3.version>3.2.2</jackson3.version>
+        <jackson.databind.version>2.22.2</jackson.databind.version>
         <brotli4j.version>1.23.0</brotli4j.version>
-        <zstd.jni.version>1.5.7-13</zstd.jni.version>
-        <logback.version>1.6.2</logback.version>
+        <zstd.jni.version>1.5.7-15</zstd.jni.version>
+        <logback.version>1.6.3</logback.version>
         <slf4j.version>2.0.18</slf4j.version>
         <gson.version>2.14.0</gson.version>
         <ktorm.version>3.6.0</ktorm.version> <!-- optional integration, not a Javalin dependency -->
-        <okhttp.version>5.4.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
+        <okhttp.version>5.5.0</okhttp.version> <!-- Also used for testing in SSL plugin -->
 
         <!-- SSL DEPENDENCIES -->
-        <ayza.version>10.0.6</ayza.version>
+        <ayza.version>10.0.7</ayza.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.27.7</assertj.version>
