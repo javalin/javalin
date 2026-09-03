@@ -89,6 +89,7 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         val resource = getResource(resourcePath) ?: return false
         resolveContentType(resource, resourcePath)?.let { ctx.contentType(it) }
         if (isEtags && tryHandleAsEtags(resource, ctx)) return true
+        resource.length().takeIf { it > 0 }?.let { ctx.header(Header.CONTENT_LENGTH, it.toString()) }
         ctx.result(resource.newInputStream())
         return true
     }

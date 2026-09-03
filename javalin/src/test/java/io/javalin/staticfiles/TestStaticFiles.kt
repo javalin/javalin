@@ -130,6 +130,12 @@ class TestStaticFiles {
     }
 
     @Test
+    fun `static files are served with a Content-Length header`() = testStaticFiles(defaultStaticResourceApp) { _, http ->
+        val response = http.get("/html.html", mapOf(Header.ACCEPT_ENCODING to "null")) // no compression, so length is exact
+        assertThat(response.headers.getFirst(Header.CONTENT_LENGTH)).isEqualTo(response.body.toByteArray().size.toString())
+    }
+
+    @Test
     fun `static files are streamed, not read into memory`() = testStaticFiles(defaultStaticResourceApp) { app, http ->
         var streamed = false
         app.unsafe.routes.after("/html.html") { streamed = it.resultInputStream() !is ByteArrayInputStream }
