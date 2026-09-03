@@ -128,7 +128,7 @@
         <mockito.version>5.23.0</mockito.version>
         <mockk.version>1.14.11</mockk.version>
         <unirest.version>3.14.5</unirest.version>
-        <selenium.chrome.driver.version>4.46.0</selenium.chrome.driver.version>
+        <selenium.chrome.driver.version>4.48.0</selenium.chrome.driver.version>
         <webdrivermanager.version>6.3.4</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
