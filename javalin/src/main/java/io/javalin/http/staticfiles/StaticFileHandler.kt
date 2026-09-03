@@ -16,6 +16,7 @@ class StaticFileHandler(val config: StaticFileConfig) {
         val resource = getResource(resourcePath) ?: return false
         resolveContentType(resource, resourcePath)?.let { ctx.contentType(it) }
         if (tryHandleEtag(resource, ctx)) return true
+        resource.length().takeIf { it > 0 }?.let { ctx.header(Header.CONTENT_LENGTH, it.toString()) }
         ctx.result(resource.newInputStream())
         return true
     }

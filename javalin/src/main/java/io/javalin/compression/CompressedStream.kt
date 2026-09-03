@@ -25,6 +25,7 @@ internal class CompressedOutputStream(
                 compression.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")?.also {
                     this.compressedStream = it.compress(originStream)
                     ctx.header(Header.CONTENT_ENCODING, it.encoding())
+                    ctx.res().setHeader(Header.CONTENT_LENGTH, null) // compressed size is unknown, drop any preset length
                 }
             }
             isCompressionDecisionMade = true

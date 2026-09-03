@@ -54,15 +54,17 @@ class TestStaticFilesPrecompressor {
     }
 
     @Test
-    fun `content-length unavailable for large files if precompression not enabled`() = testStaticFiles({ cfg ->
+    fun `content-length is set for large files even if precompression not enabled`() = testStaticFiles({ cfg ->
         cfg.staticFiles.enableWebjars()
     }) { _, http ->
+        // compressible JS gets gzipped on the fly, so it's chunked without a Content-Length
         assertThat(http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip"))
             .extracting({ it.code }, { it.contentLength() })
             .containsExactly(HttpStatus.OK.code, null)
+        // already-compressed .gz is served as-is and now carries a Content-Length
         assertThat(http.getFile("$swaggerBasePath/swagger-ui.js.gz", "gzip"))
-            .extracting({ it.code }, { it.contentLength() })
-            .containsExactly(HttpStatus.OK.code, null)
+            .extracting({ it.code }, { it.contentLength() != null })
+            .containsExactly(HttpStatus.OK.code, true)
     }
 
     @Test
