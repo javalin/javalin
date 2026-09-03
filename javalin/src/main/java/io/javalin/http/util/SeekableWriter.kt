@@ -49,14 +49,11 @@ object SeekableWriter {
     }
 
     private fun OutputStream.write(inputStream: InputStream, from: Long, to: Long, buffer: ByteArray = ByteArray(1024)) = inputStream.use {
-        var toSkip = from
-        while (toSkip > 0) {
-            val skipped = it.skip(toSkip)
-            toSkip -= skipped
-        }
+        it.skipNBytes(from)
         var bytesLeft = to - from + 1
-        while (bytesLeft != 0L) {
+        while (bytesLeft > 0) {
             val read = it.read(buffer, 0, buffer.size.toLong().coerceAtMost(bytesLeft).toInt())
+            if (read == -1) break
             this.write(buffer, 0, read)
             bytesLeft -= read
         }

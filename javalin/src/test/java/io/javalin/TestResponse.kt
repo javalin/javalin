@@ -24,9 +24,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIOException
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.FilterInputStream
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -325,6 +327,20 @@ class TestResponse {
         val response = Unirest.get(http.origin + "/seekable-6").asString()
         assertThat(response.headers[Header.CONTENT_LENGTH]?.get(0)).isGreaterThan("0")
         assertThat(response.headers[Header.ACCEPT_RANGES]?.get(0)).isEqualTo("bytes")
+    }
+
+    @Test
+    @Timeout(10)
+    fun `seekable - range works on a stream whose skip returns nothing`() = TestUtil.test { app, http ->
+        val nonSkippable = object : FilterInputStream(getSeekableInput()) {
+            override fun skip(n: Long) = 0L // seeking to the range must not spin forever
+        }
+        app.unsafe.routes.get("/seekable-noskip") { it.writeSeekableStream(nonSkippable, ContentType.VIDEO_MPEG.toString()) }
+        val response = Unirest.get(http.origin + "/seekable-noskip")
+            .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
+            .asString()
+        assertThat(response.httpCode()).isEqualTo(HttpStatus.PARTIAL_CONTENT)
+        assertThat(response.body).doesNotContain("a").contains("b").doesNotContain("c")
     }
 
 }
