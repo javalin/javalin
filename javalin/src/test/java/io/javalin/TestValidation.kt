@@ -244,6 +244,16 @@ class TestValidation {
     }
 
     @Test
+    fun `checks are not run on a null value`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/") { ctx ->
+            ctx.queryParamAsClass<String>("my-qp").required()
+                .check({ it.length > 5 }, "too short") // would NPE if run on the missing (null) value
+                .get()
+        }
+        assertThat(http.get("/").httpCode()).isEqualTo(BAD_REQUEST) // NULLCHECK_FAILED, not a 500 NPE
+    }
+
+    @Test
     fun `multiple checks and named fields work when validating class`() = TestUtil.test { app, http ->
         app.unsafe.routes.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializableObject>()
