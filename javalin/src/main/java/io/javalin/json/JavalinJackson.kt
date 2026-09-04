@@ -23,7 +23,7 @@ import java.util.stream.Stream
 class JavalinJackson(
     private var objectMapper: ObjectMapper? = null,
     private val useVirtualThreads: Boolean = false,
-) : JsonMapper {
+) : JsonMapper, JavalinExecutorOwner {
 
     private val pipedStreamExecutor: PipedStreamExecutor by javalinLazy { PipedStreamExecutor(useVirtualThreads) }
 
@@ -69,6 +69,8 @@ class JavalinJackson(
 
     override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T =
         mapper.readValue(json, mapper.typeFactory.constructType(targetType))
+
+    override fun shutdownExecutors() = pipedStreamExecutor.shutdown()
 
     /** Update the current mapper and return self for easy chaining */
     fun updateMapper(updateFunction: Consumer<ObjectMapper>): JavalinJackson {

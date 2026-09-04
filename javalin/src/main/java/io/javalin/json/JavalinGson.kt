@@ -18,7 +18,7 @@ import java.util.stream.Stream
 open class JavalinGson(
     private val gson: Gson = Gson(),
     private val useVirtualThreads: Boolean = false,
-) : JsonMapper {
+) : JsonMapper, JavalinExecutorOwner {
 
     private val pipedStreamExecutor: PipedStreamExecutor by javalinLazy { PipedStreamExecutor(useVirtualThreads) }
 
@@ -66,5 +66,7 @@ open class JavalinGson(
 
     override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T =
         gson.fromJson(InputStreamReader(json), targetType)
+
+    override fun shutdownExecutors() = pipedStreamExecutor.shutdown()
 
 }
