@@ -15,7 +15,7 @@ object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.router.findHttpHandlerEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
-            submitTask(LAST, Task(skipOnExceptionAndRedirect = true) { entry.handle(ctx, requestUri) })
+            submitTask(LAST, Task(label = labelName(entry), skipOnExceptionAndRedirect = true) { entry.handle(ctx, requestUri) })
         }
     }
 
@@ -35,7 +35,7 @@ object DefaultTasks {
             if (willMatch) {
                 val httpHandler = httpHandlerOrNull
                 httpHandler?.let { ctx.endpoints().matchedHttpEndpointInternal = it.endpoint }
-                submitTask(LAST, Task(skipOnExceptionAndRedirect = true) {
+                submitTask(LAST, Task(label = labelName(entry), skipOnExceptionAndRedirect = true) {
                     if (httpHandler != null && !entry.endpoint.hasPathParams() && httpHandler.endpoint.hasPathParams()) {
                         entry.handleWithPathParams(ctx, httpHandler.extractPathParams(requestUri))
                     } else {
@@ -51,7 +51,7 @@ object DefaultTasks {
         if (entry != null) {
             submitTask(
                 LAST,
-                Task {
+                Task(label = labelName(entry)) {
                     val roles = entry.endpoint.metadata(Roles::class.java)?.roles ?: emptySet()
                     ctx.setRouteRoles(roles)
                     entry.handle(ctx, requestUri)
@@ -59,7 +59,7 @@ object DefaultTasks {
             )
             return@TaskInitializer
         }
-        submitTask(LAST, Task {
+        submitTask(LAST, Task(label = NO_MATCH_LABEL) {
             if (ctx.method() == HEAD && servlet.router.hasHttpHandlerEntry(GET, requestUri)) { // return 200, there is a get handler
                 return@Task
             }
@@ -81,18 +81,18 @@ object DefaultTasks {
         val didMatch by javalinLazy { ctx.cachedWillMatch { servlet.willMatch(ctx, requestUri) } }
         servlet.router.findHttpHandlerEntries(HandlerType.AFTER_MATCHED, requestUri).forEach { entry ->
             if (didMatch) {
-                submitTask(LAST, Task(skipOnExceptionAndRedirect = false) { entry.handle(ctx, requestUri) })
+                submitTask(LAST, Task(label = labelName(entry), skipOnExceptionAndRedirect = false) { entry.handle(ctx, requestUri) })
             }
         }
     }
 
     val ERROR = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, _ ->
-        submitTask(LAST, Task(skipOnExceptionAndRedirect = false) { servlet.router.handleHttpError(ctx.statusCode(), ctx) })
+        submitTask(LAST, Task(label = ERROR_MAPPING_LABEL, skipOnExceptionAndRedirect = false) { servlet.router.handleHttpError(ctx.statusCode(), ctx) })
     }
 
     val AFTER = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.router.findHttpHandlerEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-            submitTask(LAST, Task(skipOnExceptionAndRedirect = false) { entry.handle(ctx, requestUri) })
+            submitTask(LAST, Task(label = labelName(entry), skipOnExceptionAndRedirect = false) { entry.handle(ctx, requestUri) })
         }
     }
 
