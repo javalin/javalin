@@ -17,19 +17,24 @@ class JettyPrecompressingResourceHandler {
 
     fun handle(resourcePath: String, ctx: Context, compressionStrategy: CompressionStrategy, handler: ConfigurableHandler): Boolean {
         val resource = handler.getResource(resourcePath) ?: return false
+        if (resource.length() > handler.config.precompressMaxSize) {
+            JavalinLogger.warn(
+                "Static file '$resourcePath' is larger than configured max size for pre-compression (${handler.config.precompressMaxSize} bytes).\n" +
+                    "You can configure the max size in the static files config: `staticFiles.precompressMaxSize = newMaxSize`."
+            )
+            return handler.handleResource(resourcePath, ctx)
+        }
         val contentType = handler.resolveContentType(resource, resourcePath)
-        val compressor = compressionStrategy.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")
+        val preCompressor = compressionStrategy.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")
             .takeUnless { contentType == null || excludedMimeType(contentType, compressionStrategy) }
 
-        val resultByteArray = getCachedResourceBytes(resource, resourcePath, compressor, handler.config.precompressMaxSize) ?: return false
+        val resultByteArray = getCachedResourceBytes(resource, resourcePath, preCompressor)
 
         ctx.header(Header.CONTENT_LENGTH, resultByteArray.size.toString())
         ctx.header(Header.CONTENT_TYPE, contentType ?: "")
 
-        if (compressor != null) {
-            ctx.disableCompression()
-            ctx.header(Header.CONTENT_ENCODING, compressor.encoding())
-        }
+        ctx.disableCompression() // resultByteArray and Content-Length above are final, don't let the dynamic compressor touch them
+        preCompressor?.let { ctx.header(Header.CONTENT_ENCODING, it.encoding()) }
 
         if (handler.tryHandleAsEtags(resource, ctx)) return true
 
@@ -43,18 +48,11 @@ class JettyPrecompressingResourceHandler {
         else -> compressionStrategy.excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
     }
 
-    private fun getCachedResourceBytes(resource: Resource, target: String, compressor: Compressor?, resourceMaxSize: Int): ByteArray? {
-        if (resource.length() > resourceMaxSize) {
-            JavalinLogger.warn(
-                "Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
-                    "You can configure the max size in the static files config: `staticFiles.precompressMaxSize = newMaxSize`."
-            )
-            return null
-        }
-        return compressedFiles.computeIfAbsent(target + (compressor?.extension() ?: "")) {
+    private fun getCachedResourceBytes(resource: Resource, target: String, preCompressor: Compressor?): ByteArray {
+        return compressedFiles.computeIfAbsent(target + (preCompressor?.extension() ?: "")) {
             ByteArrayOutputStream().also { output ->
                 resource.newInputStream().use { input ->
-                    (compressor?.compress(output) ?: output).use { input.copyTo(it) }
+                    (preCompressor?.compress(output) ?: output).use { input.copyTo(it) }
                 }
             }.toByteArray()
         }

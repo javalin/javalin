@@ -204,6 +204,21 @@ class TestStaticFilesPrecompressor {
     }
 
     @Test
+    fun `falls back to regular serving when file is larger than precompressMaxSize`() = testStaticFiles({ config ->
+        config.staticFiles.add {
+            it.directory = "public"
+            it.location = Location.CLASSPATH
+            it.precompressMaxSize = 1 // smaller than any test file, so everything falls back
+        }
+    }) { app, http ->
+        val oldSize = getPrecompressCacheSize(app)
+        val res = http.getFile("/html.html", "gzip")
+        assertThat(res.code).describedAs("status").isEqualTo(HttpStatus.OK.code)
+        assertThat(res.body?.string()).describedAs("body").contains("<h1>HTML works</h1>")
+        assertThat(getPrecompressCacheSize(app)).describedAs("nothing should be cached").isEqualTo(oldSize)
+    }
+
+    @Test
     fun `can set headers after precompressing handler is done`() = testStaticFiles({ config ->
         config.staticFiles.add {
             it.directory = "public"
