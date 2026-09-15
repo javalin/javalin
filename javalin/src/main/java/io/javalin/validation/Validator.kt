@@ -44,7 +44,9 @@ open class Validator<T> internal constructor(internal val params: Params, intern
             return@javalinLazy mapOf(fieldName to listOf(ValidationError(conversionErrorMessage, value = params.stringValue, exception = e)))
         }
         val errors = mutableMapOf<String, MutableList<ValidationError<Any?>>>()
-        rules.filter { !it.check(typedValue) }.forEach { failedRule ->
+        // A null value can't satisfy a typed check (and would NPE a non-null-safe one), so skip
+        // checks and let get()/required() surface it as NULLCHECK_FAILED instead.
+        rules.filter { typedValue != null && !it.check(typedValue) }.forEach { failedRule ->
             errors.computeIfAbsent(failedRule.fieldName) { mutableListOf() }
             errors[failedRule.fieldName]!!.add(failedRule.error.also { it.value = typedValue })
         }
