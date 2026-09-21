@@ -9,7 +9,11 @@ import io.javalin.http.util.AsyncExecutor
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.javalinLazy
 
-class ConcurrencyConfig {
+class ConcurrencyConfig(private val cfg: JavalinState) {
     @JvmField var useVirtualThreads = false
-    @JvmField var executor = javalinLazy { AsyncExecutor(ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", useVirtualThreads)) }
+    @JvmField var executor = javalinLazy {
+        AsyncExecutor(
+            cfg.registerOwnedExecutor(ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool", useVirtualThreads))
+        )
+    }
 }

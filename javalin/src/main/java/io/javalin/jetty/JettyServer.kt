@@ -141,6 +141,7 @@ class JettyServer(private val cfg: JavalinState) {
         }
         JavalinLogger.info("Javalin has stopped")
         eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STOPPED)
+        cfg.disposeOwnedExecutors()
     }
 
     private fun Handler?.attachHandler(servletContextHandler: ServletContextHandler) = when {

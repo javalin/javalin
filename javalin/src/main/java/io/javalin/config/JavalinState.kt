@@ -19,6 +19,7 @@ import io.javalin.http.servlet.TaskInitializer
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
 import io.javalin.jetty.JettyUtil.createJettyServletWithWebsocketsIfAvailable
+import io.javalin.json.JavalinExecutorOwner
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.Plugin
@@ -31,8 +32,11 @@ import io.javalin.util.javalinLazy
 import io.javalin.validation.Validation
 import io.javalin.validation.Validation.Companion.ValidationKey
 import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
+import io.javalin.websocket.PingManager
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsRouter
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ExecutorService
 import java.util.function.Consumer
 
 /**
@@ -45,6 +49,8 @@ import java.util.function.Consumer
  * @see [Javalin.create]
  */
 class JavalinState {
+    private val ownedExecutors = CopyOnWriteArrayList<ExecutorService>()
+
     //@formatter:off
     // CORE CONFIGS - HTTP, routing, and server
     @JvmField val http = HttpConfig()
@@ -65,7 +71,8 @@ class JavalinState {
 
     // MISC SETTINGS - General application-level settings
     @JvmField val startup = StartupConfig()
-    @JvmField val concurrency = ConcurrencyConfig()
+    @JvmField val concurrency = ConcurrencyConfig(this)
+    @JvmField val pingManager = PingManager()
 
     // INTERNAL CONFIG API
     @JvmField val eventManager = EventManager()
@@ -98,6 +105,20 @@ class JavalinState {
     fun <CFG> registerPlugin(plugin: Plugin<CFG>): Plugin<CFG> = plugin.also { pluginManager.register(plugin) }
     fun <T : Any?> appData(key: Key<T>, value: T) = appDataManager.register(key, value)
 
+    internal fun registerOwnedExecutor(executor: ExecutorService): ExecutorService {
+        ownedExecutors.add(executor)
+        return executor
+    }
+
+    internal fun disposeOwnedExecutors() {
+        ownedExecutors.forEach { it.shutdownNow() }
+        ownedExecutors.clear()
+        pingManager.shutdown()
+        if (jsonMapper.isInitialized()) {
+            (jsonMapper.value as? JavalinExecutorOwner)?.shutdownExecutors()
+        }
+    }
+
     companion object {
         @JvmStatic
         fun applyUserConfig(cfg: JavalinState, userConfig: Consumer<JavalinConfig>) {
@@ -108,6 +129,7 @@ class JavalinState {
             cfg.pluginManager.startPlugins()
             cfg.appDataManager.registerIfAbsent(ContextResolverKey, cfg.contextResolver)
             cfg.appDataManager.registerIfAbsent(AsyncExecutorKey, cfg.concurrency.executor.value)
+            cfg.appDataManager.registerIfAbsent(PingManager.Key, cfg.pingManager)
             cfg.appDataManager.registerIfAbsent(ValidationKey, Validation(cfg.validation))
             cfg.appDataManager.registerIfAbsent(FileRendererKey, NotImplementedRenderer())
             cfg.appDataManager.registerIfAbsent(MaxRequestSizeKey, cfg.http.maxRequestSize)

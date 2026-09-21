@@ -280,7 +280,7 @@ class TestWebSocket {
             client.connectBlocking()
             Thread.sleep(50)
             assertThat(log.size).isGreaterThan(0)
-            awaitCondition(condition = { PingManager.pingFutures.isEmpty() }) { client.send("DISABLE_PINGS") }
+            awaitCondition(condition = { app.unsafe.pingManager.pingFutures.isEmpty() }) { client.send("DISABLE_PINGS") }
             Thread.sleep(50)
             assertThat(log.size).isEqualTo(0) // no pings sent during sleep after disabling pings
             client.disconnectBlocking()
