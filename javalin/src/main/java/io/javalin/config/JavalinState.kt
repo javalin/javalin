@@ -68,6 +68,7 @@ class JavalinState {
     @JvmField val concurrency = ConcurrencyConfig()
 
     // INTERNAL CONFIG API
+    internal var bootstrapped = false
     @JvmField val eventManager = EventManager()
     @JvmField val wsRouter = WsRouter(router)
     @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, router, jetty)
@@ -101,6 +102,11 @@ class JavalinState {
     companion object {
         @JvmStatic
         fun applyUserConfig(cfg: JavalinState, userConfig: Consumer<JavalinConfig>) {
+            check(!cfg.bootstrapped) {
+                "This JavalinConfig has already been used to create a Javalin instance. " +
+                "Each JavalinConfig instance can only be used once."
+            }
+            cfg.bootstrapped = true
             val publicConfig = JavalinConfig(cfg)
             addValidationExceptionMapper(cfg) // add default mapper for validation
             userConfig.accept(publicConfig) // apply user config through public API wrapper
