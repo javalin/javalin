@@ -6,6 +6,7 @@
 
 package io.javalin
 
+import io.javalin.http.Header.X_FORWARDED_FOR
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.TOO_MANY_REQUESTS
 import io.javalin.plugin.bundled.RateLimitPlugin
@@ -118,7 +119,7 @@ class TestRateLimitPlugin {
     }
 
     @Test
-    fun `X-Forwarded-For header is used by default`() = TestUtil.test(
+    fun `X-Forwarded-For header is ignored by default`() = TestUtil.test(
         Javalin.create { config ->
             config.registerPlugin(RateLimitPlugin { })
             config.routes.get("/") { ctx ->
@@ -129,8 +130,27 @@ class TestRateLimitPlugin {
     ) { _, http ->
         assertThat(http.get("/").httpCode()).isEqualTo(OK)
         assertThat(http.get("/").httpCode()).isEqualTo(TOO_MANY_REQUESTS)
-        assertThat(http.get("/", mapOf("X-Forwarded-For" to "1.2.3.4")).httpCode()).isEqualTo(OK)
-        assertThat(http.get("/", mapOf("X-Forwarded-For" to "5.6.7.8")).httpCode()).isEqualTo(OK)
+        assertThat(http.get("/", mapOf(X_FORWARDED_FOR to "1.2.3.4")).httpCode()).isEqualTo(TOO_MANY_REQUESTS)
+        assertThat(http.get("/", mapOf(X_FORWARDED_FOR to "5.6.7.8")).httpCode()).isEqualTo(TOO_MANY_REQUESTS)
+    }
+
+    @Test
+    fun `configured contextResolver ip is used for the key`() = TestUtil.test(
+        Javalin.create { config ->
+            // behind one trusted proxy, the last entry is the client address
+            config.contextResolver.ip = { ctx ->
+                ctx.header(X_FORWARDED_FOR)?.substringAfterLast(",")?.trim() ?: ctx.req().remoteAddr
+            }
+            config.registerPlugin(RateLimitPlugin { })
+            config.routes.get("/") { ctx ->
+                ctx.with(RateLimitPlugin::class).requestPerTimeUnit(1, TimeUnit.HOURS)
+                ctx.result("OK")
+            }
+        }
+    ) { _, http ->
+        assertThat(http.get("/", mapOf(X_FORWARDED_FOR to "spoofed, 1.2.3.4")).httpCode()).isEqualTo(OK)
+        assertThat(http.get("/", mapOf(X_FORWARDED_FOR to "other-spoof, 1.2.3.4")).httpCode()).isEqualTo(TOO_MANY_REQUESTS)
+        assertThat(http.get("/", mapOf(X_FORWARDED_FOR to "spoofed, 5.6.7.8")).httpCode()).isEqualTo(OK)
     }
 }
 
