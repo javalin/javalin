@@ -107,7 +107,7 @@
         <jetty.jakarta-api>5.0.2</jetty.jakarta-api>
         <jackson.version>2.22.2</jackson.version>
         <jackson3.version>3.2.2</jackson3.version>
-        <jackson.databind.version>2.22.2</jackson.databind.version>
+        <jackson.databind.version>2.22.3</jackson.databind.version>
         <brotli4j.version>1.23.0</brotli4j.version>
         <zstd.jni.version>1.5.7-15</zstd.jni.version>
         <logback.version>1.6.3</logback.version>
