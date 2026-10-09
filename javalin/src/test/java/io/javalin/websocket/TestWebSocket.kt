@@ -13,8 +13,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.util.BufferUtil
 import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.util.WebSocketConstants
+import org.java_websocket.framing.PingFrame
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
+import java.nio.ByteBuffer
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -283,6 +285,23 @@ class TestWebSocket {
             awaitCondition(condition = { PingManager.pingFutures.isEmpty() }) { client.send("DISABLE_PINGS") }
             Thread.sleep(50)
             assertThat(log.size).isEqualTo(0) // no pings sent during sleep after disabling pings
+            client.disconnectBlocking()
+        }
+    }
+
+    @Test
+    fun `websocket connection automatically answers pings`() {
+        val log = ConcurrentLinkedQueue<String>()
+        TestUtil.test { app, _ ->
+            app.unsafe.routes.ws("/ws") { }
+            val client = WsTestClient(app, "/ws", onPong = { frame ->
+                val payloadString = String(frame!!.payloadData.array(), Charsets.UTF_8)
+                log.add("PONG $payloadString")
+            })
+            client.connectBlocking()
+            client.sendFrame(PingFrame().apply { setPayload(ByteBuffer.wrap("Hello World".toByteArray(Charsets.UTF_8))) })
+            awaitCondition(condition = { log.size == 1 })
+            assertThat(log).containsExactly("PONG Hello World")
             client.disconnectBlocking()
         }
     }

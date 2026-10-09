@@ -12,6 +12,8 @@ import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.framing.Framedata
+import org.java_websocket.framing.PingFrame
+import org.java_websocket.framing.PongFrame
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 import java.time.Duration
@@ -55,6 +57,15 @@ open class WsTestClient(
     fun connectSendAndDisconnect(message: String) {
         connectBlocking()
         send(message)
+        disconnectBlocking()
+    }
+
+    fun connectSendAllMessageTypesAndDisconnect() {
+        connectBlocking()
+        send("")
+        send(byteArrayOf())
+        sendFrame(PingFrame())
+        sendFrame(PongFrame())
         disconnectBlocking()
     }
 
