@@ -1,0 +1,9 @@
+{
+    "resources": {
+        "includes": [
+            {
+                "pattern": "\\QMETA-INF/maven/io.javalin/javalin/pom.properties\\E"
+            }
+        ]
+    }
+}
