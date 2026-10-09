@@ -1,0 +1,33 @@
+name: Native-image smoke
+on:
+  pull_request:
+  push:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  native-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: graalvm/setup-graalvm@v1.6.7
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install the current core artifact
+        run: ./mvnw -B -pl javalin -am clean install -DskipTests
+      - name: Build the native smoke app
+        run: |
+          version=$(./mvnw -q help:evaluate -Dexpression=project.version -DforceStdout)
+          ./mvnw -B -f native-smoke/pom.xml -Djavalin.version="$version" package native:compile-no-fork
+      - name: Check real HTTP endpoints
+        shell: bash
+        run: |
+          native-smoke/target/javalin-native-smoke > native-smoke/target/server.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          if ! bash native-smoke/check.sh; then
+            cat native-smoke/target/server.log
+            exit 1
+          fi
