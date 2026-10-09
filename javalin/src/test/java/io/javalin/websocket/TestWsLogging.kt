@@ -27,16 +27,28 @@ class TestWsLogging {
         TestUtil.test(Javalin.create {
             it.requestLogger.ws { ws ->
                 ws.onConnect { ctx -> log.add("${ctx.pathParam("param")} connected") }
+                ws.onMessage { ctx -> log.add("${ctx.pathParam("param")} message") }
+                ws.onBinaryMessage { ctx -> log.add("${ctx.pathParam("param")} binaryMessage") }
+                ws.onPing { ctx -> log.add("${ctx.pathParam("param")} ping") }
+                ws.onPong { ctx -> log.add("${ctx.pathParam("param")} pong") }
                 ws.onClose { ctx -> log.add("${ctx.pathParam("param")} disconnected") }
             }
         }) { app, _ ->
             app.unsafe.routes.ws("/path/{param}") {}
-            WsTestClient(app, "/path/0").connectAndDisconnect()
-            WsTestClient(app, "/path/1").connectAndDisconnect()
+            WsTestClient(app, "/path/0").connectSendAllMessageTypesAndDisconnect()
+            WsTestClient(app, "/path/1").connectSendAllMessageTypesAndDisconnect()
             awaitCondition(condition = { log.size >= 4 })
             assertThat(log).containsExactlyInAnyOrder(
                 "0 connected",
                 "1 connected",
+                "0 message",
+                "1 message",
+                "0 binaryMessage",
+                "1 binaryMessage",
+                "0 ping",
+                "1 ping",
+                "0 pong",
+                "1 pong",
                 "0 disconnected",
                 "1 disconnected"
             )

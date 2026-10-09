@@ -23,18 +23,27 @@ class TestWsBeforeAfter {
         app.unsafe.routes.wsBefore { ws ->
             ws.onConnect { log.add("before handler: onConnect") }
             ws.onMessage { log.add("before handler: onMessage") }
+            ws.onBinaryMessage { log.add("before handler: onBinaryMessage") }
+            ws.onPing { log.add("before handler: onPing") }
+            ws.onPong { log.add("before handler: onPong") }
             ws.onClose { log.add("before handler: onClose") }
         }
 
         app.unsafe.routes.ws("/ws") { ws ->
             ws.onConnect { log.add("endpoint handler: onConnect") }
             ws.onMessage { log.add("endpoint handler: onMessage") }
+            ws.onBinaryMessage { log.add("endpoint handler: onBinaryMessage") }
+            ws.onPing { log.add("endpoint handler: onPing") }
+            ws.onPong { log.add("endpoint handler: onPong") }
             ws.onClose { log.add("endpoint handler: onClose") }
         }
-        WsTestClient(app, "/ws").connectSendAndDisconnect("test")
+        WsTestClient(app, "/ws").connectSendAllMessageTypesAndDisconnect()
         assertThat(log).containsExactly(
             "before handler: onConnect", "endpoint handler: onConnect",
             "before handler: onMessage", "endpoint handler: onMessage",
+            "before handler: onBinaryMessage", "endpoint handler: onBinaryMessage",
+            "before handler: onPing", "endpoint handler: onPing",
+            "before handler: onPong", "endpoint handler: onPong",
             "before handler: onClose", "endpoint handler: onClose"
         )
     }
@@ -97,17 +106,26 @@ class TestWsBeforeAfter {
         app.unsafe.routes.ws("/ws") { ws ->
             ws.onConnect { log.add("endpoint handler: onConnect") }
             ws.onMessage { log.add("endpoint handler: onMessage") }
+            ws.onBinaryMessage { log.add("endpoint handler: onBinaryMessage") }
+            ws.onPing { log.add("endpoint handler: onPing") }
+            ws.onPong { log.add("endpoint handler: onPong") }
             ws.onClose { log.add("endpoint handler: onClose") }
         }
         app.unsafe.routes.wsAfter { ws ->
             ws.onConnect { log.add("after handler: onConnect") }
             ws.onMessage { log.add("after handler: onMessage") }
+            ws.onBinaryMessage { log.add("after handler: onBinaryMessage") }
+            ws.onPing { log.add("after handler: onPing") }
+            ws.onPong { log.add("after handler: onPong") }
             ws.onClose { log.add("after handler: onClose") }
         }
-        WsTestClient(app, "/ws").connectSendAndDisconnect("test")
+        WsTestClient(app, "/ws").connectSendAllMessageTypesAndDisconnect()
         assertThat(log).containsExactly(
             "endpoint handler: onConnect", "after handler: onConnect",
             "endpoint handler: onMessage", "after handler: onMessage",
+            "endpoint handler: onBinaryMessage", "after handler: onBinaryMessage",
+            "endpoint handler: onPing", "after handler: onPing",
+            "endpoint handler: onPong", "after handler: onPong",
             "endpoint handler: onClose", "after handler: onClose"
         )
     }
