@@ -11,6 +11,7 @@ import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
+import io.javalin.http.staticfiles.isAliasedStaticPath
 import io.javalin.security.RouteRole
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
@@ -61,6 +62,7 @@ class JettyResourceHandler : JavalinResourceHandler {
 
     private fun findHandler(ctx: Context): Pair<ConfigurableHandler, String>? {
         val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
+        if (isAliasedStaticPath(target)) return null
         return handlers.asSequence()
             .filterNot { it.config.skipFileFunction?.invoke(ctx.req()) == true }
             .filter { it.config.hostedPath == "/" || target.startsWith(it.config.hostedPath) }
