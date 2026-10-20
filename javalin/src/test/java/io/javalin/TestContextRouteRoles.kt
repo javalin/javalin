@@ -5,8 +5,10 @@ import io.javalin.Role.B
 import io.javalin.Role.C
 import io.javalin.Role.D
 import io.javalin.http.Context
+import io.javalin.http.UnauthorizedResponse
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
+import kong.unirest.HttpMethod
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -51,6 +53,14 @@ class TestContextRouteRoles {
         app.unsafe.routes.get("/roles", { it.result("!!!") }, B, C, D)
         app.unsafe.routes.after { it.result(it.result() + it.sortedRoles()) }
         http.get("/roles").let { assertThat(it.body).isEqualTo("!!![B, C, D]") }
+    }
+
+    @Test
+    fun `HEAD request answered by a GET handler has the GET handler's route roles`() = TestUtil.test { app, http ->
+        app.unsafe.routes.beforeMatched { if (A in it.routeRoles()) throw UnauthorizedResponse() }
+        app.unsafe.routes.get("/admin", { it.result("secret") }, A)
+        assertThat(http.get("/admin").status).isEqualTo(401)
+        assertThat(http.call(HttpMethod.HEAD, "/admin").status).isEqualTo(401)
     }
 
 }
