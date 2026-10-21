@@ -18,6 +18,8 @@ import io.javalin.http.servlet.SESSION_CACHE_KEY_PREFIX
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
+import java.util.Base64
 
 import kong.unirest.Unirest
 import okhttp3.OkHttpClient
@@ -307,6 +309,13 @@ class TestRequest {
         }
         val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-pass:::word").asString()
         assertThat(response.body).isEqualTo("some-username|some-pass:::word")
+    }
+
+    @Test
+    fun `basic auth accepts the scheme name in any case`() = TestUtil.test(Javalin.create { it.bundledPlugins.enableBasicAuth("u", "p") }) { app, http ->
+        app.unsafe.routes.get("/") { it.result("ok") }
+        val token = Base64.getEncoder().encodeToString("u:p".toByteArray())
+        assertThat(http.get("/", mapOf(Header.AUTHORIZATION to "basic $token")).httpCode()).isEqualTo(HttpStatus.OK)
     }
 
     @Test
