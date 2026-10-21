@@ -18,6 +18,7 @@ import io.javalin.http.servlet.SESSION_CACHE_KEY_PREFIX
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 
 import kong.unirest.Unirest
 import okhttp3.OkHttpClient
@@ -324,6 +325,18 @@ class TestRequest {
             assertThat(http.getBody("/html.html")).contains("Unauthorized")
             Unirest.get("${http.origin}/hellopath").basicAuth("u", "p").asString().let { assertThat(it.body).isEqualTo("Hello") }
             Unirest.get("${http.origin}/html.html").basicAuth("u", "p").asString().let { assertThat(it.body).contains("HTML works") }
+        }
+    }
+
+    @Test
+    fun `basic auth filter plugin denies every request when no credentials are configured`() {
+        val basicAuthApp = Javalin.create { cfg ->
+            cfg.registerPlugin(BasicAuthPlugin { })
+            cfg.routes.get("/hellopath") { it.result("Hello") }
+        }
+        TestUtil.test(basicAuthApp) { _, http ->
+            assertThat(http.get("/hellopath").httpCode()).isEqualTo(HttpStatus.UNAUTHORIZED)
+            Unirest.get("${http.origin}/hellopath").basicAuth("", "").asString().let { assertThat(it.httpCode()).isEqualTo(HttpStatus.UNAUTHORIZED) }
         }
     }
 

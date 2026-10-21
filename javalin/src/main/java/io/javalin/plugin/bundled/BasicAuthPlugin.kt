@@ -27,7 +27,11 @@ class BasicAuthPlugin(userConfig: Consumer<Config>) : Plugin<BasicAuthPlugin.Con
         state.routes.before { ctx ->
             val matched = runCatching { ctx.basicAuthCredentials() }
                 .fold(
-                    onSuccess = { auth -> auth?.username == pluginConfig.username && auth?.password == pluginConfig.password },
+                    onSuccess = { auth ->
+                        // with no configured credentials nothing can match, so fail closed
+                        auth != null && pluginConfig.username != null && pluginConfig.password != null &&
+                            auth.username == pluginConfig.username && auth.password == pluginConfig.password
+                    },
                     onFailure = { false }
                 )
 
