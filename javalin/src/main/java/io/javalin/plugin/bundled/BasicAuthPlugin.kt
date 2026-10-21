@@ -7,14 +7,14 @@
 package io.javalin.plugin.bundled
 
 import io.javalin.config.JavalinState
+import io.javalin.http.Context
 import io.javalin.http.Header.WWW_AUTHENTICATE
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.plugin.Plugin
 import java.util.function.Consumer
 
 /**
- * Adds a filter that runs before every http request.
- * Note: It does not apply to websocket upgrade requests
+ * Adds a filter that runs before every http request and every websocket upgrade request.
  */
 class BasicAuthPlugin(userConfig: Consumer<Config>) : Plugin<BasicAuthPlugin.Config>(userConfig, Config()) {
 
@@ -24,18 +24,15 @@ class BasicAuthPlugin(userConfig: Consumer<Config>) : Plugin<BasicAuthPlugin.Con
     }
 
     override fun onStart(state: JavalinState) {
-        state.routes.before { ctx ->
-            val matched = runCatching { ctx.basicAuthCredentials() }
-                .fold(
-                    onSuccess = { auth -> auth?.username == pluginConfig.username && auth?.password == pluginConfig.password },
-                    onFailure = { false }
-                )
+        state.routes.before { ctx -> if (!authorized(ctx)) { ctx.header(WWW_AUTHENTICATE, "Basic"); throw UnauthorizedResponse() } }
+        state.routes.wsBeforeUpgrade { ctx -> if (!authorized(ctx)) { ctx.header(WWW_AUTHENTICATE, "Basic"); throw UnauthorizedResponse() } }
+    }
 
-            if (!matched) {
-                ctx.header(WWW_AUTHENTICATE, "Basic")
-                throw UnauthorizedResponse()
-            }
-        }
+    private fun authorized(ctx: Context): Boolean {
+        val auth = runCatching { ctx.basicAuthCredentials() }.getOrNull() ?: return false
+        val username = pluginConfig.username ?: return false // no configured credentials: nothing can match, fail closed
+        val password = pluginConfig.password ?: return false
+        return auth.username == username && auth.password == password
     }
 
 }

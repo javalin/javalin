@@ -6,6 +6,7 @@
 
 package io.javalin.websocket
 
+import io.javalin.Javalin
 import io.javalin.http.HttpStatus
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
@@ -50,6 +51,12 @@ class TestWsUpgrade {
         val response = http.wsUpgradeRequest("/ws")
         assertThat(response.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
         assertThat(log).isEmpty()
+    }
+
+    @Test
+    fun `basic auth plugin protects websocket upgrades`() = TestUtil.test(Javalin.create { it.bundledPlugins.enableBasicAuth("u", "p") }) { app, http ->
+        app.unsafe.routes.ws("/ws") { }
+        assertThat(http.wsUpgradeRequest("/ws").status).isEqualTo(HttpStatus.UNAUTHORIZED.code)
     }
 
     @Test
