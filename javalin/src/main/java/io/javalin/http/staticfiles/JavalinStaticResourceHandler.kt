@@ -59,6 +59,7 @@ class JavalinStaticResourceHandler : ResourceHandler {
 
     private fun findHandler(ctx: Context): Pair<StaticFileHandler, String>? {
         val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
+        if (isAliasedStaticPath(target)) return null
         return handlers.asSequence()
             .filterNot { it.config.skipFileFunction?.invoke(ctx.req()) == true }
             .filter { it.config.hostedPath == "/" || target.startsWith(it.config.hostedPath) }
