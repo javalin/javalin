@@ -123,5 +123,11 @@ class TestWsUpgrade {
         http.wsUpgradeRequest("/ws/123")
         assertThat(log).containsExactly("123")
     }
-}
 
+    @Test
+    fun `upgrade requests don't create http sessions`() = TestUtil.test { app, http ->
+        app.unsafe.routes.ws("/ws") {}
+        assertThat(http.wsUpgradeRequest("/ws").headers.get("Set-Cookie")).isEmpty()
+        assertThat(http.wsUpgradeRequest("/no-such-ws").headers.get("Set-Cookie")).isEmpty()
+    }
+}

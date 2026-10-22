@@ -35,7 +35,8 @@ data class UpgradeRequestData(val context: JavalinWsServletContext) {
     val headerMap = context.headerMap()
     val cookieMap = context.cookieMap()
     var attributeMap = context.attributeMap().toMutableMap()
-    val sessionAttributeMap = context.sessionAttributeMap()
+    // don't create a session just to snapshot it: every request with a Sec-WebSocket-Version header passes through here
+    val sessionAttributeMap = if (context.req().getSession(false) != null) context.sessionAttributeMap() else emptyMap()
 
     /** Re-snapshots the attribute map from the request. This must be called after
      *  wsBeforeUpgrade handlers have run, but before Jetty recycles the request. */
