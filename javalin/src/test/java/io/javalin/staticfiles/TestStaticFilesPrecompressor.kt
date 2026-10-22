@@ -235,6 +235,27 @@ class TestStaticFilesPrecompressor {
     }
 
 
+    @Test
+    fun `precompressed files are cached per file, not per path relative to the hosted path`() = testStaticFiles({ config ->
+        config.staticFiles.add {
+            it.hostedPath = "/a"
+            it.directory = "/public/subdir"
+            it.location = Location.CLASSPATH
+            it.precompressMaxSize = precompressMaxSize
+        }
+        config.staticFiles.add {
+            it.hostedPath = "/b"
+            it.directory = "/public/subpage"
+            it.location = Location.CLASSPATH
+            it.precompressMaxSize = precompressMaxSize
+        }
+    }) { _, http ->
+        val a = http.get("/a/index.html").body
+        val b = http.get("/b/index.html").body
+        assertThat(a).isEqualTo(TestStaticFilesPrecompressor::class.java.getResource("/public/subdir/index.html")!!.readText())
+        assertThat(b).isEqualTo(TestStaticFilesPrecompressor::class.java.getResource("/public/subpage/index.html")!!.readText())
+    }
+
     private fun Response.contentLength() = this.headers.get(Header.CONTENT_LENGTH)
     private fun Response.contentEncoding() = this.headers.get(Header.CONTENT_ENCODING)
 
