@@ -105,3 +105,18 @@ internal fun isAliasedStaticPath(target: String): Boolean =
     target.contains("//") ||
         target.split('/').any { it == "." || it == ".." } ||
         ENCODED_UNRESERVED.containsMatchIn(target)
+
+/**
+ * Returns the resource path for [target] if it is inside [hostedPath], or null if it isn't.
+ * The hosted path is matched as a whole path segment, so '/assets' matches '/assets' and '/assets/app.js'
+ * but not '/assetsX/app.js'.
+ */
+internal fun resourcePathInHostedPath(target: String, hostedPath: String): String? {
+    if (hostedPath == "/") return target
+    val prefix = hostedPath.removeSuffix("/")
+    return when {
+        target == prefix -> ""
+        target.startsWith("$prefix/") -> target.removePrefix(prefix)
+        else -> null
+    }
+}

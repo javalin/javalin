@@ -62,8 +62,7 @@ class JavalinStaticResourceHandler : ResourceHandler {
         if (isAliasedStaticPath(target)) return null
         return handlers.asSequence()
             .filterNot { it.config.skipFileFunction?.invoke(ctx.req()) == true }
-            .filter { it.config.hostedPath == "/" || target.startsWith(it.config.hostedPath) }
-            .map { it to if (it.config.hostedPath == "/") target else target.removePrefix(it.config.hostedPath) }
+            .mapNotNull { handler -> resourcePathInHostedPath(target, handler.config.hostedPath)?.let { handler to it } }
             .find { (handler, resourcePath) -> handler.getResource(resourcePath) != null }
     }
 
