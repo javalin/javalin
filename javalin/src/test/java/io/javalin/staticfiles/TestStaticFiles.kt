@@ -180,6 +180,15 @@ class TestStaticFiles {
     }
 
     @Test
+    fun `before-handler cannot be bypassed with an alias of a static file path`() = testStaticFiles(defaultStaticResourceApp) { app, http ->
+        app.unsafe.routes.before("/protected/*") { throw UnauthorizedResponse("Protected") }
+        assertThat(http.get("/protected/secret.html").httpCode()).isEqualTo(UNAUTHORIZED)
+        for (alias in listOf("/%70rotected/secret.html", "//protected/secret.html", "/./protected/secret.html", "/x/../protected/secret.html")) {
+            assertThat(http.get(alias).httpCode()).describedAs(alias).isEqualTo(NOT_FOUND)
+        }
+    }
+
+    @Test
     fun `directory root returns simple 404 if there is no welcome file`() = testStaticFiles(defaultStaticResourceApp) { _, http ->
         val response = http.get("/")
         assertThat(response.httpCode()).isEqualTo(NOT_FOUND)

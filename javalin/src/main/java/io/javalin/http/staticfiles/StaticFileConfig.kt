@@ -92,3 +92,16 @@ class MimeTypesConfig {
 
     override fun toString(): String = extensionToMimeType.toString()
 }
+
+private val ENCODED_UNRESERVED = Regex("%(?:[46][1-9a-f]|[57][0-9a]|3[0-9]|2[de]|5f|7e)", RegexOption.IGNORE_CASE)
+
+/**
+ * Routing (before/after handlers) matches the raw request path, but the resource handlers resolve a file from
+ * the decoded and normalised path. An empty segment ("//secret/x"), a dot segment ("/./secret/x", "/x/../secret/x")
+ * or a percent-encoded unreserved character ("/%73ecret/x", RFC 3986 section 2.3) makes those two paths differ, so a
+ * before-handler scoped to the "secret" path would be skipped for a file it covers. Such aliases are not served.
+ */
+internal fun isAliasedStaticPath(target: String): Boolean =
+    target.contains("//") ||
+        target.split('/').any { it == "." || it == ".." } ||
+        ENCODED_UNRESERVED.containsMatchIn(target)
