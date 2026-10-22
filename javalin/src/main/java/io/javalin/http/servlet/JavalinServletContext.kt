@@ -236,8 +236,8 @@ fun urlDecode(s: String) =
  */
 fun getBasicAuthCredentials(authorizationHeader: String?): BasicAuthCredentials? =
     authorizationHeader
-        ?.takeIf { authorizationHeader.startsWith("Basic ") }
-        ?.removePrefix("Basic ")
+        ?.takeIf { authorizationHeader.startsWith("Basic ", ignoreCase = true) } // RFC 9110 §11.1: auth-scheme is case-insensitive
+        ?.substring("Basic ".length)
         ?.let { Base64.getDecoder().decode(it).decodeToString() }
         ?.split(':', limit = 2)
         ?.let { (username, password) -> BasicAuthCredentials(username, password) }
