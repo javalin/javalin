@@ -111,6 +111,15 @@ class TestHttpResponseExceptions {
     }
 
     @Test
+    fun `message is html-escaped when the response is served as html`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/") { throw BadRequestResponse("bad name: " + it.queryParam("n")) }
+        val response = http.htmlGet("/?n=%3Cscript%3Ealert(1)%3C%2Fscript%3E")
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.HTML)
+        assertThat(response.body).doesNotContain("<script>")
+        assertThat(response.body).contains("&lt;script&gt;")
+    }
+
+    @Test
     fun `response is formatted as json if client wants json`() = TestUtil.test { app, http ->
         app.unsafe.routes.post("/") { throw ForbiddenResponse("Off limits!") }
         val response = http.post("/").header(Header.ACCEPT, ContentType.JSON).asString()
