@@ -1,0 +1,130 @@
+[
+    {
+        "condition": {
+            "typeReachable": "io.javalin.json.JavalinJackson"
+        },
+        "name": "com.fasterxml.jackson.module.kotlin.KotlinModule",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": []
+            }
+        ]
+    },
+    {
+        "condition": {
+            "typeReachable": "io.javalin.json.JavalinJackson"
+        },
+        "name": "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": []
+            }
+        ]
+    },
+    {
+        "condition": {
+            "typeReachable": "io.javalin.json.JavalinJackson"
+        },
+        "name": "com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": []
+            }
+        ]
+    },
+    {
+        "condition": {
+            "typeReachable": "io.javalin.json.JavalinJackson"
+        },
+        "name": "org.ktorm.jackson.KtormModule",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": []
+            }
+        ]
+    },
+    {
+        "condition": {
+            "typeReachable": "io.javalin.json.JavalinJackson3"
+        },
+        "name": "tools.jackson.module.kotlin.KotlinModule",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": []
+            }
+        ]
+    },
+    {
+        "condition": {
+            "typeReachable": "io.javalin.json.JavalinJackson3"
+        },
+        "name": "tools.jackson.datatype.eclipsecollections.EclipseCollectionsModule",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": []
+            }
+        ]
+    },
+    {
+        "condition": {
+            "typeReachable": "io.javalin.util.LoomUtil"
+        },
+        "name": "java.util.concurrent.Executors",
+        "methods": [
+            {
+                "name": "newVirtualThreadPerTaskExecutor",
+                "parameterTypes": []
+            },
+            {
+                "name": "newThreadPerTaskExecutor",
+                "parameterTypes": [
+                    "java.util.concurrent.ThreadFactory"
+                ]
+            }
+        ]
+    },
+    {
+        "condition": {
+            "typeReachable": "io.javalin.util.VirtualThreadBuilder"
+        },
+        "name": "java.lang.Thread",
+        "methods": [
+            {
+                "name": "ofVirtual",
+                "parameterTypes": []
+            }
+        ]
+    },
+    {
+        "condition": {
+            "typeReachable": "io.javalin.util.VirtualThreadBuilder"
+        },
+        "name": "java.lang.Thread$Builder$OfVirtual",
+        "methods": [
+            {
+                "name": "name",
+                "parameterTypes": [
+                    "java.lang.String"
+                ]
+            },
+            {
+                "name": "unstarted",
+                "parameterTypes": [
+                    "java.lang.Runnable"
+                ]
+            }
+        ]
+    },
+    {
+        "condition": {
+            "typeReachable": "io.javalin.util.Util"
+        },
+        "name": "org.slf4j.spi.SLF4JServiceProvider"
+    }
+]

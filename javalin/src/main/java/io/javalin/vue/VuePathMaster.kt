@@ -22,9 +22,15 @@ internal class VuePathMaster(val cfg: JavalinVueConfig) {
 
     fun walkPaths(): Set<Path> = Files.walk(cfg.rootDirectory, 20).use { it.collect(Collectors.toSet()) }
 
-    fun classpathPath(path: String, jarClass: Class<*>): Path = when {
-        jarClass.getResource(path)!!.toURI().scheme == "jar" -> getFileSystem(jarClass).getPath(path) // we're inside a jar
-        else -> Paths.get(jarClass.getResource(path)!!.toURI()) // we're not in jar (probably running from IDE)
+    fun classpathPath(path: String, jarClass: Class<*>): Path {
+        check(System.getProperty("org.graalvm.nativeimage.imagecode") != "runtime") {
+            "Classpath Vue scanning is not supported in native images. " +
+                "Configure vue.rootDirectory(Path) with an external directory instead."
+        }
+        return when {
+            jarClass.getResource(path)!!.toURI().scheme == "jar" -> getFileSystem(jarClass).getPath(path) // we're inside a jar
+            else -> Paths.get(jarClass.getResource(path)!!.toURI()) // we're not in jar (probably running from IDE)
+        }
     }
 
     fun defaultLocation(isDev: Boolean): Path =
