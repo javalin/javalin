@@ -237,6 +237,19 @@ class TestStaticFiles {
     }
 
     @Test
+    fun `hosted path only matches whole path segments`() = testStaticFiles({ cfg ->
+        cfg.staticFiles.add {
+            it.directory = "/public"
+            it.location = Location.CLASSPATH
+            it.hostedPath = "/url-prefix"
+        }
+    }) { _, http ->
+        assertThat(http.get("/url-prefix/subdir/index.html").httpCode()).isEqualTo(OK)
+        assertThat(http.get("/url-prefixsubdir/index.html").httpCode()).isEqualTo(NOT_FOUND)
+        assertThat(http.get("/url-prefixsubdir").httpCode()).isEqualTo(NOT_FOUND)
+    }
+
+    @Test
     fun `welcome files have correct content type`() = testStaticFiles({ cfg ->
         cfg.staticFiles.add("/public", Location.CLASSPATH)
         cfg.staticFiles.add {
