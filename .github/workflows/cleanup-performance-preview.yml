@@ -11,9 +11,11 @@ permissions:
 jobs:
   dispatch-cleanup:
     runs-on: ubuntu-latest
+    env:
+      PERF_ACTIONS_CONTENTS_RW: ${{ secrets.PERF_ACTIONS_CONTENTS_RW }}
     steps:
       - name: Dispatch preview cleanup workflow
-        if: ${{ secrets.PERF_ACTIONS_CONTENTS_RW != '' }}
+        if: ${{ env.PERF_ACTIONS_CONTENTS_RW != '' }}
         uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.PERF_ACTIONS_CONTENTS_RW }}
@@ -29,5 +31,5 @@ jobs:
             });
 
       - name: Skip when cleanup token is not configured
-        if: ${{ secrets.PERF_ACTIONS_CONTENTS_RW == '' }}
+        if: ${{ env.PERF_ACTIONS_CONTENTS_RW == '' }}
         run: echo "Skipping cleanup dispatch because PERF_ACTIONS_CONTENTS_RW is not configured."
