@@ -8,6 +8,8 @@ package io.javalin
 
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.TOO_MANY_REQUESTS
+import io.javalin.http.HttpResponseException
+import io.javalin.http.TooManyRequestsResponse
 import io.javalin.plugin.bundled.RateLimitPlugin
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
@@ -29,6 +31,42 @@ class TestRateLimitPlugin {
     ) { _, http ->
         repeat(3) { assertThat(http.get("/").httpCode()).isEqualTo(OK) }
         assertThat(http.get("/").httpCode()).isEqualTo(TOO_MANY_REQUESTS)
+    }
+
+    @Test
+    fun `rate limiting throws generic HttpResponseException by default`() = TestUtil.test(
+        Javalin.create { config ->
+            config.registerPlugin(RateLimitPlugin { })
+            config.routes.get("/") { ctx ->
+                ctx.with(RateLimitPlugin::class).requestPerTimeUnit(1, TimeUnit.HOURS)
+                ctx.result("OK")
+            }
+            config.routes.exception(HttpResponseException::class.java) { e, ctx ->
+                ctx.result(e.javaClass.simpleName)
+            }
+        }
+    ) { _, http ->
+        assertThat(http.get("/").httpCode()).isEqualTo(OK)
+        assertThat(http.getBody("/")).isEqualTo("HttpResponseException")
+    }
+
+    @Test
+    fun `rate limiting exception can be configured`() = TestUtil.test(
+        Javalin.create { config ->
+            config.registerPlugin(RateLimitPlugin { cfg ->
+                cfg.exceptionFunction = { _, _ -> TooManyRequestsResponse() }
+            })
+            config.routes.get("/") { ctx ->
+                ctx.with(RateLimitPlugin::class).requestPerTimeUnit(1, TimeUnit.HOURS)
+                ctx.result("OK")
+            }
+            config.routes.exception(TooManyRequestsResponse::class.java) { e, ctx ->
+                ctx.result(e.javaClass.simpleName)
+            }
+        }
+    ) { _, http ->
+        assertThat(http.get("/").httpCode()).isEqualTo(OK)
+        assertThat(http.getBody("/")).isEqualTo("TooManyRequestsResponse")
     }
 
     @Test
@@ -133,4 +171,3 @@ class TestRateLimitPlugin {
         assertThat(http.get("/", mapOf("X-Forwarded-For" to "5.6.7.8")).httpCode()).isEqualTo(OK)
     }
 }
-
