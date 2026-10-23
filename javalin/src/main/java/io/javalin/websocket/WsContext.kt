@@ -166,14 +166,14 @@ class WsBinaryMessageContext(upgradeCtx: JavalinWsServletContext, private val da
     fun data(): ByteBuffer = data
 }
 
-class WsPingContext(upgradeCtx: JavalinWsServletContext, private val applicationData: ByteBuffer) : WsContext(upgradeCtx) {
-    /** The application data sent in the websocket ping */
-    fun applicationData(): ByteBuffer = applicationData
+class WsPingContext(upgradeCtx: JavalinWsServletContext, private val data: ByteBuffer) : WsContext(upgradeCtx) {
+    /** The data sent in the websocket ping */
+    fun data(): ByteBuffer = data
 }
 
-class WsPongContext(upgradeCtx: JavalinWsServletContext, private val applicationData: ByteBuffer) : WsContext(upgradeCtx) {
-    /** The application data sent in the websocket pong */
-    fun applicationData(): ByteBuffer = applicationData
+class WsPongContext(upgradeCtx: JavalinWsServletContext, private val data: ByteBuffer) : WsContext(upgradeCtx) {
+    /** The data sent in the websocket pong */
+    fun data(): ByteBuffer = data
 }
 
 class WsMessageContext(upgradeCtx: JavalinWsServletContext, private val message: String) : WsContext(upgradeCtx) {
