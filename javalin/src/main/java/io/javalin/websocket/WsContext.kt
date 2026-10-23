@@ -54,10 +54,11 @@ abstract class WsContext(@JvmSynthetic internal val upgradeCtx: JavalinWsServlet
     fun enableAutomaticPings() = enableAutomaticPings(15, TimeUnit.SECONDS)
 
     /** Enables automatic pings at the specified interval, preventing the connection from timing out */
-    fun enableAutomaticPings(interval: Long, unit: TimeUnit) = PingManager.enableAutomaticPings(this, interval, unit)
+    fun enableAutomaticPings(interval: Long, unit: TimeUnit) =
+        upgradeCtx.appData(PingManager.Key).enableAutomaticPings(this, interval, unit)
 
     /** Disables automatic pings */
-    fun disableAutomaticPings() = PingManager.disableAutomaticPings(this)
+    fun disableAutomaticPings() = upgradeCtx.appData(PingManager.Key).disableAutomaticPings(this)
 
     /** Returns the full query [String], or null if no query is present */
     fun queryString(): String? = upgradeCtx.extractedData.queryString

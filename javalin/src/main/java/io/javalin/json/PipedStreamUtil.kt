@@ -7,9 +7,13 @@ import java.io.InputStream
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 
+internal fun interface JavalinExecutorOwner {
+    fun shutdownExecutors()
+}
+
 class PipedStreamExecutor(useVirtualThreads: Boolean) {
 
-    private val executorService by javalinLazy { ConcurrencyUtil.executorService("JavalinPipedStreamingThreadPool", useVirtualThreads) }
+    private val executorService = javalinLazy { ConcurrencyUtil.executorService("JavalinPipedStreamingThreadPool", useVirtualThreads) }
 
     fun getInputStream(userCallback: ThrowingConsumer<PipedOutputStream, Exception>): InputStream {
         val pipedOutputStream = PipedOutputStream()
@@ -17,7 +21,7 @@ class PipedStreamExecutor(useVirtualThreads: Boolean) {
             var exception: Exception? = null // possible exception from child thread
             override fun close() = exception?.let { throw it } ?: super.close()
         }
-        executorService.execute { // start child thread, necessary to prevent deadlock
+        executorService.value.execute { // start child thread, necessary to prevent deadlock
             try {
                 userCallback.accept(pipedOutputStream)
             } catch (userException: Exception) {
@@ -27,6 +31,12 @@ class PipedStreamExecutor(useVirtualThreads: Boolean) {
             }
         }
         return pipedInputStream
+    }
+
+    internal fun shutdown() {
+        if (executorService.isInitialized()) {
+            executorService.value.shutdownNow()
+        }
     }
 
 }
