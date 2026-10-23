@@ -1,7 +1,8 @@
 name: Cleanup Performance Preview
 
 on:
-  pull_request:
+  # pull_request_target so fork PRs get the secret too; safe because no PR code is checked out
+  pull_request_target:
     types:
       - closed
 
