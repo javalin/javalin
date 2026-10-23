@@ -37,7 +37,7 @@ class TestWsLogging {
             app.unsafe.routes.ws("/path/{param}") {}
             WsTestClient(app, "/path/0").connectSendAllMessageTypesAndDisconnect()
             WsTestClient(app, "/path/1").connectSendAllMessageTypesAndDisconnect()
-            awaitCondition(condition = { log.size >= 4 })
+            awaitCondition(condition = { log.size >= 12 })
             assertThat(log).containsExactlyInAnyOrder(
                 "0 connected",
                 "1 connected",
