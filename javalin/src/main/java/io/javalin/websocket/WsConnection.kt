@@ -56,6 +56,24 @@ class WsConnection(
         callback.succeed()
     }
 
+    override fun onWebSocketPing(payload: ByteBuffer) {
+        // Jetty stops replying to pings automatically when onWebsocketPing is overridden.
+        // Previously Javalin didn't overwrite this method, so pongs were automatically sent by Jetty.
+        // Now that onWebsocketPing is overridden, we send the pong here to stay backwards compatible.
+        session.sendPong(payload.asReadOnlyBuffer(), Callback.NOOP)
+        val ctx = WsPingContext(upgradeCtx.attach(session), payload)
+        tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsPingHandler?.handlePing(ctx) }
+        tryAfterHandlers(ctx) { it.wsConfig.wsPingHandler?.handlePing(ctx) }
+        wsLogger?.wsPingHandler?.handlePing(ctx)
+    }
+
+    override fun onWebSocketPong(payload: ByteBuffer) {
+        val ctx = WsPongContext(upgradeCtx.attach(session), payload)
+        tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsPongHandler?.handlePong(ctx) }
+        tryAfterHandlers(ctx) { it.wsConfig.wsPongHandler?.handlePong(ctx) }
+        wsLogger?.wsPongHandler?.handlePong(ctx)
+    }
+
     override fun onWebSocketClose(statusCode: Int, reason: String?, callback: Callback) {
         val ctx = WsCloseContext(upgradeCtx.attach(session), statusCode, reason)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
