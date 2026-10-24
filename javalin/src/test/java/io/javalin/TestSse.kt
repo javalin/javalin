@@ -12,6 +12,9 @@ import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.net.Socket
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -306,6 +309,31 @@ class TestSse {
         app.unsafe.routes.sse("/sse") { it.doAndClose { it.sendComment("hello\rdata: forged") } }
         val body = http.getBody("/sse", mapOf(Header.ACCEPT to "text/event-stream"))
         assertThat(body.split("\r\n", "\r", "\n").filter { it.startsWith("data:") }).isEmpty()
+    }
+
+    @Test
+    fun `using sse client after server shutdown does not resume a recycled request`() {
+        val connected = CompletableFuture<SseClient>()
+        val failures = ConcurrentLinkedQueue<Exception>()
+        val app = Javalin.create { config ->
+            config.routes.sse("/sse") { client ->
+                client.keepAlive()
+                client.sendEvent("ready")
+                connected.complete(client)
+            }
+            config.routes.exception(Exception::class.java) { exception, _ -> failures.add(exception) }
+        }.start(0)
+        Socket("localhost", app.port()).use { socket ->
+            socket.soTimeout = 5_000
+            socket.getOutputStream().write("GET /sse HTTP/1.1\r\nHost: localhost\r\nAccept: text/event-stream\r\n\r\n".toByteArray())
+            val reader = socket.getInputStream().bufferedReader()
+            assertThat(generateSequence { reader.readLine() }.firstOrNull { it == "data: ready" }).isNotNull()
+            val client = connected.get(5, TimeUnit.SECONDS)
+            app.stop()
+            client.sendEvent("late event")
+            client.close()
+            assertThat(failures).isEmpty()
+        }
     }
 
     @Test
