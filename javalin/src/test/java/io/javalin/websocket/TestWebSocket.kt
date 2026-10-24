@@ -223,8 +223,8 @@ class TestWebSocket {
             { client: WsTestClient -> client.send("NO_ARGS") } to WsCloseStatus.NORMAL_CLOSURE,
             { client: WsTestClient -> client.send("STATUS_OBJECT") } to WsCloseStatus.GOING_AWAY,
             { client: WsTestClient -> client.send("CODE_AND_REASON") } to WsCloseStatus.PROTOCOL_ERROR,
-            { client: WsTestClient -> client.send("CLOSE_STATUS") } to WsCloseStatus.RESERVED,
-            { client: WsTestClient -> client.send("UNEXPECTED") } to WsCloseStatus.RESERVED
+            { client: WsTestClient -> client.send("CLOSE_STATUS") } to WsCloseStatus.POLICY_VIOLATION,
+            { client: WsTestClient -> client.send("UNEXPECTED") } to WsCloseStatus.UNSUPPORTED_DATA
         )
 
         scenarios.forEach { (sendAction, closeStatus) ->
@@ -235,8 +235,8 @@ class TestWebSocket {
                             "NO_ARGS" -> ctx.closeSession()
                             "STATUS_OBJECT" -> ctx.closeSession(WsCloseStatus.GOING_AWAY)
                             "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
-                            "CLOSE_STATUS" -> ctx.closeSession(WsCloseStatus.RESERVED)
-                            else -> ctx.closeSession(1004, "UNEXPECTED")
+                            "CLOSE_STATUS" -> ctx.closeSession(WsCloseStatus.POLICY_VIOLATION)
+                            else -> ctx.closeSession(1003, "UNEXPECTED")
                         }
                     }
                     ws.onClose { ctx ->
@@ -247,6 +247,43 @@ class TestWebSocket {
                 }
                 WsTestClient(app, "/websocket", onOpen = { sendAction(it) }).connectBlocking()
             }
+        }
+    }
+
+    @Test
+    fun `closeSession() rejects close codes that cannot be sent`() {
+        val log = ConcurrentLinkedQueue<String>()
+        val nonTransmittable = listOf(1004, 1005, 1006, 1015, 999, 5000)
+        TestUtil.test { app, _ ->
+            app.unsafe.routes.ws("/ws") { ws ->
+                ws.onConnect { ctx ->
+                    nonTransmittable.forEach { code ->
+                        runCatching { ctx.closeSession(code, "reason") }.onFailure { log.add(it.message!!) }
+                    }
+                    runCatching { ctx.closeSession(WsCloseStatus.RESERVED) }.onFailure { log.add(it.message!!) }
+                }
+            }
+            awaitCondition(condition = { log.size == nonTransmittable.size + 1 }) { WsTestClient(app, "/ws").connectBlocking() }
+            assertThat(log).containsExactlyElementsOf(
+                (nonTransmittable + 1004).map { "Close status code $it cannot be sent to the client (RFC 6455, Section 7.4)" }
+            )
+        }
+    }
+
+    @Test
+    fun `closeSession() with a reserved close code closes the session with a server error`() {
+        val log = ConcurrentLinkedQueue<String>()
+        TestUtil.test { app, _ ->
+            app.unsafe.routes.ws("/ws") { ws ->
+                ws.onConnect { ctx -> ctx.closeSession(WsCloseStatus.RESERVED) }
+            }
+            val client = object : WsTestClient(app, "/ws") {
+                override fun onClose(status: Int, message: String, byRemote: Boolean) {
+                    log.add("$status $message")
+                }
+            }
+            awaitCondition(condition = { client.isClosed }) { client.connect() }
+            assertThat(log).containsExactly("1011 Close status code 1004 cannot be sent to the client (RFC 6455, Section 7.4)")
         }
     }
 
