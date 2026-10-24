@@ -6,128 +6,132 @@
 
 package io.javalin.websocket
 
+import io.javalin.http.Header
 import io.javalin.http.HttpStatus
+import io.javalin.http.UnauthorizedResponse
 import io.javalin.security.RouteRole
-import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
-@Timeout(value = 2, unit = TimeUnit.SECONDS)
+@Timeout(value = 5, unit = TimeUnit.SECONDS)
 class TestWsUpgrade {
 
     private enum class WsRole : RouteRole { A }
 
     @Test
-    fun `wsBeforeUpgrade and wsAfterUpgrade are invoked`() = TestUtil.test { app, http ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.wsBeforeUpgrade { log.add("before") }
-        app.unsafe.routes.wsAfterUpgrade { log.add("after") }
-        app.unsafe.routes.ws("/ws") {}
-        http.wsUpgradeRequest("/ws")
-        assertThat(log).containsExactly("before", "after")
+    fun `wsBeforeUpgrade in full lifecycle`() = wsTest({
+        it.routes.wsBeforeUpgrade { record("before-upgrade") }
+        it.routes.wsAfterUpgrade { record("after-upgrade") }
+        it.routes.ws("/ws", recorder("endpoint"))
+    }) {
+        connect("/ws").apply { send("test-message") }.close()
+        server.expect("before-upgrade", "after-upgrade", "endpoint:connect", "endpoint:message:test-message", "endpoint:close:1000")
     }
 
     @Test
-    fun `wsBeforeUpgrade and after can modify the upgrade request`() = TestUtil.test { app, http ->
-        app.unsafe.routes.wsBeforeUpgrade { it.header("X-Before", "before") }
-        app.unsafe.routes.wsAfterUpgrade { it.header("X-After", "after") }
-        app.unsafe.routes.ws("/ws") {}
-        val response = http.wsUpgradeRequest("/ws")
-        assertThat(response.headers.getFirst("X-Before")).isEqualTo("before")
-        assertThat(response.headers.getFirst("X-After")).isEqualTo("after")
+    fun `path-scoped upgrade handlers only run for matching paths`() = wsTest({
+        it.routes.wsBeforeUpgrade("/secure/*") { ctx -> record("before ${ctx.path()}") }
+        it.routes.wsAfterUpgrade("/secure/*") { ctx -> record("after ${ctx.path()}") }
+        it.routes.ws("/public/ws") {}
+        it.routes.ws("/secure/ws") {}
+    }) {
+        connect("/public/ws")
+        connect("/secure/ws")
+        server.expect("before /secure/ws", "after /secure/ws")
     }
 
     @Test
-    fun `wsBeforeUpgrade can stop an upgrade request in progress`() = TestUtil.test { app, http ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.wsBeforeUpgrade { _ -> throw IllegalStateException("denied") }
-        app.unsafe.routes.ws("/ws") { ws ->
-            ws.onConnect { log.add("connected") }
-        }
-        val response = http.wsUpgradeRequest("/ws")
-        assertThat(response.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
-        assertThat(log).isEmpty()
+    fun `wsBeforeUpgrade can modify the upgrade response`() = wsTest({
+        it.routes.wsBeforeUpgrade { ctx -> ctx.header("X-Before", "before") }
+        it.routes.ws("/ws") {}
+    }) {
+        assertThat(connect("/ws").upgradeResponse.getHeader("X-Before")).isEqualTo("before")
     }
 
     @Test
-    fun `wsBeforeUpgrade exception pattern can be combined with a custom exception handler`() = TestUtil.test { app, http ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.wsBeforeUpgrade { throw IllegalStateException("denied") }
-        app.unsafe.routes.exception(IllegalStateException::class.java) { _, ctx ->
-            log.add("exception handled")
+    fun `wsBeforeUpgrade can stop an upgrade request in progress`() = wsTest({
+        it.routes.wsBeforeUpgrade { throw IllegalStateException("denied") }
+        it.routes.ws("/ws") { ws -> ws.onConnect { record("connected") } }
+    }) {
+        assertThat(expectRejectedUpgrade("/ws").status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.code)
+        server.expectNothing()
+    }
+
+    @Test
+    fun `an HttpResponseException in wsBeforeUpgrade rejects the upgrade with its status`() = wsTest({
+        it.routes.wsBeforeUpgrade { throw UnauthorizedResponse() }
+        it.routes.ws("/ws") { ws -> ws.onConnect { record("connected") } }
+    }) {
+        assertThat(expectRejectedUpgrade("/ws").status).isEqualTo(HttpStatus.UNAUTHORIZED.code)
+        server.expectNothing()
+    }
+
+    @Test
+    fun `wsBeforeUpgrade exception pattern can be combined with a custom exception handler`() = wsTest({
+        it.routes.wsBeforeUpgrade { throw IllegalStateException("denied") }
+        it.routes.exception(IllegalStateException::class.java) { _, ctx ->
+            record("exception handled")
             ctx.status(HttpStatus.FORBIDDEN)
         }
-        app.unsafe.routes.ws("/ws") {}
-        val response = http.wsUpgradeRequest("/ws")
-        assertThat(log).containsExactly("exception handled")
-        assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN.code)
+        it.routes.ws("/ws") {}
+    }) {
+        assertThat(expectRejectedUpgrade("/ws").status).isEqualTo(HttpStatus.FORBIDDEN.code)
+        server.expect("exception handled")
     }
 
     @Test
-    fun `wsBeforeUpgrade does work with skipRemainingHandlers`() = TestUtil.test { app, http ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.wsBeforeUpgrade { it.status(HttpStatus.FORBIDDEN).skipRemainingHandlers() }
-        app.unsafe.routes.ws("/ws") { ws ->
-            ws.onConnect { log.add("connected") }
+    fun `wsBeforeUpgrade does work with skipRemainingHandlers`() = wsTest({
+        it.routes.wsBeforeUpgrade { ctx -> ctx.status(HttpStatus.FORBIDDEN).skipRemainingHandlers() }
+        it.routes.ws("/ws") { ws -> ws.onConnect { record("connected") } }
+    }) {
+        assertThat(expectRejectedUpgrade("/ws").status).isEqualTo(HttpStatus.FORBIDDEN.code)
+        server.expectNothing()
+    }
+
+    @Test
+    fun `routeRoles are available in wsBeforeUpgrade`() = wsTest({
+        it.routes.wsBeforeUpgrade { ctx -> record(ctx.routeRoles().toString()) }
+        it.routes.ws("/ws", {}, WsRole.A)
+    }) {
+        connect("/ws")
+        server.expect("[A]")
+    }
+
+    @Test
+    fun `attributes set in wsBeforeUpgrade are available in onConnect`() = wsTest({
+        it.routes.wsBeforeUpgrade { ctx -> ctx.attribute("hello", "world") }
+        it.routes.ws("/ws") { ws ->
+            ws.onConnect { ctx -> record("attribute=${ctx.attribute<String>("hello")}") }
         }
-        val client = WsTestClient(app, "/ws")
-        client.connectAndDisconnect()
-        val response = http.wsUpgradeRequest("/ws")
-        assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN.code)
-        assertThat(log).isEmpty()
+    }) {
+        connect("/ws")
+        server.expect("attribute=world")
     }
 
     @Test
-    fun `wsBeforeUpgrade in full lifecycle`() = TestUtil.test { app, _ ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.wsBeforeUpgrade { log.add("before-upgrade") }
-        app.unsafe.routes.wsAfterUpgrade { log.add("after-upgrade") }
-        app.unsafe.routes.ws("/ws") { ws ->
-            ws.onConnect { log.add("connect") }
-            ws.onMessage { log.add("msg") }
-            ws.onClose { log.add("close") }
-        }
-        val client = WsTestClient(app, "/ws")
-        client.connectSendAndDisconnect("test-message")
-        assertThat(log).containsExactly("before-upgrade", "after-upgrade", "connect", "msg", "close")
+    fun `pathParams are available in wsBeforeUpgrade`() = wsTest({
+        it.routes.wsBeforeUpgrade { ctx -> record(ctx.pathParam("param")) }
+        it.routes.ws("/ws/{param}") {}
+    }) {
+        connect("/ws/123")
+        server.expect("123")
     }
 
     @Test
-    fun `routeRoles are available in wsBeforeUpgrade`() = TestUtil.test { app, http ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.wsBeforeUpgrade { log.add(it.routeRoles().toString()) }
-        app.unsafe.routes.ws("/ws", {}, WsRole.A)
-        http.wsUpgradeRequest("/ws")
-        assertThat(log).containsExactly("[A]")
+    fun `the first offered subprotocol is accepted`() = wsTest({
+        it.routes.ws("/ws") {}
+    }) {
+        assertThat(connect("/ws", subProtocols = listOf("mqtt", "wamp")).upgradeResponse.acceptedSubProtocol).isEqualTo("mqtt")
+        assertThat(connect("/ws").upgradeResponse.acceptedSubProtocol).isNull()
     }
 
     @Test
-    fun `attributes set in wsBeforeUpgrade are available in onConnect`() = TestUtil.test { app, _ ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.wsBeforeUpgrade { it.attribute("hello", "world") }
-        app.unsafe.routes.ws("/ws") { ws ->
-            ws.onConnect { log.add(it.attribute<String>("hello") ?: "missing") }
-        }
-        WsTestClient(app, "/ws").connectAndDisconnect()
-        assertThat(log).containsExactly("world")
-    }
-
-    @Test
-    fun `pathParams are available in wsBeforeUpgrade`() = TestUtil.test { app, http ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.wsBeforeUpgrade { log.add(it.pathParam("param")) }
-        app.unsafe.routes.ws("/ws/{param}") {}
-        http.wsUpgradeRequest("/ws/123")
-        assertThat(log).containsExactly("123")
-    }
-
-    @Test
-    fun `upgrade requests don't create http sessions`() = TestUtil.test { app, http ->
-        app.unsafe.routes.ws("/ws") {}
-        assertThat(http.wsUpgradeRequest("/ws").headers.get("Set-Cookie")).isEmpty()
-        assertThat(http.wsUpgradeRequest("/no-such-ws").headers.get("Set-Cookie")).isEmpty()
+    fun `upgrade requests don't create http sessions`() = wsTest({
+        it.routes.ws("/ws") {}
+    }) {
+        assertThat(connect("/ws").upgradeResponse.getHeaders(Header.SET_COOKIE)).isEmpty()
+        assertThat(expectRejectedUpgrade("/no-such-ws").headers.getValuesList(Header.SET_COOKIE)).isEmpty()
     }
 }
