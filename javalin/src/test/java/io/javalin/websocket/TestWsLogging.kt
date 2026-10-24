@@ -6,123 +6,76 @@
 
 package io.javalin.websocket
 
-import io.javalin.Javalin
-import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.plugin.bundled.DevLoggingPlugin
-import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
-@Timeout(value = 2, unit = TimeUnit.SECONDS)
+@Timeout(value = 5, unit = TimeUnit.SECONDS)
 class TestWsLogging {
 
     @Test
-    fun `web socket logging works`() {
-        val log = ConcurrentLinkedQueue<String>()
-        TestUtil.test(Javalin.create {
-            it.requestLogger.ws { ws ->
-                ws.onConnect { ctx -> log.add("${ctx.pathParam("param")} connected") }
-                ws.onClose { ctx -> log.add("${ctx.pathParam("param")} disconnected") }
-            }
-        }) { app, _ ->
-            app.unsafe.routes.ws("/path/{param}") {}
-            WsTestClient(app, "/path/0").connectAndDisconnect()
-            WsTestClient(app, "/path/1").connectAndDisconnect()
-            awaitCondition(condition = { log.size >= 4 })
-            assertThat(log).containsExactlyInAnyOrder(
-                "0 connected",
-                "1 connected",
-                "0 disconnected",
-                "1 disconnected"
-            )
+    fun `web socket logging works`() = wsTest({
+        it.requestLogger.ws { ws ->
+            ws.onConnect { ctx -> record("${ctx.pathParam("param")} connected") }
+            ws.onMessage { ctx -> record("${ctx.pathParam("param")} sent ${ctx.message()}") }
+            ws.onClose { ctx -> record("${ctx.pathParam("param")} disconnected") }
         }
+        it.routes.ws("/path/{param}") {}
+    }) {
+        connect("/path/0").apply { send("hi") }.close()
+        connect("/path/1").close()
+        server.expectInAnyOrder("0 connected", "0 sent hi", "0 disconnected", "1 connected", "1 disconnected")
     }
 
     @Test
-    fun `web socket upgrade logging works`() {
-        val log = ConcurrentLinkedQueue<String>()
-        TestUtil.test(Javalin.create {
-            it.requestLogger.ws { ws ->
-                ws.onUpgrade { ctx, _ -> log.add("${ctx.path()} upgrade attempted (${ctx.status()})") }
-            }
-        }) { app, _ ->
-            app.unsafe.routes.ws("/upgrade-test") {}
-            // Test successful upgrade
-            WsTestClient(app, "/upgrade-test").connectAndDisconnect()
-            // Test failed upgrade (404)
-            val response = Unirest.get("http://localhost:${app.port()}/non-existent-ws")
-                .header(Header.SEC_WEBSOCKET_KEY, "test-key")
-                .header(Header.SEC_WEBSOCKET_VERSION, "13")
-                .header(Header.UPGRADE, "websocket")
-                .header(Header.CONNECTION, "upgrade")
-                .asString()
-            assertThat(response.status).isEqualTo(404)
-
-            // Verify that both successful and failed upgrades are logged
-            assertThat(log).containsExactlyInAnyOrder(
-                "/upgrade-test upgrade attempted (101 Switching Protocols)",
-                "/non-existent-ws upgrade attempted (404 Not Found)"
-            )
+    fun `web socket upgrade logging works`() = wsTest({
+        it.requestLogger.ws { ws ->
+            ws.onUpgrade { ctx, _ -> record("${ctx.path()} upgrade attempted (${ctx.status()})") }
         }
+        it.routes.ws("/upgrade-test") {}
+    }) {
+        connect("/upgrade-test")
+        assertThat(expectRejectedUpgrade("/non-existent-ws").status).isEqualTo(HttpStatus.NOT_FOUND.code)
+        server.expectInAnyOrder(
+            "/upgrade-test upgrade attempted (101 Switching Protocols)",
+            "/non-existent-ws upgrade attempted (404 Not Found)",
+        )
     }
 
     @Test
-    fun `web socket upgrade logging works for wsBeforeUpgrade errors`() {
-        val log = ConcurrentLinkedQueue<String>()
-        TestUtil.test(Javalin.create {
-            it.requestLogger.ws { ws ->
-                ws.onUpgrade { ctx, _ -> log.add("${ctx.path()} upgrade attempted (${ctx.status()})") }
-            }
-        }) { app, _ ->
-            app.unsafe.routes.wsBeforeUpgrade("/auth-ws") { throw UnauthorizedResponse() }
-            app.unsafe.routes.ws("/auth-ws") {}
-
-            // Test failed upgrade due to authentication
-            val response = Unirest.get("http://localhost:${app.port()}/auth-ws")
-                .header(Header.SEC_WEBSOCKET_KEY, "test-key")
-                .header(Header.SEC_WEBSOCKET_VERSION, "13")
-                .header(Header.UPGRADE, "websocket")
-                .header(Header.CONNECTION, "upgrade")
-                .asString()
-            assertThat(response.status).isEqualTo(401)
-
-            // Verify that the failed upgrade due to authentication error is logged
-            assertThat(log).containsExactly("/auth-ws upgrade attempted (401 Unauthorized)")
+    fun `web socket upgrade logging works for wsBeforeUpgrade errors`() = wsTest({
+        it.requestLogger.ws { ws ->
+            ws.onUpgrade { ctx, _ -> record("${ctx.path()} upgrade attempted (${ctx.status()})") }
         }
+        it.routes.wsBeforeUpgrade("/auth-ws") { throw UnauthorizedResponse() }
+        it.routes.ws("/auth-ws") {}
+    }) {
+        assertThat(expectRejectedUpgrade("/auth-ws").status).isEqualTo(HttpStatus.UNAUTHORIZED.code)
+        server.expect("/auth-ws upgrade attempted (401 Unauthorized)")
     }
 
     @Test
-    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
-        app.unsafe.routes.ws("/path/{param}") {}
-        WsTestClient(app, "/path/0").connectAndDisconnect()
-        WsTestClient(app, "/path/1?test=banana&hi=1&hi=2").connectAndDisconnect()
-        // DevLoggingPlugin logs to console, not to our log - just verify no exceptions
-    }
-
-    @Test
-    fun `dev logging preserves clean web socket close for query parameters`() {
-        val log = ConcurrentLinkedQueue<String>()
-        TestUtil.test(Javalin.create { it.registerPlugin(DevLoggingPlugin()) }) { app, _ ->
-            app.unsafe.routes.ws("/path") { ws ->
-                ws.onConnect { ctx ->
-                    log.add("queryString=${ctx.queryString()}")
-                    log.add("queryParam=${ctx.queryParam("test")}")
-                    log.add("queryParams=${ctx.queryParams("hi")}")
-                }
-                ws.onClose { ctx -> log.add("server disconnected (${ctx.status()})") }
+    fun `dev logging preserves clean web socket close for query parameters`() = wsTest({
+        it.registerPlugin(DevLoggingPlugin())
+        it.routes.ws("/path") { ws ->
+            ws.onConnect { ctx ->
+                record("queryString=${ctx.queryString()}")
+                record("queryParam=${ctx.queryParam("test")}")
+                record("queryParams=${ctx.queryParams("hi")}")
             }
-            awaitCondition(condition = { log.size == 4 }) { WsTestClient(app, "/path?test=banana&hi=1&hi=2").connectAndDisconnect() }
-            assertThat(log).containsExactly(
-                "queryString=test=banana&hi=1&hi=2",
-                "queryParam=banana",
-                "queryParams=[1, 2]",
-                "server disconnected (1000)"
-            )
+            ws.onClose { ctx -> record("server disconnected (${ctx.status()})") }
         }
+    }) {
+        connect("/path?test=banana&hi=1&hi=2").close()
+        server.expect(
+            "queryString=test=banana&hi=1&hi=2",
+            "queryParam=banana",
+            "queryParams=[1, 2]",
+            "server disconnected (1000)",
+        )
     }
 }

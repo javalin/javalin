@@ -140,12 +140,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.java-websocket</groupId>
-            <artifactId>Java-WebSocket</artifactId>
-            <version>${java.websocket.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp-jvm</artifactId>
             <scope>test</scope>

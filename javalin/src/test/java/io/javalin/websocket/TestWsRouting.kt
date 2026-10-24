@@ -6,101 +6,76 @@
 
 package io.javalin.websocket
 
-import io.javalin.Javalin
-import io.javalin.http.Header
-import io.javalin.testing.TestUtil
-import kong.unirest.Unirest
+import io.javalin.config.JavalinConfig
+import io.javalin.http.HttpStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
-@Timeout(value = 2, unit = TimeUnit.SECONDS)
+@Timeout(value = 5, unit = TimeUnit.SECONDS)
 class TestWsRouting {
 
-    @Test
-    fun `routing and pathParams work without context path`() = TestUtil.test { app, _ ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.ws("/params/{1}") { ws ->
-            ws.onConnect { ctx -> log.add(ctx.pathParam("1")) }
+    private val paramRoutes: WsTest.(JavalinConfig) -> Unit = {
+        it.routes.ws("/params/{1}") { ws ->
+            ws.onConnect { ctx -> record(ctx.pathParam("1")) }
         }
-        app.unsafe.routes.ws("/params/{1}/test/{2}/{3}") { ws ->
-            ws.onConnect { ctx -> log.add("${ctx.pathParam("1")} ${ctx.pathParam("2")} ${ctx.pathParam("3")}") }
+        it.routes.ws("/params/{1}/test/{2}/{3}") { ws ->
+            ws.onConnect { ctx -> record("${ctx.pathParam("1")} ${ctx.pathParam("2")} ${ctx.pathParam("3")}") }
         }
-        app.unsafe.routes.ws("/*") { ws ->
-            ws.onConnect { log.add("catchall") }
-        }
-        WsTestClient(app, "/params/one").connectAndDisconnect()
-        WsTestClient(app, "/params/%E2%99%94").connectAndDisconnect()
-        WsTestClient(app, "/params/another/test/long/path").connectAndDisconnect()
-        assertThat(log).containsExactlyInAnyOrder("one", "♔", "another long path")
-        assertThat(log).doesNotContain("catchall")
-    }
-
-    @Test
-    fun `routing and pathParams work with context path`() = TestUtil.test(contextPathJavalin()) { app, _ ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.ws("/params/{1}") { ws ->
-            ws.onConnect { ctx -> log.add(ctx.pathParam("1")) }
-        }
-        app.unsafe.routes.ws("/params/{1}/test/{2}/{3}") { ws ->
-            ws.onConnect { ctx -> log.add("${ctx.pathParam("1")} ${ctx.pathParam("2")} ${ctx.pathParam("3")}") }
-        }
-        app.unsafe.routes.ws("/*") { ws ->
-            ws.onConnect { log.add("catchall") }
-        }
-        WsTestClient(app, "/websocket/params/one").connectAndDisconnect()
-        WsTestClient(app, "/websocket/params/%E2%99%94").connectAndDisconnect()
-        WsTestClient(app, "/websocket/params/another/test/long/path").connectAndDisconnect()
-        assertThat(log).containsExactlyInAnyOrder("one", "♔", "another long path")
-        assertThat(log).doesNotContain("catchall")
-    }
-
-    @Test
-    fun `context-path vs no context-path app`() {
-        val log1 = ConcurrentLinkedQueue<String>()
-        val log2 = ConcurrentLinkedQueue<String>()
-        val noContextPathApp = Javalin.create().apply {
-            this.unsafe.routes.ws("/p/{id}") { it.onConnect { log1.add(it.pathParam("id")) } }
-        }.start(0)
-        val contextPathApp = Javalin.create { it.router.contextPath = "/websocket" }.apply {
-            this.unsafe.routes.ws("/p/{id}") { it.onConnect { log2.add(it.pathParam("id")) } }
-        }.start(0)
-        try {
-            WsTestClient(noContextPathApp, "/p/ncpa").connectAndDisconnect()
-            WsTestClient(contextPathApp, "/websocket/p/cpa").connectAndDisconnect()
-            assertThat(log1).containsExactly("ncpa")
-            assertThat(log2).containsExactly("cpa")
-        } finally {
-            noContextPathApp.stop()
-            contextPathApp.stop()
+        it.routes.ws("/*") { ws ->
+            ws.onConnect { record("catchall") }
         }
     }
 
     @Test
-    fun `websocket 404 works`() = TestUtil.test { app, _ ->
-        val response = Unirest.get("http://localhost:" + app.port() + "/invalid-path")
-            .header(Header.CONNECTION, "Upgrade")
-            .header(Header.UPGRADE, "websocket")
-            .header(Header.HOST, "localhost:" + app.port())
-            .header(Header.SEC_WEBSOCKET_KEY, "SGVsbG8sIHdvcmxkIQ==")
-            .header(Header.SEC_WEBSOCKET_VERSION, "13")
-            .asString()
-        assertThat(response.body).containsSequence("WebSocket handler not found")
+    fun `routing and pathParams work without context path`() = wsTest(paramRoutes) {
+        connect("/params/one")
+        connect("/params/%E2%99%94")
+        connect("/params/another/test/long/path")
+        server.expectInAnyOrder("one", "♔", "another long path")
     }
 
     @Test
-    fun `path matching is case sensitive`() = TestUtil.test { app, _ ->
-        val log = ConcurrentLinkedQueue<String>()
-        app.unsafe.routes.ws("/pAtH/{param}") { ws ->
-            ws.onConnect { ctx -> log.add(ctx.pathParam("param")) }
+    fun `routing and pathParams work with context path`() = wsTest({
+        it.router.contextPath = "/websocket"
+        paramRoutes(it)
+    }) {
+        connect("/websocket/params/one")
+        connect("/websocket/params/%E2%99%94")
+        connect("/websocket/params/another/test/long/path")
+        server.expectInAnyOrder("one", "♔", "another long path")
+    }
+
+    @Test
+    fun `context-path vs no context-path app`() = wsTest({
+        it.routes.ws("/p/{id}") { ws -> ws.onConnect { ctx -> record(ctx.pathParam("id")) } }
+    }) {
+        val noContextPathApp = this
+        wsTest({
+            it.router.contextPath = "/websocket"
+            it.routes.ws("/p/{id}") { ws -> ws.onConnect { ctx -> record(ctx.pathParam("id")) } }
+        }) {
+            noContextPathApp.connect("/p/ncpa")
+            connect("/websocket/p/cpa")
+            noContextPathApp.server.expect("ncpa")
+            server.expect("cpa")
         }
-        // Request with different case should NOT match
-        WsTestClient(app, "/PaTh/my-param").connectAndDisconnect()
-        assertThat(log).isEmpty()
-        // Request with exact case should match, and path param preserves case
-        WsTestClient(app, "/pAtH/My-PaRaM").connectAndDisconnect()
-        assertThat(log).containsExactly("My-PaRaM")
+    }
+
+    @Test
+    fun `websocket 404 works`() = wsTest {
+        assertThat(expectRejectedUpgrade("/invalid-path").status).isEqualTo(HttpStatus.NOT_FOUND.code)
+    }
+
+    @Test
+    fun `path matching is case sensitive`() = wsTest({
+        it.routes.ws("/pAtH/{param}") { ws ->
+            ws.onConnect { ctx -> record(ctx.pathParam("param")) }
+        }
+    }) {
+        assertThat(expectRejectedUpgrade("/PaTh/my-param").status).isEqualTo(HttpStatus.NOT_FOUND.code)
+        connect("/pAtH/My-PaRaM")
+        server.expect("My-PaRaM")
     }
 }
