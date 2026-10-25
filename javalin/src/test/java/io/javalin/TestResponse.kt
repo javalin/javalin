@@ -322,6 +322,37 @@ class TestResponse {
     }
 
     @Test
+    fun `seekable - suffix range returns the last bytes`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/seekable-suffix") { it.writeSeekableStream(getSeekableInput(), ContentType.VIDEO_MPEG.toString()) }
+        val total = SeekableWriter.chunkSize * 3
+        val response = Unirest.get(http.origin + "/seekable-suffix").header(Header.RANGE, "bytes=-10").asString()
+        assertThat(response.httpCode()).isEqualTo(HttpStatus.PARTIAL_CONTENT)
+        assertThat(response.headers.getFirst(Header.CONTENT_RANGE)).isEqualTo("bytes ${total - 10}-${total - 1}/$total")
+        assertThat(response.body).isEqualTo("c".repeat(10))
+    }
+
+    @Test
+    fun `seekable - range starting after the end returns 416`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/seekable-416") { it.writeSeekableStream(getSeekableInput(), ContentType.VIDEO_MPEG.toString()) }
+        val total = SeekableWriter.chunkSize * 3
+        val response = Unirest.get(http.origin + "/seekable-416").header(Header.RANGE, "bytes=$total-").asString()
+        assertThat(response.httpCode()).isEqualTo(HttpStatus.RANGE_NOT_SATISFIABLE)
+        assertThat(response.headers.getFirst(Header.CONTENT_RANGE)).isEqualTo("bytes */$total")
+    }
+
+    @Test
+    fun `seekable - invalid or unknown range is ignored`() = TestUtil.test { app, http ->
+        val total = SeekableWriter.chunkSize * 3
+        listOf("bytes=abc", "bytes= x-1", "items=0-10", "bytes=10-5", "bytes").forEachIndexed { i, range ->
+            app.unsafe.routes.get("/seekable-ignored-$i") { it.writeSeekableStream(getSeekableInput(), ContentType.VIDEO_MPEG.toString()) }
+            val response = Unirest.get(http.origin + "/seekable-ignored-$i").header(Header.RANGE, range).asString()
+            assertThat(response.httpCode()).describedAs(range).isEqualTo(HttpStatus.OK)
+            assertThat(response.headers.getFirst(Header.CONTENT_RANGE)).describedAs(range).isEmpty()
+            assertThat(response.body.length).describedAs(range).isEqualTo(total)
+        }
+    }
+
+    @Test
     fun `GH-1956 seekable request with no RANGE header contains Content-Length and Accept-Ranges`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/seekable-6") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-6").asString()
