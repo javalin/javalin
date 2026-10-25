@@ -123,6 +123,20 @@
     },
     {
         "condition": {
+            "typeReachable": "io.javalin.util.VirtualThreadBuilder"
+        },
+        "name": "java.lang.Thread$Builder",
+        "methods": [
+            {
+                "name": "unstarted",
+                "parameterTypes": [
+                    "java.lang.Runnable"
+                ]
+            }
+        ]
+    },
+    {
+        "condition": {
             "typeReachable": "io.javalin.util.Util"
         },
         "name": "org.slf4j.spi.SLF4JServiceProvider"
