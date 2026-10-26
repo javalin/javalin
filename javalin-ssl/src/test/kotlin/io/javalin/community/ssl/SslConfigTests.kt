@@ -432,6 +432,11 @@ class SslConfigTests : IntegrationTestClass() {
         }
     }
 
+    @Test
+    fun `Test that the PKIX key manager is disabled by default`() {
+        Assertions.assertFalse(SslConfig().usePkixKeyManager)
+    }
+
     companion object {
         private fun getSecurityProviderName(app: Javalin): String {
             val conn = app.jettyServer()!!.server().getConnectors()[0] as ServerConnector

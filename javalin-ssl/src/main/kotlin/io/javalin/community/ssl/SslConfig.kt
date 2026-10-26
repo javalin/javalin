@@ -66,6 +66,15 @@ class SslConfig {
     var sniHostCheck = true
 
     /**
+     * Load key stores using the JDK "PKIX" key manager instead of the default one ("SunX509").
+     * The PKIX key manager selects the certificate matching the SNI host name sent by the client,
+     * which allows serving multiple certificates from a single key store.
+     * Only applies to identities loaded from a key store.
+     */
+    @JvmField
+    var usePkixKeyManager = false
+
+    /**
      * TLS Security configuration
      */
     @JvmField

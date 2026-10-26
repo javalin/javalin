@@ -26,6 +26,7 @@ public class JavaAPITests {
             conf.redirect = false;                                                      // Redirect all http requests to https
 
             conf.sniHostCheck = true;                                                   // Enable SNI hostname verification
+            conf.usePkixKeyManager = false;                                             // Select the certificate from the key store matching the SNI host name
             conf.tlsConfig = TlsConfig.INTERMEDIATE;                                    // Set the TLS configuration. (by default it uses Mozilla's intermediate configuration)
 
             // PEM loading options (mutually exclusive)
