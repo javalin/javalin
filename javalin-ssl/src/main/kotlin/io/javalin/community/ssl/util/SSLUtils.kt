@@ -9,7 +9,6 @@ import nl.altindag.ssl.util.KeyManagerUtils
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import java.security.KeyStore
 import java.util.function.Consumer
-import javax.net.ssl.X509ExtendedKeyManager
 
 /**
  * Utility class for SSL related tasks.
@@ -80,25 +79,14 @@ object SSLUtils {
             SslConfig.LoadedIdentity.KEY_STORE -> {
                 val keyStore = config.pvt.keyStore
                 val password = config.pvt.identityPassword!!.toCharArray()
-                if (config.usePkixKeyManager) {
-                    builder.withIdentityMaterial(createPkixKeyManager(config, keyStore!!, password))
+                if (config.useSniKeyManager) {
+                    builder.withIdentityMaterial(SniKeyManager(KeyManagerUtils.createKeyManager(keyStore, password), keyStore!!))
                 } else {
                     builder.withIdentityMaterial(keyStore, password)
                 }
             }
         }
     }
-
-    /**
-     * Helper method to create a SNI-aware "PKIX" key manager from the given key store.
-     */
-    private fun createPkixKeyManager(config: SslConfig, keyStore: KeyStore, password: CharArray): X509ExtendedKeyManager {
-        return config.securityProvider
-            ?.let { KeyManagerUtils.createKeyManager(keyStore, password, PKIX_ALGORITHM, it) }
-            ?: KeyManagerUtils.createKeyManager(keyStore, password, PKIX_ALGORITHM)
-    }
-
-    private const val PKIX_ALGORITHM = "PKIX"
 
     /**
      * Helper method to parse the given config and add Trust Material to the given builder.

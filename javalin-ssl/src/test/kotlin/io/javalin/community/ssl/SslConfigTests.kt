@@ -433,8 +433,8 @@ class SslConfigTests : IntegrationTestClass() {
     }
 
     @Test
-    fun `Test that the PKIX key manager is disabled by default`() {
-        Assertions.assertFalse(SslConfig().usePkixKeyManager)
+    fun `Test that the SNI key manager is disabled by default`() {
+        Assertions.assertFalse(SslConfig().useSniKeyManager)
     }
 
     companion object {
