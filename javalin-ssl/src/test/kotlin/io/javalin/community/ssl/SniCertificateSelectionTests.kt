@@ -1,6 +1,7 @@
 package io.javalin.community.ssl
 
 import io.javalin.Javalin
+import io.javalin.community.ssl.certs.Server
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
+import java.nio.file.Path
 import java.security.KeyStore
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -49,6 +51,29 @@ class SniCertificateSelectionTests : IntegrationTestClass() {
                 Assertions.assertEquals("alpha", servedCommonName(port, "alpha.test"))
                 Assertions.assertEquals("beta", servedCommonName(port, "beta.test"))
             }
+        }
+    }
+
+    @Test
+    fun `the certificate matching the SNI host name is selected from p12 and jks files`() {
+        // Both files contain an RSA certificate for alpha.test and an EC certificate for beta.test
+        val loaders = listOf<(SslConfig) -> Unit>(
+            { it.keystoreFromClasspath(SNI_P12_KEY_STORE_NAME, PASSWORD) },
+            { it.keystoreFromPath(Path.of(ClassLoader.getSystemResource(SNI_JKS_KEY_STORE_NAME).toURI()).toString(), PASSWORD) },
+        )
+        for (loader in loaders) {
+            withServer(loader, sni = true) { port ->
+                Assertions.assertEquals("alpha", servedCommonName(port, "alpha.test"))
+                Assertions.assertEquals("beta", servedCommonName(port, "beta.test"))
+            }
+        }
+    }
+
+    @Test
+    fun `pem identities are not affected`() {
+        withServer({ it.pemFromClasspath(Server.CERTIFICATE_FILE_NAME, Server.NON_ENCRYPTED_KEY_FILE_NAME) }, sni = true) { port ->
+            Assertions.assertEquals("localhost", servedCommonName(port, "alpha.test"))
+            Assertions.assertEquals("localhost", servedCommonName(port, null))
         }
     }
 
@@ -117,12 +142,15 @@ class SniCertificateSelectionTests : IntegrationTestClass() {
         }
     }
 
-    private fun <T> withServer(keyStore: ByteArray, sni: Boolean, config: (SslConfig) -> Unit = {}, test: (Int) -> T): T {
+    private fun <T> withServer(keyStore: ByteArray, sni: Boolean, config: (SslConfig) -> Unit = {}, test: (Int) -> T): T =
+        withServer({ it.loadKeyStore(keyStore) }, sni, config, test)
+
+    private fun <T> withServer(identity: (SslConfig) -> Unit, sni: Boolean, config: (SslConfig) -> Unit = {}, test: (Int) -> T): T {
         val securePort = ports.getAndIncrement()
         val app = createTestApp {
             it.insecure = false
             it.securePort = securePort
-            it.loadKeyStore(keyStore)
+            identity(it)
             it.useSniKeyManager = sni
             config(it)
         }.start()
@@ -137,6 +165,8 @@ class SniCertificateSelectionTests : IntegrationTestClass() {
 
     companion object {
         private const val PASSWORD = "password"
+        private const val SNI_P12_KEY_STORE_NAME = "server/sni/sni.p12"
+        private const val SNI_JKS_KEY_STORE_NAME = "server/sni/sni.jks"
 
         private val trustAll = object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
@@ -178,7 +208,7 @@ class SniCertificateSelectionTests : IntegrationTestClass() {
                 socket.sslParameters = parameters
                 socket.startHandshake()
                 val certificate = socket.session.peerCertificates[0] as X509Certificate
-                return certificate.subjectX500Principal.name.removePrefix("CN=").substringBefore(',')
+                return Regex("CN=([^,]+)").find(certificate.subjectX500Principal.name)!!.groupValues[1]
             }
         }
     }
