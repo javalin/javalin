@@ -5,7 +5,6 @@ import io.javalin.community.ssl.SslConfigException
 import io.javalin.community.ssl.TrustConfig
 import nl.altindag.ssl.SSLFactory
 import nl.altindag.ssl.jetty.util.JettySslUtils
-import nl.altindag.ssl.util.KeyManagerUtils
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import java.security.KeyStore
 import java.util.function.Consumer
@@ -76,15 +75,7 @@ object SSLUtils {
         when(config.pvt.loadedIdentity){
             SslConfig.LoadedIdentity.NONE -> throw SslConfigException(SslConfigException.Types.MISSING_CERT_AND_KEY_FILE)
             SslConfig.LoadedIdentity.KEY_MANAGER -> builder.withIdentityMaterial(config.pvt.keyManager)
-            SslConfig.LoadedIdentity.KEY_STORE -> {
-                val keyStore = config.pvt.keyStore
-                val password = config.pvt.identityPassword!!.toCharArray()
-                if (config.useSniKeyManager) {
-                    builder.withIdentityMaterial(SniKeyManager(KeyManagerUtils.createKeyManager(keyStore, password), keyStore!!))
-                } else {
-                    builder.withIdentityMaterial(keyStore, password)
-                }
-            }
+            SslConfig.LoadedIdentity.KEY_STORE -> builder.withIdentityMaterial(config.pvt.keyStore, config.pvt.identityPassword!!.toCharArray())
         }
     }
 

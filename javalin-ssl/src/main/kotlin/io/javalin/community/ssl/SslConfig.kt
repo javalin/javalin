@@ -66,14 +66,6 @@ class SslConfig {
     var sniHostCheck = true
 
     /**
-     * Select the certificate from the key store matching the SNI host name sent by the client,
-     * which allows serving multiple certificates from a single key store.
-     * Only applies to identities loaded from a key store.
-     */
-    @JvmField
-    var useSniKeyManager = false
-
-    /**
      * TLS Security configuration
      */
     @JvmField
@@ -230,6 +222,19 @@ class SslConfig {
     fun keystoreFromClasspath(keyStoreFile: String, keyStorePassword: String, identityPassword: String? = null) {
         pvt.keyStore = KeyStoreUtils.loadKeyStore(keyStoreFile, keyStorePassword.toCharArray())
         pvt.identityPassword = identityPassword ?: keyStorePassword
+    }
+
+    ///////////////////////////////////////////////////////////////
+    // Key Manager Loading Methods
+    ///////////////////////////////////////////////////////////////
+    /**
+     * Load the identity from a custom key manager, for example one serving
+     * multiple certificates selected by SNI host name.
+     *
+     * @param keyManager the key manager to use.
+     */
+    fun keyManager(keyManager: X509ExtendedKeyManager) {
+        pvt.keyManager = keyManager
     }
 
     ///////////////////////////////////////////////////////////////

@@ -432,11 +432,6 @@ class SslConfigTests : IntegrationTestClass() {
         }
     }
 
-    @Test
-    fun `Test that the SNI key manager is disabled by default`() {
-        Assertions.assertFalse(SslConfig().useSniKeyManager)
-    }
-
     companion object {
         private fun getSecurityProviderName(app: Javalin): String {
             val conn = app.jettyServer()!!.server().getConnectors()[0] as ServerConnector

@@ -1,16 +1,13 @@
 package io.javalin.community.ssl
 
 import io.javalin.Javalin
-import io.javalin.community.ssl.certs.Server
+import nl.altindag.ssl.pem.util.PemUtils
+import nl.altindag.ssl.util.KeyManagerUtils
+import nl.altindag.ssl.util.KeyStoreUtils
 import okhttp3.Dns
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.tls.HeldCertificate
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.nio.file.Path
 import java.security.KeyStore
@@ -20,97 +17,59 @@ import javax.net.ssl.SNIHostName
 import javax.net.ssl.SNIServerName
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocket
+import javax.net.ssl.X509ExtendedKeyManager
 import javax.net.ssl.X509TrustManager
 
+/**
+ * Serving multiple certificates selected by SNI host name, using a custom key manager built with ayza:
+ * one identity per certificate, and an identity route per host name.
+ * The fixtures contain an RSA certificate for alpha.test (alias alpha) and an EC certificate for beta.test (alias beta).
+ */
 @Tag("integration")
 class SniCertificateSelectionTests : IntegrationTestClass() {
 
     @Test
-    fun `the certificate matching the SNI host name is selected`() {
-        val keyStore = keyStoreOf(Cert("alpha", "alpha.test"), Cert("beta", "beta.test"))
-        withServer(keyStore, sni = true) { port ->
-            Assertions.assertEquals("alpha", servedCommonName(port, "alpha.test"))
-            Assertions.assertEquals("beta", servedCommonName(port, "beta.test"))
-        }
-    }
-
-    @Test
-    fun `the certificate matching the SNI host name is selected with TLS 1_3`() {
-        val keyStore = keyStoreOf(Cert("alpha", "alpha.test"), Cert("beta", "beta.test"))
-        withServer(keyStore, sni = true, { it.tlsConfig = TlsConfig.MODERN }) { port ->
-            Assertions.assertEquals("alpha", servedCommonName(port, "alpha.test"))
-            Assertions.assertEquals("beta", servedCommonName(port, "beta.test"))
-        }
-    }
-
-    @Test
-    fun `the certificate matching the SNI host name is selected across key types`() {
-        val keyStore = keyStoreOf(Cert("alpha", "alpha.test", rsa = true), Cert("beta", "beta.test"))
-        for (tlsConfig in listOf(TlsConfig.INTERMEDIATE, TlsConfig.MODERN)) {
-            withServer(keyStore, sni = true, { it.tlsConfig = tlsConfig }) { port ->
-                Assertions.assertEquals("alpha", servedCommonName(port, "alpha.test"))
-                Assertions.assertEquals("beta", servedCommonName(port, "beta.test"))
-            }
-        }
-    }
-
-    @Test
-    fun `the certificate matching the SNI host name is selected from p12 and jks files`() {
-        // Both files contain an RSA certificate for alpha.test and an EC certificate for beta.test
-        val loaders = listOf<(SslConfig) -> Unit>(
-            { it.keystoreFromClasspath(SNI_P12_KEY_STORE_NAME, PASSWORD) },
-            { it.keystoreFromPath(Path.of(ClassLoader.getSystemResource(SNI_JKS_KEY_STORE_NAME).toURI()).toString(), PASSWORD) },
-        )
-        for (loader in loaders) {
-            withServer(loader, sni = true) { port ->
-                Assertions.assertEquals("alpha", servedCommonName(port, "alpha.test"))
-                Assertions.assertEquals("beta", servedCommonName(port, "beta.test"))
-            }
-        }
-    }
-
-    @Test
-    fun `pem identities are not affected`() {
-        withServer({ it.pemFromClasspath(Server.CERTIFICATE_FILE_NAME, Server.NON_ENCRYPTED_KEY_FILE_NAME) }, sni = true) { port ->
-            Assertions.assertEquals("localhost", servedCommonName(port, "alpha.test"))
-            Assertions.assertEquals("localhost", servedCommonName(port, null))
-        }
-    }
-
-    @Test
-    fun `exact matches are preferred over wildcard matches`() {
-        val keyStore = keyStoreOf(Cert("wildcard", "*.example.test"), Cert("exact", "exact.example.test"))
-        withServer(keyStore, sni = true) { port ->
-            Assertions.assertEquals("exact", servedCommonName(port, "exact.example.test"))
-            Assertions.assertEquals("wildcard", servedCommonName(port, "other.example.test"))
-        }
-    }
-
-    @Test
-    fun `the default certificate is served when no SNI or an unknown host name is sent`() {
-        val keyStore = keyStoreOf(Cert("alpha", "alpha.test"), Cert("beta", "beta.test"))
-        val defaultCertificate = withServer(keyStore, sni = false) { port -> servedCommonName(port, null) }
-        withServer(keyStore, sni = true) { port ->
-            Assertions.assertEquals(defaultCertificate, servedCommonName(port, null))
-            Assertions.assertEquals(defaultCertificate, servedCommonName(port, "unknown.test"))
-        }
-    }
-
-    @Test
-    fun `SNI is ignored by default`() {
-        val keyStore = keyStoreOf(Cert("alpha", "alpha.test"), Cert("beta", "beta.test"))
-        withServer(keyStore, sni = false) { port ->
+    fun `a key store loaded directly serves the same certificate for every SNI host name`() {
+        withServer({ it.keystoreFromClasspath(P12_FILE, PASSWORD) }) { port ->
             Assertions.assertEquals(servedCommonName(port, "alpha.test"), servedCommonName(port, "beta.test"))
         }
     }
 
     @Test
+    fun `certificates are selected by SNI host name from p12 and jks files`() {
+        for (file in listOf(P12_FILE, JKS_FILE)) {
+            for (tlsConfig in listOf(TlsConfig.INTERMEDIATE, TlsConfig.MODERN)) {
+                val keyStore = KeyStoreUtils.loadKeyStore(file, PASSWORD.toCharArray())
+                withServer({ it.keyManager(sniKeyManager(keyStore.split("alpha"), keyStore.split("beta"))); it.tlsConfig = tlsConfig }) { port ->
+                    Assertions.assertEquals("alpha", servedCommonName(port, "alpha.test"))
+                    Assertions.assertEquals("beta", servedCommonName(port, "beta.test"))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `certificates are selected by SNI host name from pem files`() {
+        withServer({ it.keyManager(sniKeyManager(pemIdentity("alpha"), pemIdentity("beta"))) }) { port ->
+            Assertions.assertEquals("alpha", servedCommonName(port, "alpha.test"))
+            Assertions.assertEquals("beta", servedCommonName(port, "beta.test"))
+        }
+    }
+
+    @Test
+    fun `a certificate is still served when no SNI or an unknown host name is sent`() {
+        withServer({ it.keyManager(sniKeyManager(pemIdentity("alpha"), pemIdentity("beta"))) }) { port ->
+            Assertions.assertTrue(servedCommonName(port, null) in HOSTS.keys)
+            Assertions.assertTrue(servedCommonName(port, "unknown.test") in HOSTS.keys)
+        }
+    }
+
+    @Test
     fun `https requests pass the SNI host check for every certificate`() {
-        val keyStore = keyStoreOf(Cert("alpha", "alpha.test"), Cert("beta", "beta.test"))
         val client = untrustedClientBuilder()
             .dns(object : Dns { override fun lookup(hostname: String) = listOf(InetAddress.getLoopbackAddress()) })
             .build()
-        withServer(keyStore, sni = true, { it.sniHostCheck = true }) { port ->
+        withServer({ it.keyManager(sniKeyManager(pemIdentity("alpha"), pemIdentity("beta"))); it.sniHostCheck = true }) { port ->
             for (host in listOf("alpha.test", "beta.test")) {
                 testSuccessfulEndpoint(client, "https://$host:$port/", okhttp3.Protocol.HTTP_2)
             }
@@ -118,82 +77,74 @@ class SniCertificateSelectionTests : IntegrationTestClass() {
     }
 
     @Test
-    fun `the certificate matching the SNI host name is selected after a reload`() {
+    fun `certificates are selected by SNI host name after reloading a key store into a key manager`() {
         val securePort = ports.getAndIncrement()
         val sslPlugin = SslPlugin {
             it.insecure = false
             it.securePort = securePort
-            it.loadKeyStore(keyStoreOf(Cert("alpha", "alpha.test"), Cert("beta", "beta.test")))
-            it.useSniKeyManager = true
+            it.keystoreFromClasspath(P12_FILE, PASSWORD)
         }
         val app = Javalin.create { config ->
             config.startup.showJavalinBanner = false
             config.registerPlugin(sslPlugin)
         }.start()
         try {
-            sslPlugin.reload {
-                it.loadKeyStore(keyStoreOf(Cert("alpha-reloaded", "alpha.test"), Cert("beta-reloaded", "beta.test")))
-                it.useSniKeyManager = true
-            }
-            Assertions.assertEquals("alpha-reloaded", servedCommonName(securePort, "alpha.test"))
-            Assertions.assertEquals("beta-reloaded", servedCommonName(securePort, "beta.test"))
+            sslPlugin.reload { it.keyManager(sniKeyManager(pemIdentity("alpha"), pemIdentity("beta"))) }
+            Assertions.assertEquals("alpha", servedCommonName(securePort, "alpha.test"))
+            Assertions.assertEquals("beta", servedCommonName(securePort, "beta.test"))
         } finally {
             app.stop()
         }
     }
 
-    private fun <T> withServer(keyStore: ByteArray, sni: Boolean, config: (SslConfig) -> Unit = {}, test: (Int) -> T): T =
-        withServer({ it.loadKeyStore(keyStore) }, sni, config, test)
-
-    private fun <T> withServer(identity: (SslConfig) -> Unit, sni: Boolean, config: (SslConfig) -> Unit = {}, test: (Int) -> T): T {
+    private fun withServer(config: (SslConfig) -> Unit, test: (Int) -> Unit) {
         val securePort = ports.getAndIncrement()
         val app = createTestApp {
             it.insecure = false
             it.securePort = securePort
-            identity(it)
-            it.useSniKeyManager = sni
             config(it)
         }.start()
         try {
-            return test(securePort)
+            test(securePort)
         } finally {
             app.stop()
         }
     }
 
-    private data class Cert(val commonName: String, val hostName: String, val rsa: Boolean = false)
-
     companion object {
         private const val PASSWORD = "password"
-        private const val SNI_P12_KEY_STORE_NAME = "server/sni/sni.p12"
-        private const val SNI_JKS_KEY_STORE_NAME = "server/sni/sni.jks"
+        private const val P12_FILE = "server/sni/sni.p12"
+        private const val JKS_FILE = "server/sni/sni.jks"
+        private val HOSTS = mapOf("alpha" to "alpha.test", "beta" to "beta.test")
+
+        /** The recipe from the docs: one key manager per identity, combined, with an identity route per host name. */
+        private fun sniKeyManager(vararg identities: KeyStore): X509ExtendedKeyManager {
+            val keyManager = KeyManagerUtils.combine(identities.map { KeyManagerUtils.createKeyManager(it, PASSWORD.toCharArray()) })
+            identities.flatMap { it.aliases().toList() }.forEach { alias ->
+                KeyManagerUtils.addIdentityRoute(keyManager, alias, "https://${HOSTS.getValue(alias)}:443")
+            }
+            return keyManager
+        }
+
+        /** Copies the given alias of a key store holding multiple certificates into its own key store. */
+        private fun KeyStore.split(alias: String): KeyStore =
+            KeyStoreUtils.createIdentityStore(getKey(alias, PASSWORD.toCharArray()), PASSWORD.toCharArray(), alias, *getCertificateChain(alias))
+
+        private fun pemIdentity(alias: String): KeyStore =
+            KeyStoreUtils.createIdentityStore(
+                PemUtils.loadPrivateKey(resource("server/sni/$alias.key")),
+                PASSWORD.toCharArray(),
+                alias,
+                PemUtils.loadCertificate(resource("server/sni/$alias.crt"))
+            )
+
+        private fun resource(name: String): Path = Path.of(ClassLoader.getSystemResource(name).toURI())
 
         private val trustAll = object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
             override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
             override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
         }
-
-        /**
-         * Creates a PKCS12 key store with one self-signed certificate per given [Cert],
-         * stored under its common name as alias.
-         */
-        private fun keyStoreOf(vararg certs: Cert): ByteArray {
-            val keyStore = KeyStore.getInstance("PKCS12")
-            keyStore.load(null, null)
-            certs.forEach { cert ->
-                val builder = HeldCertificate.Builder()
-                    .commonName(cert.commonName)
-                    .addSubjectAlternativeName(cert.hostName)
-                if (cert.rsa) builder.rsa2048()
-                val certificate = builder.build()
-                keyStore.setKeyEntry(cert.commonName, certificate.keyPair.private, PASSWORD.toCharArray(), arrayOf(certificate.certificate))
-            }
-            return ByteArrayOutputStream().also { keyStore.store(it, PASSWORD.toCharArray()) }.toByteArray()
-        }
-
-        private fun SslConfig.loadKeyStore(keyStore: ByteArray) =
-            keystoreFromInputStream(ByteArrayInputStream(keyStore), PASSWORD)
 
         /**
          * Performs a TLS handshake sending the given SNI host name (none if null)
