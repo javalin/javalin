@@ -7,6 +7,7 @@
 package io.javalin.vue
 
 import io.javalin.util.javalinLazy
+import java.net.URI
 import java.nio.file.FileSystem
 import java.nio.file.FileSystemNotFoundException
 import java.nio.file.FileSystems
@@ -22,9 +23,12 @@ internal class VuePathMaster(val cfg: JavalinVueConfig) {
 
     fun walkPaths(): Set<Path> = Files.walk(cfg.rootDirectory, 20).use { it.collect(Collectors.toSet()) }
 
-    fun classpathPath(path: String, jarClass: Class<*>): Path = when {
-        jarClass.getResource(path)!!.toURI().scheme == "jar" -> getFileSystem(jarClass).getPath(path) // we're inside a jar
-        else -> Paths.get(jarClass.getResource(path)!!.toURI()) // we're not in jar (probably running from IDE)
+    fun classpathPath(path: String, jarClass: Class<*>): Path {
+        val resourceUri = jarClass.getResource(path)!!.toURI()
+        return when (resourceUri.scheme) {
+            "jar" -> getFileSystem(resourceUri).provider().getPath(resourceUri)
+            else -> Paths.get(resourceUri)
+        }
     }
 
     fun defaultLocation(isDev: Boolean): Path =
@@ -32,12 +36,12 @@ internal class VuePathMaster(val cfg: JavalinVueConfig) {
 
     /** We create a filesystem to "walk" the jar ([walkPaths]) to find all the .vue files. */
     private lateinit var fileSystem: FileSystem // we need to keep this variable around to keep the file system open ?
-    private fun getFileSystem(jarClass: Class<*>): FileSystem {
+    private fun getFileSystem(resourceUri: URI): FileSystem {
         if (!this::fileSystem.isInitialized) {
             try {
-                this.fileSystem = FileSystems.getFileSystem(jarClass.getResource("")!!.toURI())
+                this.fileSystem = FileSystems.getFileSystem(resourceUri)
             } catch (e: FileSystemNotFoundException) {
-                this.fileSystem = FileSystems.newFileSystem(jarClass.getResource("")!!.toURI(), emptyMap<String, Any>())
+                this.fileSystem = FileSystems.newFileSystem(resourceUri, emptyMap<String, Any>())
             }
         }
         return this.fileSystem
