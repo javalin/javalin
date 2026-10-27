@@ -11,6 +11,7 @@ import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
+import io.javalin.http.staticfiles.ifNoneMatchMatches
 import io.javalin.http.staticfiles.isAliasedStaticPath
 import io.javalin.http.staticfiles.resourcePathInHostedPath
 import io.javalin.security.RouteRole
@@ -120,11 +121,11 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
 
     internal fun tryHandleAsEtags(resource: Resource, ctx: Context): Boolean {
         val computedEtag = runCatching { computeWeakEtag(resource) }.getOrNull() ?: return false
-        if (ctx.header(Header.IF_NONE_MATCH) == computedEtag) {
+        ctx.header(Header.ETAG, computedEtag)
+        if (ifNoneMatchMatches(ctx.header(Header.IF_NONE_MATCH), computedEtag)) {
             ctx.status(304)
             return true
         }
-        ctx.header(Header.ETAG, computedEtag)
         return false
     }
 
