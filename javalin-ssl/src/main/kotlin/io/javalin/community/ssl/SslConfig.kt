@@ -225,6 +225,19 @@ class SslConfig {
     }
 
     ///////////////////////////////////////////////////////////////
+    // Key Manager Loading Methods
+    ///////////////////////////////////////////////////////////////
+    /**
+     * Load the identity from a custom key manager, for example one serving
+     * multiple certificates selected by SNI host name.
+     *
+     * @param keyManager the key manager to use.
+     */
+    fun keyManager(keyManager: X509ExtendedKeyManager) {
+        pvt.keyManager = keyManager
+    }
+
+    ///////////////////////////////////////////////////////////////
     // Advanced Options
     ///////////////////////////////////////////////////////////////
     var configConnectors: Consumer<ServerConnector>? = null

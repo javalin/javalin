@@ -3,6 +3,7 @@ package io.javalin.community.ssl;
 import io.javalin.Javalin;
 
 import java.io.InputStream;
+import javax.net.ssl.X509ExtendedKeyManager;
 
 public class JavaAPITests {
 
@@ -13,6 +14,7 @@ public class JavaAPITests {
         String keyString = null;
         InputStream keystoreInputStream = null;
         String keyPassword = null;
+        X509ExtendedKeyManager keyManager = null;
 
         SslPlugin plugin = new SslPlugin(conf ->{
             // Connection options
@@ -41,6 +43,7 @@ public class JavaAPITests {
             // Keystore loading options (PKCS#12/JKS) (mutually exclusive)
             conf.keystoreFromPath("/path/to/keystore.jks", "keystorePassword");         // load the keystore from the given path
             conf.keystoreFromClasspath("keyStoreName.p12", "keystorePassword");         // load the keystore from the given path in the classpath
+            conf.keyManager(keyManager);                                                // load the identity from a custom key manager
             conf.keystoreFromInputStream(keystoreInputStream, "keystorePassword");      // load the keystore
 
             // Advanced options
