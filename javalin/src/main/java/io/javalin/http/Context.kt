@@ -9,6 +9,7 @@ package io.javalin.http
 import io.javalin.config.ContextResolverConfig.Companion.ContextResolverKey
 import io.javalin.config.Key
 import io.javalin.http.ContentType.APPLICATION_JSON
+import io.javalin.http.ContentType.APPLICATION_PROBLEM_JSON
 import io.javalin.http.servlet.MaxRequestSize
 import io.javalin.http.servlet.attributeOrCompute
 import io.javalin.http.servlet.cacheAndSetSessionAttribute
@@ -490,6 +491,15 @@ interface Context {
 
     /** @see [json] */
     fun json(obj: Any): Context = json(obj, obj::class.java)
+
+    /**
+     * Serializes a [ProblemResponse] using the configured [JsonMapper], sets the
+     * `application/problem+json` content type, and applies its status when present.
+     */
+    fun problem(problem: ProblemResponse): Context {
+        problem.status?.let { status(it) }
+        return json(problem.toJsonObject()).contentType(APPLICATION_PROBLEM_JSON)
+    }
 
     /**
      * Serializes object to a JSON-stream using the registered [io.javalin.json.JsonMapper] and sets it as the context result.
