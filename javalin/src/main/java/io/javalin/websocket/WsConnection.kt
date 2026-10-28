@@ -15,15 +15,15 @@ import java.nio.ByteBuffer
  * Is instantiated for every WebSocket connection. It keeps the session and sessionId and handles incoming events by
  * delegating to the registered before, endpoint, after and logger handlers.
  *
- * Implements [Session.Listener.AutoDemanding] to use Jetty's programmatic WebSocket API instead of annotations (Javalin <7)
- * The AutoDemanding interface signals that WebSocket frames are demanded automatically after each event callback.
+ * Implements [Session.Listener] to use Jetty's programmatic WebSocket API instead of annotations (Javalin <7)
+ * After processing a websocket message, the next message is automatically demanded.
  */
 class WsConnection(
     matcher: WsPathMatcher,
     private val exceptionMapper: WsExceptionMapper,
     private val wsLogger: WsConfig?,
     private val upgradeCtx: JavalinWsServletContext
-) : Session.Listener.AutoDemanding {
+) : Session.Listener {
 
     private lateinit var session: Session
 
@@ -39,6 +39,7 @@ class WsConnection(
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsConnectHandler?.handleConnect(ctx) }
         wsLogger?.wsConnectHandler?.handleConnect(ctx)
+        demandNext()
     }
 
     override fun onWebSocketText(message: String) {
@@ -46,6 +47,7 @@ class WsConnection(
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsMessageHandler?.handleMessage(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsMessageHandler?.handleMessage(ctx) }
         wsLogger?.wsMessageHandler?.handleMessage(ctx)
+        demandNext()
     }
 
     override fun onWebSocketBinary(payload: ByteBuffer, callback: Callback) {
@@ -54,6 +56,29 @@ class WsConnection(
         tryAfterHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)
         callback.succeed()
+        demandNext()
+    }
+
+    override fun onWebSocketPing(payload: ByteBuffer) {
+        // Jetty stops replying to pings automatically when onWebsocketPing is overridden, so we have to send pongs ourselves.
+        // We only demand the next frame after the pong has been sent, to prevent excess pong output queueing in case of
+        // a ping flood from a client that doesn't read (potential DoS attack).
+        val callback = Callback.Completable()
+        session.sendPong(payload.asReadOnlyBuffer(), callback)
+        val ctx = WsPingContext(upgradeCtx.attach(session), payload)
+        tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsPingHandler?.handlePing(ctx) }
+        tryAfterHandlers(ctx) { it.wsConfig.wsPingHandler?.handlePing(ctx) }
+        wsLogger?.wsPingHandler?.handlePing(ctx)
+        // Register the callback after the handlers to stay consistent with when to demand the next frame across message types.
+        callback.whenComplete { _, _ -> demandNext() }
+    }
+
+    override fun onWebSocketPong(payload: ByteBuffer) {
+        val ctx = WsPongContext(upgradeCtx.attach(session), payload)
+        tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsPongHandler?.handlePong(ctx) }
+        tryAfterHandlers(ctx) { it.wsConfig.wsPongHandler?.handlePong(ctx) }
+        wsLogger?.wsPongHandler?.handlePong(ctx)
+        demandNext()
     }
 
     override fun onWebSocketClose(statusCode: Int, reason: String?, callback: Callback) {
@@ -86,4 +111,9 @@ class WsConnection(
         exceptionMapper.handle(e, ctx)
     }
 
+    private fun demandNext() {
+        if (session.isOpen) {
+            session.demand()
+        }
+    }
 }

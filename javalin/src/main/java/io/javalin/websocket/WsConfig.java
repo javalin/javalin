@@ -16,6 +16,8 @@ public class WsConfig {
     WsConnectHandler wsConnectHandler = null;
     WsMessageHandler wsMessageHandler = null;
     WsBinaryMessageHandler wsBinaryMessageHandler = null;
+    WsPingHandler wsPingHandler = null;
+    WsPongHandler wsPongHandler = null;
     WsCloseHandler wsCloseHandler = null;
     WsErrorHandler wsErrorHandler = null;
     public WsUpgradeLogger wsUpgradeLogger = null;
@@ -44,6 +46,23 @@ public class WsConfig {
      */
     public void onBinaryMessage(@NotNull WsBinaryMessageHandler wsBinaryMessageHandler) {
         this.wsBinaryMessageHandler = wsBinaryMessageHandler;
+    }
+
+    /**
+     * Add a {@link WsPingHandler} to the WsHandler.
+     * The handler is called when a WebSocket client sends a ping.
+     * Javalin automatically replies with a pong for every ping.
+     */
+    public void onPing(@NotNull WsPingHandler wsPingHandler) {
+        this.wsPingHandler = wsPingHandler;
+    }
+
+    /**
+     * Add a {@link WsPongHandler} to the WsHandler.
+     * The handler is called when a WebSocket client sends a pong.
+     */
+    public void onPong(@NotNull WsPongHandler wsPongHandler) {
+        this.wsPongHandler = wsPongHandler;
     }
 
     /**
