@@ -77,7 +77,7 @@
         <surefire.plugin.version>3.6.0</surefire.plugin.version>
         <shade.plugin.version>3.6.2</shade.plugin.version>
         <build-helper.plugin.version>3.6.2</build-helper.plugin.version>
-        <enforcer.plugin.version>3.6.3</enforcer.plugin.version>
+        <enforcer.plugin.version>3.7.0</enforcer.plugin.version>
         <clean.plugin.version>3.5.0</clean.plugin.version>
         <install.plugin.version>3.2.0</install.plugin.version>
         <resources.plugin.version>3.5.0</resources.plugin.version>
