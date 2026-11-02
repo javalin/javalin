@@ -95,7 +95,9 @@ data class HttpServletRequestMock(
 
     override fun getAttribute(attribute: String?): Any? = state.attributes[attribute]
     override fun getAttributeNames(): Enumeration<String> = Collections.enumeration(state.attributes.keys)
-    override fun setAttribute(key: String, value: Any) { state.attributes[key] = value }
+    override fun setAttribute(key: String, value: Any?) {
+        if (value == null) state.attributes.remove(key) else state.attributes[key] = value
+    }
     override fun removeAttribute(key: String) { state.attributes.remove(key) }
 
     override fun getCharacterEncoding(): String = state.characterEncodingValue
