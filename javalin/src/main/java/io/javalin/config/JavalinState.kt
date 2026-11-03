@@ -16,6 +16,7 @@ import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.MaxRequestSize.MaxRequestSizeKey
 import io.javalin.http.servlet.ServletEntry
 import io.javalin.http.servlet.TaskInitializer
+import io.javalin.http.servlet.TaskObserver
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.http.util.AsyncExecutor.Companion.AsyncExecutorKey
 import io.javalin.jetty.JettyUtil.createJettyServletWithWebsocketsIfAvailable
@@ -75,6 +76,7 @@ class JavalinState {
     @JvmField var appDataManager = AppDataManager()
     @JvmField var pluginManager = PluginManager(this)
     @JvmField var httpRequestLoggers: MutableList<RequestLogger> = mutableListOf()
+    @JvmField var servletTaskObservers: MutableList<TaskObserver> = mutableListOf()
     @JvmField var wsRequestLogger: WsConfig? = null
     @JvmField var resourceHandler: ResourceHandler? = null
     @JvmField var singlePageHandler = SinglePageHandler()

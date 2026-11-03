@@ -15,7 +15,9 @@ import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.AsyncUtil.isAsync
 import io.javalin.http.util.AsyncUtil.newAsyncListener
 import io.javalin.http.util.ETagGenerator
+import io.javalin.util.JavalinLogger
 import io.javalin.util.javalinLazy
+import kotlin.time.measureTimedValue
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -32,6 +34,7 @@ class JavalinServlet(val cfg: JavalinState) : HttpServlet() {
 
     val requestLifecycle = cfg.servletRequestLifecycle.toList()
     val router = cfg.internalRouter
+    private val taskObservers get() = cfg.servletTaskObservers
     private val servletContextConfig by javalinLazy { JavalinServletContextConfig.of(cfg) }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
@@ -69,7 +72,17 @@ class JavalinServlet(val cfg: JavalinState) : HttpServlet() {
             if (exceptionOccurred && task.skipOnExceptionAndRedirect) {
                 continue
             }
-            handleTask(task.handler)
+            if (taskObservers.isEmpty()) {
+                handleTask(task.handler)
+            } else {
+                val (result, elapsed) = measureTimedValue { runCatching { task.handler.handle() } }
+                val thrown = result.exceptionOrNull()?.also { onTaskException(it) }
+                taskObservers.forEach { observer ->
+                    // a misbehaving observer must never break the request it is observing
+                    try { observer.onTaskCompleted(this, task, elapsed.inWholeNanoseconds, thrown) }
+                    catch (e: Exception) { JavalinLogger.warn("A TaskObserver threw and was ignored", e) }
+                }
+            }
         }
         when {
             userFutureSupplier != null -> handleUserFuture()
@@ -107,11 +120,16 @@ class JavalinServlet(val cfg: JavalinState) : HttpServlet() {
         try {
             handler.handle()
         } catch (throwable: Throwable) {
-            exceptionOccurred = true
-            userFutureSupplier = null
-            tasks.offerFirst(Task(skipOnExceptionAndRedirect = false) { router.handleHttpException(this, throwable) })
+            onTaskException(throwable)
             null
         }
+
+    /** A task threw: flip the exception flag and queue the exception-handling task to run next. */
+    private fun JavalinServletContext.onTaskException(throwable: Throwable) {
+        exceptionOccurred = true
+        userFutureSupplier = null
+        tasks.offerFirst(Task(label = exceptionLabel(throwable), skipOnExceptionAndRedirect = false) { router.handleHttpException(this, throwable) })
+    }
 
     private fun JavalinServletContext.writeResponseAndLog() {
         try {
