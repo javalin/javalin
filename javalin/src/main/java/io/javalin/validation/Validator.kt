@@ -80,6 +80,7 @@ open class Validator<T> internal constructor(internal val params: Params, intern
 
     fun getOrDefault(default: T & Any): T & Any = getOrNull() ?: default
 
+    @Throws(Exception::class)
     fun getOrThrow(exceptionFunction: (Map<String, List<ValidationError<Any>>>) -> Exception): T & Any {
         if (errors.isNotEmpty()) throw exceptionFunction(errors as Map<String, List<ValidationError<Any>>>)
         return typedValue as? (T & Any) ?: throw exceptionFunction(mapOf(fieldName to listOf(ValidationError("NULLCHECK_FAILED", value = params.stringValue))))
