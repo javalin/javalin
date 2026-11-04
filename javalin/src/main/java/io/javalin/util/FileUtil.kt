@@ -16,7 +16,7 @@ object FileUtil {
     @JvmStatic
     fun streamToFile(inputStream: InputStream, path: String) {
         val newFile = File(path)
-        newFile.parentFile.mkdirs() // create parent dirs if necessary
+        newFile.parentFile?.mkdirs() // create parent dirs if necessary
         newFile.createNewFile() // create file if necessary
         inputStream.use { input ->
             Files.copy(input, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
