@@ -22,6 +22,16 @@ fun interface WsBinaryMessageHandler {
     fun handleBinaryMessage(ctx: WsBinaryMessageContext)
 }
 
+fun interface WsPingHandler {
+    @Throws(Exception::class)
+    fun handlePing(ctx: WsPingContext)
+}
+
+fun interface WsPongHandler {
+    @Throws(Exception::class)
+    fun handlePong(ctx: WsPongContext)
+}
+
 fun interface WsErrorHandler {
     @Throws(Exception::class)
     fun handleError(ctx: WsErrorContext)
