@@ -49,6 +49,7 @@ class JettyResourceHandler : JavalinResourceHandler {
         val (handler, resourcePath) = findHandler(ctx) ?: return false
         try {
             handler.config.headers.forEach { ctx.header(it.key, it.value) }
+            handler.config.contentDispositionFunction?.invoke(ctx.req(), resourcePath)?.let { ctx.header(Header.CONTENT_DISPOSITION, it.stringifyValue()) }
             return if (handler.config.precompressMaxSize > 0) {
                 precompressingHandler.handle(resourcePath, ctx, compressionStrategy, handler)
             } else {
@@ -93,9 +94,6 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         resolveContentType(resource, resourcePath)?.let { ctx.contentType(it) }
         if (isEtags && tryHandleAsEtags(resource, ctx)) return true
         resource.length().takeIf { it > 0 }?.let { ctx.header(Header.CONTENT_LENGTH, it.toString()) }
-        config.contentDispositionFunction
-            ?.let { it(ctx.req(), resource.path) }
-            ?.let { ctx.header(Header.CONTENT_DISPOSITION, it.stringifyValue()) }
         ctx.result(resource.newInputStream())
         return true
     }

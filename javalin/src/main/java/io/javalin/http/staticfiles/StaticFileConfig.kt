@@ -6,7 +6,6 @@ import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.security.RouteRole
 import jakarta.servlet.http.HttpServletRequest
-import java.io.File
 import java.nio.file.Path
 import java.util.Collections
 
@@ -44,7 +43,7 @@ fun interface AliasCheck {
  * @param aliasCheck can be used to configure SymLinks
  * @param headers headers that will be set for the static files
  * @param skipFileFunction lambda to skip certain files in the dir, based on the HttpServletRequest
- * @param contentDispositionFunction lambda to set the Content-Disposition header, based on the HttpServletRequest and the File
+ * @param contentDispositionFunction lambda to set the Content-Disposition header, based on the HttpServletRequest and the resource path (return null for no header)
  * @param mimeTypes configuration for file extension based Mime Types
  * @see [StaticFilesConfig]
  */
@@ -56,7 +55,7 @@ data class StaticFileConfig(
     @JvmField var aliasCheck: AliasCheck? = null,
     @JvmField var headers: Map<String, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
     @JvmField var skipFileFunction: ((HttpServletRequest) -> Boolean)? = null,
-    @JvmField var contentDispositionFunction: ((HttpServletRequest, Path?) -> ContentDisposition)? = null,
+    @JvmField var contentDispositionFunction: ((HttpServletRequest, String) -> ContentDisposition?)? = null,
     @JvmField val mimeTypes: MimeTypesConfig = MimeTypesConfig(),
     @JvmField var roles: Set<RouteRole> = emptySet()
 )

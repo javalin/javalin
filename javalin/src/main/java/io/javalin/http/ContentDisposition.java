@@ -10,17 +10,13 @@ import java.text.Normalizer;
 public class ContentDisposition {
 
     private final boolean inline;
-    private final boolean multipart;
     private final boolean usingRfc5987;
-    private final String fileName, name, value;
+    private final String fileName;
 
-    private ContentDisposition(boolean inline, boolean multipart, boolean usingRfc5987, String fileName, String name, String value) {
+    private ContentDisposition(boolean inline, boolean usingRfc5987, String fileName) {
         this.inline = inline;
-        this.multipart = multipart;
         this.usingRfc5987 = usingRfc5987;
         this.fileName = fileName;
-        this.name = name;
-        this.value = value;
     }
 
     /**
@@ -90,11 +86,6 @@ public class ContentDisposition {
      * @return The stringified Content-Disposition value.
      */
     public String stringifyValue() {
-        if (multipart) {
-            if (value == null)
-                return "form-data; name=" + name;
-            return "form-data; name=" + name + "; value=" + value;
-        }
         if (inline)
             return "inline";
         if (fileName == null)
@@ -111,7 +102,7 @@ public class ContentDisposition {
      * @return A ContentDisposition instance representing inline content.
      */
     public static ContentDisposition inline() {
-        return new ContentDisposition(true, false, false, null, null, null);
+        return new ContentDisposition(true, false, null);
     }
 
     /**
@@ -119,7 +110,7 @@ public class ContentDisposition {
      * @return A ContentDisposition instance representing attachment content.
      */
     public static ContentDisposition attachment() {
-        return new ContentDisposition(false, false, false, null, null, null);
+        return new ContentDisposition(false, false, null);
     }
 
     /**
@@ -131,7 +122,7 @@ public class ContentDisposition {
         if (fileName == null || fileName.isBlank())
             throw new IllegalArgumentException("fileName cannot be null or blank");
 
-        return new ContentDisposition(false, false, false, fileName, null, null);
+        return new ContentDisposition(false, false, fileName);
     }
 
     /**
@@ -143,34 +134,6 @@ public class ContentDisposition {
         if (fileName == null || fileName.isBlank())
             throw new IllegalArgumentException("fileName cannot be null or blank");
 
-        return new ContentDisposition(false, false, true, fileName, null, null);
-    }
-
-    /**
-     * Creates a ContentDisposition instance for multipart/form-data content with a specified name.
-     * @param name The name to be used in the Content-Disposition header for multipart/form-data.
-     * @return A ContentDisposition instance representing multipart/form-data content with the specified name.
-     */
-    public static ContentDisposition multipart(String name) {
-        if (name == null || name.isBlank())
-            throw new IllegalArgumentException("name cannot be null or blank");
-
-        return new ContentDisposition(false, true, false, null, name, null);
-    }
-
-    /**
-     * Creates a ContentDisposition instance for multipart/form-data content with a specified name and value.
-     * @param name The name to be used in the Content-Disposition header for multipart/form-data.
-     * @param value The value to be used in the Content-Disposition header for multipart/form-data.
-     * @return A ContentDisposition instance representing multipart/form-data content with the specified name and value.
-     */
-    public static ContentDisposition multipart(String name, String value) {
-        if (name == null || name.isBlank())
-            throw new IllegalArgumentException();
-
-        if (value == null || value.isBlank())
-            throw new IllegalArgumentException();
-
-        return new ContentDisposition(false, true, false, null, name, value);
+        return new ContentDisposition(false, true, fileName);
     }
 }
