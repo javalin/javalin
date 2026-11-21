@@ -11,6 +11,9 @@ import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
+import io.javalin.http.staticfiles.ifNoneMatchMatches
+import io.javalin.http.staticfiles.isAliasedStaticPath
+import io.javalin.http.staticfiles.resourcePathInHostedPath
 import io.javalin.security.RouteRole
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
@@ -61,10 +64,10 @@ class JettyResourceHandler : JavalinResourceHandler {
 
     private fun findHandler(ctx: Context): Pair<ConfigurableHandler, String>? {
         val target = ctx.req().requestURI.removePrefix(ctx.req().contextPath)
+        if (isAliasedStaticPath(target)) return null
         return handlers.asSequence()
             .filterNot { it.config.skipFileFunction?.invoke(ctx.req()) == true }
-            .filter { it.config.hostedPath == "/" || target.startsWith(it.config.hostedPath) }
-            .map { it to if (it.config.hostedPath == "/") target else target.removePrefix(it.config.hostedPath) }
+            .mapNotNull { handler -> resourcePathInHostedPath(target, handler.config.hostedPath)?.let { handler to it } }
             .find { (handler, resourcePath) -> handler.getResource(resourcePath) != null }
     }
 
@@ -121,11 +124,11 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
 
     internal fun tryHandleAsEtags(resource: Resource, ctx: Context): Boolean {
         val computedEtag = runCatching { computeWeakEtag(resource) }.getOrNull() ?: return false
-        if (ctx.header(Header.IF_NONE_MATCH) == computedEtag) {
+        ctx.header(Header.ETAG, computedEtag)
+        if (ifNoneMatchMatches(ctx.header(Header.IF_NONE_MATCH), computedEtag)) {
             ctx.status(304)
             return true
         }
-        ctx.header(Header.ETAG, computedEtag)
         return false
     }
 

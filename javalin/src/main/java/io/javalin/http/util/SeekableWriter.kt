@@ -13,19 +13,25 @@ object SeekableWriter {
         val uncompressedStream = ctx.res().outputStream
         val isAudioOrVideoFile = contentType.isAudioOrVideo()
         ctx.header(Header.ACCEPT_RANGES, "bytes")
-        if (ctx.header(Header.RANGE) == null) {
+        val requestedRange = ctx.header(Header.RANGE)?.let { parseRange(it, totalBytes) }
+        if (requestedRange == null) {
             ctx.header(Header.CONTENT_TYPE, contentType)
             ctx.header(Header.CONTENT_LENGTH, "$totalBytes")
             inputStream.transferTo(uncompressedStream)
             inputStream.close()
             return@async
         }
-        val requestedRange = ctx.header(Header.RANGE)!!.split("=")[1].split("-").filter { it.isNotEmpty() }
-        val from = requestedRange[0].toLong()
+        if (requestedRange == UNSATISFIABLE) {
+            inputStream.close()
+            ctx.status(HttpStatus.RANGE_NOT_SATISFIABLE)
+            ctx.header(Header.CONTENT_RANGE, "bytes */$totalBytes")
+            return@async
+        }
+        val (from, requestedTo) = requestedRange
         val to = when {
             isAudioOrVideoFile -> when {
                 from + chunkSize > totalBytes -> totalBytes - 1 // chunk bigger than file, write all
-                requestedRange.size == 2 -> requestedRange[1].toLong() // chunk smaller than file, to/from specified
+                requestedTo != null -> requestedTo // chunk smaller than file, to/from specified
                 else -> from + chunkSize - 1
             }
             else -> (totalBytes - 1)
@@ -56,6 +62,33 @@ object SeekableWriter {
             if (read == -1) break
             this.write(buffer, 0, read)
             bytesLeft -= read
+        }
+    }
+
+    private val UNSATISFIABLE = -1L to null
+
+    /**
+     * Parses a single byte range (RFC 9110, section 14.1.2) into its first byte and, unless it is open-ended,
+     * its last byte (capped to the end of the stream). Returns null if the header should be ignored (another
+     * unit, several ranges or invalid syntax) and [UNSATISFIABLE] if no byte of the stream is in the range.
+     */
+    private fun parseRange(header: String, totalBytes: Long): Pair<Long, Long?>? {
+        val (unit, spec) = header.split("=", limit = 2).takeIf { it.size == 2 } ?: return null
+        if (!unit.trim().equals("bytes", ignoreCase = true) || spec.contains(",")) return null
+        val (first, last) = spec.trim().split("-", limit = 2).takeIf { it.size == 2 } ?: return null
+        if ((first + last).any { it !in '0'..'9' } || (first.isEmpty() && last.isEmpty())) return null
+        // a position too large for a Long is past the end of any stream
+        val firstByte = if (first.isEmpty()) null else first.toLongOrNull() ?: Long.MAX_VALUE
+        val lastByte = if (last.isEmpty()) null else last.toLongOrNull() ?: Long.MAX_VALUE
+        return when {
+            firstByte == null -> when { // suffix range: the last n bytes
+                lastByte == 0L || totalBytes == 0L -> UNSATISFIABLE
+                else -> (totalBytes - minOf(lastByte!!, totalBytes)) to (totalBytes - 1)
+            }
+            firstByte >= totalBytes -> UNSATISFIABLE
+            lastByte == null -> firstByte to null
+            lastByte < firstByte -> null
+            else -> firstByte to minOf(lastByte, totalBytes - 1)
         }
     }
 

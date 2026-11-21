@@ -11,7 +11,7 @@
     <parent>
         <groupId>io.javalin</groupId>
         <artifactId>javalin-parent</artifactId>
-        <version>7.2.4-SNAPSHOT</version>
+        <version>7.2.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>javalin-bom</artifactId>
@@ -112,7 +112,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <version>1.8.0</version>
+                <version>1.9.0</version>
                 <configuration>
                     <flattenMode>bom</flattenMode>
                     <pomElements>

@@ -30,6 +30,13 @@ class RateLimitPlugin(userConfig: Consumer<Config>? = null) : ContextPlugin<Rate
             ip + ctx.method() + path
         }
 
+        /**
+         * Function to create the exception thrown when the rate limit is exceeded.
+         */
+        var exceptionFunction: (requestLimit: Int, timeUnit: TimeUnit) -> HttpResponseException = { requestLimit, timeUnit ->
+            HttpResponseException(HttpStatus.TOO_MANY_REQUESTS, rateLimitExceededMessage(requestLimit, timeUnit))
+        }
+
         var executorName: String = "JavalinRateLimitExecutor"
     }
 
@@ -46,7 +53,7 @@ class RateLimitPlugin(userConfig: Consumer<Config>? = null) : ContextPlugin<Rate
          * @throws io.javalin.http.HttpResponseException if the counter exceeds [numRequests] per [timeUnit]
          */
         fun requestPerTimeUnit(numRequests: Int, timeUnit: TimeUnit) {
-            limiters.computeIfAbsent(timeUnit) { RateLimiter(timeUnit, executor, pluginConfig.keyFunction) }
+            limiters.computeIfAbsent(timeUnit) { RateLimiter(timeUnit, executor, pluginConfig.keyFunction, pluginConfig.exceptionFunction) }
                 .incrementCounter(context, numRequests)
         }
 
@@ -66,9 +73,9 @@ class RateLimitPlugin(userConfig: Consumer<Config>? = null) : ContextPlugin<Rate
     internal class RateLimiter(
         private val timeUnit: TimeUnit,
         executor: ScheduledExecutorService,
-        private val keyFunction: (Context) -> String
+        private val keyFunction: (Context) -> String,
+        private val exceptionFunction: (requestLimit: Int, timeUnit: TimeUnit) -> HttpResponseException
     ) {
-        private val timeUnitString = timeUnit.toString().lowercase(Locale.ROOT).removeSuffix("s")
         private val keyToRequestCount = ConcurrentHashMap<String, Int>().also {
             executor.scheduleAtFixedRate({ it.clear() }, /*delay=*/1, /*period=*/1, timeUnit)
         }
@@ -78,14 +85,18 @@ class RateLimitPlugin(userConfig: Consumer<Config>? = null) : ContextPlugin<Rate
                 when {
                     count == null -> 1
                     count < requestLimit -> count + 1
-                    else -> throw HttpResponseException(
-                        HttpStatus.TOO_MANY_REQUESTS,
-                        "Rate limit exceeded - Server allows $requestLimit requests per $timeUnitString."
-                    )
+                    else -> throw exceptionFunction(requestLimit, timeUnit)
                 }
             }
         }
 
         fun getCurrentCount(ctx: Context) = keyToRequestCount[keyFunction(ctx)] ?: 0
+    }
+
+    private companion object {
+        fun rateLimitExceededMessage(requestLimit: Int, timeUnit: TimeUnit) =
+            "Rate limit exceeded - Server allows $requestLimit requests per ${timeUnit.toTimeUnitString()}."
+
+        fun TimeUnit.toTimeUnitString() = toString().lowercase(Locale.ROOT).removeSuffix("s")
     }
 }

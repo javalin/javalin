@@ -6,6 +6,7 @@
 
 package io.javalin
 
+import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
@@ -87,6 +88,19 @@ class TestRedirectToLowercasePathPlugin {
     fun `path params follow by splat works`() = TestUtil.test(testApp) { app, http ->
         app.unsafe.routes.get("/{param}/*") { it.result(it.path()) }
         assertThat(http.getBody("/PaRaM/sPlAt")).isEqualTo("/PaRaM/sPlAt")
+    }
+
+    @Test
+    fun `redirect keeps the context path`() = TestUtil.test(Javalin.create {
+        it.router.contextPath = "/blog"
+        it.registerPlugin(RedirectToLowercasePathPlugin())
+    }) { app, http ->
+        app.unsafe.routes.get("/users/{name}") { it.status(IM_A_TEAPOT) }
+        http.disableUnirestRedirects()
+        val response = http.get("/blog/Users/John")
+        http.enableUnirestRedirects()
+        assertThat(response.httpCode()).isEqualTo(MOVED_PERMANENTLY)
+        assertThat(response.headers.getFirst(Header.LOCATION)).isEqualTo("/blog/users/John")
     }
 
     private fun HttpResponse<String?>.assertStatusAndBodyMatch(status: Int, body: String) {

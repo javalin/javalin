@@ -28,7 +28,7 @@ class JettyPrecompressingResourceHandler {
         val preCompressor = compressionStrategy.findMatchingCompressor(ctx.header(Header.ACCEPT_ENCODING) ?: "")
             .takeUnless { contentType == null || excludedMimeType(contentType, compressionStrategy) }
 
-        val resultByteArray = getCachedResourceBytes(resource, resourcePath, preCompressor)
+        val resultByteArray = getCachedResourceBytes(resource, preCompressor)
 
         ctx.header(Header.CONTENT_LENGTH, resultByteArray.size.toString())
         ctx.header(Header.CONTENT_TYPE, contentType ?: "")
@@ -48,8 +48,10 @@ class JettyPrecompressingResourceHandler {
         else -> compressionStrategy.excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
     }
 
-    private fun getCachedResourceBytes(resource: Resource, target: String, preCompressor: Compressor?): ByteArray {
-        return compressedFiles.computeIfAbsent(target + (preCompressor?.extension() ?: "")) {
+    // Keyed by the resolved file, not the request path: handlers with different hostedPaths strip their prefix,
+    // so '/a/index.html' and '/b/index.html' both have the resource path '/index.html'.
+    private fun getCachedResourceBytes(resource: Resource, preCompressor: Compressor?): ByteArray {
+        return compressedFiles.computeIfAbsent(resource.uri.toString() + (preCompressor?.extension() ?: "")) {
             ByteArrayOutputStream().also { output ->
                 resource.newInputStream().use { input ->
                     (preCompressor?.compress(output) ?: output).use { input.copyTo(it) }

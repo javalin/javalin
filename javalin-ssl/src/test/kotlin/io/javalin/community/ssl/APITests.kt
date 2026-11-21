@@ -33,6 +33,7 @@ class APITests : IntegrationTestClass(){
         val keyString: String = TODO()
         val keystoreInputStream: java.io.InputStream = TODO()
         val keyPassword: String = TODO()
+        val keyManager: javax.net.ssl.X509ExtendedKeyManager = TODO()
 
         val plugin = SslPlugin {
                // Connection options
@@ -62,6 +63,7 @@ class APITests : IntegrationTestClass(){
             it.keystoreFromPath("/path/to/keystore.jks","keystorePassword")         // load the keystore from the given path
             it.keystoreFromClasspath("keyStoreName.p12","keystorePassword")         // load the keystore from the given path in the classpath
             it.keystoreFromInputStream(keystoreInputStream,"keystorePassword")      // load the keystore from the given input stream
+            it.keyManager(keyManager)                                               // load the identity from a custom key manager
 
                // Advanced options
             it.configConnectors { con -> con.dump() }                                // Set a Consumer to configure the connectors

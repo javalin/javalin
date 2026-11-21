@@ -23,8 +23,10 @@ object DefaultTasks {
         val httpHandlerOrNull by javalinLazy {
             ctx.cachedHttpHandler { servlet.router.findFirstHttpHandlerEntry(ctx.method(), requestUri) }
         }
-        val isResourceHandler = httpHandlerOrNull == null && (ctx.method() == HEAD || ctx.method() == GET)
-        val matchedRouteRoles by javalinLazy { httpHandlerOrNull?.endpoint?.metadata(Roles::class.java)?.roles ?: emptySet() }
+        // HEAD is answered from the GET route, so it must be guarded by the GET route's roles
+        val headViaGet by javalinLazy { if (ctx.method() == HEAD && httpHandlerOrNull == null) servlet.router.findFirstHttpHandlerEntry(GET, requestUri) else null }
+        val isResourceHandler = httpHandlerOrNull == null && headViaGet == null && (ctx.method() == HEAD || ctx.method() == GET)
+        val matchedRouteRoles by javalinLazy { (httpHandlerOrNull ?: headViaGet)?.endpoint?.metadata(Roles::class.java)?.roles ?: emptySet() }
         val resourceRouteRoles by javalinLazy { servlet.cfg.resourceHandler?.resourceRouteRoles(ctx) ?: emptySet() }
         val willMatch by javalinLazy {
             ctx.setRouteRoles(if (isResourceHandler) resourceRouteRoles else matchedRouteRoles)
