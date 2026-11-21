@@ -62,6 +62,18 @@ class TestProblemResponse {
     }
 
     @Test
+    fun `extension members are snapshotted when the problem is constructed`() {
+        val members = mutableMapOf("code" to "item-missing")
+        val problem = ProblemResponse("Not found", 404, additionalMembers = members)
+        members["code"] = "changed"
+        members["status"] = "replacement"
+
+        assertThat(problem.toJsonObject())
+            .containsEntry("code", "item-missing")
+            .containsEntry("status", 404)
+    }
+
+    @Test
     fun `extension members cannot override standard members`() {
         assertThatIllegalArgumentException().isThrownBy {
             ProblemResponse(title = "Failure", additionalMembers = mapOf("title" to "replacement"))
