@@ -51,7 +51,7 @@ object HttpResponseExceptionMapper {
            |    "title": "${e.message?.jsonEscape()}",
            |    "status": ${e.status},
            |    "type": "${getTypeUrl(e).lowercase(Locale.ROOT)}",
-           |    "details": {${e.details.map { """"${it.key}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
+           |    "details": {${e.details.map { """"${it.key.jsonEscape()}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
            |}""".trimMargin()
 
     private fun plainResult(e: HttpResponseException) =
