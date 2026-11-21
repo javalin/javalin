@@ -158,6 +158,7 @@ public class JavaTest {
         });
     }
 
+    @Test
     public void exceptions_in_test_code_get_rethrown() {
         assertThatExceptionOfType(Exception.class).isThrownBy(() ->
             JavalinTest.test((server, client) -> {

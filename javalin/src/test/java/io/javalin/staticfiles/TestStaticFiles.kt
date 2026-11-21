@@ -11,6 +11,7 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.http.UnauthorizedResponse
@@ -133,6 +134,18 @@ class TestStaticFiles {
     fun `static files are served with a Content-Length header`() = testStaticFiles(defaultStaticResourceApp) { _, http ->
         val response = http.get("/html.html", mapOf(Header.ACCEPT_ENCODING to "null")) // no compression, so length is exact
         assertThat(response.headers.getFirst(Header.CONTENT_LENGTH)).isEqualTo(response.body.toByteArray().size.toString())
+    }
+
+    @Test
+    fun `static files match If-None-Match lists, star and both forms of the ETag`() = testStaticFiles(defaultStaticResourceApp) { _, http ->
+        val etag = http.get("/html.html").headers.getFirst(Header.ETAG)
+        assertThat(etag).startsWith("W/")
+        listOf(etag, etag.removePrefix("W/"), "\"other\", $etag", "\"other\",${etag.removePrefix("W/")}", "*").forEach { ifNoneMatch ->
+            val response = http.get("/html.html", mapOf(Header.IF_NONE_MATCH to ifNoneMatch))
+            assertThat(response.httpCode()).describedAs(ifNoneMatch).isEqualTo(NOT_MODIFIED)
+            assertThat(response.headers.getFirst(Header.ETAG)).describedAs(ifNoneMatch).isEqualTo(etag)
+        }
+        assertThat(http.get("/html.html", mapOf(Header.IF_NONE_MATCH to "\"other\"")).httpCode()).isEqualTo(OK)
     }
 
     @Test
