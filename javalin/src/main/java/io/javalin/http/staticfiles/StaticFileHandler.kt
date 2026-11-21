@@ -46,11 +46,11 @@ class StaticFileHandler(val config: StaticFileConfig) {
 
     fun tryHandleEtag(resource: StaticResource, ctx: Context): Boolean {
         val etag = computeWeakEtag(resource) ?: return false
-        if (ctx.header(Header.IF_NONE_MATCH) == etag) {
+        ctx.header(Header.ETAG, etag)
+        if (ifNoneMatchMatches(ctx.header(Header.IF_NONE_MATCH), etag)) {
             ctx.status(304)
             return true
         }
-        ctx.header(Header.ETAG, etag)
         return false
     }
 
@@ -77,3 +77,12 @@ class StaticFileHandler(val config: StaticFileConfig) {
     }
 }
 
+/**
+ * Whether an If-None-Match value matches [etag]. The value is either "*" or a list of entity tags,
+ * which are compared with the weak comparison function (RFC 9110, sections 13.1.2 and 8.8.3.2).
+ */
+internal fun ifNoneMatchMatches(ifNoneMatch: String?, etag: String): Boolean {
+    if (ifNoneMatch == null) return false
+    val opaqueTag = etag.removePrefix("W/")
+    return ifNoneMatch == etag || ifNoneMatch.split(",").map { it.trim() }.any { it == "*" || it.removePrefix("W/") == opaqueTag }
+}

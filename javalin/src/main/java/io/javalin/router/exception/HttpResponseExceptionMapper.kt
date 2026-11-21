@@ -28,7 +28,7 @@ import java.util.*
 object HttpResponseExceptionMapper {
 
     fun handle(e: HttpResponseException, ctx: Context) = when {
-        ctx.accepts(ContentType.HTML) -> ctx.answer(e, ::plainResult).contentType(ContentType.HTML)
+        ctx.accepts(ContentType.HTML) -> ctx.answer(e) { htmlEscape(plainResult(it)) }.contentType(ContentType.HTML) // never reflect raw text as HTML
         ctx.accepts(ContentType.JSON) -> ctx.answer(e, ::jsonResult).contentType(ContentType.JSON)
         else -> ctx.answer(e, ::plainResult).contentType(ContentType.PLAIN)
     }
@@ -51,7 +51,7 @@ object HttpResponseExceptionMapper {
            |    "title": "${e.message?.jsonEscape()}",
            |    "status": ${e.status},
            |    "type": "${getTypeUrl(e).lowercase(Locale.ROOT)}",
-           |    "details": {${e.details.map { """"${it.key}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
+           |    "details": {${e.details.map { """"${it.key.jsonEscape()}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
            |}""".trimMargin()
 
     private fun plainResult(e: HttpResponseException) =
@@ -82,5 +82,7 @@ object HttpResponseExceptionMapper {
     }
 
     private fun String.jsonEscape() = JsonEscapeUtil.escape(this)
+
+    private fun htmlEscape(s: String) = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;")
 
 }

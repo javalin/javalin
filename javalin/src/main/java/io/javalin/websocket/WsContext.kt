@@ -132,8 +132,14 @@ abstract class WsContext(@JvmSynthetic internal val upgradeCtx: JavalinWsServlet
     /** Close the session with a [CloseStatus] */
     fun closeSession(closeStatus: CloseStatus): Unit = closeSession(closeStatus.code, closeStatus.reason)
 
-    /** Close the session with a code and reason */
-    fun closeSession(code: Int, reason: String?): Unit = session.close(code, reason, Callback.NOOP)
+    /**
+     * Close the session with a code and reason.
+     * @throws IllegalArgumentException if the code can't be sent in a close frame (e.g. reserved codes like 1004-1006 and 1015)
+     */
+    fun closeSession(code: Int, reason: String?) {
+        require(CloseStatus.isTransmittableStatusCode(code)) { "Close status code $code cannot be sent to the client (RFC 6455, Section 7.4)" }
+        session.close(code, reason, Callback.NOOP)
+    }
 
     /** Close the session with a [WsCloseStatus] */
     @JvmOverloads

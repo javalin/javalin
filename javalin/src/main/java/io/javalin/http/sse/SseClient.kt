@@ -1,6 +1,7 @@
 package io.javalin.http.sse
 
 import io.javalin.http.Context
+import io.javalin.http.util.AsyncUtil.newAsyncListener
 import io.javalin.json.toJsonString
 import io.javalin.util.JavalinLogger
 import java.io.Closeable
@@ -32,6 +33,7 @@ class SseClient internal constructor(
      */
     fun keepAlive() {
         this.blockingFuture = CompletableFuture<Nothing?>().also { ctx.future { it } }
+        ctx.req().asyncContext.addListener(newAsyncListener(onError = { close() })) // finish while the request is still valid, e.g. on server shutdown (#2678)
     }
 
     /**

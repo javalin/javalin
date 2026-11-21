@@ -176,6 +176,23 @@ class TestMultipartForms {
     }
 
     @Test
+    fun `uploaded file names have no directory components`() = TestUtil.test { app, http ->
+        app.unsafe.routes.post("/test-upload") { ctx ->
+            val file = ctx.uploadedFile("upload")!!
+            ctx.result(file.filename() + "|" + file.extension())
+        }
+        fun upload(filename: String) = http.post("/test-upload")
+            .header("Content-Type", "multipart/form-data; boundary=XyZ")
+            .body("--XyZ\r\nContent-Disposition: form-data; name=\"upload\"; filename=\"$filename\"\r\nContent-Type: text/plain\r\n\r\ndata\r\n--XyZ--\r\n")
+            .asString().body
+        assertThat(upload("../../evil.txt")).isEqualTo("evil.txt|.txt")
+        assertThat(upload("/etc/evil.txt")).isEqualTo("evil.txt|.txt")
+        assertThat(upload("..\\\\..\\\\evil.txt")).isEqualTo("evil.txt|.txt")
+        assertThat(upload("..")).isEqualTo("|")
+        assertThat(upload("plain.txt")).isEqualTo("plain.txt|.txt")
+    }
+
+    @Test
     fun `mixing files and text fields works`() = TestUtil.test { app, http ->
         app.unsafe.routes.post("/test-upload") { it.result(it.formParam("field") + " and " + it.uploadedFile("upload")!!.filename()) }
         val response = http.post("/test-upload")

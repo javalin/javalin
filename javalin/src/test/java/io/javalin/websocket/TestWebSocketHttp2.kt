@@ -31,7 +31,10 @@ import java.util.concurrent.TimeUnit
 
 class TestWebSocketHttp2 {
 
-    /** Creates an H2+TLS Javalin server and WS client, connects to [path], and asserts [expectedMessage]. */
+    /**
+     * Creates an H2+TLS Javalin server and WS client, connects to [path], sends "hello", and asserts the reply is [expectedMessage].
+     * The client speaks first because Jetty's HTTP/2 websocket client can drop frames the server sends while the upgrade completes.
+     */
     private fun test(
         path: String,
         expectedMessage: String,
@@ -68,8 +71,9 @@ class TestWebSocketHttp2 {
                     httpVersionFuture.complete(response.version)
                 }
             }
-            wsClient.connect(endpoint, URI("wss://localhost:${app.port()}$path"), upgradeListener)
+            val session = wsClient.connect(endpoint, URI("wss://localhost:${app.port()}$path"), upgradeListener).get(5, TimeUnit.SECONDS)
             assertThat(httpVersionFuture.get(5, TimeUnit.SECONDS)).isEqualTo(HttpVersion.HTTP_2)
+            session.sendText("hello", Callback.NOOP)
             assertThat(messageFuture.get(5, TimeUnit.SECONDS)).isEqualTo(expectedMessage)
         } finally {
             wsClient.stop()
@@ -93,8 +97,8 @@ class TestWebSocketHttp2 {
             JettyWebSocketServletContainerInitializer.configure(context) { _, container ->
                 container.addMapping("/ws/jetty") { _, _ ->
                     object : Session.Listener.AbstractAutoDemanding() {
-                        override fun onWebSocketOpen(session: Session) {
-                            session.sendText("hello from jetty", Callback.NOOP)
+                        override fun onWebSocketText(message: String) {
+                            session.sendText("$message from jetty", Callback.NOOP)
                         }
                     }
                 }
@@ -105,7 +109,7 @@ class TestWebSocketHttp2 {
     @Test
     fun `websocket works over http2 via javalin routes`() = test("/ws/javalin", "hello from javalin") { config ->
         config.routes.ws("/ws/javalin") { ws ->
-            ws.onConnect { ctx -> ctx.send("hello from javalin") }
+            ws.onMessage { ctx -> ctx.send("${ctx.message()} from javalin") }
         }
     }
 }

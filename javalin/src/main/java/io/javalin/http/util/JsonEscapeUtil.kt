@@ -18,7 +18,8 @@ object JsonEscapeUtil {
                     '\\' -> "\\\\"
                     '\t' -> "\\t"
                     '\b' -> "\\b"
-                    else -> ch
+                    '\u000c' -> "\\f"
+                    else -> if (ch < ' ') "\\u" + ch.code.toString(16).padStart(4, '0') else ch
                 }
             )
         }

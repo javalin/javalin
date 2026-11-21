@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         java_version: [17, 25]
-        os: [windows-latest, macos-14, ubuntu-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
 
     steps:
       - name: Checkout

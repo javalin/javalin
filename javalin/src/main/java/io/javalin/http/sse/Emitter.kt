@@ -41,7 +41,7 @@ class Emitter(private var response: HttpServletResponse) {
 
     fun emit(comment: String) = synchronized(this) {
         try {
-            comment.split(NEW_LINE).forEach {
+            comment.split(Regex("\r\n|\r|\n")).forEach { // CR alone is also an SSE line terminator
                 write("$COMMENT_PREFIX $it$NEW_LINE")
             }
             response.flushBuffer()

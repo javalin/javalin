@@ -11,6 +11,7 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.http.UnauthorizedResponse
@@ -136,6 +137,18 @@ class TestStaticFiles {
     }
 
     @Test
+    fun `static files match If-None-Match lists, star and both forms of the ETag`() = testStaticFiles(defaultStaticResourceApp) { _, http ->
+        val etag = http.get("/html.html").headers.getFirst(Header.ETAG)
+        assertThat(etag).startsWith("W/")
+        listOf(etag, etag.removePrefix("W/"), "\"other\", $etag", "\"other\",${etag.removePrefix("W/")}", "*").forEach { ifNoneMatch ->
+            val response = http.get("/html.html", mapOf(Header.IF_NONE_MATCH to ifNoneMatch))
+            assertThat(response.httpCode()).describedAs(ifNoneMatch).isEqualTo(NOT_MODIFIED)
+            assertThat(response.headers.getFirst(Header.ETAG)).describedAs(ifNoneMatch).isEqualTo(etag)
+        }
+        assertThat(http.get("/html.html", mapOf(Header.IF_NONE_MATCH to "\"other\"")).httpCode()).isEqualTo(OK)
+    }
+
+    @Test
     fun `static files are streamed, not read into memory`() = testStaticFiles(defaultStaticResourceApp) { app, http ->
         var streamed = false
         app.unsafe.routes.after("/html.html") { streamed = it.resultInputStream() !is ByteArrayInputStream }
@@ -177,6 +190,15 @@ class TestStaticFiles {
         assertThat(response.httpCode()).isEqualTo(UNAUTHORIZED)
         assertThat(response.status).isEqualTo(UNAUTHORIZED.code)
         assertThat(response.body).isEqualTo("Protected")
+    }
+
+    @Test
+    fun `before-handler cannot be bypassed with an alias of a static file path`() = testStaticFiles(defaultStaticResourceApp) { app, http ->
+        app.unsafe.routes.before("/protected/*") { throw UnauthorizedResponse("Protected") }
+        assertThat(http.get("/protected/secret.html").httpCode()).isEqualTo(UNAUTHORIZED)
+        for (alias in listOf("/%70rotected/secret.html", "//protected/secret.html", "/./protected/secret.html", "/x/../protected/secret.html")) {
+            assertThat(http.get(alias).httpCode()).describedAs(alias).isEqualTo(NOT_FOUND)
+        }
     }
 
     @Test
@@ -225,6 +247,19 @@ class TestStaticFiles {
         assertThat(response.httpCode()).isEqualTo(OK)
         assertThat(response.status).isEqualTo(OK.code)
         assertThat(response.body).isEqualTo("<h1>Welcome file</h1>")
+    }
+
+    @Test
+    fun `hosted path only matches whole path segments`() = testStaticFiles({ cfg ->
+        cfg.staticFiles.add {
+            it.directory = "/public"
+            it.location = Location.CLASSPATH
+            it.hostedPath = "/url-prefix"
+        }
+    }) { _, http ->
+        assertThat(http.get("/url-prefix/subdir/index.html").httpCode()).isEqualTo(OK)
+        assertThat(http.get("/url-prefixsubdir/index.html").httpCode()).isEqualTo(NOT_FOUND)
+        assertThat(http.get("/url-prefixsubdir").httpCode()).isEqualTo(NOT_FOUND)
     }
 
     @Test
