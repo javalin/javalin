@@ -58,6 +58,18 @@ class TestValidation {
     }
 
     @Test
+    fun `a ValidationError shared between checks keeps each failing value`() = TestUtil.test { app, http ->
+        val tooSmall = ValidationError<Int>("TOO_SMALL")
+        app.unsafe.routes.get("/") { ctx ->
+            val first = ctx.queryParamAsClass<Int>("first").required().check({ it > 10 }, tooSmall).errors()
+            val second = ctx.queryParamAsClass<Int>("second").required().check({ it > 10 }, tooSmall).errors()
+            ctx.result("${first["first"]!![0].value} ${second["second"]!![0].value}")
+        }
+        assertThat(http.getBody("/?first=1&second=2")).isEqualTo("1 2")
+        assertThat(tooSmall.value).isNull()
+    }
+
+    @Test
     fun `notNullOrEmpty works for Validator`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/") { it.queryParamAsClass<String>("my-qp").get() }
         assertThat(http.get("/").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
