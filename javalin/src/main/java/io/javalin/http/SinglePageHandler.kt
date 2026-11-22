@@ -67,4 +67,4 @@ class SinglePageHandler {
 
 }
 
-private fun <T> Map<String, T>.findByPath(requestPath: String) = this.keys.find { requestPath.startsWith(it) }?.let { this[it]!! }
+private fun <T> Map<String, T>.findByPath(requestPath: String) = this.keys.find { requestPath == it || requestPath.startsWith(it.removeSuffix("/") + "/") }?.let { this[it]!! }
