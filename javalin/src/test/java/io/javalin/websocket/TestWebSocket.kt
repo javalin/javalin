@@ -141,6 +141,22 @@ class TestWebSocket {
     }
 
     @Test
+    fun `binary message data can be kept after the handler returns`() = TestUtil.test(contextPathJavalin()) { app, _ ->
+        val byteDataToSend = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
+        val receivedBuffers = ConcurrentLinkedQueue<ByteBuffer>()
+        app.unsafe.routes.ws("/binary") { ws ->
+            ws.onBinaryMessage { ctx -> receivedBuffers.add(ctx.data()) }
+        }
+        WsTestClient(app, "/websocket/binary").also {
+            it.connectBlocking()
+            it.send(byteDataToSend)
+            awaitCondition(condition = { receivedBuffers.size == 1 })
+            it.closeBlocking()
+        }
+        assertThat(BufferUtil.toArray(receivedBuffers.single())).isEqualTo(byteDataToSend)
+    }
+
+    @Test
     fun `custom WebSocketServletFactory works`() {
         var handlerError: Throwable? = null
         val maxTextSize = 1L
