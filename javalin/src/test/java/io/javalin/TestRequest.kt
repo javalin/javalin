@@ -66,6 +66,20 @@ class TestRequest {
     }
 
     @Test
+    fun `reading or clearing session attributes does not create a session`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/consume") { it.result("" + it.consumeSessionAttribute<String>("missing")) }
+        app.unsafe.routes.get("/cached") { it.result("" + it.cachedSessionAttribute<String>("missing")) }
+        app.unsafe.routes.get("/cached-or-compute") { it.result("" + it.cachedSessionAttributeOrCompute<String?>("missing") { null }) }
+        app.unsafe.routes.get("/map") { it.result(it.sessionAttributeMap().toString()) }
+        app.unsafe.routes.get("/clear") { it.sessionAttribute("missing", null) }
+        app.unsafe.routes.get("/cached-clear") { it.cachedSessionAttribute("missing", null) }
+        val createdSession = listOf("/consume", "/cached", "/cached-or-compute", "/map", "/clear", "/cached-clear").filter { path ->
+            Unirest.spawnInstance().use { it.get(http.origin + path).asEmpty().headers.getFirst(Header.SET_COOKIE).isNotEmpty() }
+        }
+        assertThat(createdSession).isEmpty()
+    }
+
+    @Test
     fun `session-attribute can be consumed easily`() = TestUtil.test { app, http ->
         app.unsafe.routes.get("/store-attr") { it.sessionAttribute("attr", "Rowin") }
         app.unsafe.routes.get("/read-attr") { it.result(it.consumeSessionAttribute("attr") ?: "Consumed") }
