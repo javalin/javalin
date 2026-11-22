@@ -7,6 +7,7 @@
 
 package io.javalin.staticfiles
 
+import com.sun.management.UnixOperatingSystemMXBean
 import io.javalin.config.JavalinConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Header
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.lang.management.ManagementFactory
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -260,6 +262,18 @@ class TestStaticFiles {
         assertThat(http.get("/url-prefix/subdir/index.html").httpCode()).isEqualTo(OK)
         assertThat(http.get("/url-prefixsubdir/index.html").httpCode()).isEqualTo(NOT_FOUND)
         assertThat(http.get("/url-prefixsubdir").httpCode()).isEqualTo(NOT_FOUND)
+    }
+
+    @Test
+    fun `serving a classpath file does not leak file descriptors`() = testStaticFiles({ cfg ->
+        cfg.staticFiles.add("/public", Location.CLASSPATH)
+    }) { _, http ->
+        val os = ManagementFactory.getOperatingSystemMXBean()
+        org.junit.jupiter.api.Assumptions.assumeTrue(os is UnixOperatingSystemMXBean)
+        assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
+        val before = (os as UnixOperatingSystemMXBean).openFileDescriptorCount
+        val mostLeaked = (1..100).maxOf { http.get("/html.html"); os.openFileDescriptorCount - before }
+        assertThat(mostLeaked).isLessThan(50)
     }
 
     @Test
