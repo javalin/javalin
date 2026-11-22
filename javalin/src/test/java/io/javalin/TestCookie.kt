@@ -7,6 +7,7 @@ import io.javalin.http.SameSite
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.entry
 import org.junit.jupiter.api.Test
 
 class TestCookie {
@@ -32,6 +33,15 @@ class TestCookie {
         val removeCookieResponse = http.get("/cookie-remove")
 
         assertThat(cookieIsEffectivelyRemoved(removeCookieResponse.headers.getFirst(Header.SET_COOKIE), "/")).isTrue
+    }
+
+    @Test
+    fun `removing a __Host- or __Secure- cookie sends the Secure attribute`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/remove-host") { it.removeCookie("__Host-session") }
+        app.unsafe.routes.get("/remove-secure") { it.removeCookie("__Secure-session") }
+        app.unsafe.routes.get("/remove-plain") { it.removeCookie("session") }
+        val sendsSecure = listOf("/remove-host", "/remove-secure", "/remove-plain").associateWith { http.get(it).headers.getFirst(Header.SET_COOKIE).contains("; Secure") }
+        assertThat(sendsSecure).containsOnly(entry("/remove-host", true), entry("/remove-secure", true), entry("/remove-plain", false))
     }
 
     @Test
