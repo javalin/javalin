@@ -8,6 +8,7 @@ package io.javalin
 
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.OK
+import io.javalin.http.UnauthorizedResponse
 import io.javalin.plugin.bundled.GlobalHeadersConfig
 import io.javalin.plugin.bundled.GlobalHeadersConfig.ClearSiteData
 import io.javalin.plugin.bundled.GlobalHeadersConfig.CrossDomainPolicy
@@ -135,6 +136,35 @@ class TestGlobalGlobalHeaderConfigPlugin {
             val returnedHeaders = http.get("/").headers
             assertThat(returnedHeaders.getFirst(Header.X_CONTENT_TYPE_OPTIONS)).isEqualTo("nosniff")
             assertThat(returnedHeaders.getFirst(Header.CLEAR_SITE_DATA)).isEqualTo(""""*"""")
+        }
+    }
+
+    @Test
+    fun `headers are set when a before handler throws`() {
+        val testApp = Javalin.create { cfg ->
+            cfg.registerPlugin(GlobalHeadersPlugin {
+                it.xFrameOptions(XFrameOptions.DENY)
+            })
+            cfg.routes.before { throw UnauthorizedResponse() }
+            cfg.routes.get("/") { it.status(OK) }
+        }
+        TestUtil.test(testApp) { _, http ->
+            val response = http.get("/")
+            assertThat(response.status).isEqualTo(401)
+            assertThat(response.headers.getFirst(Header.X_FRAME_OPTIONS)).isEqualTo("deny")
+        }
+    }
+
+    @Test
+    fun `a header removed by a route stays removed`() {
+        val testApp = Javalin.create { cfg ->
+            cfg.registerPlugin(GlobalHeadersPlugin {
+                it.xFrameOptions(XFrameOptions.DENY)
+            })
+            cfg.routes.get("/") { it.removeHeader(Header.X_FRAME_OPTIONS) }
+        }
+        TestUtil.test(testApp) { _, http ->
+            assertThat(http.get("/").headers.containsKey(Header.X_FRAME_OPTIONS)).isFalse()
         }
     }
 }
