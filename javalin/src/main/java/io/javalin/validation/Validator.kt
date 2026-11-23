@@ -48,7 +48,7 @@ open class Validator<T> internal constructor(internal val params: Params, intern
         // checks and let get()/required() surface it as NULLCHECK_FAILED instead.
         rules.filter { typedValue != null && !it.check(typedValue) }.forEach { failedRule ->
             errors.computeIfAbsent(failedRule.fieldName) { mutableListOf() }
-            errors[failedRule.fieldName]!!.add(failedRule.error.also { it.value = typedValue })
+            errors[failedRule.fieldName]!!.add(failedRule.error.copy(value = typedValue))
         }
         errors.mapValues { it.value.toList() }.toMap()
     }
