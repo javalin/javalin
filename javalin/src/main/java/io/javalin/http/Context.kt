@@ -238,7 +238,9 @@ interface Context {
     fun queryString(): String? = req().queryString
 
     /** Sets an attribute for the user session. */
-    fun sessionAttribute(key: String, value: Any?) = req().session.setAttribute(key, value)
+    fun sessionAttribute(key: String, value: Any?) {
+        if (value == null) req().getSession(false)?.removeAttribute(key) else req().session.setAttribute(key, value)
+    }
 
     /** Gets specified attribute from the user session, or null. */
     @Suppress("UNCHECKED_CAST")
@@ -257,7 +259,8 @@ interface Context {
     fun <T> cachedSessionAttributeOrCompute(key: String, callback: (Context) -> T): T? = cachedSessionAttributeOrCompute(callback, key, this)
 
     /** Gets a map of all the attributes in the user session. */
-    fun sessionAttributeMap(): Map<String, Any?> = req().session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
+    fun sessionAttributeMap(): Map<String, Any?> =
+        req().getSession(false)?.attributeNames?.asSequence()?.associateWith { sessionAttribute(it) } ?: emptyMap()
 
     /** Sets an attribute on the request(). Attributes are available to other handlers in the request lifecycle */
     fun attribute(key: String, value: Any?) = req().setAttribute(key, value)

@@ -255,13 +255,13 @@ const val SESSION_CACHE_KEY_PREFIX = "javalin-session-attribute-cache-"
 
 fun cacheAndSetSessionAttribute(key: String, value: Any?, req: HttpServletRequest) {
     req.setAttribute("$SESSION_CACHE_KEY_PREFIX$key", value)
-    req.session.setAttribute(key, value)
+    if (value == null) req.getSession(false)?.removeAttribute(key) else req.session.setAttribute(key, value)
 }
 
 fun <T> getCachedRequestAttributeOrSessionAttribute(key: String, req: HttpServletRequest): T? {
     val cachedAttribute = req.getAttribute("$SESSION_CACHE_KEY_PREFIX$key")
     if (cachedAttribute == null) {
-        req.setAttribute("$SESSION_CACHE_KEY_PREFIX$key", req.session.getAttribute(key))
+        req.setAttribute("$SESSION_CACHE_KEY_PREFIX$key", req.getSession(false)?.getAttribute(key))
     }
     @Suppress("UNCHECKED_CAST")
     return req.getAttribute("$SESSION_CACHE_KEY_PREFIX$key") as T?
