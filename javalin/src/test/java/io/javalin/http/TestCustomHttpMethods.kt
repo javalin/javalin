@@ -130,6 +130,13 @@ class TestCustomHttpMethods {
     }
 
     @Test
+    fun `request methods named after internal handler types return 404`() = TestUtil.test { app, http ->
+        app.unsafe.routes.before("/") { ctx -> ctx.result("before") }
+        app.unsafe.routes.after("/") { ctx -> ctx.result("after") }
+        assertThat(listOf("BEFORE", "AFTER").map { rawRequestStatus(http, it, "/") }).containsExactly(404, 404)
+    }
+
+    @Test
     fun `findOrDefault is lenient and does not pollute METHOD_MAP`() {
         assertThat(HandlerType.findOrDefault("GET")).isSameAs(GET)
         val unknown = HandlerType.findOrDefault("m-search")

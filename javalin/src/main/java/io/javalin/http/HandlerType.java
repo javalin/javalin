@@ -82,7 +82,7 @@ public record HandlerType(String name, boolean isHttpMethod) {
     /** Lenient lookup for untrusted request methods: known constant, else a transient miss (404). Never throws or mutates METHOD_MAP. */
     public static HandlerType findOrDefault(String name) {
         HandlerType existing = METHOD_MAP.get(name);
-        return existing != null ? existing : new HandlerType(name, true);
+        return existing != null && existing.isHttpMethod() ? existing : new HandlerType(name, true);
     }
 
     /**
