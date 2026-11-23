@@ -90,6 +90,7 @@ fun HttpServletResponse.removeCookie(name: String, path: String?) =
     this.addCookie(jakarta.servlet.http.Cookie(name, "").apply {
         this.path = path
         this.maxAge = 0
+        this.secure = name.startsWith("__Secure-") || name.startsWith("__Host-")
     })
 
 fun String.addSameSite(cookie: Cookie): String {
