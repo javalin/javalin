@@ -82,14 +82,14 @@ Please consider [:heart: Sponsoring](https://github.com/sponsors/tipsy) or starr
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>7.2.4</version>
+    <version>7.3.0</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```kotlin
-implementation("io.javalin:javalin:7.2.4")
+implementation("io.javalin:javalin:7.3.0")
 ```
 
 ### Start programming (Java)
