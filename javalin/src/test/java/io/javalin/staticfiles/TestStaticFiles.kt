@@ -265,15 +265,15 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `serving a classpath file does not leak file descriptors`() = testStaticFiles({ cfg ->
-        cfg.staticFiles.add("/public", Location.CLASSPATH)
-    }) { _, http ->
+    fun `serving a classpath file does not leak file descriptors`() {
         val os = ManagementFactory.getOperatingSystemMXBean()
         org.junit.jupiter.api.Assumptions.assumeTrue(os is UnixOperatingSystemMXBean)
-        assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
-        val before = (os as UnixOperatingSystemMXBean).openFileDescriptorCount
-        val mostLeaked = (1..100).maxOf { http.get("/html.html"); os.openFileDescriptorCount - before }
-        assertThat(mostLeaked).isLessThan(50)
+        testStaticFiles({ cfg -> cfg.staticFiles.add("/public", Location.CLASSPATH) }) { _, http ->
+            assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
+            val before = (os as UnixOperatingSystemMXBean).openFileDescriptorCount
+            val mostLeaked = (1..100).maxOf { http.get("/html.html"); os.openFileDescriptorCount - before }
+            assertThat(mostLeaked).isLessThan(50)
+        }
     }
 
     @Test
