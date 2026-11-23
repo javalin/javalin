@@ -121,6 +121,18 @@ class TestSinglePageMode {
     }
 
     @Test
+    fun `SinglePageHandler matches a subpath root as a whole path segment`() = TestUtil.test(dualSinglePageApp_classPath) { _, http ->
+        assertThat(http.htmlGet("/administrator").httpCode()).isEqualTo(NOT_FOUND)
+    }
+
+    @Test
+    fun `SinglePageHandler root with a trailing slash does not match the path without it`() = TestUtil.test(Javalin.create {
+        it.spaRoot.addFile("/admin/", "/public/protected/secret.html")
+    }) { _, http ->
+        assertThat(http.htmlGet("/admin").httpCode()).isEqualTo(NOT_FOUND)
+    }
+
+    @Test
     fun `SinglePageHandler throws for non-existent file - classpath`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
             .isThrownBy { Javalin.create { it.spaRoot.addFile("/", "/not-a-file.html") }.start().stop() }
