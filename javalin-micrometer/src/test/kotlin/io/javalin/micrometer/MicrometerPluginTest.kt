@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import io.javalin.testtools.TestConfig
 import java.net.URI
 import java.net.http.HttpClient
+import java.net.http.HttpRequest
 import java.net.http.WebSocket
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
@@ -226,7 +227,7 @@ class MicrometerPluginTest {
             ctx.status(OK)
         }
         repeat(requestCount) {
-            http.request("/hello") { b -> b.header(Header.X_HTTP_METHOD_OVERRIDE, "POSTS") }
+            http.request("/hello") { b -> b.post(HttpRequest.BodyPublishers.noBody()).header(Header.X_HTTP_METHOD_OVERRIDE, "POSTS") }
         }
 
         val notFoundCountGeneric = meterRegistry.get("http.server.requests")

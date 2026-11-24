@@ -98,7 +98,7 @@ interface Context {
     fun contentType(): String? = req().contentType
 
     /** Gets the request method. Unrecognized methods resolve to a non-matching [HandlerType] (404) rather than throwing. */
-    fun method(): HandlerType = HandlerType.findOrDefault(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
+    fun method(): HandlerType = HandlerType.findOrDefault(header(Header.X_HTTP_METHOD_OVERRIDE)?.takeIf { req().method == "POST" } ?: req().method)
 
     /** Gets the request path. */
     fun path(): String = req().requestURI

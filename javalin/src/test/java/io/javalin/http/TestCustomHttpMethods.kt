@@ -153,4 +153,12 @@ class TestCustomHttpMethods {
             HandlerType.PATCH, HandlerType.HEAD, HandlerType.OPTIONS, HandlerType.TRACE
         )
     }
+
+    @Test
+    fun `X-HTTP-Method-Override is only honored on POST`() = TestUtil.test { app, http ->
+        app.unsafe.routes.delete("/item") { ctx -> ctx.result("deleted") }
+        app.unsafe.routes.get("/item") { ctx -> ctx.result("got") }
+        assertThat(http.post("/item").header(Header.X_HTTP_METHOD_OVERRIDE, "DELETE").asString().body).isEqualTo("deleted")
+        assertThat(http.get("/item", mapOf(Header.X_HTTP_METHOD_OVERRIDE to "DELETE")).body).isEqualTo("got")
+    }
 }
