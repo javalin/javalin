@@ -71,4 +71,20 @@ class TestWsMessaging {
         assertThat(client.nextBinary()).isEqualTo(bytes1)
         assertThat(client.nextBinary()).isEqualTo(bytes2)
     }
+
+    @Test
+    fun `binary message data can be kept after the handler returns`() = wsTest({
+        it.routes.ws("/binary") { ws ->
+            ws.onBinaryMessage { ctx -> keptBuffers += ctx.data() }
+            ws.onMessage { ctx -> ctx.send(BufferUtil.toArray(keptBuffers.single()).contentEquals(expectedBytes).toString()) }
+        }
+    }) {
+        val client = connect("/binary")
+        client.send(expectedBytes)
+        client.send("check")
+        assertThat(client.nextMessage()).isEqualTo("true")
+    }
+
+    private val expectedBytes = Random(42).nextBytes(4096)
+    private val keptBuffers = java.util.concurrent.ConcurrentLinkedQueue<ByteBuffer>()
 }

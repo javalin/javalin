@@ -39,6 +39,7 @@ import org.eclipse.jetty.websocket.client.WebSocketClient
 import java.net.URI
 import java.nio.ByteBuffer
 import java.time.Duration
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -74,20 +75,27 @@ class WsTest internal constructor(private val http2: Boolean) {
     lateinit var http: HttpUtil
         private set
 
-    private val jettyClient = if (http2) http2WebSocketClient() else WebSocketClient()
+    private val jettyClient = (if (http2) http2WebSocketClient() else WebSocketClient()).apply {
+        httpClient.isFollowRedirects = false
+        maxBinaryMessageSize = 16 * 1024 * 1024
+    }
     private val clients = mutableListOf<WsClient>()
 
     fun record(event: String) = server.add(event)
 
-    /** Records "tag:connect", "tag:message:<message>" and "tag:close:<status>" for a ws, wsBefore or wsAfter handler. */
+    /** Records "tag:<event>" for every event of a ws, wsBefore or wsAfter handler. */
     fun recorder(tag: String) = Consumer<WsConfig> { ws ->
         ws.onConnect { record("$tag:connect") }
         ws.onMessage { ctx -> record("$tag:message:${ctx.message()}") }
+        ws.onBinaryMessage { ctx -> record("$tag:binary:${ctx.data().remaining()}") }
+        ws.onPing { ctx -> record("$tag:ping:${ctx.data().remaining()}") }
+        ws.onPong { ctx -> record("$tag:pong:${ctx.data().remaining()}") }
         ws.onClose { ctx -> record("$tag:close:${ctx.status()}") }
     }
 
-    fun connect(path: String, headers: Map<String, String> = emptyMap(), subProtocols: List<String> = emptyList()): WsClient {
-        val client = WsClient()
+    /** Connects a client. With [holdReading], the client stops reading when the first text message arrives, until [WsClient.resumeReading]. */
+    fun connect(path: String, headers: Map<String, String> = emptyMap(), subProtocols: List<String> = emptyList(), holdReading: Boolean = false): WsClient {
+        val client = WsClient(holdReading)
         val request = ClientUpgradeRequest(uri(path)).apply {
             headers.forEach { (name, value) -> setHeader(name, value) }
             if (subProtocols.isNotEmpty()) setSubProtocols(subProtocols)
@@ -127,6 +135,7 @@ class WsTest internal constructor(private val http2: Boolean) {
         try {
             test()
         } finally {
+            clients.forEach { it.resumeReading() }
             clients.filter { it.isOpen }.forEach { it.session.close() }
             jettyClient.stop()
         }
@@ -194,13 +203,21 @@ class EventLog(private val name: String) {
         assertThat(await(0)).isEmpty()
     }
 
+    /** Asserts that no new event is recorded [within] the given duration. */
+    fun expectNoMore(within: Duration) = lock.withLock {
+        val recorded = events.toList()
+        var remaining = within.toNanos()
+        while (remaining > 0) remaining = changed.awaitNanos(remaining)
+        if (events != recorded) throw AssertionError("Expected no new $name events within $within, got ${events.drop(recorded.size)}")
+    }
+
     fun expectInAnyOrder(vararg expected: String) {
         assertThat(await(expected.size)).containsExactlyInAnyOrder(*expected)
     }
 }
 
 /** A real websocket client that records everything it receives, read with blocking calls. */
-class WsClient internal constructor() : Session.Listener.AbstractAutoDemanding() {
+class WsClient internal constructor(private val holdReading: Boolean = false) : Session.Listener.Abstract() {
 
     sealed interface Event
     data class Text(val text: String) : Event
@@ -212,6 +229,9 @@ class WsClient internal constructor() : Session.Listener.AbstractAutoDemanding()
 
     private val events = LinkedBlockingQueue<Event>()
     private val pings = LinkedBlockingQueue<ByteArray>()
+    private val pongs = LinkedBlockingQueue<ByteArray>()
+    private val readingHeld = CountDownLatch(1)
+    private val readingResumed = CountDownLatch(1)
 
     val upgradeResponse: UpgradeResponse get() = session.upgradeResponse
     var httpVersion: HttpVersion? = null
@@ -219,6 +239,20 @@ class WsClient internal constructor() : Session.Listener.AbstractAutoDemanding()
 
     fun send(message: String) = session.sendText(message, Callback.NOOP)
     fun send(bytes: ByteArray) = session.sendBinary(ByteBuffer.wrap(bytes), Callback.NOOP)
+    fun sendPing(payload: ByteArray = byteArrayOf()) = session.sendPing(ByteBuffer.wrap(payload), Callback.NOOP)
+    fun sendPong(payload: ByteArray = byteArrayOf()) = session.sendPong(ByteBuffer.wrap(payload), Callback.NOOP)
+
+    /** With holdReading, waits until the client has stopped reading. */
+    fun awaitReadingHeld() {
+        if (!readingHeld.await(WS_TEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) throw AssertionError("Expected the client to hold reading within $WS_TEST_TIMEOUT")
+    }
+
+    fun resumeReading() {
+        if (readingResumed.count > 0) {
+            readingResumed.countDown()
+            if (readingHeld.count == 0L) session.demand()
+        }
+    }
 
     /** Closes the connection and waits for the close handshake to complete. */
     fun close(code: Int = StatusCode.NORMAL, reason: String? = null): Close {
@@ -251,6 +285,9 @@ class WsClient internal constructor() : Session.Listener.AbstractAutoDemanding()
     fun nextPing(): ByteArray = pings.poll(WS_TEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
         ?: throw AssertionError("Expected a ping within $WS_TEST_TIMEOUT")
 
+    fun nextPong(): ByteArray = pongs.poll(WS_TEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
+        ?: throw AssertionError("Expected a pong within $WS_TEST_TIMEOUT")
+
     /** Discards pings received so far, then asserts that no new ping arrives [within] the given duration. */
     fun expectNoMorePings(within: Duration) {
         pings.clear()
@@ -261,17 +298,31 @@ class WsClient internal constructor() : Session.Listener.AbstractAutoDemanding()
     private fun next(): Event = events.poll(WS_TEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
         ?: throw AssertionError("Expected an event within $WS_TEST_TIMEOUT, got nothing")
 
+    override fun onWebSocketOpen(session: Session) {
+        super.onWebSocketOpen(session)
+        session.demand()
+    }
+
     override fun onWebSocketText(message: String) {
         events += Text(message)
+        if (holdReading && readingHeld.count > 0 && readingResumed.count > 0) readingHeld.countDown() // stop demanding until resumeReading()
+        else session.demand()
     }
 
     override fun onWebSocketBinary(payload: ByteBuffer, callback: Callback) {
         events += Binary(BufferUtil.toArray(payload))
         callback.succeed()
+        session.demand()
     }
 
     override fun onWebSocketPing(payload: ByteBuffer) {
         pings += BufferUtil.toArray(payload)
+        session.demand()
+    }
+
+    override fun onWebSocketPong(payload: ByteBuffer) {
+        pongs += BufferUtil.toArray(payload)
+        session.demand()
     }
 
     override fun onWebSocketClose(statusCode: Int, reason: String?) {

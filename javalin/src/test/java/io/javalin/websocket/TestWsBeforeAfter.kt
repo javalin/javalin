@@ -23,10 +23,13 @@ class TestWsBeforeAfter {
         it.routes.wsBefore(recorder("before"))
         it.routes.ws("/ws", recorder("endpoint"))
     }) {
-        connect("/ws").apply { send("test") }.close()
+        connect("/ws").apply { send("test"); send(byteArrayOf(1)); sendPing(byteArrayOf(1, 2)); sendPong(byteArrayOf(1, 2, 3)) }.close()
         server.expect(
             "before:connect", "endpoint:connect",
             "before:message:test", "endpoint:message:test",
+            "before:binary:1", "endpoint:binary:1",
+            "before:ping:2", "endpoint:ping:2",
+            "before:pong:3", "endpoint:pong:3",
             "before:close:1000", "endpoint:close:1000",
         )
     }
@@ -36,10 +39,13 @@ class TestWsBeforeAfter {
         it.routes.ws("/ws", recorder("endpoint"))
         it.routes.wsAfter(recorder("after"))
     }) {
-        connect("/ws").apply { send("test") }.close()
+        connect("/ws").apply { send("test"); send(byteArrayOf(1)); sendPing(byteArrayOf(1, 2)); sendPong(byteArrayOf(1, 2, 3)) }.close()
         server.expect(
             "endpoint:connect", "after:connect",
             "endpoint:message:test", "after:message:test",
+            "endpoint:binary:1", "after:binary:1",
+            "endpoint:ping:2", "after:ping:2",
+            "endpoint:pong:3", "after:pong:3",
             "endpoint:close:1000", "after:close:1000",
         )
     }

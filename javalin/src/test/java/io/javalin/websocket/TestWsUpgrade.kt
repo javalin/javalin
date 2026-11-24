@@ -134,4 +134,16 @@ class TestWsUpgrade {
         assertThat(connect("/ws").upgradeResponse.getHeaders(Header.SET_COOKIE)).isEmpty()
         assertThat(expectRejectedUpgrade("/no-such-ws").headers.getValuesList(Header.SET_COOKIE)).isEmpty()
     }
+
+    @Test
+    fun `wsBeforeUpgrade can stop an upgrade request with a redirect`() = wsTest({
+        it.routes.wsBeforeUpgrade { ctx -> ctx.redirect("/login") }
+        it.routes.wsAfterUpgrade { record("after") }
+        it.routes.ws("/ws") { ws -> ws.onConnect { record("connected") } }
+    }) {
+        val rejected = expectRejectedUpgrade("/ws")
+        assertThat(rejected.status).isEqualTo(HttpStatus.FOUND.code)
+        assertThat(rejected.headers.get(Header.LOCATION)).isEqualTo("/login")
+        server.expect("after")
+    }
 }

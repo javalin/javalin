@@ -22,13 +22,19 @@ class TestWsLogging {
         it.requestLogger.ws { ws ->
             ws.onConnect { ctx -> record("${ctx.pathParam("param")} connected") }
             ws.onMessage { ctx -> record("${ctx.pathParam("param")} sent ${ctx.message()}") }
+            ws.onBinaryMessage { ctx -> record("${ctx.pathParam("param")} sent binary") }
+            ws.onPing { ctx -> record("${ctx.pathParam("param")} pinged") }
+            ws.onPong { ctx -> record("${ctx.pathParam("param")} ponged") }
             ws.onClose { ctx -> record("${ctx.pathParam("param")} disconnected") }
         }
         it.routes.ws("/path/{param}") {}
     }) {
-        connect("/path/0").apply { send("hi") }.close()
+        connect("/path/0").apply { send("hi"); send(byteArrayOf(1)); sendPing(); sendPong() }.close()
         connect("/path/1").close()
-        server.expectInAnyOrder("0 connected", "0 sent hi", "0 disconnected", "1 connected", "1 disconnected")
+        server.expectInAnyOrder(
+            "0 connected", "0 sent hi", "0 sent binary", "0 pinged", "0 ponged", "0 disconnected",
+            "1 connected", "1 disconnected",
+        )
     }
 
     @Test
