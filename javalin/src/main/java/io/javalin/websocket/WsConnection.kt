@@ -51,7 +51,7 @@ class WsConnection(
     }
 
     override fun onWebSocketBinary(payload: ByteBuffer, callback: Callback) {
-        val ctx = WsBinaryMessageContext(upgradeCtx.attach(session), payload)
+        val ctx = WsBinaryMessageContext(upgradeCtx.attach(session), ByteBuffer.allocate(payload.remaining()).put(payload.duplicate()).flip())
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)
