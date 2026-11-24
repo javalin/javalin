@@ -91,7 +91,9 @@ public class TestUtil {
     }
 
     public static String captureStdOut(Runnable run) {
-        return runAndCaptureLogs(run).logs;
+        RunResult result = runAndCaptureLogs(run);
+        if (result.exception != null) throw new RuntimeException(result.exception);
+        return result.logs;
     }
 
 }

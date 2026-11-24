@@ -14,6 +14,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -46,14 +47,15 @@ class TestLogging {
     }
 
     private fun testStaticFiles(skipStaticFiles: Boolean): String {
-        return captureStdOut {
-            TestUtil.test(Javalin.create {
-                it.staticFiles.add("/public")
-                it.registerPlugin(DevLoggingPlugin { it.skipStaticFiles = skipStaticFiles })
-            }) { _, http ->
-                assertThat(http.get("/script.js").body).isEqualTo("document.write(\"<h2>JavaScript works</h2>\");")
-            }
-        }
+        val requestLogged = CountDownLatch(1)
+        return TestUtil.testWithResult(Javalin.create {
+            it.staticFiles.add("/public")
+            it.registerPlugin(DevLoggingPlugin { it.skipStaticFiles = skipStaticFiles })
+            it.requestLogger.http { _, _ -> requestLogged.countDown() } // runs after the dev logger
+        }) { _, http ->
+            assertThat(http.get("/script.js").body).isEqualTo(TestLogging::class.java.getResource("/public/script.js")!!.readText())
+            assertThat(requestLogged.await(5, TimeUnit.SECONDS)).isTrue()
+        }.logs
     }
 
     @Test
