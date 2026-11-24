@@ -246,6 +246,7 @@ class TestWebSocket {
         )
 
         scenarios.forEach { (sendAction, closeStatus) ->
+            val closeCodes = ConcurrentLinkedQueue<String>()
             TestUtil.test { app, _ ->
                 app.unsafe.routes.ws("/websocket") { ws ->
                     ws.onMessage { ctx ->
@@ -257,14 +258,11 @@ class TestWebSocket {
                             else -> ctx.closeSession(1003, "UNEXPECTED")
                         }
                     }
-                    ws.onClose { ctx ->
-                        // Check the close status code matches expected
-                        assertThat(ctx.status()).isEqualTo(closeStatus.code)
-                        assertThat(ctx.closeStatus().code).isEqualTo(closeStatus.code)
-                    }
+                    ws.onClose { ctx -> closeCodes.add("${ctx.status()} ${ctx.closeStatus().code}") }
                 }
-                WsTestClient(app, "/websocket", onOpen = { sendAction(it) }).connectBlocking()
+                awaitCondition(condition = { closeCodes.isNotEmpty() }) { WsTestClient(app, "/websocket", onOpen = { sendAction(it) }).connectBlocking() }
             }
+            assertThat(closeCodes).containsExactly("${closeStatus.code} ${closeStatus.code}")
         }
     }
 

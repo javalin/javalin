@@ -112,8 +112,6 @@ class WsConnection(
     }
 
     private fun demandNext() {
-        if (session.isOpen) {
-            session.demand()
-        }
+        session.demand() // also while closing, so the client's close frame is read and onClose runs
     }
 }
