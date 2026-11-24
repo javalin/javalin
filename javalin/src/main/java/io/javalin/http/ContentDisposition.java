@@ -1,0 +1,139 @@
+package io.javalin.http;
+
+import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
+
+/**
+ * Class representing the Content-Disposition header value.
+ * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition">MDN Web Docs: Content-Disposition</a>
+ */
+public class ContentDisposition {
+
+    private final boolean inline;
+    private final boolean usingRfc5987;
+    private final String fileName;
+
+    private ContentDisposition(boolean inline, boolean usingRfc5987, String fileName) {
+        this.inline = inline;
+        this.usingRfc5987 = usingRfc5987;
+        this.fileName = fileName;
+    }
+
+    /**
+     * Converts a filename to the RFC 5987 format for use in HTTP headers.
+     * @param filename The filename to convert.
+     * @return The filename in RFC 5987 format.
+     */
+    private String toRfc5987(String filename) {
+        StringBuilder result = new StringBuilder("UTF-8''");
+
+        for (byte b : filename.getBytes(StandardCharsets.UTF_8)) {
+            int c = b & 0xff;
+
+            if (isAttrChar(c)) {
+                result.append((char) c);
+            } else {
+                result.append('%');
+                result.append(Character.toUpperCase(Character.forDigit((c >>> 4) & 0xf, 16)));
+                result.append(Character.toUpperCase(Character.forDigit(c & 0xf, 16)));
+            }
+        }
+
+        return result.toString();
+    }
+
+    /**
+     * Checks if a character is valid for use in HTTP header attributes according to RFC 5987.
+     * @param c The character to check.
+     * @return True if the character is valid, false otherwise.
+     */
+    private boolean isAttrChar(int c) {
+        return (c >= 'a' && c <= 'z')
+            || (c >= 'A' && c <= 'Z')
+            || (c >= '0' && c <= '9')
+            || "!#$&+-.^_`|~".indexOf(c) >= 0;
+    }
+
+    /**
+     * Converts a filename to a legacy-safe format for use in HTTP headers, ensuring compatibility with older systems.
+     * @param filename The filename to convert.
+     * @return The filename in a legacy-safe format.
+     */
+    private String toLegacySafeFilename(String filename) {
+        if (filename == null || filename.isEmpty())
+            return "download";
+
+        String s = Normalizer.normalize(filename, Normalizer.Form.NFD)
+            .replaceAll("\\p{M}", "")
+            .replaceAll("[^A-Za-z0-9._ -]", "_")
+            .trim()
+            .replaceAll("^[. ]+", "")
+            .replaceAll("[. ]+$", "")
+            .replaceAll("_+", "_");
+
+        if (s.isEmpty())
+            return "download";
+
+        // Windows reserved device names.
+        if (s.matches("(?i)^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\..*)?$"))
+            s = "_" + s;
+
+        return s;
+    }
+
+    /**
+     * Stringifies the Content-Disposition value based on the specified parameters.
+     * @return The stringified Content-Disposition value.
+     */
+    public String stringifyValue() {
+        if (inline)
+            return "inline";
+        if (fileName == null)
+            return "attachment";
+
+        String str = "attachment; filename=\"" + toLegacySafeFilename(fileName) + "\"";
+        if (usingRfc5987)
+            str += "; filename*=" + toRfc5987(fileName);
+        return str;
+    }
+
+    /**
+     * Creates a ContentDisposition instance for inline content.
+     * @return A ContentDisposition instance representing inline content.
+     */
+    public static ContentDisposition inline() {
+        return new ContentDisposition(true, false, null);
+    }
+
+    /**
+     * Creates a ContentDisposition instance for attachment content.
+     * @return A ContentDisposition instance representing attachment content.
+     */
+    public static ContentDisposition attachment() {
+        return new ContentDisposition(false, false, null);
+    }
+
+    /**
+     * Creates a ContentDisposition instance for attachment content with a specified filename.
+     * @param fileName The filename to be used in the Content-Disposition header.
+     * @return A ContentDisposition instance representing attachment content with the specified filename.
+     */
+    public static ContentDisposition attachment(String fileName) {
+        if (fileName == null || fileName.isBlank())
+            throw new IllegalArgumentException("fileName cannot be null or blank");
+
+        return new ContentDisposition(false, false, fileName);
+    }
+
+    /**
+     * Creates a ContentDisposition instance for attachment content with a specified filename using RFC 5987 encoding.
+     * @param fileName The filename to be used in the Content-Disposition header.
+     * @return A ContentDisposition instance representing attachment content with the specified filename and RFC 5987 encoding.
+     */
+    public static ContentDisposition attachmentRfc5987(String fileName) {
+        if (fileName == null || fileName.isBlank())
+            throw new IllegalArgumentException("fileName cannot be null or blank");
+
+        return new ContentDisposition(false, true, fileName);
+    }
+}

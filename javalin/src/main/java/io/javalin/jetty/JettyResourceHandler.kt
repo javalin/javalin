@@ -49,6 +49,7 @@ class JettyResourceHandler : JavalinResourceHandler {
         val (handler, resourcePath) = findHandler(ctx) ?: return false
         try {
             handler.config.headers.forEach { ctx.header(it.key, it.value) }
+            handler.config.contentDispositionFunction?.invoke(ctx.req(), resourcePath)?.let { ctx.header(Header.CONTENT_DISPOSITION, it.stringifyValue()) }
             return if (handler.config.precompressMaxSize > 0) {
                 precompressingHandler.handle(resourcePath, ctx, compressionStrategy, handler)
             } else {
