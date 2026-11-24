@@ -24,10 +24,10 @@ class SslRedirectPlugin(userConfig: Consumer<Config>? = null) : Plugin<SslRedire
                 return@before
             }
 
-            val xForwardedProto = ctx.header(Header.X_FORWARDED_PROTO)
+            val xForwardedProto = ctx.header(Header.X_FORWARDED_PROTO)?.substringBefore(",")?.trim()?.lowercase()
 
             if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
-                val urlWithHttps = ctx.fullUrl().replace("http", "https")
+                val urlWithHttps = "https://" + ctx.fullUrl().substringAfter("://")
 
                 val urlWithHttpsAndPort = state.jettyInternal.server
                     ?.takeIf { pluginConfig.sslPort != null }
