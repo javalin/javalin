@@ -238,14 +238,15 @@ class TestWebSocket {
     @Test
     fun `websocket closeSession() methods`() {
         val scenarios = mapOf(
-            { client: WsTestClient -> client.send("NO_ARGS") } to WsCloseStatus.NORMAL_CLOSURE,
-            { client: WsTestClient -> client.send("STATUS_OBJECT") } to WsCloseStatus.GOING_AWAY,
-            { client: WsTestClient -> client.send("CODE_AND_REASON") } to WsCloseStatus.PROTOCOL_ERROR,
-            { client: WsTestClient -> client.send("CLOSE_STATUS") } to WsCloseStatus.POLICY_VIOLATION,
-            { client: WsTestClient -> client.send("UNEXPECTED") } to WsCloseStatus.UNSUPPORTED_DATA
+            "NO_ARGS" to WsCloseStatus.NORMAL_CLOSURE.code,
+            "STATUS_OBJECT" to WsCloseStatus.GOING_AWAY.code,
+            "CODE_AND_REASON" to WsCloseStatus.PROTOCOL_ERROR.code,
+            "CLOSE_STATUS" to WsCloseStatus.POLICY_VIOLATION.code,
+            "UNEXPECTED" to WsCloseStatus.UNSUPPORTED_DATA.code,
+            "APP_CODE" to 4000,
         )
-
-        scenarios.forEach { (sendAction, closeStatus) ->
+        scenarios.forEach { (message, expectedCode) ->
+            val closeCodes = ConcurrentLinkedQueue<String>()
             TestUtil.test { app, _ ->
                 app.unsafe.routes.ws("/websocket") { ws ->
                     ws.onMessage { ctx ->
@@ -254,17 +255,15 @@ class TestWebSocket {
                             "STATUS_OBJECT" -> ctx.closeSession(WsCloseStatus.GOING_AWAY)
                             "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
                             "CLOSE_STATUS" -> ctx.closeSession(WsCloseStatus.POLICY_VIOLATION)
-                            else -> ctx.closeSession(1003, "UNEXPECTED")
+                            "UNEXPECTED" -> ctx.closeSession(1003, "UNEXPECTED")
+                            "APP_CODE" -> ctx.closeSession(4000, "APP_CODE")
                         }
                     }
-                    ws.onClose { ctx ->
-                        // Check the close status code matches expected
-                        assertThat(ctx.status()).isEqualTo(closeStatus.code)
-                        assertThat(ctx.closeStatus().code).isEqualTo(closeStatus.code)
-                    }
+                    ws.onClose { ctx -> closeCodes.add("$message ${ctx.status()}") }
                 }
-                WsTestClient(app, "/websocket", onOpen = { sendAction(it) }).connectBlocking()
+                awaitCondition(condition = { closeCodes.isNotEmpty() }) { WsTestClient(app, "/websocket", onOpen = { it.send(message) }).connectBlocking() }
             }
+            assertThat(closeCodes).containsExactly("$message $expectedCode")
         }
     }
 
