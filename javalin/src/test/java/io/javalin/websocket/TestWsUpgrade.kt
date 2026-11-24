@@ -6,6 +6,7 @@
 
 package io.javalin.websocket
 
+import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
@@ -64,6 +65,23 @@ class TestWsUpgrade {
         val response = http.wsUpgradeRequest("/ws")
         assertThat(log).containsExactly("exception handled")
         assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN.code)
+    }
+
+    @Test
+    fun `wsBeforeUpgrade can stop an upgrade request with a redirect`() = TestUtil.test { app, http ->
+        val log = ConcurrentLinkedQueue<String>()
+        app.unsafe.routes.wsBeforeUpgrade { it.redirect("/login") }
+        app.unsafe.routes.wsAfterUpgrade { log.add("after") }
+        app.unsafe.routes.ws("/ws") { ws ->
+            ws.onConnect { log.add("connected") }
+        }
+        http.disableUnirestRedirects()
+        val response = http.wsUpgradeRequest("/ws")
+        http.enableUnirestRedirects()
+        WsTestClient(app, "/ws").connectAndDisconnect()
+        assertThat(log).containsExactly("after", "after")
+        assertThat(response.status).isEqualTo(HttpStatus.FOUND.code)
+        assertThat(response.headers.getFirst(Header.LOCATION)).isEqualTo("/login")
     }
 
     @Test

@@ -87,7 +87,7 @@ class JavalinJettyServlet(val cfg: JavalinState) : JettyWebSocketServlet() {
         })
         // add after handlers
         cfg.internalRouter.findHttpHandlerEntries(HandlerType.WEBSOCKET_AFTER_UPGRADE, requestUri)
-            .forEach { handler -> upgradeContext.tasks.offer(Task { handler.handle(upgradeContext, requestUri) }) }
+            .forEach { handler -> upgradeContext.tasks.offer(Task(skipOnExceptionAndRedirect = false) { handler.handle(upgradeContext, requestUri) }) }
 
         try {
             while (upgradeContext.tasks.isNotEmpty()) { // execute all tasks in order
