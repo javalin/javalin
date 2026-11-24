@@ -59,7 +59,10 @@ class ClasspathResource private constructor(
     }
 
     private fun <T> urlConnection(getter: java.net.URLConnection.() -> T): T? = try {
-        url?.openConnection()?.also { it.useCaches = false }?.getter()
+        url?.openConnection()?.let { connection ->
+            connection.useCaches = false
+            try { connection.getter() } finally { try { connection.getInputStream().close() } catch (_: Exception) {} }
+        }
     } catch (e: Exception) { null }
 
     override fun exists(): Boolean = url != null
