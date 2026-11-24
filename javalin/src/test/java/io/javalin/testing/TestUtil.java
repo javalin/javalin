@@ -42,12 +42,14 @@ public class TestUtil {
             app.start(0);
             HttpUtil http = new HttpUtil(app.port());
             userCode.accept(app, http);
-            // Add cookie cleaner route directly to internal router
-            app.unsafe.internalRouter.addHttpEndpoint(
-                Endpoint.create(HandlerType.DELETE, "/x-test-cookie-cleaner")
-                    .handler(ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie))
-            );
-            http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
+            if (!app.jettyServer().server().isStopped()) { // the test may have stopped the app itself
+                // Add cookie cleaner route directly to internal router
+                app.unsafe.internalRouter.addHttpEndpoint(
+                    Endpoint.create(HandlerType.DELETE, "/x-test-cookie-cleaner")
+                        .handler(ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie))
+                );
+                http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
+            }
             app.stop();
         });
         app.unsafe.appData(TestLogsKey, result.logs);
