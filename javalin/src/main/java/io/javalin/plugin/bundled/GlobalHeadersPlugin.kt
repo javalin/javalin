@@ -21,10 +21,21 @@ class GlobalHeadersPlugin(userConfig: Consumer<GlobalHeadersConfig>? = null) : P
 
     override fun onStart(state: JavalinState) {
         state.routes.before { ctx ->
+            ctx.attribute(HEADERS_SET, true)
             pluginConfig.headers.forEach { (name, value) ->
                 ctx.header(name, value)
             }
         }
+        state.routes.after { ctx ->
+            if (ctx.attribute<Boolean>(HEADERS_SET) == true) return@after
+            pluginConfig.headers.forEach { (name, value) ->
+                if (!ctx.res().containsHeader(name)) ctx.header(name, value)
+            }
+        }
+    }
+
+    private companion object {
+        const val HEADERS_SET = "javalin-global-headers-set"
     }
 
 }
