@@ -246,7 +246,8 @@ fun acceptsHtml(ctx: Context) =
     ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true
 
 fun Context.isLocalhost() = try {
-    URI.create(this.url()).toURL().host.let { it == "localhost" || it == "127.0.0.1" }
+    URI.create(this.url()).toURL().host.let { it == "localhost" || it == "127.0.0.1" } &&
+        this.req().remoteAddr.removeSurrounding("[", "]").let { it.startsWith("127.") || it.startsWith("::ffff:127.") || it == "::1" || it == "0:0:0:0:0:0:0:1" }
 } catch (_: Exception) {
     false
 }
