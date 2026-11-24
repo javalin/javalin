@@ -21,7 +21,7 @@ class TlsConfig(
     }
 
     companion object {
-        private const val GUIDELINES_VERSION = "5.7"
+        private const val GUIDELINES_VERSION = "6.0"
 
         /**
          * For modern clients that support TLS 1.3, with no need for backwards compatibility
@@ -43,15 +43,15 @@ class TlsConfig(
         @JvmField
         val INTERMEDIATE = TlsConfig(
             arrayOf(
+                "TLS_AES_128_GCM_SHA256",
+                "TLS_AES_256_GCM_SHA384",
+                "TLS_CHACHA20_POLY1305_SHA256",
                 "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
                 "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
                 "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
                 "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
                 "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256",
-                "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
-                "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
-                "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
-                "TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256"
+                "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256"
             ), arrayOf("TLSv1.3","TLSv1.2")
         )
         @Deprecated("Use TlsConfig.INTERMEDIATE instead", ReplaceWith("TlsConfig.INTERMEDIATE"))
@@ -59,10 +59,16 @@ class TlsConfig(
 
         /**
          * For services accessed by very old clients or libraries, such as Internet Explorer 8 (Windows XP), Java 6, or OpenSSL 0.9.8
+         *
+         * Based on version 5.7 of the guidelines, as the "old" configuration was removed in version 6.0.
          */
+        @Deprecated("The old configuration was removed from Mozilla's guidelines (6.0), use TlsConfig.INTERMEDIATE instead")
         @JvmField
         val OLD = TlsConfig(
             arrayOf(
+                "TLS_AES_128_GCM_SHA256",
+                "TLS_AES_256_GCM_SHA384",
+                "TLS_CHACHA20_POLY1305_SHA256",
                 "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
                 "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
                 "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",

@@ -4,6 +4,7 @@ import io.javalin.community.ssl.certs.Server
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.TlsVersion
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -105,6 +106,29 @@ class TlsConfigTest : IntegrationTestClass() {
                     ).build()
                 ).execute()
             }
+        }
+    }
+
+    @Test
+    fun `test that an Intermediate TLS config allows TLS 1_3 and TLS 1_2`() {
+        val tls12Client = untrustedClientBuilder()
+            .connectionSpecs(listOf(ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS).tlsVersions(TlsVersion.TLS_1_2).build()))
+            .build()
+        val securePort = ports.getAndIncrement()
+        val https = HTTPS_URL_WITH_PORT.apply(securePort)
+        createTestApp { config: SslConfig ->
+            config.insecure = false
+            config.pemFromString(Server.CERTIFICATE_AS_STRING, Server.NON_ENCRYPTED_KEY_AS_STRING)
+            config.securePort = securePort
+            config.tlsConfig = TlsConfig.INTERMEDIATE
+        }.start().let { app ->
+            untrustedClient.newCall(Request.Builder().url(https).build()).execute().use {
+                Assertions.assertEquals(TlsVersion.TLS_1_3, it.handshake?.tlsVersion)
+            }
+            tls12Client.newCall(Request.Builder().url(https).build()).execute().use {
+                Assertions.assertEquals(TlsVersion.TLS_1_2, it.handshake?.tlsVersion)
+            }
+            app.stop()
         }
     }
 
