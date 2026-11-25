@@ -54,7 +54,7 @@ open class Validator<T> internal constructor(internal val params: Params, intern
     }
 
     fun errors(): Map<String, List<ValidationError<T>>> = errors as Map<String, List<ValidationError<T>>>
-    fun hasValue() = !params.stringValue.isNullOrEmpty() || typedValue != null
+    fun hasValue() = !params.stringValue.isNullOrEmpty() || params.typedValue != null || typedValue != null
 
     internal fun addCheck(fieldName: String, check: Check<Any?>, error: ValidationError<Any?>) {
         rules.add(Rule(fieldName, check, error))
