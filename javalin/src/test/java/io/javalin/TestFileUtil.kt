@@ -8,6 +8,7 @@ package io.javalin
 
 import io.javalin.util.FileUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatIOException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -15,6 +16,51 @@ import java.nio.file.Path
 import java.util.UUID
 
 class TestFileUtil {
+
+    @Test
+    fun `streamToFile closes input when destination creation fails`(@TempDir directory: Path) {
+        val source = directory.resolve("source.txt").toFile().apply { writeText("contents") }
+        val blockedParent = directory.resolve("not-a-directory").toFile().apply { writeText("blocked") }
+        val input = source.inputStream()
+        try {
+            assertThatIOException().isThrownBy {
+                FileUtil.streamToFile(input, File(blockedParent, "upload.txt").path)
+            }
+            assertThat(input.channel.isOpen).isFalse()
+        } finally {
+            input.close()
+        }
+    }
+
+    @Test
+    fun `streamToFile closes input after successful copy`(@TempDir directory: Path) {
+        val source = directory.resolve("source.txt").toFile().apply { writeText("contents") }
+        val target = directory.resolve("target.txt").toFile()
+        val input = source.inputStream()
+        try {
+            FileUtil.streamToFile(input, target.path)
+            assertThat(target.readText()).isEqualTo("contents")
+            assertThat(input.channel.isOpen).isFalse()
+        } finally {
+            input.close()
+        }
+    }
+
+    @Test
+    fun `streamToFile closes input when copy fails`(@TempDir directory: Path) {
+        val source = directory.resolve("source.txt").toFile().apply { writeText("contents") }
+        val target = directory.resolve("non-empty-directory").toFile().apply { mkdir() }
+        File(target, "child.txt").writeText("keep")
+        val input = source.inputStream()
+        try {
+            assertThatIOException().isThrownBy {
+                FileUtil.streamToFile(input, target.path)
+            }
+            assertThat(input.channel.isOpen).isFalse()
+        } finally {
+            input.close()
+        }
+    }
 
     @Test
     fun `streamToFile accepts a filename without a parent directory`() {
