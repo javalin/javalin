@@ -16,6 +16,7 @@ import io.javalin.http.bodyValidator
 import io.javalin.http.formParamAsClass
 import io.javalin.http.pathParamAsClass
 import io.javalin.http.queryParamAsClass
+import io.javalin.http.queryParamsAsClass
 import io.javalin.json.JavalinJackson
 import io.javalin.json.toJsonString
 import io.javalin.testing.SerializableObject
@@ -132,6 +133,47 @@ class TestValidation {
         }
         assertThat(http.get("/").body).isEqualTo("false")
         assertThat(http.get("/?my-qp=").body).isEqualTo("false")
+    }
+
+    @Test
+    fun `hasValue recognizes a supplied query parameter list before get`() = TestUtil.test { app, http ->
+        app.unsafe.routes.get("/") { ctx ->
+            val validator = ctx.queryParamsAsClass<Int>("id")
+            val hasValueBeforeGet = validator.hasValue()
+            ctx.result("$hasValueBeforeGet|${validator.get()}|${validator.hasValue()}")
+        }
+        val response = http.get("/?id=1&id=2")
+        assertThat(response.httpCode()).isEqualTo(OK)
+        assertThat(response.body).isEqualTo("true|[1, 2]|true")
+        assertThat(http.getBody("/")).isEqualTo("true|[]|true")
+    }
+
+    @Test
+    fun `hasValue does not run checks or cache validation`() {
+        var checksRun = 0
+        val validator = Validation().validator("id", listOf(1, 2)).required()
+            .check({ checksRun++; true }, "initial check")
+
+        assertThat(validator.hasValue()).isTrue()
+        assertThat(checksRun).isZero()
+
+        validator.check({ false }, "added after hasValue")
+        assertThat(validator.errors()["id"]!!.map { it.message }).containsExactly("added after hasValue")
+        assertThat(checksRun).isEqualTo(1)
+    }
+
+    @Test
+    fun `hasValue does not convert the value`() {
+        var conversions = 0
+        val config = ValidationConfig().apply {
+            register(Int::class.java) { conversions++; it.toInt() }
+        }
+        val validator = Validation(config).validator("id", Int::class.java, "1")
+
+        assertThat(validator.hasValue()).isTrue()
+        assertThat(conversions).isZero()
+        assertThat(validator.get()).isEqualTo(1)
+        assertThat(conversions).isEqualTo(1)
     }
 
     @Test
@@ -472,6 +514,9 @@ class TestValidation {
         val validator = Validation().validator<KeyValuePair>("kvp", null)
         validator.check({ it?.key == "key" }, "unexpected key")
         validator.check({ it?.value == "value" }, "unexpected value")
+        assertThat(validator.hasValue()).isFalse()
+        assertThat(validator.getOrNull()).isNull()
+        assertThat(validator.hasValue()).isFalse()
     }
 
     @Test
