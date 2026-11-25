@@ -2,8 +2,10 @@ package io.javalin.http.util
 
 import io.javalin.http.Context
 import io.javalin.http.HandlerType.GET
+import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.NOT_MODIFIED
+import io.javalin.http.HttpStatus.OK
 import io.javalin.util.Util
 import java.io.ByteArrayInputStream
 import java.io.InputStream
@@ -14,8 +16,10 @@ object ETagGenerator {
     fun tryWriteEtagAndClose(generatorEnabled: Boolean, ctx: Context, resultStream: InputStream): Boolean {
         val serverEtag = ctx.res().getHeader(Header.ETAG)
         val clientEtag = ctx.req().getHeader(Header.IF_NONE_MATCH)
+        // RFC 9110 section 15.4.5: 304 replaces a 200 response to GET/HEAD, not errors or redirects.
+        val canReturnNotModified = ctx.statusCode() == OK.code && (ctx.method() == GET || ctx.method() == HEAD)
 
-        if (serverEtag != null && serverEtag == clientEtag) {
+        if (canReturnNotModified && serverEtag != null && serverEtag == clientEtag) {
             ctx.closeWith304(resultStream) // client etag matches, nothing to write)
             return true
         }
@@ -24,7 +28,7 @@ object ETagGenerator {
             val generatedEtag = Util.checksumAndReset(resultStream)
             ctx.header(Header.ETAG, generatedEtag)
 
-            if (generatedEtag == clientEtag) {
+            if (canReturnNotModified && generatedEtag == clientEtag) {
                 ctx.closeWith304(resultStream)
                 return true
             }
