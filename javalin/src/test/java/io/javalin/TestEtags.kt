@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
@@ -15,6 +16,8 @@ import io.javalin.testing.httpCode
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 class TestEtags {
 
@@ -70,6 +73,9 @@ class TestEtags {
         assertThat(response2.httpCode()).isEqualTo(NOT_MODIFIED)
         assertThat(response2.body).isNullOrEmpty()
         assertThat(etag).isEqualTo("1234")
+        val nonmatching = Unirest.get(http.origin + "/manual").header(Header.IF_NONE_MATCH, "other").asString()
+        assertThat(nonmatching.httpCode()).isEqualTo(OK)
+        assertThat(nonmatching.body).isEqualTo("Hello!")
     }
 
     @Test
@@ -77,6 +83,73 @@ class TestEtags {
         app.unsafe.routes.put("/manual") { it.result("Hello!").header(Header.ETAG, "1234") }
         val response = Unirest.put(http.origin + "/manual").asString()
         assertThat(response.headers.getFirst(Header.ETAG)).isEqualTo("1234")
+    }
+
+    @Test
+    fun `manual etags work for conditional HEAD requests`() = TestUtil.test { app, http ->
+        val etag = "\"head-v1\""
+        app.unsafe.routes.head("/manual") { it.header(Header.ETAG, etag).result("Hello!") }
+        val matching = Unirest.head(http.origin + "/manual").header(Header.IF_NONE_MATCH, etag).asString()
+        assertThat(matching.httpCode()).isEqualTo(NOT_MODIFIED)
+        assertThat(matching.headers.getFirst(Header.ETAG)).isEqualTo(etag)
+        assertThat(matching.body).isNullOrEmpty()
+        val nonmatching = Unirest.head(http.origin + "/manual").header(Header.IF_NONE_MATCH, "other").asString()
+        assertThat(nonmatching.httpCode()).isEqualTo(OK)
+        assertThat(nonmatching.body).isNullOrEmpty()
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `matching etags preserve error responses`(generateEtags: Boolean) = TestUtil.test(Javalin.create { it.http.generateEtags = generateEtags }) { app, http ->
+        app.unsafe.routes.get("/missing") { ctx ->
+            if (!generateEtags) ctx.header(Header.ETAG, "\"missing-v1\"")
+            ctx.status(404)
+        }
+        app.unsafe.routes.error(404) { it.result("missing") }
+        val ordinary = http.get("/missing")
+        assertThat(ordinary.status).isEqualTo(404)
+        assertThat(ordinary.body).isEqualTo("missing")
+        val etag = ordinary.headers.getFirst(Header.ETAG)
+        assertThat(etag).isNotBlank()
+        val conditional = http.get("/missing", mapOf(Header.IF_NONE_MATCH to etag))
+        assertThat(conditional.status).isEqualTo(404)
+        assertThat(conditional.body).isEqualTo("missing")
+        assertThat(conditional.headers.getFirst(Header.ETAG)).isEqualTo(etag)
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [301, 302, 303, 307, 308])
+    fun `matching etags preserve redirects`(status: Int) = TestUtil.test { app, http ->
+        val etag = "\"redirect-v1\""
+        app.unsafe.routes.get("/redirect") { it.header(Header.ETAG, etag).redirect("/target", HttpStatus.forStatus(status)) }
+        Unirest.spawnInstance().use { client ->
+            client.config().followRedirects(false)
+            val response = client.get(http.origin + "/redirect").header(Header.IF_NONE_MATCH, etag).asString()
+            assertThat(response.status).isEqualTo(status)
+            assertThat(response.headers.getFirst(Header.LOCATION)).isEqualTo("/target")
+            assertThat(response.body).isEqualTo("Redirected")
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [201, 204, 412])
+    fun `matching etags preserve other response statuses`(status: Int) = TestUtil.test { app, http ->
+        val etag = "\"response-v1\""
+        val body = if (status == 204) "" else "response"
+        app.unsafe.routes.get("/") { it.header(Header.ETAG, etag).status(status).result(body) }
+        val response = http.get("/", mapOf(Header.IF_NONE_MATCH to etag))
+        assertThat(response.status).isEqualTo(status)
+        assertThat(response.headers.getFirst(Header.ETAG)).isEqualTo(etag)
+        assertThat(response.body).isEqualTo(body)
+    }
+
+    @Test
+    fun `If-None-Match is ignored for OPTIONS`() = TestUtil.test { app, http ->
+        val etag = "\"options-v1\""
+        app.unsafe.routes.options("/") { it.header(Header.ETAG, etag).result("options") }
+        val response = Unirest.options(http.origin + "/").header(Header.IF_NONE_MATCH, etag).asString()
+        assertThat(response.httpCode()).isEqualTo(OK)
+        assertThat(response.body).isEqualTo("options")
     }
 
 }
