@@ -1,5 +1,6 @@
 package io.javalin.plugin.bundled
 
+import io.javalin.config.JavalinState
 import io.javalin.http.Context
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
@@ -16,6 +17,10 @@ class RateLimitPlugin(userConfig: Consumer<Config>? = null) : ContextPlugin<Rate
 
     private val limiters = ConcurrentHashMap<TimeUnit, RateLimiter>()
     private val executor: ScheduledExecutorService = ConcurrencyUtil.newSingleThreadScheduledExecutor(pluginConfig.executorName)
+
+    override fun onInitialize(state: JavalinState) {
+        state.registerOwnedExecutor(executor)
+    }
 
     override fun createExtension(context: Context): Extension = Extension(context)
 
