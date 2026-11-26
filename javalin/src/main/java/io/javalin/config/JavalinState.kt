@@ -33,6 +33,8 @@ import io.javalin.validation.Validation.Companion.ValidationKey
 import io.javalin.validation.Validation.Companion.addValidationExceptionMapper
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsRouter
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
 import java.util.function.Consumer
 
 /**
@@ -65,7 +67,7 @@ class JavalinState {
 
     // MISC SETTINGS - General application-level settings
     @JvmField val startup = StartupConfig()
-    @JvmField val concurrency = ConcurrencyConfig()
+    @JvmField val concurrency = ConcurrencyConfig(this)
 
     // INTERNAL CONFIG API
     @JvmField val eventManager = EventManager()
@@ -80,6 +82,7 @@ class JavalinState {
     @JvmField var singlePageHandler = SinglePageHandler()
     @JvmField var servlet: Lazy<ServletEntry> = javalinLazy { createJettyServletWithWebsocketsIfAvailable(this) ?: ServletEntry(servlet = JavalinServlet(this)) }
     @JvmField var jettyInternal = JettyInternalConfig()
+    private val ownedExecutors = ConcurrentHashMap.newKeySet<ExecutorService>()
     @JvmField var servletRequestLifecycle = mutableListOf(
         DefaultTasks.BEFORE,
         DefaultTasks.BEFORE_MATCHED,
@@ -97,6 +100,11 @@ class JavalinState {
     fun fileRenderer(fileRenderer: FileRenderer) = appData(FileRendererKey, fileRenderer)
     fun <CFG> registerPlugin(plugin: Plugin<CFG>): Plugin<CFG> = plugin.also { pluginManager.register(plugin) }
     fun <T : Any?> appData(key: Key<T>, value: T) = appDataManager.register(key, value)
+    internal fun <T : ExecutorService> registerOwnedExecutor(executor: T): T = executor.also { ownedExecutors.add(it) }
+    internal fun shutdownOwnedExecutors() {
+        ownedExecutors.forEach { it.shutdownNow() }
+        ownedExecutors.clear()
+    }
 
     companion object {
         @JvmStatic
