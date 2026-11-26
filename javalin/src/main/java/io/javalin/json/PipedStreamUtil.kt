@@ -15,7 +15,10 @@ class PipedStreamExecutor(useVirtualThreads: Boolean) {
         val pipedOutputStream = PipedOutputStream()
         val pipedInputStream = object : PipedInputStream(pipedOutputStream) {
             var exception: Exception? = null // possible exception from child thread
-            override fun close() = exception?.let { throw it } ?: super.close()
+            override fun close() {
+                super.close()
+                exception?.let { throw it }
+            }
         }
         executorService.execute { // start child thread, necessary to prevent deadlock
             try {
