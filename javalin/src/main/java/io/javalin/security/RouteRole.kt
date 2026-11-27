@@ -4,13 +4,13 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.security;
+package io.javalin.security
 
 import io.javalin.router.EndpointMetadata
 
 /**
  * Marker interface for roles used in route declarations.
- * See {@link Context#routeRoles()}.
+ * @see io.javalin.http.Context.routeRoles
  */
 interface RouteRole
 

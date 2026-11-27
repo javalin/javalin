@@ -133,16 +133,16 @@ object RouteOverviewUtil {
                         }
                 }
                 ${
-            wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
+            wsHandlerInfo.joinToString("") {
                 """
-                    <tr class="method $wsHandlerType">
-                        <td>$wsHandlerType</span></td>
-                        <td>$path</td>
-                        <td><b>${handler.metaInfo}</b></td>
-                        <td>$roles</td>
+                    <tr class="method ${it.type}">
+                        <td>${it.type}</span></td>
+                        <td>${it.path}</td>
+                        <td><b>${it.wsConfig.metaInfo}</b></td>
+                        <td>${it.roles}</td>
                     </tr>
                     """
-            }.joinToString("")
+            }
         }
             </table>
             <script>
@@ -185,16 +185,16 @@ object RouteOverviewUtil {
                 ],
                 "wsHandlers": [
                 ${
-            wsHandlerInfo.map { (wsHandlerType, path, wsConfig, roles) ->
+            wsHandlerInfo.joinToString(",") {
                 """
                     {
-                        "path": "$path",
-                        "handlerType": "$wsHandlerType",
-                        "metaInfo": "${wsConfig.metaInfo}",
-                        "roles": "$roles"
+                        "path": "${it.path}",
+                        "handlerType": "${it.type}",
+                        "metaInfo": "${it.wsConfig.metaInfo}",
+                        "roles": "${it.roles}"
                     }
                     """
-            }.joinToString(",")
+            }
         }
                 ]
             }
